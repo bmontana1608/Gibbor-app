@@ -19,6 +19,7 @@ export default function PizarraTactica() {
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [isPortrait, setIsPortrait] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
+  const [fullScreen, setFullScreen] = useState(false);
 
   const [jugadores, setJugadores] = useState<any[]>([]);
 
@@ -267,45 +268,65 @@ export default function PizarraTactica() {
   };
 
   return (
-    <div className="h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none">
+    <div className={`h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none ${fullScreen ? 'fixed inset-0 z-[100]' : ''}`}>
       
-      <div className="bg-slate-800 border-b border-white/10 p-2 lg:p-4 flex items-center justify-between shadow-2xl z-20 gap-2">
-        <div className="flex items-center gap-2 lg:gap-4 min-w-0">
-          <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-1.5 lg:p-2 hover:bg-slate-700 rounded-xl transition-colors shrink-0">
-            <ArrowLeft className="w-5 h-5 text-slate-400" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-[10px] lg:text-sm font-black uppercase tracking-widest text-emerald-400 truncate">Pizarra Táctica</h1>
-            <p className="text-[8px] lg:text-[10px] font-bold text-slate-400 hidden sm:block">MULTI-CAPA</p>
+      {!fullScreen && (
+        <div className="bg-slate-800 border-b border-white/10 p-2 lg:p-4 flex items-center justify-between shadow-2xl z-20 gap-2">
+          <div className="flex items-center gap-2 lg:gap-4 min-w-0">
+            <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-1.5 lg:p-2 hover:bg-slate-700 rounded-xl transition-colors shrink-0">
+              <ArrowLeft className="w-5 h-5 text-slate-400" />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-[10px] lg:text-sm font-black uppercase tracking-widest text-emerald-400 truncate">Pizarra Táctica</h1>
+              <p className="text-[8px] lg:text-[10px] font-bold text-slate-400 hidden sm:block">MULTI-CAPA</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 lg:gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5 shrink-0">
+             <button onClick={() => setTool('pen')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+             <button onClick={() => setTool('eraser')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+             <div className="w-px h-5 bg-white/10 mx-0.5"></div>
+             <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-2 lg:p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
+                <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
+             </button>
+             <button onClick={clearCanvas} title="Limpiar dibujos" className="p-2 lg:p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex gap-1 lg:gap-2">
+              {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
+                  <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 transition-all ${color === c ? 'scale-110 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
+              ))}
+            </div>
+            <button onClick={() => setFullScreen(true)} className="lg:hidden p-2.5 bg-slate-700 rounded-xl text-white"><Layers className="w-4 h-4" /></button>
+            <button onClick={guardarCaptura} title="Guardar Imagen" className="bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 lg:px-5 lg:py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
+              <Save className="w-4 h-4" /> <span className="hidden lg:inline">GUARDAR IMAGEN</span>
+            </button>
           </div>
         </div>
+      )}
 
-        <div className="flex items-center gap-1 lg:gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5 shrink-0">
-           <button onClick={() => setTool('pen')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-           <button onClick={() => setTool('eraser')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-           <div className="w-px h-5 bg-white/10 mx-0.5"></div>
-           <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-2 lg:p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
-              <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
-           </button>
-           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-2 lg:p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex gap-1 lg:gap-2">
-            {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
-                <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 transition-all ${color === c ? 'scale-110 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
-            ))}
-          </div>
-          <button onClick={guardarCaptura} title="Guardar Imagen" className="bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 lg:px-5 lg:py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
-            <Save className="w-4 h-4" /> <span className="hidden lg:inline">GUARDAR IMAGEN</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 relative flex items-center justify-center bg-slate-950 p-4" 
+      <div className={`flex-1 relative flex items-center justify-center bg-slate-950 ${fullScreen ? 'p-0' : 'p-4'}`} 
         onMouseMove={onDragMove} onMouseUp={stopDragging} onMouseLeave={stopDragging}
         onTouchMove={(e) => { e.preventDefault(); onDragMove(e); }} onTouchEnd={stopDragging}
       >
+        
+        {fullScreen && (
+          <div className="fixed top-4 right-4 z-[110] flex flex-col gap-2">
+              <button onClick={() => setFullScreen(false)} className="bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-white shadow-2xl">
+                <X className="w-6 h-6" />
+              </button>
+              <div className="bg-slate-800/80 backdrop-blur-md p-2 rounded-2xl border border-white/20 flex flex-col gap-3 shadow-2xl">
+                <button onClick={() => setTool('pen')} className={`p-2 rounded-xl ${tool === 'pen' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}><Pen className="w-5 h-5" /></button>
+                <button onClick={() => setTool('eraser')} className={`p-2 rounded-xl ${tool === 'eraser' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}><Eraser className="w-5 h-5" /></button>
+                <button onClick={undo} className="p-2 text-slate-400"><Undo2 className="w-5 h-5" /></button>
+                <div className="w-full h-px bg-white/10"></div>
+                {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
+                  <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c }}></button>
+                ))}
+              </div>
+          </div>
+        )}
         
         <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-4 shadow-2xl z-30">
            <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest mb-1">Equipos</div>
@@ -316,7 +337,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className="pizarra-container relative mx-auto aspect-[3/2] w-full max-w-[calc(1.5*(100vh-100px))] lg:max-w-5xl bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+        <div ref={containerRef} className={`pizarra-container relative mx-auto aspect-[3/2] ${fullScreen ? 'w-screen h-[calc(screen*2/3)] max-h-screen' : 'w-full max-w-[calc(1.5*(100vh-100px))] lg:max-w-5xl'} bg-emerald-600 rounded-[10px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[4px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500`}>
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
