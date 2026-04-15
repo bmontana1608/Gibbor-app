@@ -1,0 +1,312 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { 
+  ArrowLeft, Trash2, Save, Eraser, Pen, Circle, 
+  Download, RefreshCw, Layers, Users as UsersIcon, X
+} from 'lucide-react';
+import { toast } from 'sonner';
+
+export default function PizarraTactica() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasFondoRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [color, setColor] = useState('#ffffff');
+  const [lineWidth, setLineWidth] = useState(3);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
+  const [isPortrait, setIsPortrait] = useState(false);
+
+  const [jugadores, setJugadores] = useState<any[]>([]);
+
+  useEffect(() => {
+    inicializarPizzara();
+    
+    // Check orientation
+    const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    
+    const initialPlayers = [];
+    for(let i=1; i<=11; i++) initialPlayers.push({ id: `R-${i}`, x: 50, y: 50 + (i*40), color: '#ef4444', label: `${i}` });
+    for(let i=1; i<=11; i++) initialPlayers.push({ id: `B-${i}`, x: 120, y: 50 + (i*40), color: '#3b82f6', label: `${i}` });
+    setJugadores(initialPlayers);
+  }, []);
+
+  const inicializarPizzara = () => {
+    const canvas = canvasRef.current;
+    const canvasFondo = canvasFondoRef.current;
+    if (!canvas || !canvasFondo) return;
+    
+    // Ajustar tamaños
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    canvasFondo.width = canvasFondo.offsetWidth;
+    canvasFondo.height = canvasFondo.offsetHeight;
+    
+    const ctxFondo = canvasFondo.getContext('2d');
+    if (ctxFondo) dibujarCampo(ctxFondo, canvasFondo.width, canvasFondo.height);
+  };
+
+  const dibujarCampo = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 3;
+    
+    ctx.strokeRect(20, 20, w - 40, h - 40);
+    ctx.beginPath(); ctx.moveTo(w / 2, 20); ctx.lineTo(w / 2, h - 20); ctx.stroke();
+    ctx.beginPath(); ctx.arc(w / 2, h / 2, 70, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeRect(20, h/2 - 140, 120, 280);
+    ctx.strokeRect(20, h/2 - 70, 45, 140);
+    ctx.strokeRect(w - 140, h/2 - 140, 120, 280);
+    ctx.strokeRect(w - 65, h/2 - 70, 45, 140);
+  };
+
+  const obtenerCoordenadas = (e: any) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    
+    // Coordenadas raw relativas al rect
+    let rx = e.clientX - rect.left;
+    let ry = e.clientY - rect.top;
+
+    if (isPortrait && window.innerWidth < 1024) {
+        // Si hay rotación CSS de 90deg:
+        // El eje X del mouse ahora es el eje Y negativo de la cancha ?
+        // Depende de cómo aplique el transform origin.
+        // Por defecto es center. 
+        // Es más seguro usar OFFSET relativo al elemento si no estuviera rotado.
+        // Pero como está rotado, invertimos:
+        const xPerc = rx / rect.width;
+        const yPerc = ry / rect.height;
+        
+        // Mapeo 90deg CW: 
+        // originalX = yPerc * canvas.width
+        // originalY = (1 - xPerc) * canvas.height
+        return {
+            x: yPerc * canvas.width,
+            y: (1 - xPerc) * canvas.height
+        };
+    }
+    
+    return { x: rx, y: ry };
+  };
+
+  const startDrawing = (e: any) => {
+    const coords = obtenerCoordenadas(e);
+    
+    const ctx = canvasRef.current?.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.beginPath();
+    ctx.moveTo(coords.x, coords.y);
+    
+    if (tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = 30;
+    } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+    }
+    
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    setIsDrawing(true);
+  };
+
+  const draw = (e: any) => {
+    if (!isDrawing) return;
+    const coords = obtenerCoordenadas(e);
+    const ctx = canvasRef.current?.getContext('2d');
+    if (ctx) { ctx.lineTo(coords.x, coords.y); ctx.stroke(); }
+  };
+
+  const stopDrawing = () => setIsDrawing(false);
+
+  const clearCanvas = () => {
+    if (!window.confirm("¿Limpiar todos los dibujos? (La cancha se mantendrá)")) return;
+    const canvas = canvasRef.current;
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
+  const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
+  const startDragging = (id: string) => () => setDraggedPlayerId(id);
+
+  const onDragMove = (e: any) => {
+    if (!draggedPlayerId) return;
+    const coords = obtenerCoordenadas(e);
+    setJugadores(prev => prev.map(p => p.id === draggedPlayerId ? { ...p, x: coords.x, y: coords.y } : p));
+  };
+
+  const stopDragging = () => setDraggedPlayerId(null);
+
+  const guardarCaptura = async () => {
+    const canvas = canvasRef.current;
+    const canvasFondo = canvasFondoRef.current;
+    if (!canvas || !canvasFondo) return;
+    
+    const toastId = toast.loading("Generando imagen final...");
+    
+    // Crear un canvas temporal para combinar fondo verde, líneas y dibujos
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = canvas.width;
+    finalCanvas.height = canvas.height;
+    const fctx = finalCanvas.getContext('2d');
+    if (fctx) {
+        // 1. Fondo verde
+        fctx.fillStyle = '#10b981';
+        fctx.fillRect(0,0, finalCanvas.width, finalCanvas.height);
+        // 2. Dibujar fondo (líneas)
+        fctx.drawImage(canvasFondo, 0, 0);
+        // 3. Dibujar dibujos del profesor
+        fctx.drawImage(canvas, 0, 0);
+        
+        // 4. Dibujar jugadores (circles)
+        jugadores.forEach(p => {
+            fctx.beginPath();
+            fctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+            fctx.fillStyle = p.color;
+            fctx.fill();
+            fctx.strokeStyle = '#ffffff';
+            fctx.lineWidth = 2;
+            fctx.stroke();
+            fctx.fillStyle = '#ffffff';
+            fctx.font = 'bold 12px Arial';
+            fctx.textAlign = 'center';
+            fctx.textBaseline = 'middle';
+            fctx.fillText(p.label, p.x, p.y);
+        });
+    }
+    
+    const dataURL = finalCanvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.download = `estrategia-gibbor-${new Date().getTime()}.png`;
+    link.href = dataURL;
+    link.click();
+    
+    toast.success("Estrategia guardada con jugadores!", { id: toastId });
+  };
+
+  return (
+    <div className="h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none">
+      
+      <div className="bg-slate-800 border-b border-white/10 p-4 flex items-center justify-between shadow-2xl z-20">
+        <div className="flex items-center gap-4">
+          <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-2 hover:bg-slate-700 rounded-xl transition-colors">
+            <ArrowLeft className="w-5 h-5 text-slate-400" />
+          </button>
+          <div>
+            <h1 className="text-sm font-black uppercase tracking-widest text-emerald-400">Pizarra Táctica Pro</h1>
+            <p className="text-[10px] font-bold text-slate-400">MODO MULTI-CAPA ACTIVO</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 bg-slate-900/50 p-1.5 rounded-2xl border border-white/5">
+           <button onClick={() => setTool('pen')} className={`p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-5 h-5" /></button>
+           <button onClick={() => setTool('eraser')} className={`p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-5 h-5" /></button>
+           <div className="w-px h-6 bg-white/10 mx-1"></div>
+           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-3 text-slate-500 hover:text-red-400 rounded-xl"><RefreshCw className="w-5 h-5" /></button>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            {['#ffffff', '#ef4444', '#3b82f6', '#facc15'].map(c => (
+                <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'scale-125 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
+            ))}
+          </div>
+          <button onClick={guardarCaptura} className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
+            <Save className="w-4 h-4" /> GUARDAR IMAGEN
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 relative flex items-center justify-center bg-slate-950 p-4" onMouseMove={onDragMove} onMouseUp={stopDragging} onMouseLeave={stopDragging}>
+        
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-4 shadow-2xl z-30">
+           <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest mb-1">Equipos</div>
+           <div className="flex flex-col gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white/20 shadow-lg shadow-red-900/20"></div>
+              <div className="w-10 h-10 rounded-full bg-blue-600 border-2 border-white/20 shadow-lg shadow-blue-900/20"></div>
+           </div>
+        </div>
+
+        {/* Cancha */}
+        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] bg-emerald-600 rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+          
+          {/* Capa 1: Cancha (Inmune a borrador) */}
+          <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
+          
+          {/* Capa 2: Dibujos (Transparente) */}
+          <canvas 
+            ref={canvasRef} 
+            onMouseDown={startDrawing}
+            onMouseMove={draw}
+            onMouseUp={stopDrawing}
+            onMouseLeave={stopDrawing}
+            className="absolute inset-0 w-full h-full z-10"
+          />
+          
+          {/* Capa 3: Jugadores Draggables */}
+          {jugadores.map((p) => (
+             <div 
+               key={p.id}
+               onMouseDown={startDragging(p.id)}
+               className="absolute w-8 h-8 md:w-11 md:h-11 rounded-full border-2 border-white shadow-2xl flex items-center justify-center font-black text-xs md:text-sm cursor-grab active:cursor-grabbing transition-transform hover:scale-110"
+               style={{ 
+                 backgroundColor: p.color, 
+                 left: p.x, 
+                 top: p.y, 
+                 transform: 'translate(-50%, -50%)',
+                 zIndex: draggedPlayerId === p.id ? 100 : 50
+               }}
+             >
+               {p.label}
+             </div>
+          ))}
+        </div>
+
+        <div className="absolute bottom-6 left-10 text-slate-500 text-[10px] font-bold uppercase flex gap-4">
+            <span className="text-emerald-500">? Tip:</span> El borrador ya no afecta las líneas del campo.
+        </div>
+      </div>
+
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 1024px) and (orientation: portrait) {
+          .pizarra-container {
+            transform: rotate(90deg);
+            width: 90vh !important;
+            height: 90vw !important;
+            max-width: none !important;
+          }
+          .mobile-rotate-hint {
+            display: flex !important;
+          }
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+      `}} />
+      
+      {/* Aviso de Rotación en Móvil */}
+      <div className="mobile-rotate-hint hidden fixed inset-0 bg-slate-900/95 z-[200] flex-col items-center justify-center p-8 text-center pointer-events-none md:hidden">
+         <div className="bg-emerald-500/10 p-8 rounded-[40px] border border-emerald-500/20 mb-6 backdrop-blur-md">
+            <RefreshCw className="w-12 h-12 text-emerald-500 animate-spin-slow mb-4 mx-auto" />
+            <h2 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">Pizarra Inteligente</h2>
+            <p className="text-slate-400 text-sm max-w-[200px] mx-auto">Gira tu teléfono para planificar con más espacio o usa la vista vertical.</p>
+         </div>
+      </div>
+
+    </div>
+  );
+}
