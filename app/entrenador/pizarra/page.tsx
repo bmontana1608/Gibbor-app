@@ -108,9 +108,16 @@ export default function PizarraTactica() {
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     
-    // Coordenadas raw relativas al rect
-    let rx = e.clientX - rect.left;
-    let ry = e.clientY - rect.top;
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+
+    let rx = clientX - rect.left;
+    let ry = clientY - rect.top;
 
     if (isPortrait && window.innerWidth < 1024) {
         // Si hay rotación CSS de 90deg:
@@ -233,16 +240,17 @@ export default function PizarraTactica() {
         fctx.drawImage(canvas, 0, 0);
         
         // 4. Dibujar jugadores (circles)
+        const playerRadius = finalCanvas.width / 60;
         jugadores.forEach(p => {
             fctx.beginPath();
-            fctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+            fctx.arc(p.x, p.y, playerRadius, 0, Math.PI * 2);
             fctx.fillStyle = p.color;
             fctx.fill();
             fctx.strokeStyle = '#ffffff';
-            fctx.lineWidth = 2;
+            fctx.lineWidth = 1;
             fctx.stroke();
             fctx.fillStyle = '#ffffff';
-            fctx.font = 'bold 12px Arial';
+            fctx.font = `bold ${playerRadius * 0.8}px Arial`;
             fctx.textAlign = 'center';
             fctx.textBaseline = 'middle';
             fctx.fillText(p.label, p.x, p.y);
@@ -294,7 +302,10 @@ export default function PizarraTactica() {
         </div>
       </div>
 
-      <div className="flex-1 relative flex items-center justify-center bg-slate-950 p-4" onMouseMove={onDragMove} onMouseUp={stopDragging} onMouseLeave={stopDragging}>
+      <div className="flex-1 relative flex items-center justify-center bg-slate-950 p-4" 
+        onMouseMove={onDragMove} onMouseUp={stopDragging} onMouseLeave={stopDragging}
+        onTouchMove={(e) => { e.preventDefault(); onDragMove(e); }} onTouchEnd={stopDragging}
+      >
         
         <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-4 shadow-2xl z-30">
            <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest mb-1">Equipos</div>
@@ -317,6 +328,9 @@ export default function PizarraTactica() {
             onMouseMove={draw}
             onMouseUp={stopDrawing}
             onMouseLeave={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={(e) => { e.preventDefault(); draw(e); }}
+            onTouchEnd={stopDrawing}
             className="absolute inset-0 w-full h-full z-10"
           />
           
@@ -325,7 +339,8 @@ export default function PizarraTactica() {
              <div 
                key={p.id}
                onMouseDown={startDragging(p.id)}
-               className="absolute w-8 h-8 md:w-11 md:h-11 rounded-full border-2 border-white shadow-2xl flex items-center justify-center font-black text-xs md:text-sm cursor-grab active:cursor-grabbing transition-transform hover:scale-110"
+               onTouchStart={startDragging(p.id)}
+               className="absolute w-5 h-5 lg:w-11 lg:h-11 rounded-full border border-white shadow-2xl flex items-center justify-center font-black text-[8px] lg:text-sm cursor-grab active:cursor-grabbing transition-transform hover:scale-110"
                style={{ 
                  backgroundColor: p.color, 
                  left: p.x, 
