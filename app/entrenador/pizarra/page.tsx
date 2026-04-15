@@ -20,8 +20,13 @@ export default function PizarraTactica() {
   const [isPortrait, setIsPortrait] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [fullScreen, setFullScreen] = useState(false);
+  const [showFloatingTools, setShowFloatingTools] = useState(false);
 
   const [jugadores, setJugadores] = useState<any[]>([]);
+
+  useEffect(() => {
+    inicializarPizzara();
+  }, [fullScreen]);
 
   useEffect(() => {
     inicializarPizzara();
@@ -117,8 +122,12 @@ export default function PizarraTactica() {
       clientY = e.touches[0].clientY;
     }
 
-    let rx = clientX - rect.left;
-    let ry = clientY - rect.top;
+    // Coordenadas relativas al elemento visible, ajustadas al tamaño interno del canvas
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    let rx = (clientX - rect.left) * scaleX;
+    let ry = (clientY - rect.top) * scaleY;
 
     if (isPortrait && window.innerWidth < 1024) {
         // Si hay rotación CSS de 90deg:
@@ -312,19 +321,30 @@ export default function PizarraTactica() {
       >
         
         {fullScreen && (
-          <div className="fixed top-4 right-4 z-[110] flex flex-col gap-2">
-              <button onClick={() => setFullScreen(false)} className="bg-slate-800/80 backdrop-blur-md p-3 rounded-2xl border border-white/20 text-white shadow-2xl">
-                <X className="w-6 h-6" />
+          <div className="fixed top-4 right-4 z-[110] flex flex-col items-end gap-2">
+              <button 
+                onClick={() => setShowFloatingTools(!showFloatingTools)} 
+                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all ${showFloatingTools ? 'bg-orange-500 scale-90' : 'bg-slate-800/90 backdrop-blur-md'}`}
+              >
+                {showFloatingTools ? <X className="w-6 h-6" /> : <Settings className="w-6 h-6 text-emerald-400" />}
               </button>
-              <div className="bg-slate-800/80 backdrop-blur-md p-2 rounded-2xl border border-white/20 flex flex-col gap-3 shadow-2xl">
-                <button onClick={() => setTool('pen')} className={`p-2 rounded-xl ${tool === 'pen' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}><Pen className="w-5 h-5" /></button>
-                <button onClick={() => setTool('eraser')} className={`p-2 rounded-xl ${tool === 'eraser' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}><Eraser className="w-5 h-5" /></button>
-                <button onClick={undo} className="p-2 text-slate-400"><Undo2 className="w-5 h-5" /></button>
-                <div className="w-full h-px bg-white/10"></div>
-                {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
-                  <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 rounded-full border-2 ${color === c ? 'border-white' : 'border-transparent'}`} style={{ backgroundColor: c }}></button>
-                ))}
-              </div>
+
+              {showFloatingTools && (
+                <div className="bg-slate-800/90 backdrop-blur-xl p-3 rounded-[30px] border border-white/10 flex flex-col gap-4 shadow-2xl animate-in fade-in zoom-in duration-300">
+                    <div className="flex flex-col gap-2">
+                        <button onClick={() => { setTool('pen'); setShowFloatingTools(false); }} className={`p-3 rounded-2xl ${tool === 'pen' ? 'bg-emerald-500 text-white' : 'text-slate-400 bg-slate-900/50'}`}><Pen className="w-6 h-6" /></button>
+                        <button onClick={() => { setTool('eraser'); setShowFloatingTools(false); }} className={`p-3 rounded-2xl ${tool === 'eraser' ? 'bg-emerald-500 text-white' : 'text-slate-400 bg-slate-900/50'}`}><Eraser className="w-6 h-6" /></button>
+                        <button onClick={() => { undo(); setShowFloatingTools(false); }} className="p-3 text-slate-400 hover:text-white transition-colors"><Undo2 className="w-6 h-6" /></button>
+                        <button onClick={() => { setFullScreen(false); setShowFloatingTools(false); }} className="p-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl"><Layers className="w-6 h-6" /></button>
+                    </div>
+                    <div className="w-full h-px bg-white/10"></div>
+                    <div className="flex flex-col gap-3 items-center">
+                        {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
+                        <button key={c} onClick={() => { setColor(c); setShowFloatingTools(false); }} className={`w-8 h-8 rounded-full border-2 transition-transform ${color === c ? 'border-white scale-125' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c }}></button>
+                        ))}
+                    </div>
+                </div>
+              )}
           </div>
         )}
         
