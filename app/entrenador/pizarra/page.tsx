@@ -53,16 +53,54 @@ export default function PizarraTactica() {
 
   const dibujarCampo = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = Math.max(2, w / 500);
     
-    ctx.strokeRect(20, 20, w - 40, h - 40);
-    ctx.beginPath(); ctx.moveTo(w / 2, 20); ctx.lineTo(w / 2, h - 20); ctx.stroke();
-    ctx.beginPath(); ctx.arc(w / 2, h / 2, 70, 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeRect(20, h/2 - 140, 120, 280);
-    ctx.strokeRect(20, h/2 - 70, 45, 140);
-    ctx.strokeRect(w - 140, h/2 - 140, 120, 280);
-    ctx.strokeRect(w - 65, h/2 - 70, 45, 140);
+    const margin = w * 0.03;
+    const fw = w - margin * 2;
+    const fh = h - margin * 2;
+    
+    // Rectángulo principal
+    ctx.strokeRect(margin, margin, fw, fh);
+    
+    // Línea media
+    ctx.beginPath();
+    ctx.moveTo(w / 2, margin);
+    ctx.lineTo(w / 2, h - margin);
+    ctx.stroke();
+    
+    // Círculo central
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, fh * 0.18, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Punto central
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+    
+    // Áreas Izquierda
+    const agW = fw * 0.16;
+    const agH = fh * 0.60;
+    const apW = fw * 0.06;
+    const apH = fh * 0.30;
+    
+    ctx.strokeRect(margin, h/2 - agH/2, agW, agH);
+    ctx.strokeRect(margin, h/2 - apH/2, apW, apH);
+    
+    // Áreas Derecha
+    ctx.strokeRect(w - margin - agW, h/2 - agH/2, agW, agH);
+    ctx.strokeRect(w - margin - apW, h/2 - apH/2, apW, apH);
+
+    // Semicírculos de las áreas
+    ctx.beginPath();
+    ctx.arc(margin + agW, h / 2, fh * 0.1, -Math.PI/2, Math.PI/2);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(w - margin - agW, h / 2, fh * 0.1, Math.PI/2, -Math.PI/2);
+    ctx.stroke();
   };
 
   const obtenerCoordenadas = (e: any) => {
@@ -267,7 +305,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className="pizarra-container relative mx-auto aspect-[3/2] w-full max-w-[calc(1.5*(100vh-120px))] lg:max-w-5xl bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+        <div ref={containerRef} className="pizarra-container relative mx-auto aspect-[3/2] w-full max-w-[calc(1.5*(100vh-100px))] lg:max-w-5xl bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
