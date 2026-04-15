@@ -39,10 +39,31 @@ export default function PizarraTactica() {
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
     
-    const initialPlayers = [];
-    for(let i=1; i<=11; i++) initialPlayers.push({ id: `R-${i}`, x: 50, y: 50 + (i*40), color: '#ef4444', label: `${i}` });
-    for(let i=1; i<=11; i++) initialPlayers.push({ id: `B-${i}`, x: 120, y: 50 + (i*40), color: '#3b82f6', label: `${i}` });
-    setJugadores(initialPlayers);
+    // Inicializar jugadores si no hay
+    if (jugadores.length === 0) {
+      const initialJugadores = [];
+      // Equipo Rojo (en 2 columnas si es necesario, pero probemos 1 mas compacta)
+      for (let i = 1; i <= 11; i++) {
+        initialJugadores.push({
+          id: `red-${i}`,
+          label: `${i}`,
+          color: '#ef4444',
+          x: i > 6 ? 60 : 30, // Dos columnitas
+          y: 20 + ((i > 6 ? i-6 : i) * 25)
+        });
+      }
+      // Equipo Azul
+      for (let i = 1; i <= 11; i++) {
+        initialJugadores.push({
+          id: `blue-${i}`,
+          label: `${i}`,
+          color: '#3b82f6',
+          x: i > 6 ? 120 : 90,
+          y: 20 + ((i > 6 ? i-6 : i) * 25)
+        });
+      }
+      setJugadores(initialJugadores);
+    }
   }, []);
 
   const inicializarPizzara = () => {
