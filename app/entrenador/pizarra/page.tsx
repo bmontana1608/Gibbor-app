@@ -21,6 +21,9 @@ export default function PizarraTactica() {
   const [history, setHistory] = useState<string[]>([]);
   const [fullScreen, setFullScreen] = useState(false);
   const [showFloatingTools, setShowFloatingTools] = useState(false);
+  const [floatingPos, setFloatingPos] = useState({ x: window.innerWidth - 80, y: 20 });
+  const [isDraggingTools, setIsDraggingTools] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [jugadores, setJugadores] = useState<any[]>([]);
 
@@ -276,6 +279,31 @@ export default function PizarraTactica() {
     toast.success("Estrategia guardada con jugadores!", { id: toastId });
   };
 
+  const startDragTools = (e: any) => {
+    setIsDraggingTools(true);
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    setDragOffset({
+        x: clientX - floatingPos.x,
+        y: clientY - floatingPos.y
+    });
+    e.stopPropagation();
+  };
+
+  const onDragTools = (e: any) => {
+    if (!isDraggingTools) return;
+    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    
+    // Boundary checks
+    const newX = Math.max(10, Math.min(window.innerWidth - 60, clientX - dragOffset.x));
+    const newY = Math.max(10, Math.min(window.innerHeight - 60, clientY - dragOffset.y));
+    
+    setFloatingPos({ x: newX, y: newY });
+  };
+
+  const stopDragTools = () => setIsDraggingTools(false);
+
   return (
     <div className={`h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none ${fullScreen ? 'fixed inset-0 z-[100]' : ''}`}>
       
@@ -316,24 +344,33 @@ export default function PizarraTactica() {
       )}
 
       <div className={`flex-1 relative flex items-center justify-center bg-slate-950 ${fullScreen ? 'p-0' : 'p-4'}`} 
-        onMouseMove={onDragMove} onMouseUp={stopDragging} onMouseLeave={stopDragging}
-        onTouchMove={(e) => { e.preventDefault(); onDragMove(e); }} onTouchEnd={stopDragging}
+        onMouseMove={(e) => { onDragMove(e); onDragTools(e); }} 
+        onMouseUp={() => { stopDragging(); stopDragTools(); }} 
+        onMouseLeave={() => { stopDragging(); stopDragTools(); }}
+        onTouchMove={(e) => { e.preventDefault(); onDragMove(e); onDragTools(e); }} 
+        onTouchEnd={() => { stopDragging(); stopDragTools(); }}
       >
         
         {fullScreen && (
-          <div className="fixed top-4 right-4 z-[110] flex flex-col items-end gap-2">
+          <div 
+            style={{ left: floatingPos.x, top: floatingPos.y }}
+            className="fixed z-[110] flex flex-col items-end gap-2 transition-shadow"
+          >
               <button 
-                onClick={() => setShowFloatingTools(!showFloatingTools)} 
-                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all ${showFloatingTools ? 'bg-orange-500 scale-90' : 'bg-slate-800/90 backdrop-blur-md'}`}
+                onMouseDown={startDragTools}
+                onTouchStart={startDragTools}
+                onClick={(e) => { e.stopPropagation(); setShowFloatingTools(!showFloatingTools); }} 
+                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all cursor-move active:scale-110 ${showFloatingTools ? 'bg-orange-600' : 'bg-slate-800/95 backdrop-blur-md'}`}
               >
                 {showFloatingTools ? <X className="w-6 h-6" /> : <Settings className="w-6 h-6 text-emerald-400" />}
               </button>
 
               {showFloatingTools && (
-                <div className="bg-slate-800/90 backdrop-blur-xl p-3 rounded-[30px] border border-white/10 flex flex-col gap-4 shadow-2xl animate-in fade-in zoom-in duration-300">
+                <div className="bg-slate-800/90 backdrop-blur-xl p-3 rounded-[30px] border border-white/10 flex flex-col gap-4 shadow-2xl animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
                     <div className="flex flex-col gap-2">
-                        <button onClick={() => { setTool('pen'); setShowFloatingTools(false); }} className={`p-3 rounded-2xl ${tool === 'pen' ? 'bg-emerald-500 text-white' : 'text-slate-400 bg-slate-900/50'}`}><Pen className="w-6 h-6" /></button>
-                        <button onClick={() => { setTool('eraser'); setShowFloatingTools(false); }} className={`p-3 rounded-2xl ${tool === 'eraser' ? 'bg-emerald-500 text-white' : 'text-slate-400 bg-slate-900/50'}`}><Eraser className="w-6 h-6" /></button>
+                        <button onClick={() => { setTool('pen'); setShowFloatingTools(false); }} className={`p-4 rounded-2xl ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-emerald-900/40' : 'text-slate-400 bg-slate-900/50'}`}><Pen className="w-6 h-6" /></button>
+                        <button onClick={() => { setTool('eraser'); setShowFloatingTools(false); }} className={`p-4 rounded-2xl ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-emerald-900/40' : 'text-slate-400 bg-slate-900/50'}`}><Eraser className="w-6 h-6" /></button>
+                        <div className="h-px w-full bg-white/10 my-1"></div>
                         <button onClick={() => { undo(); setShowFloatingTools(false); }} className="p-3 text-slate-400 hover:text-white transition-colors"><Undo2 className="w-6 h-6" /></button>
                         <button onClick={() => { setFullScreen(false); setShowFloatingTools(false); }} className="p-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl"><Layers className="w-6 h-6" /></button>
                     </div>
