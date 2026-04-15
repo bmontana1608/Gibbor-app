@@ -421,7 +421,14 @@ export default function GestionSkillsEntrenador() {
                                          </div>
                                          <div className="flex items-center gap-2">
                                              <div className="w-8 h-8 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center font-black text-orange-400 italic text-xs">
-                                                {Math.round(Object.values(ev.stats as any).reduce((a: any,b: any) => a+b, 0) / (habilidades.length || 1))}
+                                                {(() => {
+  const data = ev as any;
+  if (!data || !data.stats) return 0;
+  const values = Object.values(data.stats) as number[];
+  if (values.length === 0) return 0;
+  const total = values.reduce((a, b) => a + b, 0);
+  return Math.round(total / values.length);
+})()}
                                              </div>
                                          </div>
                                      </div>
