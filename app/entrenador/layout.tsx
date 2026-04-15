@@ -104,10 +104,10 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
       <aside 
         className={`fixed inset-y-0 left-0 bg-white border-r border-slate-200 flex flex-col z-50 transform transition-all duration-300 md:relative md:translate-x-0 
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          ${isSidebarMini ? 'w-20' : 'w-64'}
+          ${isSidebarMini ? 'w-16 lg:w-20' : 'w-64'}
         `}
       >
-        <div className={`p-6 flex items-center justify-between border-b border-slate-100 ${isSidebarMini ? 'px-4' : ''}`}>
+        <div className={`p-4 lg:p-6 flex items-center justify-between border-b border-slate-100 ${isSidebarMini ? 'px-2 lg:px-4' : ''}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <img src="/logo.png" alt="Gibbor Logo" className="w-9 h-9 object-contain rounded-full shadow-sm shrink-0" />
             {!isSidebarMini && <span className="text-xl font-black text-slate-800 tracking-tight whitespace-nowrap">Gibbor Staff</span>}

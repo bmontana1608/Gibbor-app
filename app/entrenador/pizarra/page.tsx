@@ -267,7 +267,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] max-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-160px)] bg-emerald-600 rounded-[30px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[8px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] max-h-[calc(100vh-80px)] lg:max-h-[calc(100vh-160px)] bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
@@ -301,8 +301,8 @@ export default function PizarraTactica() {
           ))}
         </div>
 
-        <div className="absolute bottom-6 left-10 text-slate-500 text-[10px] font-bold uppercase flex gap-4">
-            <span className="text-emerald-500">? Tip:</span> El borrador ya no afecta las líneas del campo.
+        <div className="absolute bottom-2 left-6 text-white/40 text-[8px] lg:text-[10px] font-bold uppercase flex gap-4">
+            <span className="text-emerald-500/60 font-black">? Tip:</span> El borrador no afecta las líneas del campo.
         </div>
       </div>
 
