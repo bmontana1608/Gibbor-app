@@ -223,35 +223,35 @@ export default function PizarraTactica() {
   return (
     <div className="h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none">
       
-      <div className="bg-slate-800 border-b border-white/10 p-4 flex items-center justify-between shadow-2xl z-20">
-        <div className="flex items-center gap-4">
-          <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-2 hover:bg-slate-700 rounded-xl transition-colors">
+      <div className="bg-slate-800 border-b border-white/10 p-2 lg:p-4 flex items-center justify-between shadow-2xl z-20 gap-2">
+        <div className="flex items-center gap-2 lg:gap-4 min-w-0">
+          <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-1.5 lg:p-2 hover:bg-slate-700 rounded-xl transition-colors shrink-0">
             <ArrowLeft className="w-5 h-5 text-slate-400" />
           </button>
-          <div>
-            <h1 className="text-sm font-black uppercase tracking-widest text-emerald-400">Pizarra Táctica Pro</h1>
-            <p className="text-[10px] font-bold text-slate-400">MODO MULTI-CAPA ACTIVO</p>
+          <div className="min-w-0">
+            <h1 className="text-[10px] lg:text-sm font-black uppercase tracking-widest text-emerald-400 truncate">Pizarra Táctica</h1>
+            <p className="text-[8px] lg:text-[10px] font-bold text-slate-400 hidden sm:block">MULTI-CAPA</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-900/50 p-1.5 rounded-2xl border border-white/5">
-           <button onClick={() => setTool('pen')} className={`p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-5 h-5" /></button>
-           <button onClick={() => setTool('eraser')} className={`p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-5 h-5" /></button>
-           <div className="w-px h-6 bg-white/10 mx-1"></div>
-           <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
-              <Undo2 className="w-5 h-5" />
+        <div className="flex items-center gap-1 lg:gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5 shrink-0">
+           <button onClick={() => setTool('pen')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+           <button onClick={() => setTool('eraser')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+           <div className="w-px h-5 bg-white/10 mx-0.5"></div>
+           <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-2 lg:p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
+              <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
            </button>
-           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-5 h-5" /></button>
+           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-2 lg:p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" /></button>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
-            {['#ffffff', '#ef4444', '#3b82f6', '#facc15'].map(c => (
-                <button key={c} onClick={() => setColor(c)} className={`w-8 h-8 rounded-full border-2 transition-all ${color === c ? 'scale-125 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex gap-1 lg:gap-2">
+            {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
+                <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 transition-all ${color === c ? 'scale-110 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
             ))}
           </div>
-          <button onClick={guardarCaptura} className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
-            <Save className="w-4 h-4" /> GUARDAR IMAGEN
+          <button onClick={guardarCaptura} title="Guardar Imagen" className="bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 lg:px-5 lg:py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
+            <Save className="w-4 h-4" /> <span className="hidden lg:inline">GUARDAR IMAGEN</span>
           </button>
         </div>
       </div>
