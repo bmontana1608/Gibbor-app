@@ -266,8 +266,15 @@ export default function GestionCategoriasEntrenador() {
                                                     <div className="text-center">
                                                         <p className="text-[8px] font-black text-slate-400 uppercase">General</p>
                                                         <p className="text-2xl font-black text-slate-800 italic">
-                                                            {Math.round(Object.values(lastEval.stats as any).reduce((a:any,b:any) => a+b, 0) / Object.keys(lastEval.stats as any).length)}
-                                                        </p>
+  {(() => {
+    const data = lastEval as any;
+    if (!data || !data.stats) return 0;
+    const values = Object.values(data.stats) as number[];
+    if (values.length === 0) return 0;
+    const total = values.reduce((a, b) => a + b, 0);
+    return Math.round(total / values.length);
+  })()}
+</p>
                                                     </div>
                                                     <div className="w-px h-8 bg-slate-100"></div>
                                                     <div className="text-center">
