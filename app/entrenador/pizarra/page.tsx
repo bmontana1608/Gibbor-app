@@ -267,7 +267,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] max-h-[calc(100vh-80px)] lg:max-h-[calc(100vh-160px)] bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+        <div ref={containerRef} className="pizarra-container relative mx-auto aspect-[3/2] h-auto w-auto max-w-full max-h-[calc(100vh-100px)] lg:max-h-[calc(100vh-160px)] bg-emerald-600 rounded-[20px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[6px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
