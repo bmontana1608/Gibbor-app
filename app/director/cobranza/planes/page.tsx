@@ -4,35 +4,69 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-// Definición de los planes base de Gibbor
-const PLANES_CONFIG = [
-  { nombre: 'Regular', precio: 70000, descuento: 10000, tipo: 'Mensualidad' },
-  { nombre: 'Fin de semana', precio: 60000, descuento: 10000, tipo: 'Mensualidad' },
-  { nombre: 'Beca 50%', precio: 35000, descuento: 5000, tipo: 'Beca Parcial' },
-  { nombre: 'Beca 100%', precio: 0, descuento: 0, tipo: 'Beca Total' }
-];
+// Se removerá el config hardcodeado y se usará la base de datos
 
 export default function GestionDePlanes() {
   const router = useRouter();
   const [jugadores, setJugadores] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
 
+  // Estados para Edición
+  const [isModalEditOpen, setIsModalEditOpen] = useState(false);
+  const [planEditando, setPlanEditando] = useState<any>(null);
+  const [montoEdit, setMontoEdit] = useState('');
+  const [descuentoEdit, setDescuentoEdit] = useState('');
+
   useEffect(() => {
     async function cargarDatos() {
-      const { data, error } = await supabase
+      setCargando(true);
+      const { data: perfilesData } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, tipo_plan')
         .neq('rol', 'Entrenador')
         .order('nombres', { ascending: true });
 
-      if (!error && data) {
-        setJugadores(data);
-      }
+      const { data: planesData } = await supabase
+        .from('planes')
+        .select('*')
+        .order('nombre', { ascending: true });
+
+      if (perfilesData) setJugadores(perfilesData);
+      if (planesData) setPlanes(planesData);
       setCargando(false);
     }
     cargarDatos();
   }, []);
+
+  const handleEditPlan = (plan: any) => {
+    setPlanEditando(plan);
+    setMontoEdit(plan.precio_base.toString());
+    setDescuentoEdit(plan.descuento_pronto_pago.toString());
+    setIsModalEditOpen(true);
+  };
+
+  const savePlanChanges = async () => {
+    if (!planEditando) return;
+    const { error } = await supabase
+      .from('planes')
+      .update({ 
+        precio_base: Number(montoEdit), 
+        descuento_pronto_pago: Number(descuentoEdit) 
+      })
+      .eq('id', planEditando.id);
+
+    if (error) {
+       toast.error("Error al actualizar plan: " + error.message);
+    } else {
+       toast.success("Plan actualizado correctamente");
+       setIsModalEditOpen(false);
+       // Refresh planes
+       const { data } = await supabase.from('planes').select('*').order('nombre', { ascending: true });
+       if (data) setPlanes(data);
+    }
+  };
 
   // Agrupar jugadores por plan para mostrarlos en las tarjetas
   const getJugadoresPorPlan = (nombrePlan: string) => {
@@ -94,14 +128,14 @@ export default function GestionDePlanes() {
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex justify-between items-center shadow-sm">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total de Planes</p>
-              <p className="text-2xl font-black text-slate-800">{PLANES_CONFIG.length}</p>
+              <p className="text-2xl font-black text-slate-800">{planes.length}</p>
             </div>
             <span className="text-orange-500 text-3xl">🛡️</span>
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex justify-between items-center shadow-sm">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Planes Activos</p>
-              <p className="text-2xl font-black text-purple-600">{PLANES_CONFIG.length}</p>
+              <p className="text-2xl font-black text-purple-600">{planes.filter(p => p.precio_base > 0).length}</p>
             </div>
             <span className="text-purple-500 text-3xl">📈</span>
           </div>
@@ -110,11 +144,11 @@ export default function GestionDePlanes() {
 
       {/* 4. GRID DE TARJETAS DE PLANES */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {PLANES_CONFIG.map((plan, index) => {
+        {planes.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase())).map((plan, index) => {
           const alumnosEnPlan = getJugadoresPorPlan(plan.nombre);
           
           return (
-            <div key={index} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
+            <div key={plan.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
               
               {/* Título de la Tarjeta */}
               <div className="mb-4">
@@ -129,7 +163,7 @@ export default function GestionDePlanes() {
                 </div>
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span className="text-emerald-500">💲</span> 
-                  Precio: <span className="font-bold text-slate-800">${plan.precio.toLocaleString('es-CO')}</span>
+                  Precio: <span className="font-bold text-slate-800">${parseFloat(plan.precio_base).toLocaleString('es-CO')}</span>
                   <span className="text-slate-400 text-xs ml-1">({alumnosEnPlan.length} alumnos)</span>
                 </div>
               </div>
@@ -143,11 +177,11 @@ export default function GestionDePlanes() {
                 ) : alumnosEnPlan.length === 0 ? (
                   <p className="text-xs text-slate-400 italic">No hay alumnos en este plan.</p>
                 ) : (
-                  <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                  <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
                     {alumnosEnPlan.map(a => (
                       <div key={a.id} className="flex justify-between items-center border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
                         <span className="text-xs text-slate-600 truncate mr-2">{a.nombres} {a.apellidos}</span>
-                        <span className="text-xs font-bold text-slate-800 shrink-0">${plan.precio.toLocaleString('es-CO')}</span>
+                        <span className="text-xs font-bold text-slate-800 shrink-0">${parseFloat(plan.precio_base).toLocaleString('es-CO')}</span>
                       </div>
                     ))}
                   </div>
@@ -160,38 +194,73 @@ export default function GestionDePlanes() {
                   <span className="text-blue-500">⏱️</span> Día de cobro: 1 de cada mes
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-purple-500">🛡️</span> Periodo de gracia: 5 días
+                  <span className="text-purple-500">🛡️</span> Periodo de gracia: {plan.dias_limite_pronto_pago} días
                 </div>
-                {plan.descuento > 0 && (
+                {plan.descuento_pronto_pago > 0 && (
                   <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded w-fit mt-2">
-                    <span>✅</span> Pronto pago: ${plan.descuento.toLocaleString('es-CO')} descuento
+                    <span>✅</span> Pronto pago: ${parseFloat(plan.descuento_pronto_pago).toLocaleString('es-CO')} descuento
                   </div>
                 )}
               </div>
 
-              {/* Botonera de Acción (Visuales) */}
-              <div className="grid grid-cols-2 gap-2 mt-auto">
-                <button className="border border-slate-200 text-slate-600 hover:bg-slate-50 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                  ✏️ Editar
-                </button>
-                <button className="border border-emerald-200 text-emerald-600 hover:bg-emerald-50 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                  💲 Precio
-                </button>
-                <button className="border border-blue-200 text-blue-600 hover:bg-blue-50 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                  ⏱️ Días
-                </button>
-                <button className="border border-purple-200 text-purple-600 hover:bg-purple-50 py-1.5 rounded-lg text-xs font-bold transition-colors">
-                  🛡️ Gracia
-                </button>
-                <button className="border border-orange-200 text-orange-600 hover:bg-orange-50 py-1.5 rounded-lg text-xs font-bold transition-colors col-span-2">
-                  ✅ Configurar Pronto Pago
-                </button>
-              </div>
+              <button 
+                onClick={() => handleEditPlan(plan)}
+                className="w-full bg-slate-800 text-white hover:bg-slate-900 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg"
+              >
+                ✏️ Editar Configuración del Plan
+              </button>
 
             </div>
           );
         })}
       </div>
+
+      {/* Modal de Edición Dinámica */}
+      {isModalEditOpen && planEditando && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6">
+              <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-tight">
+                Editar {planEditando.nombre}
+              </h3>
+              
+              <div className="space-y-5">
+                 <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Precio Base (Mensual)</label>
+                    <input 
+                      type="number" 
+                      value={montoEdit} 
+                      onChange={(e) => setMontoEdit(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold"
+                    />
+                 </div>
+                 <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Descuento Pronto Pago</label>
+                    <input 
+                      type="number" 
+                      value={descuentoEdit} 
+                      onChange={(e) => setDescuentoEdit(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-emerald-600"
+                    />
+                 </div>
+              </div>
+
+              <div className="flex gap-3 mt-8">
+                 <button 
+                  onClick={() => setIsModalEditOpen(false)}
+                  className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors"
+                 >
+                   Cancelar
+                 </button>
+                 <button 
+                  onClick={savePlanChanges}
+                  className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-100 transition-all"
+                 >
+                   Guardar Cambios
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
     </div>
   );

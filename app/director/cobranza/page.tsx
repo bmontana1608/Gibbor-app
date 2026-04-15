@@ -12,6 +12,7 @@ export default function ModuloCobranza() {
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState('Todos');
+  const [activeTab, setActiveTab] = useState<'ingresos' | 'egresos'>('ingresos');
 
   // Estados para Modal de Pago Detallado (Controla.club style)
   const [isModalPagoOpen, setIsModalPagoOpen] = useState(false);
@@ -23,8 +24,16 @@ export default function ModuloCobranza() {
   const [notas, setNotas] = useState('');
   const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
 
+  // Estado para Egresos
+  const [egresos, setEgresos] = useState<any[]>([]);
+  const [isModalEgresoOpen, setIsModalEgresoOpen] = useState(false);
+  const [descEgreso, setDescEgreso] = useState('');
+  const [montoEgreso, setMontoEgreso] = useState('');
+  const [catEgreso, setCatEgreso] = useState('Otros');
+
   // Historial de Pagos (Ingresos)
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
 
   // Recibo Generado para impresión
   const [reciboGenerado, setReciboGenerado] = useState<any>(null);
@@ -34,11 +43,13 @@ export default function ModuloCobranza() {
   const esProntoPago = diaActual <= 5; 
 
   const calcularTarifa = (tipoPlan: string) => {
-    const plan = (tipoPlan || 'Regular').trim();
-    if (plan === 'Beca 100%') return 0;
-    if (plan === 'Beca 50%') return esProntoPago ? 30000 : 35000;
-    if (plan === 'Fin de semana') return esProntoPago ? 50000 : 60000;
-    return esProntoPago ? 60000 : 70000;
+    const planBuscado = planes.find(p => p.nombre === (tipoPlan || 'Regular'));
+    if (!planBuscado) return 0;
+    
+    if (esProntoPago) {
+      return Number(planBuscado.precio_base) - Number(planBuscado.descuento_pronto_pago);
+    }
+    return Number(planBuscado.precio_base);
   };
 
   const cargarDatos = async () => {
@@ -52,17 +63,52 @@ export default function ModuloCobranza() {
 
     if (error) {
       toast.error(`Error al cargar datos: ${error.message}`);
-    } else if (data) {
+    }
+    if (data) {
       setJugadores(data);
     }
-    setCargando(false);
     
+    const { data: planesData } = await supabase.from('planes').select('*');
+    if (planesData) setPlanes(planesData);
+
     const { data: histData } = await supabase
       .from('pagos_ingresos')
       .select('*')
       .order('fecha', { ascending: false });
     
+    const { data: egresosData } = await supabase
+      .from('pagos_egresos')
+      .select('*')
+      .order('fecha', { ascending: false });
+
     if (histData) setHistorialPagos(histData);
+    if (egresosData) setEgresos(egresosData);
+    setCargando(false);
+  };
+
+  const registrarEgreso = async () => {
+    if (!descEgreso || !montoEgreso) return toast.error("Llena todos los campos");
+    const { error } = await supabase.from('pagos_egresos').insert([{
+      descripcion: descEgreso,
+      monto: Number(montoEgreso),
+      categoria: catEgreso,
+      fecha: new Date().toISOString().split('T')[0]
+    }]);
+
+    if (error) toast.error("Error: " + error.message);
+    else {
+      toast.success("Gasto registrado");
+      setIsModalEgresoOpen(false);
+      setDescEgreso(''); setMontoEgreso('');
+      cargarDatos();
+    }
+  };
+
+  const eliminarEgreso = async (id: string) => {
+    if (window.confirm("¿Eliminar este registro de gasto?")) {
+      await supabase.from('pagos_egresos').delete().eq('id', id);
+      cargarDatos();
+    }
   };
 
   const eliminarPagoHistorial = async (id: string, numero: number) => {
@@ -165,6 +211,9 @@ export default function ModuloCobranza() {
   };
 
   const ingresosRecaudados = historialPagos.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
+  const egresosTotales = egresos.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
+  const utilidadNeta = ingresosRecaudados - egresosTotales;
+  
   let ingresosPendientes = 0;
   let totalAlDia = 0; 
   let totalMora = 0;
@@ -221,170 +270,226 @@ export default function ModuloCobranza() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recaudo Actual</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
             <h3 className="text-2xl font-black text-emerald-600">${ingresosRecaudados.toLocaleString('es-CO')}</h3>
-            <div className="mt-2 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-               <div className="bg-emerald-500 h-full transition-all duration-1000" style={{ width: `${porcentajeRecaudo}%` }}></div>
-            </div>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos (Gastos)</p>
+            <h3 className="text-2xl font-black text-red-500">${egresosTotales.toLocaleString('es-CO')}</h3>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Utilidad Neta</p>
+            <h3 className={`text-2xl font-black ${utilidadNeta >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+              ${utilidadNeta.toLocaleString('es-CO')}
+            </h3>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
-            <h3 className="text-2xl font-black text-red-500">${ingresosPendientes.toLocaleString('es-CO')}</h3>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Efectividad</p>
-            <h3 className="text-2xl font-black text-slate-800">{porcentajeRecaudo}%</h3>
-          </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Al Día</p>
-            <h3 className="text-2xl font-black text-slate-800">{totalAlDia} / {totalJugadoresCobrales}</h3>
+            <h3 className="text-2xl font-black text-slate-400">${ingresosPendientes.toLocaleString('es-CO')}</h3>
           </div>
         </div>
 
-        <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input type="text" placeholder="Buscar alumno por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
-            </div>
-            <div className="flex gap-2">
-              {['Todos', 'Pendiente', 'Al día'].map(label => (
-                <button key={label} onClick={() => setEstadoFiltro(label)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${estadoFiltro === label ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
-                  <th className="p-4 md:px-6">Alumno</th>
-                  <th className="p-4 md:px-6">Categoría</th>
-                  <th className="p-4 md:px-6">Plan</th>
-                  <th className="p-4 md:px-6">Valor</th>
-                  <th className="p-4 md:px-6">Estado</th>
-                  <th className="p-4 md:px-6 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {cargando ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">Cargando futbolistas...</td></tr>
-                ) : jugadoresFiltrados.length === 0 ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
-                ) : (
-                  jugadoresFiltrados.map((jugador) => {
-                    const tarifaExacta = calcularTarifa(jugador.tipo_plan);
-                    const est = (jugador.estado_pago || '').trim().toLowerCase();
-                    const esAlDia = est === 'al día' || est === 'al dia';
-                    return (
-                      <tr key={jugador.id} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="p-4 md:px-6">
-                          <p className="font-bold text-slate-800 uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">{jugador.email_contacto || 'Sin correo'}</p>
-                        </td>
-                        <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || 'Ninguna'}</td>
-                        <td className="p-4 md:px-6">
-                          <select value={jugador.tipo_plan || 'Regular'} onChange={(e) => actualizarPlan(jugador.id, e.target.value, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-slate-100 border-none text-[11px] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-slate-300">
-                             <option value="Regular">Regular (70k)</option>
-                             <option value="Fin de semana">Fin de semana (60k)</option>
-                             <option value="Beca 50%">Beca 50% (35k)</option>
-                             <option value="Beca 100%">Beca 100% (Gratis)</option>
-                          </select>
-                        </td>
-                        <td className="p-4 md:px-6 font-black text-slate-700">${tarifaExacta.toLocaleString('es-CO')}</td>
-                        <td className="p-4 md:px-6">
-                          {tarifaExacta === 0 ? (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">Beca</span>
-                          ) : (
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                              {esAlDia ? 'Al día' : 'Pendiente'}
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 md:px-6 text-right">
-                          <div className="flex justify-end gap-2">
-                            {tarifaExacta === 0 ? (
-                              <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
-                            ) : !esAlDia ? (
-                              <>
-                                <button onClick={() => enviarRecordatorio(jugador.telefono, jugador.nombres, tarifaExacta)} className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" title="Enviar WhatsApp">
-                                  <Smartphone className="w-4 h-4" /> Avisar
-                                </button>
-                                <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
-                                  Pagar
-                                </button>
-                              </>
-                            ) : (
-                              <div className="flex items-center justify-end gap-2">
-                                <span className="text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 flex items-center gap-1.5">
-                                  <CheckCircle className="w-4 h-4" /> Pagado
-                                </span>
-                                <button onClick={() => abrirModalPago(jugador)} className="text-slate-300 hover:text-emerald-500 transition-colors p-1" title="Registrar otro pago">
-                                  <PlusCircle className="w-4 h-4" />
-                                </button>
-                              </div>
-                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+        {/* SWITCH DE PESTAÑAS */}
+        <div className="mt-8 flex border-b border-slate-200">
+           <button onClick={() => setActiveTab('ingresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'ingresos' ? 'border-b-4 border-emerald-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>Ingresos</button>
+           <button onClick={() => setActiveTab('egresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'egresos' ? 'border-b-4 border-red-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>Egresos / Gastos</button>
         </div>
 
-        <div className="mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <ClipboardCheck className="text-emerald-500 w-6 h-6" /> Historial de Pagos Recibidos
-              </h2>
-              <p className="text-sm text-slate-500 mt-1">Consulta y re-imprime recibos de mensualidades anteriores.</p>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse whitespace-nowrap">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                  <th className="p-4 md:px-6">№ Recibo</th>
-                  <th className="p-4 md:px-6">Alumno</th>
-                  <th className="p-4 md:px-6">Fecha de Pago</th>
-                  <th className="p-4 md:px-6">Método</th>
-                  <th className="p-4 md:px-6 text-right">Monto Total</th>
-                  <th className="p-4 md:px-6 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                {historialPagos.length === 0 ? (
-                  <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No hay historial de ingresos registrado.</td></tr>
-                ) : (
-                  historialPagos.map((pago) => (
-                    <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 md:px-6 font-black text-slate-900">№ {pago.consecutivo.toString().padStart(3, '0')}</td>
-                      <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
-                      <td className="p-4 md:px-6 text-slate-600 font-medium">{new Date(pago.fecha).toLocaleDateString('es-CO')}</td>
-                      <td className="p-4 md:px-6 uppercase font-bold text-[10px] text-slate-500">{pago.metodo_pago}</td>
-                      <td className="p-4 md:px-6 text-right font-black text-emerald-600">${parseFloat(pago.total || "0").toLocaleString('es-CO')}</td>
-                      <td className="p-4 md:px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => { setReciboGenerado({ ...pago, montoBase: pago.monto_base, metodo: pago.metodo_pago }); }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
-                            <Printer className="w-3.5 h-3.5" /> Reimprimir
-                          </button>
-                          <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+        {activeTab === 'ingresos' ? (
+          <>
+            <div className="mt-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input type="text" placeholder="Buscar alumno por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
+                </div>
+                <div className="flex gap-2">
+                  {['Todos', 'Pendiente', 'Al día'].map(label => (
+                    <button key={label} onClick={() => setEstadoFiltro(label)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${estadoFiltro === label ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
+                      <th className="p-4 md:px-6">Alumno</th>
+                      <th className="p-4 md:px-6">Categoría</th>
+                      <th className="p-4 md:px-6">Plan</th>
+                      <th className="p-4 md:px-6">Valor</th>
+                      <th className="p-4 md:px-6">Estado</th>
+                      <th className="p-4 md:px-6 text-right">Acciones</th>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm">
+                    {cargando ? (
+                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">Cargando futbolistas...</td></tr>
+                    ) : jugadoresFiltrados.length === 0 ? (
+                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
+                    ) : (
+                      jugadoresFiltrados.map((jugador) => {
+                        const tarifaExacta = calcularTarifa(jugador.tipo_plan);
+                        const est = (jugador.estado_pago || '').trim().toLowerCase();
+                        const esAlDia = est === 'al día' || est === 'al dia';
+                        return (
+                          <tr key={jugador.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="p-4 md:px-6">
+                              <p className="font-bold text-slate-800 uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
+                              <p className="text-[10px] text-slate-400 font-medium">{jugador.email_contacto || 'Sin correo'}</p>
+                            </td>
+                            <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || 'Ninguna'}</td>
+                            <td className="p-4 md:px-6">
+                              <select value={jugador.tipo_plan || 'Regular'} onChange={(e) => actualizarPlan(jugador.id, e.target.value, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-slate-100 border-none text-[11px] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-slate-300">
+                                {planes.map(p => (
+                                  <option key={p.id} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="p-4 md:px-6 font-black text-slate-700">${tarifaExacta.toLocaleString('es-CO')}</td>
+                            <td className="p-4 md:px-6">
+                              {tarifaExacta === 0 ? (
+                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">Beca</span>
+                              ) : (
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                                  {esAlDia ? 'Al día' : 'Pendiente'}
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-4 md:px-6 text-right">
+                              <div className="flex justify-end gap-2">
+                                {tarifaExacta === 0 ? (
+                                  <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
+                                ) : !esAlDia ? (
+                                  <>
+                                    <button onClick={() => enviarRecordatorio(jugador.telefono, jugador.nombres, tarifaExacta)} className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" title="Enviar WhatsApp">
+                                      <Smartphone className="w-4 h-4" /> Avisar
+                                    </button>
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
+                                      Pagar
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center justify-end gap-2">
+                                    <span className="text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 flex items-center gap-1.5">
+                                      <CheckCircle className="w-4 h-4" /> Pagado
+                                    </span>
+                                    <button onClick={() => abrirModalPago(jugador)} className="text-slate-300 hover:text-emerald-500 transition-colors p-1" title="Registrar otro pago">
+                                      <PlusCircle className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <ClipboardCheck className="text-emerald-500 w-6 h-6" /> Historial de Pagos Recibidos
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">Consulta y re-imprime recibos de mensualidades anteriores.</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse whitespace-nowrap">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
+                      <th className="p-4 md:px-6">№ Recibo</th>
+                      <th className="p-4 md:px-6">Alumno</th>
+                      <th className="p-4 md:px-6">Fecha de Pago</th>
+                      <th className="p-4 md:px-6">Método</th>
+                      <th className="p-4 md:px-6 text-right">Monto Total</th>
+                      <th className="p-4 md:px-6 text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                    {historialPagos.length === 0 ? (
+                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No hay historial de ingresos registrado.</td></tr>
+                    ) : (
+                      historialPagos.map((pago) => (
+                        <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-4 md:px-6 font-black text-slate-900">№ {pago.consecutivo.toString().padStart(3, '0')}</td>
+                          <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
+                          <td className="p-4 md:px-6 text-slate-600 font-medium">{new Date(pago.fecha).toLocaleDateString('es-CO')}</td>
+                          <td className="p-4 md:px-6 uppercase font-bold text-[10px] text-slate-500">{pago.metodo_pago}</td>
+                          <td className="p-4 md:px-6 text-right font-black text-emerald-600">${parseFloat(pago.total || "0").toLocaleString('es-CO')}</td>
+                          <td className="p-4 md:px-6 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => { setReciboGenerado({ ...pago, montoBase: pago.monto_base, metodo: pago.metodo_pago }); }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                                <Printer className="w-3.5 h-3.5" /> Reimprimir
+                              </button>
+                              <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-8">
+             <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                   <Trash2 className="text-rose-500 w-6 h-6" /> Registro de Egresos
+                </h2>
+                <button onClick={() => setIsModalEgresoOpen(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all uppercase tracking-widest">
+                   <PlusCircle className="w-4 h-4" /> Registrar Gasto
+                </button>
+             </div>
+
+             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
+                                <th className="p-4 md:px-6">Descripción</th>
+                                <th className="p-4 md:px-6">Categoría</th>
+                                <th className="p-4 md:px-6">Fecha</th>
+                                <th className="p-4 md:px-6 text-right">Monto</th>
+                                <th className="p-4 md:px-6 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-sm">
+                            {egresos.length === 0 ? (
+                                <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic font-medium">No hay gastos registrados este periodo.</td></tr>
+                            ) : (
+                                egresos.map(eg => (
+                                    <tr key={eg.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="p-4 md:px-6 font-bold text-slate-800 uppercase">{eg.descripcion}</td>
+                                        <td className="p-4 md:px-6">
+                                            <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold uppercase">{eg.categoria}</span>
+                                        </td>
+                                        <td className="p-4 md:px-6 text-slate-500">{new Date(eg.fecha).toLocaleDateString('es-CO')}</td>
+                                        <td className="p-4 md:px-6 text-right font-black text-rose-600">${parseFloat(eg.monto).toLocaleString('es-CO')}</td>
+                                        <td className="p-4 md:px-6 text-right">
+                                            <button onClick={() => eliminarEgreso(eg.id)} className="text-slate-300 hover:text-rose-500 p-2 transition-colors">
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {reciboGenerado && (
@@ -523,6 +628,42 @@ export default function ModuloCobranza() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {isModalEgresoOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-8">
+                <h3 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-tight">
+                    Nuevo Gasto
+                </h3>
+                
+                <div className="space-y-5">
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Concepto / Descripción</label>
+                        <input type="text" value={descEgreso} onChange={(e) => setDescEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold" placeholder="Ej: Renta de canchas Enero" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto ($)</label>
+                        <input type="number" value={montoEgreso} onChange={(e) => setMontoEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold" placeholder="0" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Categoría</label>
+                        <select value={catEgreso} onChange={(e) => setCatEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold bg-white">
+                            <option value="Nómina">Nómina (Profesores)</option>
+                            <option value="Renta">Renta de Canchas</option>
+                            <option value="Materiales">Materiales y Balones</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                    <button onClick={() => setIsModalEgresoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
+                    <button onClick={registrarEgreso} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100 transition-all">Registrar Gasto</button>
+                </div>
+            </div>
         </div>
       )}
 
