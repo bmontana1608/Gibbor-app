@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Trash2, Save, Eraser, Pen, Circle, 
-  Download, RefreshCw, Layers, Users as UsersIcon, X, Undo2
+  Download, RefreshCw, Layers, Users as UsersIcon, X, Undo2, Settings
 } from 'lucide-react';
 import { toast } from 'sonner';
 
