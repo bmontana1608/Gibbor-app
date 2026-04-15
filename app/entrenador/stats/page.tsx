@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   BarChart3, Settings, UserCheck, TrendingUp, 
   Plus, Trash2, Save, ChevronRight, Search,
-  ArrowLeft, Radar as RadarIcon, Info, Loader
+  ArrowLeft, Radar as RadarIcon, Info, Loader, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,7 +28,7 @@ function RadarChart({ data, size = 300 }: { data: { label: string, value: number
   const levels = [0.2, 0.4, 0.6, 0.8, 1];
   
   return (
-    <svg width={size} height={size} className="mx-auto drop-shadow-xl">
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-auto max-w-full mx-auto drop-shadow-xl" style={{ maxWidth: size }}>
       {/* Niveles de fondo */}
       {levels.map(l => (
         <polygon 
@@ -101,6 +101,7 @@ export default function GestionSkillsEntrenador() {
   const [historia, setHistoria] = useState<any[]>([]);
 
   const [promedioCategoria, setPromedioCategoria] = useState<Record<string, number> | null>(null);
+  const [sidebarAbierta, setSidebarAbierta] = useState(false);
 
   useEffect(() => {
     cargarConfig();
@@ -130,6 +131,7 @@ export default function GestionSkillsEntrenador() {
     
     setAlumnos(jugs || []);
     setAlumnoSeleccionado(null);
+    setSidebarAbierta(false);
 
     // Calcular Promedio de Categoría (Radar Grupal)
     if (jugs && jugs.length > 0) {
@@ -191,6 +193,7 @@ export default function GestionSkillsEntrenador() {
         setRatings(init);
         setComentarios('');
     }
+    setSidebarAbierta(false);
   };
 
   const agregarHabilidad = async () => {
@@ -233,30 +236,42 @@ export default function GestionSkillsEntrenador() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans overflow-hidden flex flex-col">
+    <div className="h-screen bg-slate-900 text-white font-sans overflow-hidden flex flex-col">
       
       {/* Header Fijo */}
-      <div className="bg-slate-800 border-b border-white/5 p-6 flex items-center justify-between shadow-xl z-20">
-         <div className="flex items-center gap-4">
-            <div className={`p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'bg-orange-500' : 'bg-slate-700'}`}>
-                <RadarIcon className="w-6 h-6 text-white" />
+      <div className="bg-slate-800 border-b border-white/5 p-4 lg:p-6 flex flex-col md:flex-row items-center justify-between shadow-xl z-20 gap-4">
+         <div className="flex items-center justify-between w-full md:w-auto gap-4">
+            <div className="flex items-center gap-4">
+                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'bg-orange-500' : 'bg-slate-700'}`}>
+                    <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                </div>
+                <div>
+                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic text-orange-400">Soccer Stats Lab</h1>
+                    <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Evolution & Performance Tracking</p>
+                </div>
             </div>
-            <div>
-                 <h1 className="text-xl font-black tracking-tighter uppercase italic text-orange-400">Soccer Stats Lab</h1>
-                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Evolution & Performance Tracking</p>
-            </div>
+            
+            <button 
+                onClick={() => setSidebarAbierta(!sidebarAbierta)}
+                className="lg:hidden p-2 bg-slate-700 rounded-xl text-white"
+            >
+                {sidebarAbierta ? <Trash2 className="w-5 h-5 rotate-45" /> : <Users className="w-5 h-5" />}
+            </button>
          </div>
 
-         <div className="flex gap-2 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
-             <button onClick={() => setPestaña('Evaluación')} className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
-             <button onClick={() => setPestaña('Configuración')} className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
+         <div className="flex w-full md:w-auto gap-1 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
+             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
+             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
          </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         
         {/* NAVEGACIÓN IZQUIERDA: CATEGORÍAS Y ALUMNOS */}
-        <div className="w-80 bg-slate-800/50 border-r border-white/5 flex flex-col overflow-hidden">
+        <div className={`
+          fixed lg:static inset-y-0 left-0 w-80 bg-slate-800 lg:bg-slate-800/50 border-r border-white/5 flex flex-col overflow-hidden z-30 transition-transform duration-300
+          ${sidebarAbierta ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
             {!catSeleccionada ? (
                 <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Selecciona Categoría</p>
@@ -331,13 +346,13 @@ export default function GestionSkillsEntrenador() {
                      </div>
                 </div>
             ) : alumnoSeleccionado ? (
-                <div className="p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="p-4 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
                     
                     {/* COLUMNA 1: SLIDERS DE EVALUACIÓN */}
-                    <div className="space-y-8">
+                    <div className="space-y-6 lg:space-y-8">
                         <div>
-                             <h2 className="text-3xl font-black italic uppercase tracking-tighter text-orange-400">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
-                             <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
+                             <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-orange-400">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
+                             <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
                         </div>
 
                         <div className="space-y-6">
@@ -380,8 +395,8 @@ export default function GestionSkillsEntrenador() {
                     </div>
 
                     {/* COLUMNA 2: VISUALIZACIÓN RADAR Y CURVA */}
-                    <div className="space-y-8">
-                        <div className="bg-slate-900/50 rounded-[60px] p-8 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group shadow-2xl min-h-[450px]">
+                    <div className="space-y-6 lg:space-y-8 pb-10 lg:pb-0">
+                        <div className="bg-slate-900/50 rounded-[40px] lg:rounded-[60px] p-6 lg:p-8 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group shadow-2xl min-h-[350px] lg:min-h-[450px]">
                              <div className="absolute inset-0 bg-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-8">Skill Polígon</h3>
                              
@@ -450,7 +465,7 @@ export default function GestionSkillsEntrenador() {
                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-10">Radar de Rendimiento Colectivo</h3>
                         
                         {promedioCategoria ? (
-                            <div className="space-y-8">
+                            <div className="space-y-8 w-full max-w-md">
                                 <RadarChart 
                                     data={habilidades.map(h => ({ label: h.nombre, value: promedioCategoria[h.nombre] || 0 }))}
                                     size={400}

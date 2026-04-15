@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Trash2, Save, Eraser, Pen, Circle, 
-  Download, RefreshCw, Layers, Users as UsersIcon, X
+  Download, RefreshCw, Layers, Users as UsersIcon, X, Undo2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -18,6 +18,7 @@ export default function PizarraTactica() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
   const [isPortrait, setIsPortrait] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
 
   const [jugadores, setJugadores] = useState<any[]>([]);
 
@@ -101,6 +102,12 @@ export default function PizarraTactica() {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
     
+    // Guardar estado previo para UNDO
+    const canvas = canvasRef.current;
+    if (canvas) {
+        setHistory(prev => [...prev.slice(-20), canvas.toDataURL()]);
+    }
+
     ctx.beginPath();
     ctx.moveTo(coords.x, coords.y);
     
@@ -131,9 +138,28 @@ export default function PizarraTactica() {
     if (!window.confirm("¿Limpiar todos los dibujos? (La cancha se mantendrá)")) return;
     const canvas = canvasRef.current;
     if (canvas) {
+        setHistory(prev => [...prev.slice(-20), canvas.toDataURL()]);
         const ctx = canvas.getContext('2d');
         ctx?.clearRect(0, 0, canvas.width, canvas.height);
     }
+  };
+
+  const undo = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || history.length === 0) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const lastState = history[history.length - 1];
+    setHistory(prev => prev.slice(0, -1));
+
+    const img = new Image();
+    img.src = lastState;
+    img.onload = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+    };
   };
 
   const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
@@ -212,7 +238,10 @@ export default function PizarraTactica() {
            <button onClick={() => setTool('pen')} className={`p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-5 h-5" /></button>
            <button onClick={() => setTool('eraser')} className={`p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-5 h-5" /></button>
            <div className="w-px h-6 bg-white/10 mx-1"></div>
-           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-3 text-slate-500 hover:text-red-400 rounded-xl"><RefreshCw className="w-5 h-5" /></button>
+           <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
+              <Undo2 className="w-5 h-5" />
+           </button>
+           <button onClick={clearCanvas} title="Limpiar dibujos" className="p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-5 h-5" /></button>
         </div>
 
         <div className="flex items-center gap-3">
@@ -238,7 +267,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] bg-emerald-600 rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
+        <div ref={containerRef} className="pizarra-container relative w-full max-w-5xl aspect-[4/3] max-h-[calc(100vh-120px)] lg:max-h-[calc(100vh-160px)] bg-emerald-600 rounded-[30px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[8px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500">
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
