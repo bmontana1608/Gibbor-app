@@ -12,37 +12,21 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarMini, setIsSidebarMini] = useState(false);
-  const [verificando, setVerificando] = useState(true);
+  // La seguridad ahora se maneja en el servidor vía Middleware.
+  const [verificando, setVerificando] = useState(false);
   const [rol, setRol] = useState<string | null>(null);
 
   useEffect(() => {
-    const verificarCredenciales = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        router.push('/');
-        return;
-      }
-      
-      const { data: perfil, error } = await supabase
-        .from('perfiles')
-        .select('rol')
-        .eq('id', session.user.id)
-        .maybeSingle();
+    // Solo cargamos el rol para la UI, la seguridad ya está garantizada.
+    async function cargarRol() {
+       const { data: { session } } = await supabase.auth.getSession();
+       if (session) {
+         const { data } = await supabase.from('perfiles').select('rol').eq('id', session.user.id).single();
+         if (data) setRol(data.rol);
+       }
+    }
+    cargarRol();
 
-      if (error || !perfil) {
-        await supabase.auth.signOut();
-        router.push('/');
-      } else if (perfil.rol !== 'Entrenador' && perfil.rol !== 'Director') {
-        // El director puede entrar a panel de entrenador para supervisar
-        router.push('/');
-      } else {
-        setRol(perfil.rol);
-        setVerificando(false);
-      }
-    };
-    
-    verificarCredenciales();
 
     const checkLandscape = () => {
       // Si es horizontal en móvil/tablet pequeña

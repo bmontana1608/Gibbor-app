@@ -14,16 +14,14 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [verificando, setVerificando] = useState(true);
+  // La seguridad se delega al Middleware (Servidor).
+  const [verificando, setVerificando] = useState(false);
   const [usuario, setUsuario] = useState<any>(null);
 
   useEffect(() => {
-    const verificarUsuario = async () => {
+    const cargarPerfil = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/");
-        return;
-      }
+      if (!session) return;
 
       const { data: perfil } = await supabase
         .from("perfiles")
@@ -31,28 +29,24 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
         .eq("id", session.user.id)
         .maybeSingle();
 
-      if (!perfil || (perfil.rol !== "Futbolista" && perfil.rol !== "Jugador" && perfil.rol !== "Director")) {
-        router.push("/");
-        return;
-      }
-
-      if (perfil.rol === "Director") {
-        const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").single();
-        if (config?.hijos_config) {
-          const ids = config.hijos_config.split(",");
-          const { data: hijoPerfil } = await supabase.from("perfiles").select("*").eq("id", ids[0]).single();
-          if (hijoPerfil) {
-            setUsuario(hijoPerfil);
-            setVerificando(false);
-            return;
+      if (perfil) {
+        // Lógica para Director viendo perfiles de hijos o su propio perfil de jugador
+        if (perfil.rol === "Director") {
+          const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").maybeSingle();
+          if (config?.hijos_config) {
+            const ids = config.hijos_config.split(",");
+            const { data: hijoPerfil } = await supabase.from("perfiles").select("*").eq("id", ids[0]).maybeSingle();
+            if (hijoPerfil) {
+              setUsuario(hijoPerfil);
+              return;
+            }
           }
         }
+        setUsuario(perfil);
       }
-
-      setUsuario(perfil);
-      setVerificando(false);
     };
-    verificarUsuario();
+    cargarPerfil();
+
   }, [router]);
 
   const menu = [

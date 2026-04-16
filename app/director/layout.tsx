@@ -13,41 +13,9 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
   // Estado para controlar si el menú hamburguesa está abierto o cerrado
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
-  // Control de seguridad y autorización
-  const [verificando, setVerificando] = useState(true);
+  // El Middleware ahora maneja la seguridad de forma instantánea en el servidor.
+  const [verificando, setVerificando] = useState(false);
 
-  useEffect(() => {
-    const verificarCredenciales = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // No hay sesión en absoluto
-        router.push('/');
-        return;
-      }
-      
-      // Tiene sesión, veamos si es Director en la base de datos
-      const { data: perfil, error } = await supabase
-        .from('perfiles')
-        .select('rol')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      if (error || !perfil) {
-        // Fallo crítico de integridad, cerramos sesión de emergencia
-        await supabase.auth.signOut();
-        router.push('/');
-      } else if (perfil.rol !== 'Director') {
-        // Intentó entrar siendo Entrenador, Padre o Jugador
-        router.push('/');
-      } else {
-        // Todo en orden, es el Director
-        setVerificando(false);
-      }
-    };
-    
-    verificarCredenciales();
-  }, [router]);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();

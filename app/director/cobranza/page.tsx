@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles } from 'lucide-react';
+import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 
 export default function ModuloCobranza() {
   const router = useRouter();
@@ -459,31 +460,15 @@ export default function ModuloCobranza() {
       const vencimiento = `5/${new Date().getMonth() + 1}/${anioActual}`;
       const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad por $ ${alumno.tarifa.toLocaleString()} (vence ${vencimiento}). Recuerda que si pagas antes del 5 tienes descuento de $10.000. Gracias por confiar en EFD Gibbor ✨`;
 
-      const res = await fetch(`${cleanUrl}/message/sendMedia/${instanceName}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'apikey': config.api_key 
-        },
-        body: JSON.stringify({
-          number: cleanedNumber,
-          media: pdfBase64,
-          mediatype: "document",
-          mimetype: "application/pdf",
-          fileName: `Recibo_${mesNombre}_${alumno.nombres.replace(/\s/g, '_')}.pdf`,
-          caption: texto
-        })
-      });
+      const result = await enviarMensajeWhatsApp(
+        alumno.telefono,
+        texto,
+        pdfBase64,
+        'document',
+        `Recibo_${mesNombre}_${alumno.nombres.replace(/\s/g, '_')}.pdf`
+      );
 
-      if (!res.ok) throw new Error(`Servidor WA: ${await res.text()}`);
-
-      await supabase.from('mensajes_wa').insert([{
-        instance_name: instanceName,
-        destinatario_nombre: alumno.nombres,
-        destinatario_numero: cleanedNumber,
-        mensaje_texto: texto,
-        tipo_mensaje: 'Recibo'
-      }]);
+      if (!result.success) throw new Error(result.error);
 
       // 5. Incrementar consecutivo en la nube
       await supabase.from('configuracion_wa')
@@ -640,21 +625,16 @@ export default function ModuloCobranza() {
       const pdfBase64 = doc.output('datauristring').split(',')[1];
       const texto = `¡Hola! ⚽ EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF. ✨`;
 
-      // 3. Envío vía API
-      const res = await fetch(`${cleanUrl}/message/sendMedia/${instanceName}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': config.api_key },
-        body: JSON.stringify({
-          number: cleanedNumber,
-          media: pdfBase64,
-          mediatype: "document",
-          mimetype: "application/pdf",
-          fileName: `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`,
-          caption: texto
-        })
-      });
+      // 3. Envío vía API usando motor central
+      const result = await enviarMensajeWhatsApp(
+        reciboGenerado.telefono,
+        texto,
+        pdfBase64,
+        'document',
+        `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`
+      );
 
-      if (!res.ok) throw new Error("Error en servidor de WhatsApp");
+      if (!result.success) throw new Error(result.error);
 
       toast.success("Recibo enviado correctamente al alumno 🚀", { id: toastId });
       setReciboGenerado(null); // Cerramos tras éxito
@@ -971,7 +951,21 @@ export default function ModuloCobranza() {
                           <td className="p-4 md:px-6 text-right font-black text-emerald-600">${parseFloat(pago.total || "0").toLocaleString('es-CO')}</td>
                           <td className="p-4 md:px-6 text-right">
                             <div className="flex items-center justify-end gap-2">
-                              <button onClick={() => { setReciboGenerado({ ...pago, montoBase: pago.monto_base, metodo: pago.metodo_pago }); }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                              <button onClick={async () => { 
+                                // Buscar el teléfono del alumno en su perfil (no está en el registro de pago)
+                                const { data: perfil } = await supabase
+                                  .from('perfiles')
+                                  .select('telefono, grupos')
+                                  .eq('id', pago.jugador_id)
+                                  .single();
+                                setReciboGenerado({ 
+                                  ...pago, 
+                                  montoBase: pago.monto_base, 
+                                  metodo: pago.metodo_pago,
+                                  telefono: perfil?.telefono || '',
+                                  grupo: pago.grupo || perfil?.grupos || 'Sin grupo'
+                                }); 
+                              }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
                                 <Printer className="w-3.5 h-3.5" /> Reimprimir
                               </button>
                               <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors">
