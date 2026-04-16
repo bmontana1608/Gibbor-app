@@ -53,7 +53,8 @@ export default function NuevoMiembro() {
     grupos: '',
     tipo_plan: 'Regular',
     rol: 'Futbolista',
-    estado_pago: 'Pendiente'
+    estado_pago: 'Pendiente',
+    estado_miembro: 'Activo'
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

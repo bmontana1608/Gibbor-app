@@ -46,10 +46,10 @@ export default function DashboardDirector() {
         const inicioHoy = new Date(hoy);
         inicioHoy.setHours(0, 0, 0, 0);
 
-        // Criterio de Cobertura: Buscamos pagos desde hace 45 días para incluir pagos anticipados
-        const fechaCobertura = new Date();
-        fechaCobertura.setDate(fechaCobertura.getDate() - 45);
-        const inicioConsolidado = fechaCobertura.toISOString().split('T')[0];
+        // CONTABILIDAD MENSUAL: Solo pagos del mes y año en curso
+        // El 1 de cada mes todo vuelve a 0 automáticamente
+        const mesActual = hoy.getMonth();    // 0-11
+        const anioActual = hoy.getFullYear();
 
         const [
           { data: jugadores, error: errJug },
@@ -60,7 +60,7 @@ export default function DashboardDirector() {
         ] = await Promise.all([
           supabase.from('perfiles').select('*').eq('rol', 'Futbolista').neq('estado_miembro', 'Pendiente'),
           supabase.from('planes').select('*'),
-          supabase.from('pagos_ingresos').select('jugador_id, monto, fecha, created_at'),
+          supabase.from('pagos_ingresos').select('*'),
           supabase.from('asistencias').select('jugador_id, estado'),
           supabase.from('mensajes_wa').select('destinatario_numero').gte('created_at', inicioHoy.toISOString())
         ]);
@@ -77,12 +77,19 @@ export default function DashboardDirector() {
 
         if (jugadores) {
           const total = jugadores.length;
-          // Filtrar pagos de los últimos 45 días en cliente (evita 400 de PostgREST)
-          const pagosFiltrados = pagosMes?.filter(p => {
-            const fp = p.fecha || p.created_at;
-            return fp ? new Date(fp) >= fechaCobertura : false;
-          }) || [];
+          // Filtrar en cliente por mes actual usando startsWith
+          // La columna 'fecha' es TEXT con formato 'YYYY-MM-DD' → comparación de strings funciona perfectamente
+          const mesPrefijo = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}`;
+          
+          // Definir pagosFiltrados para usar en conteo e ingresos
+          const pagosFiltrados = pagosMes?.filter(p => 
+            p.fecha && String(p.fecha).startsWith(mesPrefijo)
+          ) || [];
+
+          console.log('📊 Total pagos en BD:', pagosMes?.length, '| Filtrando por:', mesPrefijo);
+
           const idsPagados = new Set(pagosFiltrados.map((p: any) => p.jugador_id));
+          console.log('✅ Alumnos pagados este mes:', idsPagados.size);
           const preciosMap = new Map(planesData?.map(p => [p.nombre, Number(p.precio_base)]) || []);
 
           let totalProyectado = 0;
@@ -93,18 +100,18 @@ export default function DashboardDirector() {
             const precio = preciosMap.get(j.tipo_plan || 'Regular') || 0;
             totalProyectado += precio;
             
-            // FILTRO DE INTELIGENCIA FINANCIERA (Triple Validación):
-            // 1. Si el plan cuesta $0 (Becado)
-            // 2. Si tiene un pago registrado en el historial de recibos
-            // 3. Si su perfil ya fue marcado manualmente como 'Al día' en cobranza
+            // CONTEO REAL: Solo pago físico registrado O beca legítima
+            // (No se usa estado_pago del perfil porque es un dato estático que no se resetea mensualmente)
             const tienePago = idsPagados.has(j.id);
             const esBecado = precio === 0;
+            // Para excluir de alertas: también consideramos marcado manual
             const marcadoAlDia = j.estado_pago === 'Al día';
 
-            if (tienePago || esBecado || marcadoAlDia) {
+            if (tienePago || esBecado) {
               alDiaCount++;
-            } else {
-              // SOLO entra aquí si falla las 3 validaciones anteriores
+            }
+
+            if (!tienePago && !esBecado && !marcadoAlDia) {
               const numLimpio = String(j.telefono || '').replace(/\D/g, '');
               morosos.push({ 
                 ...j, 
@@ -153,7 +160,10 @@ export default function DashboardDirector() {
             };
           });
 
-          const ingresosReales = pagosMes?.reduce((acc, current) => acc + (Number(current.monto) || 0), 0) || 0;
+          const ingresosReales = pagosFiltrados.reduce((acc, current) => {
+            // El sistema usa 'total' para el monto del recibo
+            return acc + (Number(current.total || current.monto || current.monto_base) || 0);
+          }, 0);
 
           setStats({
             totalMiembros: total,
