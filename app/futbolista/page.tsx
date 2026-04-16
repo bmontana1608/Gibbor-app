@@ -128,7 +128,7 @@ export default function DashboardFutbolista() {
           const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").single();
           
           if (config?.hijos_config) {
-            const ids = config.hijos_config.split(",").map(id => id.trim());
+            const ids = config.hijos_config.split(",").map((id: string) => id.trim());
             const { data: hijosData, error: errHijos } = await supabase.from("perfiles").select("*").in("id", ids);
             
             if (hijosData && hijosData.length > 0) {
