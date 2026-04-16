@@ -542,22 +542,18 @@ export default function ModuloCobranza() {
 
   const generarYCompartirPDF = async () => {
     if (!reciboGenerado) return;
-    const toastId = toast.loading("Generando PDF para enviar...");
+    
+    // Mostramos un mensaje simple para no bloquear el hilo principal
+    const toastId = toast.loading("Preparando recibo...");
+    
     try {
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
-      const direccionClub = config?.direccion || 'Sede Deportiva';
-      const ciudadClub = config?.ciudad || 'Colombia';
-
+      // Generamos el documento de forma síncrona/rápida
       const doc = new jsPDF();
       
+      // Logo (opcional, con try-catch para rapidez)
       try {
-        const logoUrl = '/logo.png';
-        const img = new Image();
-        img.src = logoUrl;
-        doc.addImage(img, 'PNG', 15, 15, 25, 25);
-      } catch (e) {
-        console.warn("Logo no disponible");
-      }
+        doc.addImage('/logo.png', 'PNG', 15, 15, 25, 25);
+      } catch (e) {}
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
@@ -567,8 +563,8 @@ export default function ModuloCobranza() {
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 100, 100);
-      doc.text(direccionClub, 45, 30);
-      doc.text(ciudadClub, 45, 34);
+      doc.text('Sede Deportiva Oficial', 45, 30);
+      doc.text('Documento Digital', 45, 34);
       
       doc.setFillColor(34, 197, 94);
       doc.rect(145, 15, 50, 10, 'F');
@@ -622,27 +618,33 @@ export default function ModuloCobranza() {
       doc.setTextColor(148, 163, 184);
       doc.text('EFD GIBBOR - Formando Grandes Talentos. Documento digital oficial.', 105, 200, { align: 'center' });
 
+      // BLOQUE CRÍTICO: Compartir de inmediato para no perder el 'User Activation'
       const pdfBlob = doc.output('blob');
       const filename = `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`;
+      const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-      // Intentar compartir nativamente en celular
-      if (navigator.share && navigator.canShare) {
-        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
-        if (navigator.canShare({ files: [file] })) {
-          toast.dismiss(toastId);
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        toast.dismiss(toastId);
+        try {
           await navigator.share({
-            title: 'Recibo Gibbor',
-            files: [file]
+            files: [file],
+            title: 'Recibo de Pago - EFD Gibbor',
+            text: `Hola, adjunto el recibo de pago de ${reciboGenerado.nombres}.`
           });
-          return;
+        } catch (shareErr) {
+          // Si el usuario cancela o hay error en el share, descargamos como respaldo
+          console.warn("Share cancelado o fallido, descargando...");
+          doc.save(filename);
+          toast.success("Recibo descargado. Puedes adjuntarlo manualmente.", { id: toastId });
         }
+      } else {
+        // Fallback inmediato para PC o navegadores sin soporte de share de archivos
+        doc.save(filename);
+        toast.success("Recibo generado y descargado.", { id: toastId });
       }
-      
-      // Fallback a descarga normal en PC o si el nav no lo soporta
-      doc.save(filename);
-      toast.success("Recibo descargado, adjúntalo a WhatsApp.", { id: toastId });
     } catch (err: any) {
-      toast.error("Error al generar PDF: " + err.message, { id: toastId });
+      console.error(err);
+      toast.error("Error al procesar el PDF", { id: toastId });
     }
   };
 
