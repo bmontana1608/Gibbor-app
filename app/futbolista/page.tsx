@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { 
   Trophy, Zap, Star, Calendar, 
@@ -105,6 +106,7 @@ function FifaCard({ perfil, stats }: { perfil: any, stats: any[] }) {
 }
 
 export default function DashboardFutbolista() {
+  const router = useRouter();
   const [perfil, setPerfil] = useState<any>(null);
   const [hijos, setHijos] = useState<any[]>([]);
   const [selectedHijoId, setSelectedHijoId] = useState<string | null>(null);
