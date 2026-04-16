@@ -72,6 +72,11 @@ export default function ModuloReportes() {
     toast.success("Métricas actualizadas", { id: toastId });
   };
 
+  const calcularTarifa = (planId: string) => {
+    const plan = planes.find(p => p.nombre === planId);
+    return plan ? Number(plan.precio_base) : 0;
+  };
+
   // --- CÁLCULOS DINÁMICOS ---
   
   // 1. Ingresos Esperados (según planes asignados)
