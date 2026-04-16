@@ -29,11 +29,14 @@ export default function DashboardEntrenador() {
       if (usuario) {
         setPerfil(usuario);
         
-        // Simulación de métricas por ahora
+        // Métricas Reales
+        const { data: mAlumnos } = await supabase.from('perfiles').select('id').eq('rol', 'Futbolista').eq('grupos', usuario.grupos || 'Todas');
+        const { data: mAsistencias } = await supabase.from('asistencias').select('estado').gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
+        
         setMetricas({
-          alumnosTotal: 45,
-          asistenciaMes: 92,
-          puntosGenerados: 1250
+          alumnosTotal: mAlumnos?.length || 0,
+          asistenciaMes: mAsistencias?.length ? Math.round((mAsistencias.filter(a => a.estado === 'Presente').length / mAsistencias.length) * 100) : 0,
+          puntosGenerados: 0 // Por implementar sistema de puntos
         });
       }
       setCargando(false);
@@ -49,9 +52,9 @@ export default function DashboardEntrenador() {
       {/* Header de Bienvenida */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p className="text-orange-600 font-black text-xs uppercase tracking-widest mb-1">Panel del Instructor</p>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">¡Hola, Profe {perfil?.nombres}! ⚽</h1>
-          <p className="text-slate-500 text-sm mt-1">Listo para la jornada de hoy. Tienes 2 grupos programados.</p>
+          <p className="text-orange-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1">Centro de Alto Rendimiento</p>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tighter">Instructor <span className="text-orange-500">{perfil?.nombres?.split(' ')[0]}</span></h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium">Gestión estratégica de talentos en categoría <span className="text-slate-900 font-bold">{perfil?.grupos || 'No asignada'}</span>.</p>
         </div>
         <div className="bg-white px-4 py-2 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
           <Calendar className="text-orange-500 w-5 h-5" />
@@ -100,13 +103,13 @@ export default function DashboardEntrenador() {
       {/* Estadísticas Rápidas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Alumnos', value: metricas.alumnosTotal, icon: <UserCheck className="w-4 h-4" />, color: 'blue' },
-          { label: 'Eficacia Asistencia', value: `${metricas.asistenciaMes}%`, icon: <Star className="w-4 h-4" />, color: 'emerald' },
-          { label: 'Puntos Gibbor', value: metricas.puntosGenerados, icon: <Trophy className="w-4 h-4" />, color: 'orange' },
-          { label: 'Entrenos Realizados', value: '18', icon: <Calendar className="w-4 h-4" />, color: 'slate' },
+          { label: 'Total Alumnos', value: metricas.alumnosTotal, icon: <UserCheck className="w-4 h-4" /> },
+          { label: 'Eficiencia Mes', value: `${metricas.asistenciaMes}%`, icon: <Star className="w-4 h-4" /> },
+          { label: 'Puntos Control', value: metricas.puntosGenerados, icon: <Trophy className="w-4 h-4" /> },
+          { label: 'Estado Sesión', value: 'Activo', icon: <Calendar className="w-4 h-4" /> },
         ].map((item, i) => (
           <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div className={`p-2 rounded-lg bg-${item.color}-50 text-${item.color}-600 w-fit mb-3`}>{item.icon}</div>
+            <div className="p-2 rounded-lg bg-slate-900 text-orange-500 w-fit mb-3">{item.icon}</div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
             <p className="text-2xl font-black text-slate-800">{item.value}</p>
           </div>

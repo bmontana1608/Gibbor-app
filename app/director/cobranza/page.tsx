@@ -623,7 +623,7 @@ export default function ModuloCobranza() {
       doc.text('EFD GIBBOR - Formando Grandes Talentos. Este es un comprobante de pago oficial.', 105, 200, { align: 'center' });
 
       const pdfBase64 = doc.output('datauristring').split(',')[1];
-      const texto = `¡Hola! ⚽ EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF. ✨`;
+      const texto = `¡Hola! EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
 
       // 3. Envío vía API usando motor central
       const result = await enviarMensajeWhatsApp(
@@ -779,23 +779,23 @@ export default function ModuloCobranza() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
-            <h3 className="text-2xl font-black text-emerald-600">${ingresosRecaudados.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-slate-800">${ingresosRecaudados.toLocaleString('es-CO')}</h3>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos (Gastos)</p>
-            <h3 className="text-2xl font-black text-red-500">${egresosTotales.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-slate-800">${egresosTotales.toLocaleString('es-CO')}</h3>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-slate-900">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Utilidad Neta</p>
-            <h3 className={`text-2xl font-black ${utilidadNeta >= 0 ? 'text-blue-600' : 'text-rose-600'}`}>
+            <h3 className={`text-2xl font-black ${utilidadNeta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               ${utilidadNeta.toLocaleString('es-CO')}
             </h3>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
-            <h3 className="text-2xl font-black text-slate-400">${ingresosPendientes.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-slate-800">${ingresosPendientes.toLocaleString('es-CO')}</h3>
           </div>
         </div>
 

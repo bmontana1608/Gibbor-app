@@ -129,18 +129,8 @@ export default function ReporteAsistenciaDirector() {
           <TrendingUp className="w-4 h-4 text-emerald-500" /> Estadísticas
         </button>
         
-        {/* BOTÓN CONECTADO A SUPABASE PARA PRUEBAS */}
-        <button 
-          onClick={registrarPruebaAleatoria}
-          disabled={procesando || cargando}
-          className="bg-white hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50 group"
-        >
-          {procesando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" />} 
-          {procesando ? 'Guardando...' : 'Registrar Prueba Manual'}
-        </button>
-        
-        <button onClick={cargarDatosBD} className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2">
-          <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin text-orange-500' : 'text-slate-500'}`} /> Actualizar
+        <button onClick={cargarDatosBD} className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-black transition-all shadow-sm flex items-center gap-2">
+          <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin text-orange-500' : 'text-slate-400'}`} /> Actualizar Datos
         </button>
       </div>
 
@@ -167,11 +157,11 @@ export default function ReporteAsistenciaDirector() {
             <XCircle className="text-red-500 w-6 h-6" />
           </div>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
           <p className="text-xs text-slate-500 font-medium mb-1">Excusas / Tardíos</p>
           <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-blue-600">{cargando ? <span className="animate-pulse bg-blue-100 h-8 w-12 block rounded"></span> : excusas}</p>
-            <Clock className="text-blue-500 w-6 h-6" />
+            <p className="text-2xl font-bold text-orange-600">{cargando ? <span className="animate-pulse bg-orange-100 h-8 w-12 block rounded"></span> : excusas}</p>
+            <Clock className="text-orange-400 w-6 h-6" />
           </div>
         </div>
         <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">

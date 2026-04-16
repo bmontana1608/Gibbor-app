@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ClipboardCheck, UserCheck, ChevronRight, Save, Loader, AlertCircle, RefreshCw } from 'lucide-react';
+import { ClipboardCheck, UserCheck, ChevronRight, Save, Loader, AlertCircle, RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AsistenciaEntrenador() {
@@ -166,24 +166,27 @@ export default function AsistenciaEntrenador() {
                   <p className="font-bold text-slate-800 group-hover:text-orange-600 transition-colors uppercase text-sm tracking-tight">{alumno.nombres} {alumno.apellidos}</p>
                 </div>
                 
-                <div className="flex gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <div className="flex gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
                   <button 
                     onClick={() => marcarEstado(alumno.id, 'Presente')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${asistencia[alumno.id] === 'Presente' ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-200'}`}
+                    title="Presente"
+                    className={`p-2.5 rounded-xl transition-all ${asistencia[alumno.id] === 'Presente' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200' : 'text-slate-400 hover:bg-slate-200'}`}
                   >
-                    PRE
+                    <UserCheck className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => marcarEstado(alumno.id, 'Ausente')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${asistencia[alumno.id] === 'Ausente' ? 'bg-red-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-200'}`}
+                    title="Ausente"
+                    className={`p-2.5 rounded-xl transition-all ${asistencia[alumno.id] === 'Ausente' ? 'bg-rose-500 text-white shadow-lg shadow-rose-200' : 'text-slate-400 hover:bg-slate-200'}`}
                   >
-                    AUS
+                    <X className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => marcarEstado(alumno.id, 'Excusa')}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${asistencia[alumno.id] === 'Excusa' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-200'}`}
+                    title="Excusa"
+                    className={`p-2.5 rounded-xl transition-all ${asistencia[alumno.id] === 'Excusa' ? 'bg-amber-500 text-white shadow-lg shadow-amber-200' : 'text-slate-400 hover:bg-slate-200'}`}
                   >
-                    EXC
+                    <AlertCircle className="w-5 h-5" />
                   </button>
                 </div>
               </div>

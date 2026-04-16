@@ -269,8 +269,8 @@ export default function DashboardFutbolista() {
         </div>
         
         {/* Abstract background shapes */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
       </div>
 
       {/* QUICK STATS */}
@@ -290,8 +290,8 @@ export default function DashboardFutbolista() {
 
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-blue-50 rounded-2xl">
-              <Calendar className="text-blue-500 w-6 h-6" />
+            <div className="p-3 bg-slate-900 rounded-2xl">
+              <Calendar className="text-orange-500 w-6 h-6" />
             </div>
           </div>
           <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Próximo Partido</h3>
@@ -300,12 +300,12 @@ export default function DashboardFutbolista() {
 
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-purple-50 rounded-2xl">
-              <Trophy className="text-purple-500 w-6 h-6" />
+            <div className="p-3 bg-slate-900 rounded-2xl">
+              <Trophy className="text-orange-500 w-6 h-6" />
             </div>
           </div>
           <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tu Ranking</h3>
-          <p className="text-2xl font-black text-slate-800 mt-1">#{perfil?.ranking || '-'} en {perfil?.grupos || 'Tu Cat'}</p>
+          <p className="text-2xl font-black text-slate-800 mt-1">{perfil?.ranking ? `#${perfil.ranking}` : '--'} en {perfil?.grupos || 'Cat'}</p>
         </div>
       </div>
 
