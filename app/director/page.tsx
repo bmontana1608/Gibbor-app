@@ -160,7 +160,7 @@ export default function DashboardDirector() {
             };
           });
 
-          const ingresosReales = pagosFiltrados.reduce((acc, current) => {
+          const ingresosReales = pagosFiltrados.reduce((acc: number, current: any) => {
             // El sistema usa 'total' para el monto del recibo
             return acc + (Number(current.total || current.monto || current.monto_base) || 0);
           }, 0);
