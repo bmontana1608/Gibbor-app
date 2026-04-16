@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { 
+  ArrowLeft, Users as UsersIcon, AlertTriangle, Search, 
+  Shield, TrendingUp, DollarSign, Clock, CheckCircle, Edit3 
+} from 'lucide-react';
 
 // Se removerá el config hardcodeado y se usará la base de datos
 
@@ -16,8 +21,11 @@ export default function GestionDePlanes() {
   // Estados para Edición
   const [isModalEditOpen, setIsModalEditOpen] = useState(false);
   const [planEditando, setPlanEditando] = useState<any>(null);
+  const [nombreEdit, setNombreEdit] = useState('');
   const [montoEdit, setMontoEdit] = useState('');
   const [descuentoEdit, setDescuentoEdit] = useState('');
+  const [diaCobroEdit, setDiaCobroEdit] = useState('');
+  const [graciaEdit, setGraciaEdit] = useState('');
 
   useEffect(() => {
     async function cargarDatos() {
@@ -42,29 +50,55 @@ export default function GestionDePlanes() {
 
   const handleEditPlan = (plan: any) => {
     setPlanEditando(plan);
+    setNombreEdit(plan.nombre);
     setMontoEdit(plan.precio_base.toString());
     setDescuentoEdit(plan.descuento_pronto_pago.toString());
+    setDiaCobroEdit((plan.dia_cobro_mensual || 1).toString());
+    setGraciaEdit((plan.dias_limite_pronto_pago || 5).toString());
     setIsModalEditOpen(true);
   };
 
   const savePlanChanges = async () => {
     if (!planEditando) return;
+    const toastId = toast.loading("Actualizando plan y miembros...");
+
+    // 1. Si el nombre cambió, actualizar todos los perfiles asociados
+    if (nombreEdit !== planEditando.nombre) {
+      const { error: errorPerfiles } = await supabase
+        .from('perfiles')
+        .update({ tipo_plan: nombreEdit })
+        .eq('tipo_plan', planEditando.nombre);
+      
+      if (errorPerfiles) {
+        toast.error("Error al actualizar miembros: " + errorPerfiles.message, { id: toastId });
+        return;
+      }
+    }
+
+    // 2. Actualizar el plan
     const { error } = await supabase
       .from('planes')
       .update({ 
+        nombre: nombreEdit,
         precio_base: Number(montoEdit), 
-        descuento_pronto_pago: Number(descuentoEdit) 
+        descuento_pronto_pago: Number(descuentoEdit),
+        dia_cobro_mensual: Number(diaCobroEdit),
+        dias_limite_pronto_pago: Number(graciaEdit)
       })
       .eq('id', planEditando.id);
 
     if (error) {
-       toast.error("Error al actualizar plan: " + error.message);
+       toast.error("Error al actualizar plan: " + error.message, { id: toastId });
     } else {
-       toast.success("Plan actualizado correctamente");
+       toast.success("Plan actualizado correctamente", { id: toastId });
        setIsModalEditOpen(false);
-       // Refresh planes
-       const { data } = await supabase.from('planes').select('*').order('nombre', { ascending: true });
-       if (data) setPlanes(data);
+       
+       // Refrescar datos locales
+       const { data: planesNuevos } = await supabase.from('planes').select('*').order('nombre', { ascending: true });
+       const { data: perfilesNuevos } = await supabase.from('perfiles').select('id, nombres, apellidos, tipo_plan').neq('rol', 'Entrenador').order('nombres', { ascending: true });
+       
+       if (planesNuevos) setPlanes(planesNuevos);
+       if (perfilesNuevos) setJugadores(perfilesNuevos);
     }
   };
 
@@ -87,7 +121,7 @@ export default function GestionDePlanes() {
             onClick={() => router.back()}
             className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2 mt-1"
           >
-            ← Volver
+            <ArrowLeft className="w-4 h-4" /> Volver
           </button>
           <div>
             <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Planes de Acceso</h1>
@@ -95,14 +129,14 @@ export default function GestionDePlanes() {
           </div>
         </div>
         <button className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
-          <span>👥</span> Crear Miembro con Acceso
+          <UsersIcon className="w-4 h-4" /> Crear Miembro con Acceso
         </button>
       </div>
 
       {/* 2. ALERTA INFORMATIVA (Réplica del diseño) */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 shadow-sm">
         <h3 className="text-amber-800 font-bold text-sm mb-2 flex items-center gap-2">
-          <span>⚠️</span> Importante: Diferencia entre Planes y Alumnos Asociados
+          <AlertTriangle className="w-4 h-4 text-amber-500" /> Importante: Diferencia entre Planes y Alumnos Asociados
         </h3>
         <ul className="text-sm text-amber-700 space-y-1.5 ml-6 list-disc marker:text-amber-400">
           <li><strong className="font-bold">Planes de Acceso:</strong> Definen los precios base y los descuentos por pronto pago.</li>
@@ -114,7 +148,7 @@ export default function GestionDePlanes() {
       {/* 3. BUSCADOR Y KPIs */}
       <div className="mb-6">
         <div className="relative mb-6 max-w-md">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
           <input 
             type="text" 
             placeholder="Buscar planes..." 
@@ -130,14 +164,14 @@ export default function GestionDePlanes() {
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total de Planes</p>
               <p className="text-2xl font-black text-slate-800">{planes.length}</p>
             </div>
-            <span className="text-orange-500 text-3xl">🛡️</span>
+            <Shield className="text-orange-500 w-8 h-8 opacity-20" />
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex justify-between items-center shadow-sm">
             <div>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Planes Activos</p>
               <p className="text-2xl font-black text-purple-600">{planes.filter(p => p.precio_base > 0).length}</p>
             </div>
-            <span className="text-purple-500 text-3xl">📈</span>
+            <TrendingUp className="text-purple-500 w-8 h-8 opacity-20" />
           </div>
         </div>
       </div>
@@ -159,10 +193,10 @@ export default function GestionDePlanes() {
               {/* Detalles de Precio */}
               <div className="space-y-2 mb-5">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span>👥</span> Entradas ilimitadas
+                  <UsersIcon className="w-4 h-4 text-slate-400" /> Entradas ilimitadas
                 </div>
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <span className="text-emerald-500">💲</span> 
+                  <DollarSign className="w-4 h-4 text-emerald-500" /> 
                   Precio: <span className="font-bold text-slate-800">${parseFloat(plan.precio_base).toLocaleString('es-CO')}</span>
                   <span className="text-slate-400 text-xs ml-1">({alumnosEnPlan.length} alumnos)</span>
                 </div>
@@ -191,23 +225,23 @@ export default function GestionDePlanes() {
               {/* Configuración de Fechas */}
               <div className="space-y-2 mb-6">
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-blue-500">⏱️</span> Día de cobro: 1 de cada mes
+                  <Clock className="w-4 h-4 text-blue-500" /> Día de cobro: {plan.dia_cobro_mensual || 1} de cada mes
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <span className="text-purple-500">🛡️</span> Periodo de gracia: {plan.dias_limite_pronto_pago} días
+                  <Shield className="w-4 h-4 text-purple-500" /> Periodo de gracia: {plan.dias_limite_pronto_pago || 5} días
                 </div>
                 {plan.descuento_pronto_pago > 0 && (
                   <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded w-fit mt-2">
-                    <span>✅</span> Pronto pago: ${parseFloat(plan.descuento_pronto_pago).toLocaleString('es-CO')} descuento
+                    <CheckCircle className="w-4 h-4" /> Pronto pago: ${parseFloat(plan.descuento_pronto_pago).toLocaleString('es-CO')} descuento
                   </div>
                 )}
               </div>
 
               <button 
                 onClick={() => handleEditPlan(plan)}
-                className="w-full bg-slate-800 text-white hover:bg-slate-900 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg"
+                className="w-full bg-slate-800 text-white hover:bg-slate-900 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
               >
-                ✏️ Editar Configuración del Plan
+                <Edit3 className="w-4 h-4" /> Editar Configuración del Plan
               </button>
 
             </div>
@@ -225,6 +259,15 @@ export default function GestionDePlanes() {
               
               <div className="space-y-5">
                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nombre del Plan</label>
+                    <input 
+                      type="text" 
+                      value={nombreEdit} 
+                      onChange={(e) => setNombreEdit(e.target.value)}
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold"
+                    />
+                 </div>
+                 <div>
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Precio Base (Mensual)</label>
                     <input 
                       type="number" 
@@ -241,6 +284,30 @@ export default function GestionDePlanes() {
                       onChange={(e) => setDescuentoEdit(e.target.value)}
                       className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-emerald-600"
                     />
+                 </div>
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Día de Cobro</label>
+                        <input 
+                          type="number" 
+                          max="28"
+                          min="1"
+                          value={diaCobroEdit} 
+                          onChange={(e) => setDiaCobroEdit(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Días de Gracia</label>
+                        <input 
+                          type="number" 
+                          max="28"
+                          min="0"
+                          value={graciaEdit} 
+                          onChange={(e) => setGraciaEdit(e.target.value)}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold"
+                        />
+                    </div>
                  </div>
               </div>
 

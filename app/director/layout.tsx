@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap } from 'lucide-react';
 
 export default function DirectorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -62,7 +62,25 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
     { name: 'Asistencia', path: '/director/asistencia', icon: <ClipboardCheck className="w-5 h-5" /> },
     { name: 'Categorías', path: '/director/categorias', icon: <Tags className="w-5 h-5" /> },
     { name: 'Reportes', path: '/director/reportes', icon: <BarChart className="w-5 h-5" /> },
-    { name: 'Vista Entrenador', path: '/entrenador', icon: <UserCheck className="w-5 h-5 text-emerald-500" /> },
+    { name: 'Asistente WA', path: '/director/configuracion/asistente-whatsapp', icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
+    { name: 'Ajustes del Club', path: '/director/configuracion', icon: <Settings className="w-5 h-5 text-orange-500" /> },
+  ];
+
+  const accesosRapidos = [
+    { 
+      name: 'Espacio Técnico', 
+      desc: 'Panel de Entrenador',
+      path: '/entrenador', 
+      icon: <Activity className="w-5 h-5" />,
+      color: 'bg-emerald-500'
+    },
+    { 
+      name: 'Espacio Atleta', 
+      desc: 'Panel de Jugador',
+      path: '/futbolista', 
+      icon: <Trophy className="w-5 h-5" />,
+      color: 'bg-orange-500'
+    },
   ];
 
   /* PANTALLA DE CARGA DE SEGURIDAD */
@@ -147,6 +165,32 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
               </Link>
             );
           })}
+
+          <div className="p-4 mt-2 mx-4 mb-4 bg-slate-900 rounded-[1.5rem] border border-slate-800 shadow-xl shadow-slate-900/10 relative overflow-hidden">
+            <div className="absolute right-[-10px] top-[-10px] opacity-10">
+              <Zap className="w-20 h-20 text-white" />
+            </div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 relative z-10 flex items-center gap-2">
+               <ArrowRightLeft className="w-3 h-3" /> Espacios de Trabajo
+            </p>
+            <div className="space-y-2 relative z-10">
+            {accesosRapidos.map((item) => (
+              <Link
+                key={item.path}
+                href={item.path}
+                className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${item.color} text-white shadow-lg`}>
+                  <span className="group-hover:scale-110 transition-transform">{item.icon}</span>
+                </div>
+                <div>
+                   <p className="font-bold text-white text-xs leading-none group-hover:text-amber-400 transition-colors">{item.name}</p>
+                   <p className="text-[10px] text-slate-400 font-medium mt-1 uppercase tracking-widest">{item.desc}</p>
+                </div>
+              </Link>
+            ))}
+            </div>
+          </div>
         </nav>
 
         {/* Botón Salir */}

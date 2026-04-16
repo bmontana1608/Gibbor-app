@@ -12,13 +12,19 @@ export default function NuevoMiembro() {
   const [guardando, setGuardando] = useState(false);
   const [isMinor, setIsMinor] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
 
   useEffect(() => {
-    async function cargarCategorias() {
-      const { data } = await supabase.from('categorias').select('nombre').eq('estado', 'Activo');
-      if (data) setCategorias(data);
+    async function cargarDatosInscripcion() {
+      // Cargar categorías activas
+      const { data: catData } = await supabase.from('categorias').select('nombre').eq('estado', 'Activo');
+      if (catData) setCategorias(catData);
+
+      // Cargar planes de pago dinámicos
+      const { data: planesData } = await supabase.from('planes').select('nombre, precio_base').order('precio_base', { ascending: true });
+      if (planesData) setPlanes(planesData);
     }
-    cargarCategorias();
+    cargarDatosInscripcion();
   }, []);
 
   // Estado del formulario ampliado
@@ -237,10 +243,12 @@ export default function NuevoMiembro() {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan Financiero Asignado</label>
                 <select name="tipo_plan" value={formData.tipo_plan} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white cursor-pointer font-bold text-emerald-700">
-                  <option value="Regular">Regular</option>
-                  <option value="Fin de semana">Fin de semana</option>
-                  <option value="Beca 50%">Beca 50%</option>
-                  <option value="Beca 100%">Beca 100%</option>
+                  {planes.map(plan => (
+                    <option key={plan.nombre} value={plan.nombre}>
+                      {plan.nombre} (${Number(plan.precio_base).toLocaleString('es-CO')})
+                    </option>
+                  ))}
+                  {planes.length === 0 && <option value="Regular">Regular</option>}
                 </select>
               </div>
             </div>

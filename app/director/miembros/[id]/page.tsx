@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Star, Zap } from 'lucide-react';
+import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Star, Zap, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FichaDelJugador() {
@@ -17,7 +17,9 @@ export default function FichaDelJugador() {
   const [edicion, setEdicion] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [guardando, setGuardando] = useState(false);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
 
   useEffect(() => {
@@ -42,6 +44,9 @@ export default function FichaDelJugador() {
       
       const { data: categoriasBD } = await supabase.from('categorias').select('nombre').eq('estado', 'Activo');
       if (categoriasBD) setCategorias(categoriasBD);
+
+      const { data: planesBD } = await supabase.from('planes').select('nombre, precio_base').order('precio_base', { ascending: true });
+      if (planesBD) setPlanes(planesBD);
 
       // Cargar Historial de Pagos del Jugador
       const { data: pagosBD } = await supabase
@@ -121,6 +126,29 @@ export default function FichaDelJugador() {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      setSubiendoFoto(true);
+      
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `avatares/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage.from('fotos').upload(filePath, file);
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage.from('fotos').getPublicUrl(filePath);
+      setFormData({ ...formData, foto_url: data.publicUrl });
+      toast.success('Foto subida. No olvides pulsar Guardar Cambios.');
+    } catch (error: any) {
+      toast.error('GIBBOR ADMIN: Debes crear un Storage Bucket llamado "fotos" y hacerlo público en Supabase.', { duration: 10000 });
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
   if (cargando) return (
     <div className="min-h-screen bg-slate-50 flex flex-col gap-4 items-center justify-center text-slate-500 font-medium">
       <Loader className="w-8 h-8 animate-spin text-orange-500" />
@@ -163,6 +191,18 @@ export default function FichaDelJugador() {
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm" required/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Documento</label><input type="text" name="documento_identidad" value={formData.documento_identidad || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Teléfono</label><input type="text" name="telefono" value={formData.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Foto de Perfil</label>
+                  <div className="flex gap-4 items-center">
+                    <label className="relative cursor-pointer bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-600 hover:text-orange-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
+                       {subiendoFoto ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                       {subiendoFoto ? "Subiendo..." : "Subir Foto Directo"}
+                       <input type="file" accept="image/*" onChange={handleSubirFoto} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={subiendoFoto} />
+                    </label>
+                    <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="O pega el link aquí..." className="flex-1 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Sube desde tu PC/Móvil o pega un enlace público de internet.</p>
+                </div>
               </div>
             </div>
 
@@ -184,7 +224,10 @@ export default function FichaDelJugador() {
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Plan Financiero</label>
                   <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
-                    <option value="Regular">Regular</option><option value="Fin de semana">Fin de semana</option><option value="Beca 50%">Beca 50%</option><option value="Beca 100%">Beca 100%</option>
+                    {planes.map(p => (
+                      <option key={p.nombre} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
+                    ))}
+                    {planes.length === 0 && <option value="Regular">Regular</option>}
                   </select>
                 </div>
                 <div>
@@ -225,8 +268,12 @@ export default function FichaDelJugador() {
         <div className={`absolute top-0 left-0 w-1.5 h-full ${estadoMiembro === 'Activo' ? 'bg-emerald-500' : estadoMiembro === 'Inactivo' ? 'bg-slate-400' : 'bg-amber-500'}`}></div>
         
         <div className="flex items-center gap-5 relative z-10">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-sm shrink-0 border font-black ${estadoMiembro === 'Inactivo' ? 'bg-slate-100 border-slate-200 opacity-50 text-slate-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
-            {jugador.nombres ? jugador.nombres.charAt(0).toUpperCase() : '?'}
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl shadow-sm shrink-0 border font-black overflow-hidden ${estadoMiembro === 'Inactivo' ? 'bg-slate-100 border-slate-200 opacity-50 text-slate-400' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
+            {jugador.foto_url ? (
+              <img src={jugador.foto_url} alt={jugador.nombres} className="w-full h-full object-cover" />
+            ) : (
+              jugador.nombres ? jugador.nombres.charAt(0).toUpperCase() : '?'
+            )}
           </div>
           <div>
             <h1 className={`text-2xl md:text-3xl font-black tracking-tight ${estadoMiembro === 'Inactivo' ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-800'}`}>

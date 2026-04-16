@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User } from 'lucide-react';
+import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DirectorioMiembros() {
@@ -14,15 +14,29 @@ export default function DirectorioMiembros() {
   const [busqueda, setBusqueda] = useState('');
   const [grupoFiltro, setGrupoFiltro] = useState('Todos');
   const [estadoFiltro, setEstadoFiltro] = useState('Todos'); 
-  
+  const [rolFiltro, setRolFiltro] = useState('Todos');
   const [pestaña, setPestaña] = useState<'Registrados' | 'Pendientes'>('Registrados');
+
+  // Estados para gestión de acceso
+  const [miembroAgestionar, setMiembroAgestionar] = useState<any>(null);
+  const [isModalAccesoOpen, setIsModalAccesoOpen] = useState(false);
+  const [emailAcceso, setEmailAcceso] = useState('');
+  const [generandoAcceso, setGenerandoAcceso] = useState(false);
+
+  // Sincronizar correo automáticamente al gestionar acceso
+  useEffect(() => {
+    if (miembroAgestionar) {
+      setEmailAcceso(miembroAgestionar.email || '');
+    }
+  }, [miembroAgestionar]);
 
   const cargarJugadores = async () => {
     setCargando(true);
     const { data, error } = await supabase
       .from('perfiles')
       .select('*')
-      .not('rol', 'in', '("Director","Entrenador")')
+      .neq('rol', 'Director')
+      .order('rol', { ascending: false })
       .order('nombres', { ascending: true });
 
     if (error) {
@@ -40,211 +54,261 @@ export default function DirectorioMiembros() {
   const aprobarJugador = async (id: string, nombreCompleto: string) => {
     const toastId = toast.loading(`Aprobando a ${nombreCompleto}...`);
     const { error } = await supabase.from('perfiles').update({ estado_miembro: 'Activo' }).eq('id', id);
-    
     if (!error) {
-      toast.success(`${nombreCompleto} ha sido aprobado e ingresado al club.`, { id: toastId });
+      toast.success(`${nombreCompleto} ha sido aprobado.`, { id: toastId });
       cargarJugadores();
     } else {
-      toast.error('Error al aprobar: ' + error.message, { id: toastId });
+      toast.error('Error: ' + error.message, { id: toastId });
     }
   };
 
   const rechazarJugador = async (id: string, nombreCompleto: string) => {
-    const confirmacion = window.confirm(`¿Estás seguro de RECHAZAR y eliminar la solicitud de ${nombreCompleto}?`);
-    if (!confirmacion) return;
-
-    const toastId = toast.loading(`Eliminando solicitud de ${nombreCompleto}...`);
+    if (!window.confirm(`¿Seguro de rechazar a ${nombreCompleto}?`)) return;
+    const toastId = toast.loading(`Eliminando solicitud...`);
     const { error } = await supabase.from('perfiles').delete().eq('id', id);
-    
     if (!error) {
-      toast.success(`La solicitud ha sido eliminada.`, { id: toastId });
+      toast.success(`Solicitud eliminada.`, { id: toastId });
       cargarJugadores();
     } else {
-      toast.error('Error al eliminar: ' + error.message, { id: toastId });
+      toast.error('Error: ' + error.message, { id: toastId });
     }
   };
 
-  const jugadoresRegistrados = jugadores.filter(j => j.estado_miembro !== 'Pendiente');
-  const solicitudesPendientes = jugadores.filter(j => j.estado_miembro === 'Pendiente');
-
-  const listaAVisualizar = pestaña === 'Registrados' ? jugadoresRegistrados : solicitudesPendientes;
+  const listaAVisualizar = pestaña === 'Registrados' 
+    ? jugadores.filter(j => j.estado_miembro !== 'Pendiente') 
+    : jugadores.filter(j => j.estado_miembro === 'Pendiente');
   
   const jugadoresFiltrados = listaAVisualizar.filter(jugador => {
     const coincideGrupo = grupoFiltro === 'Todos' || jugador.grupos === grupoFiltro;
-    const estadoReal = jugador.estado_miembro || 'Activo';
-    const coincideEstado = estadoFiltro === 'Todos' || estadoReal === estadoFiltro;
+    const coincideEstado = estadoFiltro === 'Todos' || (jugador.estado_miembro || 'Activo') === estadoFiltro;
+    const coincideRol = rolFiltro === 'Todos' || jugador.rol === rolFiltro;
     const nombreCompleto = `${jugador.nombres} ${jugador.apellidos}`.toLowerCase();
     const coincideBusqueda = nombreCompleto.includes(busqueda.toLowerCase());
-    
-    return coincideGrupo && coincideBusqueda && coincideEstado;
+    return coincideGrupo && coincideBusqueda && coincideEstado && coincideRol;
   });
 
-  const gruposDisponibles = ['Todos', ...Array.from(new Set(jugadoresRegistrados.map(j => j.grupos).filter(Boolean)))];
+  const gruposDisponibles = ['Todos', ...Array.from(new Set(jugadores.map(j => j.grupos).filter(Boolean)))];
 
   const exportarAExcel = () => {
-    if (jugadoresFiltrados.length === 0) return toast.error("No hay datos para exportar");
-    const cabeceras = ['Nombres', 'Apellidos', 'Documento', 'Categoria', 'Telefono', 'Estado del Jugador', 'Estado de Pago'];
-    const filas = jugadoresFiltrados.map(j => [
-      `"${j.nombres || ''}"`, `"${j.apellidos || ''}"`, `"${j.documento_identidad || ''}"`,
-      `"${j.grupos || 'Sin Asignar'}"`, `"${j.telefono || ''}"`, `"${j.estado_miembro || 'Activo'}"`, `"${j.estado_pago || 'Pendiente'}"`
-    ]);
+    if (jugadoresFiltrados.length === 0) return toast.error("No hay datos");
+    const cabeceras = ['Nombres', 'Apellidos', 'Rol', 'Categoria', 'Telefono'];
+    const filas = jugadoresFiltrados.map(j => [`"${j.nombres}"`, `"${j.apellidos}"`, `"${j.rol}"`, `"${j.grupos || '---'}"`, `"${j.telefono || ''}"`]);
     const contenidoCSV = [cabeceras.join(';'), ...filas.map(f => f.join(';'))].join('\n');
     const blob = new Blob(['\uFEFF' + contenidoCSV], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Directorio_Gibbor.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    toast.success("Archivo Excel exportado exitosamente");
+    const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Gibbor_Miembros.csv`);
+    link.click();
   };
-
-  const getInicial = (nombre: string) => nombre ? nombre.charAt(0).toUpperCase() : '?';
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800">
-      
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Users className="text-orange-500 w-7 h-7" /> Directorio de Miembros
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Gestión de jugadores y solicitudes.</p>
+          <p className="text-sm text-slate-500 mt-1">Gestión de staff, jugadores y accesos.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={exportarAExcel} className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
-            <Download className="w-4 h-4" /> Exportar Excel
+          <button onClick={exportarAExcel} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
+            <Download className="w-4 h-4" /> Exportar
           </button>
           <button onClick={() => router.push('/director/miembros/nuevo')} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
-            <UserPlus className="w-4 h-4" /> Nuevo Miembro
+            <UserPlus className="w-4 h-4" /> Nuevo
           </button>
         </div>
       </div>
 
       <div className="flex gap-2 mb-6 border-b border-slate-200 pb-px">
         <button onClick={() => setPestaña('Registrados')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${pestaña === 'Registrados' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-          Plantilla Oficial ({cargando ? '...' : jugadoresRegistrados.length})
+          Plantilla Oficial
         </button>
         <button onClick={() => setPestaña('Pendientes')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${pestaña === 'Pendientes' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-          Solicitudes Pendientes 
-          {solicitudesPendientes.length > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{solicitudesPendientes.length}</span>}
+          Solicitudes Pendientes {listaAVisualizar.length > 0 && pestaña === 'Pendientes' && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{listaAVisualizar.length}</span>}
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5 mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="relative md:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Buscar por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm font-medium" />
+          <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm" />
         </div>
-        
-        {pestaña === 'Registrados' && (
-          <>
-            <div className="md:w-48 relative">
-              <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="w-full pl-4 pr-10 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm font-medium appearance-none bg-white cursor-pointer">
-                <option value="Todos">Todos los estados</option>
-                <option value="Activo">Solo Activos</option>
-                <option value="Inactivo">Solo Inactivos</option>
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
-            </div>
-
-            <div className="md:w-56 relative">
-              <select value={grupoFiltro} onChange={(e) => setGrupoFiltro(e.target.value)} className="w-full pl-4 pr-10 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm font-medium appearance-none bg-white cursor-pointer">
-                {gruposDisponibles.map(g => <option key={g} value={g}>{g}</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
-            </div>
-          </>
-        )}
+        <select value={rolFiltro} onChange={(e) => setRolFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+          <option value="Todos">Todos los roles</option>
+          <option value="Futbolista">Solo Futbolistas</option>
+          <option value="Entrenador">Solo Entrenadores</option>
+        </select>
+        <select value={grupoFiltro} onChange={(e) => setGrupoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+          {gruposDisponibles.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+        <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+          <option value="Todos">Todos los estados</option>
+          <option value="Activo">Activos</option>
+          <option value="Inactivo">Inactivos</option>
+        </select>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-max">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                <th className="p-4 md:px-6">Jugador</th>
-                <th className="p-4 md:px-6">{pestaña === 'Registrados' ? 'Categoría' : 'Fecha Nac.'}</th>
-                <th className="p-4 md:px-6">Contacto</th>
-                <th className="p-4 md:px-6 text-center">Estado</th>
-                <th className="p-4 md:px-6 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {cargando ? (
-                Array.from({ length: 4 }).map((_, idx) => (
-                  <tr key={idx} className="animate-pulse">
-                    <td className="p-4 md:px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-slate-200"></div>
-                        <div>
-                          <div className="h-4 bg-slate-200 rounded w-24 mb-1"></div>
-                          <div className="h-3 bg-slate-200 rounded w-16"></div>
-                        </div>
+        <table className="w-full text-left border-collapse min-w-max">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
+              <th className="p-4 md:px-6">Miembro</th>
+              <th className="p-4 md:px-6">Rol / Categoria</th>
+              <th className="p-4 md:px-6">Contacto</th>
+              <th className="p-4 md:px-6 text-center">Estado</th>
+              <th className="p-4 md:px-6 text-right">Accesos</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 text-sm">
+            {cargando ? (
+              <tr><td colSpan={5} className="p-10 text-center animate-pulse text-slate-400 font-bold">Cargando Gibbor Admin...</td></tr>
+            ) : jugadoresFiltrados.length === 0 ? (
+              <tr><td colSpan={5} className="p-10 text-center text-slate-400">Sin resultados</td></tr>
+            ) : (
+              jugadoresFiltrados.map((jugador) => (
+                <tr key={jugador.id} className="hover:bg-slate-50 transition-colors group">
+                  <td className="p-4 md:px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 border border-slate-200 uppercase">
+                        {jugador.nombres.charAt(0)}
                       </div>
-                    </td>
-                    <td className="p-4 md:px-6"><div className="h-4 bg-slate-200 rounded w-20"></div></td>
-                    <td className="p-4 md:px-6"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="p-4 md:px-6 flex justify-center"><div className="h-6 bg-slate-200 rounded-full w-16"></div></td>
-                    <td className="p-4 md:px-6"><div className="h-8 bg-slate-200 rounded-lg w-20 ml-auto"></div></td>
-                  </tr>
-                ))
-              ) : jugadoresFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-10 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400">
-                      <User className="w-12 h-12 mb-3 text-slate-300" />
-                      <p className="font-medium text-slate-600">{pestaña === 'Registrados' ? 'No se encontraron jugadores con esos filtros' : 'No hay solicitudes pendientes'}</p>
+                      <div>
+                        <p className="font-bold text-slate-800">{jugador.nombres} {jugador.apellidos}</p>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{jugador.id.split('-')[0]}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 md:px-6">
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}`}>{jugador.rol}</span>
+                    <p className="text-xs text-slate-500 mt-1 font-medium">{jugador.grupos || 'Sin grupo'}</p>
+                  </td>
+                  <td className="p-4 md:px-6 text-slate-600 font-medium">{jugador.telefono || '---'}</td>
+                  <td className="p-4 md:px-6 text-center">
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                      {jugador.estado_miembro || 'Activo'}
+                    </span>
+                  </td>
+                  <td className="p-4 md:px-6 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => { setMiembroAgestionar(jugador); setEmailAcceso(jugador.email || ''); setIsModalAccesoOpen(true); }}
+                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
+                      >
+                        <Key className="w-5 h-5" />
+                      </button>
+                      {pestaña === 'Registrados' ? (
+                        <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 p-2 hover:text-slate-800"><ExternalLink className="w-5 h-5" /></button>
+                      ) : (
+                        <div className="flex gap-1">
+                          <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg"><Check className="w-4 h-4" /></button>
+                          <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg"><X className="w-4 h-4" /></button>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ) : (
-                jugadoresFiltrados.map((jugador) => {
-                  const estadoJugador = jugador.estado_miembro || 'Activo';
-
-                  return (
-                    <tr key={jugador.id} className={`hover:bg-slate-50 transition-colors group ${estadoJugador === 'Inactivo' ? 'opacity-60' : ''}`}>
-                      <td className="p-4 md:px-6">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 ${estadoJugador === 'Inactivo' ? 'bg-slate-200 text-slate-400' : 'bg-slate-100 border border-slate-200 text-slate-500'}`}>
-                            {getInicial(jugador.nombres)}
-                          </div>
-                          <div>
-                            <p className={`font-bold ${estadoJugador === 'Inactivo' ? 'text-slate-500 line-through decoration-slate-300' : 'text-slate-800'}`}>{jugador.nombres} {jugador.apellidos}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">ID: {jugador.documento_identidad || 'Sin registro'}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 md:px-6 font-medium text-slate-600">{pestaña === 'Registrados' ? (jugador.grupos || <span className="text-slate-400 italic">Sin grupo</span>) : jugador.fecha_nacimiento}</td>
-                      <td className="p-4 md:px-6"><p className="text-slate-700">{jugador.telefono || '---'}</p></td>
-                      <td className="p-4 md:px-6 text-center">
-                        {pestaña === 'Registrados' ? (
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                            estadoJugador === 'Inactivo' 
-                              ? 'bg-slate-100 text-slate-500 border-slate-200' 
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}>
-                            {estadoJugador}
-                          </span>
-                        ) : (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">En Revisión</span>
-                        )}
-                      </td>
-                      <td className="p-4 md:px-6 text-right">
-                        {pestaña === 'Registrados' ? (
-                          <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="bg-white border border-slate-200 text-slate-600 hover:text-orange-600 hover:border-orange-200 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">Ver Perfil</button>
-                        ) : (
-                          <div className="flex justify-end gap-2">
-                            <button onClick={() => aprobarJugador(jugador.id, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 transition-colors"><Check className="w-3 h-3" /> Aprobar</button>
-                            <button onClick={() => rechazarJugador(jugador.id, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-white border border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex items-center gap-1 transition-colors"><X className="w-3 h-3" /> Rechazar</button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
+
+      {isModalAccesoOpen && miembroAgestionar && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-slate-900 p-6 text-white relative">
+              <button onClick={() => setIsModalAccesoOpen(false)} className="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors"><X className="w-6 h-6" /></button>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg"><ShieldCheck className="w-6 h-6" /></div>
+                <div>
+                  <h3 className="text-xl font-black tracking-tight tracking-tight">Acceso App Gibbor</h3>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{miembroAgestionar.rol}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-8">
+               <div className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <Mail className="w-3.5 h-3.5 text-orange-500" /> Correo electrónico
+                    </label>
+                    <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="ejemplo@correo.com" className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-700 text-sm" />
+                  </div>
+                  <div className="pt-4 space-y-3">
+                    {miembroAgestionar.email ? (
+                      <button 
+                        onClick={async () => {
+                           if (!window.confirm("¿Seguro de restablecer la clave a Gibbor2026*?")) return;
+                           setGenerandoAcceso(true);
+                           const toastId = toast.loading("Restableciendo clave...");
+                           try {
+                             const res = await fetch('/api/admin/reset-password', {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({ userId: miembroAgestionar.id, newPassword: 'Gibbor2026*' })
+                             });
+                             if (!res.ok) throw new Error('Error al resetear');
+                             toast.success("¡Clave restablecida a Gibbor2026*! 🔑", { id: toastId });
+                           } catch (error: any) {
+                             toast.error("Fallo: " + error.message, { id: toastId });
+                           } finally {
+                             setGenerandoAcceso(false);
+                           }
+                        }}
+                        disabled={generandoAcceso}
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all flex items-center justify-center gap-3"
+                      >
+                        {generandoAcceso ? 'Procesando...' : <><Key className="w-5 h-5" /> Restablecer Clave</>}
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={async () => {
+                           if (!emailAcceso.includes('@')) return toast.error("Ingresa un correo válido");
+                           setGenerandoAcceso(true);
+                           const toastId = toast.loading("Activando acceso...");
+                           try {
+                             const res = await fetch('/api/admin/crear-usuario', {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({
+                                 email: emailAcceso,
+                                 password: 'Gibbor2026*',
+                                 rol: miembroAgestionar.rol,
+                                 perfilId: miembroAgestionar.id
+                               })
+                             });
+                             const data = await res.json();
+                             if (!res.ok) throw new Error(data.error || 'Fallo');
+                             toast.success("¡Acceso activado! ✨", { id: toastId });
+                             setIsModalAccesoOpen(false);
+                             cargarJugadores();
+                           } catch (error: any) {
+                             toast.error("Error: " + error.message, { id: toastId });
+                           } finally {
+                             setGenerandoAcceso(false);
+                           }
+                        }}
+                        disabled={generandoAcceso}
+                        className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl"
+                      >
+                        {generandoAcceso ? 'Cargando...' : 'Activar Acceso'}
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => {
+                        const mensaje = `Hola *${miembroAgestionar.nombres}* 👋, acceso a *Gibbor App* activado.\n\n👤 *Usuario:* ${emailAcceso}\n🔑 *Clave:* Gibbor2026*`;
+                        window.open(`https://wa.me/${miembroAgestionar.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+                      }}
+                      className="w-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3"
+                    >
+                      <Smartphone className="w-5 h-5" /> WhatsApp
+                    </button>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

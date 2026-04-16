@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X } from 'lucide-react';
+import jsPDF from 'jspdf';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles } from 'lucide-react';
 
 export default function ModuloCobranza() {
   const router = useRouter();
@@ -38,15 +39,27 @@ export default function ModuloCobranza() {
   // Recibo Generado para impresión
   const [reciboGenerado, setReciboGenerado] = useState<any>(null);
 
+  // Estados para el Asistente Inteligente
+  const [automatedTasks, setAutomatedTasks] = useState<any[]>([]);
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
+  const [isSendingBatch, setIsSendingBatch] = useState(false);
+  const [batchProgress, setBatchProgress] = useState(0);
+  const [notificacionesMes, setNotificacionesMes] = useState<any[]>([]);
+
   const hoy = new Date();
   const diaActual = hoy.getDate();
-  const esProntoPago = diaActual <= 5; 
 
   const calcularTarifa = (tipoPlan: string) => {
     const planBuscado = planes.find(p => p.nombre === (tipoPlan || 'Regular'));
     if (!planBuscado) return 0;
     
-    if (esProntoPago) {
+    const limiteProntoPago = planBuscado.dias_limite_pronto_pago || 5;
+    const diaCobro = planBuscado.dia_cobro_mensual || 1;
+
+    // Si el día actual es menor o igual al día de cobro + periodo de gracia
+    // Consideramos pronto pago si estamos dentro de los primeros X días del mes (ajustable)
+    // O mejor: si diaActual <= dias_limite_pronto_pago
+    if (diaActual <= limiteProntoPago) {
       return Number(planBuscado.precio_base) - Number(planBuscado.descuento_pronto_pago);
     }
     return Number(planBuscado.precio_base);
@@ -81,8 +94,16 @@ export default function ModuloCobranza() {
       .select('*')
       .order('fecha', { ascending: false });
 
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString();
+    const { data: msgData } = await supabase
+      .from('mensajes_wa')
+      .select('destinatario_numero, created_at')
+      .eq('tipo_mensaje', 'Recibo')
+      .gte('created_at', inicioMes);
+
     if (histData) setHistorialPagos(histData);
     if (egresosData) setEgresos(egresosData);
+    if (msgData) setNotificacionesMes(msgData);
     setCargando(false);
   };
 
@@ -121,10 +142,76 @@ export default function ModuloCobranza() {
       }
     }
   };
-
   useEffect(() => {
     cargarDatos();
   }, []);
+
+  useEffect(() => {
+    const diaHoy = new Date().getDate();
+    const mesActual = new Date().getMonth() + 1;
+    const anioActual = new Date().getFullYear();
+    
+    const idsPagados = new Set(
+      historialPagos
+        .filter(p => {
+          const f = new Date(p.fecha);
+          return (f.getMonth() + 1) === mesActual && f.getFullYear() === anioActual;
+        })
+        .map(p => p.jugador_id)
+    );
+
+    const numsNotificados = new Set(
+      notificacionesMes.map(m => m.destinatario_numero.replace(/\D/g, ''))
+    );
+
+    const tasks = jugadores
+      .filter(j => {
+        const numLimpio = String(j.telefono || '').replace(/\D/g, '');
+        const yaNotificado = numsNotificados.has(numLimpio) || numsNotificados.has(`57${numLimpio}`);
+        
+        const leTocaHoy = (j.dia_pago || 1) === diaHoy;
+        const noHaPagado = !idsPagados.has(j.id);
+        const tieneTarifa = calcularTarifa(j.tipo_plan) > 0;
+        
+        return leTocaHoy && noHaPagado && tieneTarifa && !yaNotificado;
+      })
+      .map(j => ({ ...j, tarifa: calcularTarifa(j.tipo_plan) }));
+
+    setAutomatedTasks(tasks);
+  }, [jugadores, historialPagos, planes, notificacionesMes]);
+
+
+  const handleSendBatch = async () => {
+    if (!window.confirm(`¿Deseas enviar ${automatedTasks.length} recibos automáticamente?`)) return;
+    
+    setIsSendingBatch(true);
+    setBatchProgress(0);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (let i = 0; i < automatedTasks.length; i++) {
+      const alumno = automatedTasks[i];
+      try {
+        await handleNotificar(alumno);
+        successCount++;
+      } catch (error) {
+        console.error(`Error enviando a ${alumno.nombres}`, error);
+        failCount++;
+      }
+      setBatchProgress(i + 1);
+      // Pequeña espera para no saturar la API
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    setIsSendingBatch(false);
+    setAutomatedTasks([]);
+    
+    if (failCount === 0) {
+      toast.success(`¡Tarea finalizada! Se enviaron ${successCount} recibos con éxito.`);
+    } else {
+      toast.warning(`Tarea completada con observaciones. Éxitos: ${successCount}, Fallos: ${failCount}.`);
+    }
+  };
 
   const actualizarPlan = async (id: string, nuevoPlan: string, nombreCompleto: string) => {
     const { error } = await supabase.from('perfiles').update({ tipo_plan: nuevoPlan }).eq('id', id);
@@ -134,6 +221,12 @@ export default function ModuloCobranza() {
       toast.success(`Plan de ${nombreCompleto} actualizado a ${nuevoPlan}`);
       cargarDatos();
     }
+  };
+
+  const actualizarDiaPago = async (id: string, nuevoDia: number) => {
+    const { error } = await supabase.from('perfiles').update({ dia_pago: nuevoDia }).eq('id', id);
+    if (error) toast.error("Error: " + error.message);
+    else toast.success("Día de pago actualizado");
   };
 
   const abrirModalPago = (jugador: any) => {
@@ -202,41 +295,356 @@ export default function ModuloCobranza() {
     }
   };
 
-  const enviarRecordatorio = (telefono: string, nombreJugador: string, deuda: number) => {
-    if (!telefono) return toast.error(`No hay teléfono registrado para ${nombreJugador}.`);
-    let celLimpio = telefono.replace(/\D/g, '');
-    if (!celLimpio.startsWith('57')) celLimpio = '57' + celLimpio; 
-    const mensaje = encodeURIComponent(`Hola! ⚽ Te escribimos de EFD Gibbor. Te recordamos amablemente que el pago de la mensualidad de ${nombreJugador} ($${deuda.toLocaleString('es-CO')}) se encuentra pendiente. ¡Gracias por hacer parte de nuestro club!`);
-    window.open(`https://wa.me/${celLimpio}?text=${mensaje}`, '_blank');
+  const [loadingBot, setLoadingBot] = useState<string | null>(null);
+
+  const handleNotificar = async (alumno: any) => {
+    // Seguridad: Si no trae la tarifa calculada, la calculamos aquí
+    if (!alumno.tarifa) {
+      alumno.tarifa = calcularTarifa(alumno.tipo_plan);
+    }
+    
+    setLoadingBot(alumno.id);
+    
+    try {
+      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      if (!config || !config.api_url || !config.api_key) {
+        toast.error("Configura el asistente primero.");
+        return;
+      }
+
+      const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
+      const instanceName = config.instance_name || 'Gibbor_App';
+
+      let cleanedNumber = String(alumno.telefono || '').replace(/\D/g, '');
+      // Si el número empieza con el código de país pero sin +, o es local de 10 dígitos
+      if (cleanedNumber.length === 10) {
+        cleanedNumber = `57${cleanedNumber}`;
+      } else if (cleanedNumber.length === 12 && cleanedNumber.startsWith('57')) {
+        // Ya tiene el código de país, lo dejamos así
+      }
+
+      // --- DATOS DINÁMICOS ---
+      const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const fechaActual = new Date();
+      const mesNombre = meses[fechaActual.getMonth()];
+      const anioActual = fechaActual.getFullYear();
+      
+      const direccionClub = config.direccion || 'Calle Ficticia #12-34';
+      const ciudadClub = config.ciudad || 'Cúcuta, Norte de Santander';
+      const nuevoConsecutivo = (config.ultimo_consecutivo_recibo || 0) + 1;
+
+      // --- LÓGICA DE ESTADO INTELIGENTE (1-5 día) ---
+      const diaActual = fechaActual.getDate();
+      const esVencido = diaActual > 5;
+      const statusLabel = esVencido ? 'VENCIDO' : 'PENDIENTE PAGO';
+      const statusColor = esVencido ? [220, 38, 38] : [255, 120, 0]; // Rojo : Naranja
+
+      // --- GENERACIÓN DE PDF PROFESIONAL ---
+      const doc = new jsPDF();
+      
+      try {
+        const logoUrl = '/logo.png';
+        const img = new Image();
+        img.src = logoUrl;
+        doc.addImage(img, 'PNG', 15, 15, 25, 25);
+      } catch (e) {
+        console.warn("Logo no disponible");
+      }
+
+      // Encabezado Corporativo
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(30, 41, 59);
+      doc.text('EFD GIBBOR', 45, 25);
+      
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(direccionClub, 45, 30);
+      doc.text(ciudadClub, 45, 34);
+      
+      // Caja de Estado Inteligente
+      doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+      doc.rect(145, 15, 50, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text(statusLabel, 170, 21.5, { align: 'center' });
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(8);
+      doc.text(`Expedido: ${fechaActual.toLocaleDateString()}`, 145, 30);
+      doc.text(`Recibo: #${nuevoConsecutivo.toString().padStart(4, '0')}`, 145, 34);
+
+      // Línea divisoria
+      doc.setDrawColor(240, 240, 240);
+      doc.line(15, 45, 195, 45);
+
+      // Alumno
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(15, 50, 180, 20, 3, 3, 'F');
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text('RECEPTOR DEL RECIBO', 20, 56);
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.text(alumno.nombres.toUpperCase(), 20, 63);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Identificación: ${alumno.documento || '---'}`, 20, 68);
+      doc.text(`Categoría: ${alumno.grupos || 'Juvenil'}`, 100, 68);
+
+      // Detalle Table
+      doc.setFillColor(30, 41, 59);
+      doc.rect(15, 75, 180, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text('DESCRIPCIÓN DEL CARGO', 20, 80.5);
+      doc.text('MONTO', 175, 80.5, { align: 'right' });
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Mensualidad Deportiva - ${mesNombre} ${anioActual}`, 20, 92);
+      doc.text(`$ ${alumno.tarifa.toLocaleString()}`, 175, 92, { align: 'right' });
+      
+      doc.line(15, 98, 195, 98);
+
+      // Total
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text('TOTAL A PAGAR:', 120, 110);
+      doc.setTextColor(255, 120, 0);
+      doc.text(`$ ${alumno.tarifa.toLocaleString()}`, 180, 110, { align: 'right' });
+
+      // BLOQUE DE NOTAS Y PAGOS
+      doc.setFillColor(255, 247, 237); // Light Orange
+      doc.roundedRect(15, 125, 180, 35, 3, 3, 'F');
+      
+      doc.setFontSize(8);
+      doc.setTextColor(194, 65, 12); // Darker Orange
+      doc.setFont("helvetica", "bold");
+      doc.text('POLÍTICAS DE PAGO Y DESCUENTOS:', 20, 132);
+      
+      doc.setFontSize(7.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(30, 41, 59);
+      doc.text('• Descuento de $10.000 por pronto pago si se liquida en los primeros 5 días del mes.', 20, 138);
+      doc.text('• Este descuento NO aplica para futbolistas con beca otorgada por el club.', 20, 141);
+      
+      // Métodos de Pago dinámicos con seguridad
+      const pagosNequi = config.nequi ? `Nequi: ${config.nequi}` : "";
+      const pagosDavi = config.daviplata ? `Daviplata: ${config.daviplata}` : "";
+      const pagosBreB = config.bre_b ? `Bre-B: ${config.bre_b}` : "";
+      const pagosBanco = config.banco_nombre ? `${config.banco_nombre}: ${config.banco_numero}` : "";
+
+      const stringMetodos = [pagosNequi, pagosDavi, pagosBreB].filter(Boolean).join(" / ");
+      
+      doc.text(`• Pagos: ${stringMetodos || 'Contactar al club para métodos de pago'}`, 20, 146);
+      if (pagosBanco) {
+        doc.text(`• ${pagosBanco}`, 20, 149);
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.text('Enviar soporte de pago al asistente de WhatsApp para registro contable.', 20, 154);
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text('EFD GIBBOR - Formando Grandes Talentos. Documento digital oficial.', 105, 200, { align: 'center' });
+
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+
+      // Mensaje de WhatsApp
+      const vencimiento = `5/${new Date().getMonth() + 1}/${anioActual}`;
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad por $ ${alumno.tarifa.toLocaleString()} (vence ${vencimiento}). Recuerda que si pagas antes del 5 tienes descuento de $10.000. Gracias por confiar en EFD Gibbor ✨`;
+
+      const res = await fetch(`${cleanUrl}/message/sendMedia/${instanceName}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'apikey': config.api_key 
+        },
+        body: JSON.stringify({
+          number: cleanedNumber,
+          media: pdfBase64,
+          mediatype: "document",
+          mimetype: "application/pdf",
+          fileName: `Recibo_${mesNombre}_${alumno.nombres.replace(/\s/g, '_')}.pdf`,
+          caption: texto
+        })
+      });
+
+      if (!res.ok) throw new Error(`Servidor WA: ${await res.text()}`);
+
+      await supabase.from('mensajes_wa').insert([{
+        instance_name: instanceName,
+        destinatario_nombre: alumno.nombres,
+        destinatario_numero: cleanedNumber,
+        mensaje_texto: texto,
+        tipo_mensaje: 'Recibo'
+      }]);
+
+      // 5. Incrementar consecutivo en la nube
+      await supabase.from('configuracion_wa')
+        .update({ ultimo_consecutivo_recibo: nuevoConsecutivo })
+        .eq('id', config.id);
+
+      toast.success(`Recibo #${nuevoConsecutivo} enviado 🚀`);
+    } catch (error: any) {
+      toast.error("Fallo al enviar: " + error.message);
+      throw error; // Re-lanzar para que el proceso batch sepa que falló
+    } finally {
+      setLoadingBot(null);
+    }
   };
 
   const ingresosRecaudados = historialPagos.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
   const egresosTotales = egresos.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
   const utilidadNeta = ingresosRecaudados - egresosTotales;
   
-  let ingresosPendientes = 0;
-  let totalAlDia = 0; 
-  let totalMora = 0;
+  const totalJugadoresCobrales = jugadores.filter(j => calcularTarifa(j.tipo_plan) > 0).length;
+  
+  // Mapeo de quiénes pagaron este mes para rapidez
+  const mesActual = hoy.getMonth() + 1;
+  const anioActual = hoy.getFullYear();
+  
+  const idsPagadosEsteMes = new Set(
+    historialPagos
+      .filter(p => {
+        const fechaPago = new Date(p.fecha);
+        return (fechaPago.getMonth() + 1) === mesActual && fechaPago.getFullYear() === anioActual;
+      })
+      .map(p => p.jugador_id)
+  );
 
-  jugadores.forEach(j => {
+  const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
-    const est = (j.estado_pago || '').trim().toLowerCase();
-    const esAlDia = est === 'al día' || est === 'al dia';
-    if (esAlDia) { if (tarifa > 0) totalAlDia++; } 
-    else { ingresosPendientes += tarifa; if (tarifa > 0) totalMora++; }
+    const esAlDia = idsPagadosEsteMes.has(j.id);
+    return { ...j, esAlDia, tarifa };
   });
 
-  const totalJugadoresCobrales = totalAlDia + totalMora;
+  const totalAlDia = jugadoresFin.filter(j => j.esAlDia && j.tarifa > 0).length;
+  const totalMora = totalJugadoresCobrales - totalAlDia;
+  
+  const ingresosPendientes = jugadoresFin
+    .filter(j => !j.esAlDia && j.tarifa > 0)
+    .reduce((acc, j) => acc + j.tarifa, 0);
+
   const porcentajeRecaudo = totalJugadoresCobrales > 0 ? Math.round((totalAlDia / totalJugadoresCobrales) * 100) : 0;
 
-  const jugadoresFiltrados = jugadores.filter(jugador => {
-    const est = (jugador.estado_pago || '').trim().toLowerCase();
-    const esAlDia = est === 'al día' || est === 'al dia';
-    const estadoActual = esAlDia ? 'Al día' : 'Pendiente';
+  const jugadoresFiltrados = jugadoresFin.filter(jugador => {
+    const estadoActual = jugador.esAlDia ? 'Al día' : 'Pendiente';
     const coincideEstado = estadoFiltro === 'Todos' || estadoFiltro === estadoActual;
     const coincideBusqueda = `${jugador.nombres} ${jugador.apellidos}`.toLowerCase().includes(busqueda.toLowerCase());
     return coincideEstado && coincideBusqueda;
   });
+
+  const generarYCompartirPDF = async () => {
+    if (!reciboGenerado) return;
+    const toastId = toast.loading("Generando PDF para enviar...");
+    try {
+      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const direccionClub = config?.direccion || 'Sede Deportiva';
+      const ciudadClub = config?.ciudad || 'Colombia';
+
+      const doc = new jsPDF();
+      
+      try {
+        const logoUrl = '/logo.png';
+        const img = new Image();
+        img.src = logoUrl;
+        doc.addImage(img, 'PNG', 15, 15, 25, 25);
+      } catch (e) {
+        console.warn("Logo no disponible");
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(30, 41, 59);
+      doc.text('EFD GIBBOR', 45, 25);
+      
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(direccionClub, 45, 30);
+      doc.text(ciudadClub, 45, 34);
+      
+      doc.setFillColor(34, 197, 94);
+      doc.rect(145, 15, 50, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.text('PAGADO', 170, 21.5, { align: 'center' });
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(8);
+      doc.text(`Fecha: ${new Date(reciboGenerado.fecha).toLocaleDateString()}`, 145, 30);
+      doc.text(`Recibo: #${reciboGenerado.consecutivo.toString().padStart(4, '0')}`, 145, 34);
+
+      doc.setDrawColor(240, 240, 240);
+      doc.line(15, 45, 195, 45);
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(15, 50, 180, 20, 3, 3, 'F');
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text('RECIBIDO DE', 20, 56);
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${reciboGenerado.nombres} ${reciboGenerado.apellidos}`.toUpperCase(), 20, 63);
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Categoría: ${reciboGenerado.grupo}`, 100, 68);
+
+      doc.setFillColor(30, 41, 59);
+      doc.rect(15, 75, 180, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text('DESCRIPCIÓN', 20, 80.5);
+      doc.text('MONTO', 175, 80.5, { align: 'right' });
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Abono Mensualidad / Plan`, 20, 92);
+      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 175, 92, { align: 'right' });
+      
+      doc.line(15, 98, 195, 98);
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text('TOTAL PAGADO:', 120, 110);
+      doc.setTextColor(16, 185, 129);
+      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 180, 110, { align: 'right' });
+      
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text('EFD GIBBOR - Formando Grandes Talentos. Documento digital oficial.', 105, 200, { align: 'center' });
+
+      const pdfBlob = doc.output('blob');
+      const filename = `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`;
+
+      // Intentar compartir nativamente en celular
+      if (navigator.share && navigator.canShare) {
+        const file = new File([pdfBlob], filename, { type: 'application/pdf' });
+        if (navigator.canShare({ files: [file] })) {
+          toast.dismiss(toastId);
+          await navigator.share({
+            title: 'Recibo Gibbor',
+            files: [file]
+          });
+          return;
+        }
+      }
+      
+      // Fallback a descarga normal en PC o si el nav no lo soporta
+      doc.save(filename);
+      toast.success("Recibo descargado, adjúntalo a WhatsApp.", { id: toastId });
+    } catch (err: any) {
+      toast.error("Error al generar PDF: " + err.message, { id: toastId });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
@@ -256,17 +664,79 @@ export default function ModuloCobranza() {
           </div>
         </div>
 
-        {esProntoPago ? (
-          <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-xl shadow-sm flex items-center gap-3">
-            <Flame className="w-6 h-6 text-orange-500" />
-            <div><p className="font-bold text-sm">¡Pronto Pago Activo!</p><p className="text-xs">Hoy es día {diaActual}. Descuentos aplicados hasta el día 5.</p></div>
-          </div>
-        ) : (
-          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl shadow-sm flex items-center gap-3">
-            <Calendar className="w-6 h-6 text-blue-500" />
-            <div><p className="font-bold text-sm">Período Regular</p><p className="text-xs">Estamos fuera de la fecha de pronto pago.</p></div>
+        {/* Banner de Asistente Inteligente */}
+        {automatedTasks.length > 0 && isBannerVisible && (
+          <div className="mb-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-1 shadow-lg shadow-orange-100 overflow-hidden relative group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <Sparkles className="w-24 h-24 text-white" />
+            </div>
+            <div className="bg-white/95 backdrop-blur-sm rounded-[14px] p-5 flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center animate-pulse">
+                  <Bot className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
+                    Asistente Gibbor <span className="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
+                  </h3>
+                  <p className="text-sm text-slate-500">He detectado <span className="font-bold text-orange-600">{automatedTasks.length} cobros programados</span> para hoy que no han sido notificados.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <button 
+                  onClick={() => setIsBannerVisible(false)}
+                  className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Omitir por ahora
+                </button>
+                <button 
+                  onClick={handleSendBatch}
+                  disabled={isSendingBatch}
+                  className="flex-1 md:flex-none bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 text-white px-6 py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                >
+                  {isSendingBatch ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando ({batchProgress}/{automatedTasks.length})
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4" />
+                      Enviar todos ({automatedTasks.length})
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            {isSendingBatch && (
+              <div className="h-1 bg-orange-200 w-full overflow-hidden">
+                <div 
+                  className="h-full bg-orange-500 transition-all duration-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" 
+                  style={{ width: `${(batchProgress / automatedTasks.length) * 100}%` }}
+                />
+              </div>
+            )}
           </div>
         )}
+
+        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-slate-800">Ciclo de Facturación Activo</p>
+              <p className="text-xs text-slate-500">Hoy es día <span className="font-black text-slate-700">{diaActual}</span>. Los descuentos de pronto pago se aplican según la configuración de cada plan.</p>
+            </div>
+          </div>
+          <div className="hidden md:flex gap-2">
+             <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-[10px] font-bold text-slate-600 uppercase">Sistema Automatizado</span>
+             </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -330,9 +800,7 @@ export default function ModuloCobranza() {
                       <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
                     ) : (
                       jugadoresFiltrados.map((jugador) => {
-                        const tarifaExacta = calcularTarifa(jugador.tipo_plan);
-                        const est = (jugador.estado_pago || '').trim().toLowerCase();
-                        const esAlDia = est === 'al día' || est === 'al dia';
+                        const esAlDia = jugador.esAlDia;
                         return (
                           <tr key={jugador.id} className="hover:bg-slate-50/50 transition-colors group">
                             <td className="p-4 md:px-6">
@@ -347,9 +815,9 @@ export default function ModuloCobranza() {
                                 ))}
                               </select>
                             </td>
-                            <td className="p-4 md:px-6 font-black text-slate-700">${tarifaExacta.toLocaleString('es-CO')}</td>
+                            <td className="p-4 md:px-6 font-black text-slate-700">${jugador.tarifa.toLocaleString('es-CO')}</td>
                             <td className="p-4 md:px-6">
-                              {tarifaExacta === 0 ? (
+                              {jugador.tarifa === 0 ? (
                                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">Beca</span>
                               ) : (
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
@@ -359,12 +827,18 @@ export default function ModuloCobranza() {
                             </td>
                             <td className="p-4 md:px-6 text-right">
                               <div className="flex justify-end gap-2">
-                                {tarifaExacta === 0 ? (
+                                {jugador.tarifa === 0 ? (
                                   <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
                                 ) : !esAlDia ? (
                                   <>
-                                    <button onClick={() => enviarRecordatorio(jugador.telefono, jugador.nombres, tarifaExacta)} className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" title="Enviar WhatsApp">
-                                      <Smartphone className="w-4 h-4" /> Avisar
+                                    <button 
+                                      onClick={() => handleNotificar(jugador)} 
+                                      disabled={loadingBot !== null}
+                                      className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" 
+                                      title="Invocar Robot de Cobro"
+                                    >
+                                      {loadingBot === jugador.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
+                                      {loadingBot === jugador.id ? 'Enviando...' : 'Notificar'}
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
@@ -380,6 +854,18 @@ export default function ModuloCobranza() {
                                     </button>
                                   </div>
                                 )}
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span className="text-[10px] font-bold text-slate-400">COBRO DÍA:</span>
+                                  <select 
+                                    defaultValue={jugador.dia_pago || 1}
+                                    onChange={(e) => actualizarDiaPago(jugador.id, parseInt(e.target.value))}
+                                    className="text-[10px] font-bold bg-slate-50 border-none rounded px-1.5 py-0.5 text-orange-600 focus:ring-0 cursor-pointer hover:bg-orange-50 transition-colors"
+                                  >
+                                    {[...Array(30)].map((_, i) => (
+                                      <option key={i+1} value={i+1}>{i+1}</option>
+                                    ))}
+                                  </select>
+                                </div>
                               </div>
                             </td>
                           </tr>
@@ -556,8 +1042,8 @@ export default function ModuloCobranza() {
             <h3 className="text-2xl font-black text-slate-800 mb-2">¡Pago Exitoso!</h3>
             <p className="text-slate-500 mb-8 text-sm">El pago de <strong>{reciboGenerado.nombres}</strong> por ${reciboGenerado.total.toLocaleString('es-CO')} se registró correctamente.</p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => window.print()} className="w-full bg-emerald-600 text-white font-black py-3.5 rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-100">
-                <Printer className="w-5 h-5" /> Imprimir Recibo
+              <button onClick={generarYCompartirPDF} className="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
+                <MessageSquare className="w-5 h-5" /> Generar PDF y Compartir
               </button>
               <button 
                 onClick={() => {
@@ -568,10 +1054,13 @@ export default function ModuloCobranza() {
                 }} 
                 className="w-full bg-emerald-100 text-emerald-700 font-bold py-3.5 rounded-xl hover:bg-emerald-200 transition-all flex items-center justify-center gap-2"
               >
-                <Smartphone className="w-5 h-5" /> Confirmar por WhatsApp
+                <Smartphone className="w-5 h-5" /> Enviar Mensaje Texto WA
               </button>
-              <button onClick={() => setReciboGenerado(null)} className="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors">
-                Finalizar
+              <button onClick={() => window.print()} className="w-full bg-slate-50 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex border border-slate-200">
+                <Printer className="w-5 h-5" /> Imprimir (Solo PC)
+              </button>
+              <button onClick={() => setReciboGenerado(null)} className="w-full bg-transparent text-slate-400 text-sm font-bold py-3 hover:text-slate-600 transition-colors">
+                Finalizar y Cerrar
               </button>
             </div>
           </div>

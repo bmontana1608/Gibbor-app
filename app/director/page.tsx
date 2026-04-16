@@ -14,37 +14,69 @@ export default function DashboardDirector() {
     alDia: 0,
     porcentajeAlDia: 0,
     totalGrupos: 0,
-    conDeuda: 0
+    conDeuda: 0,
+    ingresosProyectados: 0,
+    deudaEstimada: 0,
+    tasaAsistencia: 0
   });
   const [gruposRendimiento, setGruposRendimiento] = useState<any[]>([]);
   const [actividadReciente, setActividadReciente] = useState<any[]>([]);
 
   useEffect(() => {
     async function cargarDatosDashboard() {
-      // Optimización: Solo descargar Futbolistas que no estén pendientes
-      const { data: jugadores, error } = await supabase
+      setCargando(true);
+      
+      // 1. Cargar Jugadores
+      const { data: jugadores, error: errJug } = await supabase
         .from('perfiles')
         .select('*')
         .eq('rol', 'Futbolista')
         .neq('estado_miembro', 'Pendiente');
 
-      if (error) {
-        toast.error("Error cargando dashboard: " + error.message);
-        setCargando(false);
-        return;
-      }
+      if (errJug) toast.error("Error cargando dashboard: " + errJug.message);
+
+      // 2. Cargar Planes para cálculos financieros exactos
+      const { data: planesData } = await supabase.from('planes').select('*');
+      
+      // 3. Cargar Pagos del mes (Option A logic)
+      const hoy = new Date();
+      const mesActual = hoy.getMonth() + 1;
+      const anioActual = hoy.getFullYear();
+      
+      const { data: pagosMes } = await supabase
+        .from('pagos_ingresos')
+        .select('jugador_id')
+        .gte('fecha', `${anioActual}-${String(mesActual).padStart(2, '0')}-01`);
+
+      // 4. Cargar Asistencias para la tasa real
+      const { data: asistData } = await supabase.from('asistencias').select('estado');
 
       if (jugadores) {
         const total = jugadores.length;
+        const idsPagados = new Set(pagosMes?.map(p => p.jugador_id) || []);
         
-        const alDiaCount = jugadores.filter(p => {
-          const estado = (p.estado_pago || '').trim().toLowerCase();
-          return estado === 'al día' || estado === 'al dia';
-        }).length;
+        // Calcular tarifas por jugador
+        let totalProyectado = 0;
+        let deudaTotal = 0;
+        let alDiaCount = 0;
+
+        jugadores.forEach(j => {
+            const plan = planesData?.find(p => p.nombre === (j.tipo_plan || 'Regular'));
+            const precio = plan ? Number(plan.precio_base) : 0;
+            if (precio > 0) {
+                totalProyectado += precio;
+                if (idsPagados.has(j.id)) {
+                    alDiaCount++;
+                } else {
+                    deudaTotal += precio;
+                }
+            }
+        });
         
         const porcentaje = total > 0 ? Math.round((alDiaCount / total) * 100) : 0;
         const conDeudaCount = total - alDiaCount;
 
+        // Distribución por grupos
         const gruposMap = new Map();
         jugadores.forEach(p => {
           const nombreGrupo = p.grupos || 'Sin Asignar';
@@ -59,18 +91,25 @@ export default function DashboardDirector() {
           cantidad
         })).sort((a, b) => b.cantidad - a.cantidad);
 
-        // Ya vienen ordenados por descedente gracias a Supabase order
-        const recientes = jugadores.slice(0, 5);
+        // Tasa de asistencia
+        let tasa = 0;
+        if (asistData && asistData.length > 0) {
+            const presentes = asistData.filter(a => a.estado === 'Presente').length;
+            tasa = Math.round((presentes / asistData.length) * 100);
+        }
 
         setStats({
           totalMiembros: total,
           alDia: alDiaCount,
           porcentajeAlDia: porcentaje,
           totalGrupos: totalGrupos >= 0 ? totalGrupos : 0,
-          conDeuda: conDeudaCount
+          conDeuda: conDeudaCount,
+          ingresosProyectados: totalProyectado,
+          deudaEstimada: deudaTotal,
+          tasaAsistencia: tasa
         });
         setGruposRendimiento(gruposArray);
-        setActividadReciente(recientes);
+        setActividadReciente(jugadores.slice(0, 5));
       }
       
       setCargando(false);
@@ -128,8 +167,8 @@ export default function DashboardDirector() {
           </div>
           <div>
             <p className="text-xs text-slate-500 font-medium mb-1">Tasa de Asistencia</p>
-            <p className="text-2xl font-bold text-slate-800">-- %</p>
-            <p className="text-xs text-slate-400 mt-1">Calculando datos de campo...</p>
+            <p className="text-2xl font-bold text-slate-800">{cargando ? '--' : stats.tasaAsistencia} %</p>
+            <p className="text-xs text-slate-400 mt-1">Promedio global de asistencia</p>
           </div>
         </div>
 
@@ -162,10 +201,10 @@ export default function DashboardDirector() {
             <>
               <div className="mb-6">
                 <div className="flex justify-between items-end mb-1"><p className="text-xs text-slate-500">Ingresos proyectados</p></div>
-                <p className="text-3xl font-bold text-emerald-600">$ {(stats.alDia * 80000).toLocaleString('es-CO')}</p>
+                <p className="text-3xl font-bold text-emerald-600">$ {stats.ingresosProyectados.toLocaleString('es-CO')}</p>
               </div>
               <div className="mt-auto space-y-3 pt-4 border-t border-slate-100">
-                <div className="flex justify-between text-sm"><span className="text-slate-500">Deuda Estimada:</span><span className="font-medium text-red-500">$ {(stats.conDeuda * 80000).toLocaleString('es-CO')}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-slate-500">Deuda Estimada:</span><span className="font-medium text-red-500">$ {stats.deudaEstimada.toLocaleString('es-CO')}</span></div>
                 <div className="flex justify-between text-sm"><span className="text-slate-500">Miembros en mora:</span><span className="font-medium text-slate-800">{stats.conDeuda} jugadores</span></div>
               </div>
             </>
@@ -186,7 +225,7 @@ export default function DashboardDirector() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm"><span className="text-slate-500">Tasa de asistencia global</span><span className="font-bold text-blue-600 text-lg">-- %</span></div>
+              <div className="flex justify-between items-center text-sm"><span className="text-slate-500">Tasa de asistencia global</span><span className="font-bold text-blue-600 text-lg">{stats.tasaAsistencia}%</span></div>
               <div className="flex justify-between items-center text-sm border-t border-slate-50 pt-4"><span className="text-slate-500">Grupo más grande</span><span className="font-semibold text-slate-800 text-right text-xs">{gruposRendimiento.length > 0 && gruposRendimiento[0].nombre !== 'Sin Asignar' ? gruposRendimiento[0].nombre : (gruposRendimiento.length > 1 ? gruposRendimiento[1].nombre : 'N/A')}</span></div>
               <div className="flex justify-between items-center text-sm border-t border-slate-50 pt-4"><span className="text-slate-500">Promedio por grupo</span><span className="font-medium text-slate-800">{stats.totalGrupos > 0 ? Math.round(stats.totalMiembros / stats.totalGrupos) : 0} miembros</span></div>
             </div>

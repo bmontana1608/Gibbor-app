@@ -16,6 +16,9 @@ export default function ModuloReportes() {
   const [cargando, setCargando] = useState(true);
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
+  const [asistencias, setAsistencias] = useState<any[]>([]);
+  const [pagos, setPagos] = useState<any[]>([]);
   
   // Pestaña activa
   const [pestañaActiva, setPestañaActiva] = useState<'Resumen' | 'Asistencia' | 'Financiero' | 'Miembros'>('Resumen');
@@ -27,23 +30,34 @@ export default function ModuloReportes() {
 
   const cargarDatos = async () => {
     setCargando(true);
-    // Traemos a los futbolistas activos
-    const { data: jugData, error: jugError } = await supabase.from('perfiles')
+    
+    // 1. Jugadores
+    const { data: jugData } = await supabase.from('perfiles')
       .select('*')
       .eq('rol', 'Futbolista')
       .neq('estado_miembro', 'Pendiente')
       .order('nombres', { ascending: true });
-    
-    if (jugError) {
-      toast.error('Error cargando jugadores: ' + jugError.message);
-    } else if (jugData) setJugadores(jugData);
+    if (jugData) setJugadores(jugData);
 
-    // Traemos las categorías
-    const { data: catData, error: catError } = await supabase.from('categorias').select('*');
-    
-    if (catError) {
-      toast.error('Error cargando categorías: ' + catError.message);
-    } else if (catData) setCategorias(catData);
+    // 2. Categorías
+    const { data: catData } = await supabase.from('categorias').select('*');
+    if (catData) setCategorias(catData);
+
+    // 3. Planes
+    const { data: planesData } = await supabase.from('planes').select('*');
+    if (planesData) setPlanes(planesData);
+
+    // 4. Asistencias
+    const { data: asisData } = await supabase.from('asistencias').select('*');
+    if (asisData) setAsistencias(asisData);
+
+    // 5. Pagos Reales (mes actual)
+    const primerDiaMes = new Date();
+    primerDiaMes.setDate(1);
+    const { data: pagosData } = await supabase.from('pagos_ingresos')
+      .select('*')
+      .gte('fecha', primerDiaMes.toISOString());
+    if (pagosData) setPagos(pagosData);
 
     setCargando(false);
   };
@@ -58,36 +72,33 @@ export default function ModuloReportes() {
     toast.success("Métricas actualizadas", { id: toastId });
   };
 
-  // --- CÁLCULOS FINANCIEROS Y DE MIEMBROS ---
-  const calcularTarifa = (tipoPlan: string) => {
-    const plan = (tipoPlan || 'Regular').trim();
-    if (plan === 'Beca 100%') return 0;
-    if (plan === 'Beca 50%') return 35000;
-    if (plan === 'Fin de semana') return 60000;
-    return 70000;
-  };
+  // --- CÁLCULOS DINÁMICOS ---
+  
+  // 1. Ingresos Esperados (según planes asignados)
+  const ingresosEsperados = jugadores.reduce((acc, jug) => {
+    const plan = planes.find(p => p.nombre === jug.tipo_plan);
+    return acc + (plan?.precio_base || 0);
+  }, 0);
 
-  let ingresosEsperados = 0;
-  let ingresosRecaudados = 0;
-  let deudaPendiente = 0;
-  let miembrosAlDia = 0;
-  let miembrosEnMora = 0;
+  // 2. Ingresos Recaudados (Real de la tabla pagos_ingresos)
+  const ingresosRecaudados = pagos.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
 
-  jugadores.forEach(j => {
-    const tarifa = calcularTarifa(j.tipo_plan);
-    ingresosEsperados += tarifa;
-    
-    const estadoLimpio = (j.estado_pago || '').trim().toLowerCase();
-    if (estadoLimpio === 'al día' || estadoLimpio === 'al dia') {
-      ingresosRecaudados += tarifa;
-      miembrosAlDia++;
-    } else {
-      deudaPendiente += tarifa;
-      miembrosEnMora++;
-    }
-  });
-
+  // 3. Deuda y Gestión
+  const deudaPendiente = Math.max(0, ingresosEsperados - ingresosRecaudados);
   const tasaCobro = ingresosEsperados > 0 ? Math.round((ingresosRecaudados / ingresosEsperados) * 100) : 0;
+
+  // 4. Asistencia Real (Global)
+  const totalAsistenciasPosibles = asistencias.length;
+  const presentes = asistencias.filter(a => a.estado === 'Presente').length;
+  const tasaAsistenciaGlobal = totalAsistenciasPosibles > 0 ? Math.round((presentes / totalAsistenciasPosibles) * 100) : 0;
+
+  // 5. Asistencia por Categoría
+  const obtenerAsistenciaGrupo = (nombreGrupo: string) => {
+    const asisGrupo = asistencias.filter(a => a.grupo === nombreGrupo);
+    if (asisGrupo.length === 0) return 0;
+    const presentesGrupo = asisGrupo.filter(a => a.estado === 'Presente').length;
+    return Math.round((presentesGrupo / asisGrupo.length) * 100);
+  };
 
   // --- FILTRAR MIEMBROS PARA LA TABLA ---
   const miembrosFiltrados = jugadores.filter(j => {
@@ -102,11 +113,12 @@ export default function ModuloReportes() {
     
     const cabeceras = ['Miembro', 'Grupo', 'Asistencia', 'Fecha Inscripcion', 'Estado Pago', 'Total Pagado'];
     const filas = miembrosFiltrados.map(j => {
-      const tarifa = calcularTarifa(j.tipo_plan);
-      const estado = (j.estado_pago || '').trim().toLowerCase();
-      const pagado = (estado === 'al día' || estado === 'al dia') ? tarifa : 0;
+      const plan = planes.find(p => p.nombre === j.tipo_plan);
+      const tarifa = plan?.precio_base || 0;
+      const pagado = pagos.find(p => p.jugador_id === j.id) ? tarifa : 0;
+      const asisIndividual = obtenerAsistenciaGrupo(j.grupos);
       return [
-        `"${j.nombres} ${j.apellidos}"`, `"${j.grupos || 'Sin grupo'}"`, `"0%"`, 
+        `"${j.nombres} ${j.apellidos}"`, `"${j.grupos || 'Sin grupo'}"`, `"${asisIndividual}%"`, 
         `"${new Date(j.created_at).toLocaleDateString('es-ES')}"`, `"${j.estado_pago || 'Pendiente'}"`, `"${pagado}"`
       ];
     });
@@ -239,7 +251,7 @@ export default function ModuloReportes() {
                           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{cat.deporte}</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-black text-slate-800">0%</p>
+                          <p className="text-sm font-black text-slate-800">{obtenerAsistenciaGrupo(cat.nombre)}%</p>
                           <p className="text-[10px] text-slate-400 font-bold">promedio</p>
                         </div>
                       </div>
@@ -268,12 +280,12 @@ export default function ModuloReportes() {
                       <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
                         <td className="py-3 px-4 font-bold text-slate-800">{cat.nombre}</td>
                         <td className="py-3 px-4 text-slate-600 flex items-center gap-1.5"><Target className="w-3 h-3 text-slate-400" /> {cat.deporte}</td>
-                        <td className="py-3 px-4 text-center font-medium text-slate-700">0</td>
-                        <td className="py-3 px-4 text-center font-medium text-slate-700">0 / {cat.capacidad_maxima || 0}</td>
+                        <td className="py-3 px-4 text-center font-medium text-slate-700">{asistencias.filter(a => a.grupo === cat.nombre).length}</td>
+                        <td className="py-3 px-4 text-center font-medium text-slate-700">{asistencias.filter(a => a.grupo === cat.nombre && a.estado === 'Presente').length} / {cat.capacidad_maxima || 0}</td>
                         <td className="py-3 px-4 text-center">
-                          <span className="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold border border-red-100">0%</span>
+                          <span className={`px-2 py-1 rounded text-xs font-bold border ${obtenerAsistenciaGrupo(cat.nombre) >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>{obtenerAsistenciaGrupo(cat.nombre)}%</span>
                         </td>
-                        <td className="py-3 px-4 text-center text-slate-400 font-bold">-</td>
+                        <td className="py-3 px-4 text-center text-slate-400 font-bold">{obtenerAsistenciaGrupo(cat.nombre) >= 50 ? 'Stable' : 'Unstable'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -364,7 +376,7 @@ export default function ModuloReportes() {
                               </td>
                               <td className="py-3 px-4 text-slate-600 font-medium flex items-center gap-1.5"><Target className="w-3 h-3 text-slate-400 shrink-0" /> {j.grupos || 'Agente libre'}</td>
                               <td className="py-3 px-4 text-center">
-                                <span className="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold border border-red-100">0%</span>
+                                <span className="bg-slate-50 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-100">{obtenerAsistenciaGrupo(j.grupos)}%</span>
                               </td>
                               <td className="py-3 px-4 text-slate-600 font-medium flex items-center gap-1.5"><Calendar className="w-3 h-3 text-slate-400" /> {fechaCorta}</td>
                               <td className="py-3 px-4 text-center">
