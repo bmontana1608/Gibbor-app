@@ -13,8 +13,12 @@ export async function POST(req: NextRequest) {
     // 1. Extraer el mensaje y el remitente (Estructura de Evolution API)
     const message = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '';
     const remoteJid = body.data?.key?.remoteJid;
+    const fromMe = body.data?.key?.fromMe; // Detecta si lo enviaste tú
 
-    if (!message || !remoteJid) return NextResponse.json({ ok: true });
+    // SEGURIDAD: Solo el dueño del número (!fromMe es falso) y que empiece con !
+    if (!fromMe || !message.startsWith('!')) {
+      return NextResponse.json({ ok: true });
+    }
 
     const command = message.toLowerCase().split(' ')[0];
 
