@@ -16,74 +16,108 @@ export async function POST(req: NextRequest) {
 
     if (!message || !remoteJid) return NextResponse.json({ ok: true });
 
-    // 2. Detectar comando !pago
-    if (message.toLowerCase().startsWith('!pago')) {
+    const command = message.toLowerCase().split(' ')[0];
+
+    // ----- COMANDO: !AYUDA -----
+    if (command === '!ayuda') {
+      const menu = `🤖 *ASISTENTE GIBBOR APP* \n\n` +
+                   `Puedes usar estos comandos desde aquí:\n\n` +
+                   `• *!pago [nombre] [monto]* \nRegistra un pago y genera recibo PDF.\n` +
+                   `• *!info [nombre]* \nVer estado, deuda y contacto del alumno.\n` +
+                   `• *!asistencia [nombre]* \nMarca asistencia de hoy como *Presente*.\n\n` +
+                   `_Ejemplo: !pago Milan 60000_`;
+      await enviarMensajeWhatsApp(remoteJid, menu);
+      return NextResponse.json({ ok: true });
+    }
+
+    // ----- COMANDO: !PAGO -----
+    if (command === '!pago') {
       const parts = message.split(' ');
       if (parts.length < 3) {
-        await enviarMensajeWhatsApp(remoteJid, '❌ Formato incorrecto. Usa: !pago [Nombre] [Monto]\nEjemplo: !pago Daniel 60000');
+        await enviarMensajeWhatsApp(remoteJid, '❌ Formato incorrecto. Usa: !pago [Nombre] [Monto]');
         return NextResponse.json({ ok: true });
       }
 
       const nombreBusqueda = parts[1];
       const monto = parseInt(parts[2].replace(/\D/g, ''));
 
-      // 3. Buscar al alumno en Gibbor App
-      const { data: alumnos, error: errorBusq } = await supabase
-        .from('perfiles')
-        .select('*')
-        .ilike('nombres', `%${nombreBusqueda}%`)
-        .limit(1);
-
-      if (errorBusq || !alumnos || alumnos.length === 0) {
-        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré ningún alumno llamado "${nombreBusqueda}". Revisa el nombre.`);
+      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      
+      if (!alumnos || alumnos.length === 0) {
+        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
         return NextResponse.json({ ok: true });
       }
 
       const alumno = alumnos[0];
+      await supabase.from('pagos_ingresos').insert([{
+        jugador_id: alumno.id,
+        monto_base: monto,
+        total: monto,
+        metodo_pago: 'Efectivo (Bot)',
+        fecha: new Date().toISOString().split('T')[0]
+      }]);
 
-      // 4. Registrar el pago en la base de datos
-      const { error: errorPago } = await supabase
-        .from('pagos_ingresos')
-        .insert([{
-          jugador_id: alumno.id,
-          monto_base: monto,
-          total: monto,
-          metodo_pago: 'Efectivo (Bot)',
-          fecha: new Date().toISOString().split('T')[0],
-          created_at: new Date().toISOString()
-        }]);
-
-      if (errorPago) throw errorPago;
-
-      // 5. Cargar configuración de la empresa para el recibo
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
-
-      // 6. Generar el PDF profesional
       const pdfBase64 = await generarReciboPDFBase64({
-        nombres: alumno.nombres,
-        apellidos: alumno.apellidos,
-        documento: alumno.documento,
-        grupo: alumno.grupos,
-        tarifa: monto,
-        metodo: 'EFECTIVO',
+        nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
+        grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
-          direccion: config?.direccion || 'Sede Deportiva',
-          ciudad: config?.ciudad || 'Cúcuta',
-          nequi: config?.nequi,
-          daviplata: config?.daviplata,
+          direccion: config?.direccion || 'Sede Deportiva', ciudad: config?.ciudad || 'Cúcuta',
+          nequi: config?.nequi, daviplata: config?.daviplata,
           banco: config?.banco_nombre ? `${config.banco_nombre}: ${config.banco_numero}` : undefined
         }
       });
 
-      // 7. Enviar confirmación con el PDF
-      await enviarMensajeWhatsApp(
-        remoteJid, 
-        `✅ *PAGO REGISTRADO EXITOSAMENTE* \n\nAlumno: *${alumno.nombres} ${alumno.apellidos}*\nMonto: *$ ${monto.toLocaleString()}*\n\nAquí tienes el recibo oficial generado.`,
-        pdfBase64,
-        'document',
-        `Recibo_${alumno.nombres}_Bot.pdf`
-      );
+      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`);
+    }
+
+    // ----- COMANDO: !INFO -----
+    if (command === '!info') {
+      const nombreBusqueda = message.split(' ')[1];
+      if (!nombreBusqueda) return NextResponse.json({ ok: true });
+
+      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      if (!alumnos || alumnos.length === 0) {
+        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
+        return NextResponse.json({ ok: true });
+      }
+
+      const alumno = alumnos[0];
+      const { data: planes } = await supabase.from('planes').select('*');
+      const precio = planes?.find(p => p.nombre === (alumno.tipo_plan || 'Regular'))?.precio_base || 140000;
+      
+      const mesPrefijo = new Date().toISOString().slice(0, 7);
+      const { data: pago } = await supabase.from('pagos_ingresos').select('*').eq('jugador_id', alumno.id).filter('fecha', 'gte', `${mesPrefijo}-01`).limit(1);
+
+      const info = `👤 *INFO ALUMNO* \n\n` +
+                   `• *Nombre:* ${alumno.nombres} ${alumno.apellidos}\n` +
+                   `• *Plan:* ${alumno.tipo_plan || 'Regular'}\n` +
+                   `• *Estado Pago:* ${pago && pago.length > 0 ? '✅ AL DÍA' : '❌ PENDIENTE'}\n` +
+                   `• *Tel. Acudiente:* ${alumno.telefono || 'No registrado'}\n\n` +
+                   `_Para registrar pago usa !pago ${alumno.nombres.split(' ')[0]} ${precio}_`;
+      
+      await enviarMensajeWhatsApp(remoteJid, info);
+    }
+
+    // ----- COMANDO: !ASISTENCIA -----
+    if (command === '!asistencia') {
+      const nombreBusqueda = message.split(' ')[1];
+      if (!nombreBusqueda) return NextResponse.json({ ok: true });
+
+      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      if (!alumnos || alumnos.length === 0) return NextResponse.json({ ok: true });
+
+      const alumno = alumnos[0];
+      const { error } = await supabase.from('asistencias').insert([{
+        jugador_id: alumno.id,
+        estado: 'Presente',
+        fecha: new Date().toISOString().split('T')[0]
+      }]);
+
+      if (!error) {
+        await enviarMensajeWhatsApp(remoteJid, `⚽ *ASISTENCIA REGISTRADA* \n*${alumno.nombres}* ha sido marcado como *Presente* el día de hoy.`);
+      }
     }
 
     return NextResponse.json({ ok: true });
