@@ -540,17 +540,26 @@ export default function ModuloCobranza() {
     return coincideEstado && coincideBusqueda;
   });
 
-  const generarYCompartirPDF = async () => {
+  const enviarReciboAutomatico = async () => {
     if (!reciboGenerado) return;
     
-    // Mostramos un mensaje simple para no bloquear el hilo principal
-    const toastId = toast.loading("Preparando recibo...");
-    
+    const toastId = toast.loading("Generando y enviando recibo oficial...");
+    setLoadingBot('manual'); // Usamos un id virtual para el loader
+
     try {
-      // Generamos el documento de forma síncrona/rápida
+      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      if (!config || !config.api_url) throw new Error("Configura el asistente de WhatsApp primero.");
+
+      const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
+      const instanceName = config.instance_name || 'Gibbor_App';
+
+      // 1. Limpiar número
+      let cleanedNumber = String(reciboGenerado.telefono || '').replace(/\D/g, '');
+      if (cleanedNumber.length === 10) cleanedNumber = `57${cleanedNumber}`;
+
+      // 2. Generar PDF Profesional con los datos del recibo manual
       const doc = new jsPDF();
       
-      // Logo (opcional, con try-catch para rapidez)
       try {
         doc.addImage('/logo.png', 'PNG', 15, 15, 25, 25);
       } catch (e) {}
@@ -563,15 +572,15 @@ export default function ModuloCobranza() {
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(100, 100, 100);
-      doc.text('Sede Deportiva Oficial', 45, 30);
-      doc.text('Documento Digital', 45, 34);
+      doc.text(config.direccion || 'Sede Deportiva Central', 45, 30);
+      doc.text(config.ciudad || 'Colombia', 45, 34);
       
-      doc.setFillColor(34, 197, 94);
+      doc.setFillColor(34, 197, 94); // Verde éxito
       doc.rect(145, 15, 50, 10, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text('PAGADO', 170, 21.5, { align: 'center' });
+      doc.text('PAGO CONFIRMADO', 170, 21.5, { align: 'center' });
 
       doc.setTextColor(30, 41, 59);
       doc.setFontSize(8);
@@ -594,57 +603,106 @@ export default function ModuloCobranza() {
       doc.setFont("helvetica", "normal");
       doc.text(`Categoría: ${reciboGenerado.grupo}`, 100, 68);
 
+      // Tabla de cobro
       doc.setFillColor(30, 41, 59);
       doc.rect(15, 75, 180, 8, 'F');
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.text('DESCRIPCIÓN', 20, 80.5);
+      doc.text('DESCRIPCIÓN DEL PAGO', 20, 80.5);
       doc.text('MONTO', 175, 80.5, { align: 'right' });
 
       doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Abono Mensualidad / Plan`, 20, 92);
-      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 175, 92, { align: 'right' });
+      doc.text(`Mensualidad Deportiva / Cuota Plan`, 20, 92);
+      doc.text(`$ ${reciboGenerado.montoBase.toLocaleString()}`, 175, 92, { align: 'right' });
       
-      doc.line(15, 98, 195, 98);
+      if (reciboGenerado.descuento > 0) {
+        doc.setTextColor(220, 38, 38);
+        doc.text(`Descuento Aplicado`, 20, 98);
+        doc.text(`- $ ${reciboGenerado.descuento.toLocaleString()}`, 175, 98, { align: 'right' });
+      }
+      if (reciboGenerado.recargo > 0) {
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Recargo / Otros`, 20, 104);
+        doc.text(`+ $ ${reciboGenerado.recargo.toLocaleString()}`, 175, 104, { align: 'right' });
+      }
+      
+      doc.line(15, 110, 195, 110);
 
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.text('TOTAL PAGADO:', 120, 110);
       doc.setTextColor(16, 185, 129);
-      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 180, 110, { align: 'right' });
-      
+      doc.text('TOTAL RECIBIDO:', 120, 120);
+      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 180, 120, { align: 'right' });
+
       doc.setFontSize(8);
       doc.setTextColor(148, 163, 184);
-      doc.text('EFD GIBBOR - Formando Grandes Talentos. Documento digital oficial.', 105, 200, { align: 'center' });
+      doc.text('EFD GIBBOR - Formando Grandes Talentos. Este es un comprobante de pago oficial.', 105, 200, { align: 'center' });
 
-      // BLOQUE CRÍTICO: Compartir de inmediato para no perder el 'User Activation'
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      const texto = `¡Hola! ⚽ EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF. ✨`;
+
+      // 3. Envío vía API
+      const res = await fetch(`${cleanUrl}/message/sendMedia/${instanceName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': config.api_key },
+        body: JSON.stringify({
+          number: cleanedNumber,
+          media: pdfBase64,
+          mediatype: "document",
+          mimetype: "application/pdf",
+          fileName: `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`,
+          caption: texto
+        })
+      });
+
+      if (!res.ok) throw new Error("Error en servidor de WhatsApp");
+
+      toast.success("Recibo enviado correctamente al alumno 🚀", { id: toastId });
+      setReciboGenerado(null); // Cerramos tras éxito
+    } catch (err: any) {
+      toast.error("Error al enviar: " + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  const generarYCompartirPDF = async () => {
+    if (!reciboGenerado) return;
+    const toastId = toast.loading("Preparando recibo...");
+    try {
+      const doc = new jsPDF();
+      try { doc.addImage('/logo.png', 'PNG', 15, 15, 25, 25); } catch (e) {}
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(30, 41, 59);
+      doc.text('EFD GIBBOR', 45, 25);
+      
+      doc.setFontSize(10);
+      doc.text('COMPROBANTE DE PAGO', 45, 32);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFontSize(8);
+      doc.text(`Fecha: ${new Date(reciboGenerado.fecha).toLocaleDateString()}`, 145, 30);
+      doc.text(`Recibo: #${reciboGenerado.consecutivo.toString().padStart(4, '0')}`, 145, 34);
+
+      doc.line(15, 45, 195, 45);
+      doc.text(`Recibido de: ${reciboGenerado.nombres} ${reciboGenerado.apellidos}`, 20, 60);
+      doc.text(`Monto Total: $ ${reciboGenerado.total.toLocaleString()}`, 20, 70);
+      doc.text(`Método: ${reciboGenerado.metodo}`, 20, 80);
+
       const pdfBlob = doc.output('blob');
-      const filename = `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`;
+      const filename = `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}.pdf`;
       const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         toast.dismiss(toastId);
-        try {
-          await navigator.share({
-            files: [file],
-            title: 'Recibo de Pago - EFD Gibbor',
-            text: `Hola, adjunto el recibo de pago de ${reciboGenerado.nombres}.`
-          });
-        } catch (shareErr) {
-          // Si el usuario cancela o hay error en el share, descargamos como respaldo
-          console.warn("Share cancelado o fallido, descargando...");
-          doc.save(filename);
-          toast.success("Recibo descargado. Puedes adjuntarlo manualmente.", { id: toastId });
-        }
+        await navigator.share({ files: [file], title: 'Recibo Gibbor' });
       } else {
-        // Fallback inmediato para PC o navegadores sin soporte de share de archivos
         doc.save(filename);
-        toast.success("Recibo generado y descargado.", { id: toastId });
+        toast.success("Recibo descargado.", { id: toastId });
       }
     } catch (err: any) {
-      console.error(err);
-      toast.error("Error al procesar el PDF", { id: toastId });
+      toast.error("Error al procesar", { id: toastId });
     }
   };
 
@@ -1044,25 +1102,23 @@ export default function ModuloCobranza() {
             <h3 className="text-2xl font-black text-slate-800 mb-2">¡Pago Exitoso!</h3>
             <p className="text-slate-500 mb-8 text-sm">El pago de <strong>{reciboGenerado.nombres}</strong> por ${reciboGenerado.total.toLocaleString('es-CO')} se registró correctamente.</p>
             <div className="flex flex-col gap-3">
-              <button onClick={generarYCompartirPDF} className="w-full bg-slate-900 text-white font-black py-3.5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
-                <MessageSquare className="w-5 h-5" /> Generar PDF y Compartir
-              </button>
               <button 
-                onClick={() => {
-                  let tel = (reciboGenerado.telefono || '').replace(/\D/g, '');
-                  if (tel && !tel.startsWith('57')) tel = '57' + tel;
-                  const msg = encodeURIComponent(`¡Hola! ⚽ EFD Gibbor te confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(3, '0')} por un total de $${reciboGenerado.total.toLocaleString('es-CO')}. ¡Muchas gracias!`);
-                  window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
-                }} 
-                className="w-full bg-emerald-100 text-emerald-700 font-bold py-3.5 rounded-xl hover:bg-emerald-200 transition-all flex items-center justify-center gap-2"
+                onClick={enviarReciboAutomatico} 
+                className="w-full bg-emerald-600 text-white font-black py-4 rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 animate-bounce-subtle"
               >
-                <Smartphone className="w-5 h-5" /> Enviar Mensaje Texto WA
+                <Bot className="w-5 h-5" /> Enviar Recibo al WhatsApp (Auto)
               </button>
-              <button onClick={() => window.print()} className="w-full bg-slate-50 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex border border-slate-200">
-                <Printer className="w-5 h-5" /> Imprimir (Solo PC)
+              
+              <button onClick={generarYCompartirPDF} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
+                <MessageSquare className="w-5 h-5" /> Compartir PDF Individualmente
               </button>
-              <button onClick={() => setReciboGenerado(null)} className="w-full bg-transparent text-slate-400 text-sm font-bold py-3 hover:text-slate-600 transition-colors">
-                Finalizar y Cerrar
+
+              <button onClick={() => window.print()} className="w-full bg-slate-50 text-slate-500 font-bold py-3 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex">
+                <Printer className="w-4 h-4" /> Imprimir Recibo
+              </button>
+              
+              <button onClick={() => setReciboGenerado(null)} className="w-full bg-transparent text-slate-400 text-xs font-bold py-3 hover:text-slate-600 transition-colors">
+                Finalizar sin enviar
               </button>
             </div>
           </div>
