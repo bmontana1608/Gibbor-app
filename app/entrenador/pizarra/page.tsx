@@ -21,7 +21,7 @@ export default function PizarraTactica() {
   const [history, setHistory] = useState<string[]>([]);
   const [fullScreen, setFullScreen] = useState(false);
   const [showFloatingTools, setShowFloatingTools] = useState(false);
-  const [floatingPos, setFloatingPos] = useState({ x: window.innerWidth - 80, y: 20 });
+  const [floatingPos, setFloatingPos] = useState({ x: 0, y: 20 });
   const [isDraggingTools, setIsDraggingTools] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
@@ -33,6 +33,7 @@ export default function PizarraTactica() {
 
   useEffect(() => {
     inicializarPizzara();
+    setFloatingPos({ x: window.innerWidth - 80, y: 20 });
     
     // Check orientation
     const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
