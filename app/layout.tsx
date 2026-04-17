@@ -4,11 +4,20 @@ import { Toaster } from 'sonner';
 export const metadata = {
   title: 'Gibbor App',
   description: 'Plataforma de Gestión Deportiva EFD Gibbor',
+  manifest: '/manifest.json',
+  themeColor: '#ea580c',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Gibbor App',
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
   }
 };
+
+import InstallPrompt from "@/components/InstallPrompt";
 
 export default function RootLayout({
   children,
@@ -20,6 +29,7 @@ export default function RootLayout({
       <body className="bg-slate-50 text-slate-800 antialiased">
         {children}
         <Toaster richColors position="top-right" />
+        <InstallPrompt />
       </body>
     </html>
   );
