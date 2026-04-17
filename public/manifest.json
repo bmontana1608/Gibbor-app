@@ -1,7 +1,7 @@
 {
-  "name": "Academia EFD Gibbor",
+  "name": "Gibbor App",
   "short_name": "Gibbor App",
-  "description": "Plataforma integral de gestión deportiva para la Academia EFD Gibbor",
+  "description": "Plataforma integral de gestión deportiva EFD Gibbor",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
