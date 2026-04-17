@@ -48,10 +48,24 @@ function RadarChart({ data, size = 300 }: { data: { label: string, value: number
       {data.map((d, i) => {
         const x = center + radius * Math.cos(i * angleStep - Math.PI / 2);
         const y = center + radius * Math.sin(i * angleStep - Math.PI / 2);
+        // Desplazamiento inteligente de etiquetas según posición
+        const offsetX = Math.cos(i * angleStep - Math.PI / 2) * 35;
+        const offsetY = Math.sin(i * angleStep - Math.PI / 2) * 25;
         return (
           <g key={i}>
             <line x1={center} y1={center} x2={x} y2={y} stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-            <text x={x + (x - center) * 0.25} y={y + (y - center) * 0.25} fill="rgba(255,255,255,0.5)" fontSize="8" fontWeight="bold" textAnchor="middle" alignmentBaseline="middle">{d.label.substring(0,3).toUpperCase()}</text>
+            <text 
+              x={x + offsetX} 
+              y={y + offsetY} 
+              fill="rgba(255,255,255,0.8)" 
+              fontSize="14" 
+              fontWeight="900" 
+              textAnchor="middle" 
+              alignmentBaseline="middle"
+              className="tracking-tighter uppercase italic"
+            >
+              {d.label}
+            </text>
           </g>
         );
       })}
