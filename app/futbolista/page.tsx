@@ -209,7 +209,7 @@ export default function DashboardFutbolista() {
             console.error("Error cargando carta PRO:", err);
           }
 
-          // 4. Procesar insignias con colores automáticos para la vitrina
+          // 4. Procesar insignias con colores automáticos usando los datos FRESCOS de la API
           const colMap: any = {
             goleador: 'from-orange-400 to-red-500',
             muro: 'from-blue-500 to-indigo-700',
@@ -217,7 +217,7 @@ export default function DashboardFutbolista() {
             fairplay: 'from-green-400 to-emerald-600',
             rayo: 'from-yellow-400 to-orange-500'
           };
-          const insigniasToDisplay = (perfil?.insignias || []).map((i: any) => ({
+          const insigniasToDisplay = (data.insignias || []).map((i: any) => ({
             ...i.insignias,
             color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
           }));
