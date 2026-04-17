@@ -308,7 +308,14 @@ export default function DashboardFutbolista() {
                 <div>
                   <h4 className="font-black text-slate-900 leading-tight uppercase">{evento.titulo}</h4>
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-2">
-                    <Zap className="w-3 h-3 text-orange-500" /> {evento.hora.substring(0, 5)} {Number(evento.hora.substring(0,2)) >= 12 ? 'PM' : 'AM'}
+                    <Zap className="w-3 h-3 text-orange-500" /> 
+                    {(() => {
+                      const [h, m] = evento.hora.split(':');
+                      let hour = parseInt(h);
+                      const ampm = hour >= 12 ? 'PM' : 'AM';
+                      hour = hour % 12 || 12;
+                      return `${hour}:${m} ${ampm}`;
+                    })()}
                   </div>
                   {evento.lugar && (
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mt-1">

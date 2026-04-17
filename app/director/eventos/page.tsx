@@ -204,7 +204,16 @@ export default function GestionEventos() {
                     <div>
                       <h3 className="font-black text-slate-800 text-lg uppercase leading-none">{evento.titulo}</h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2">
-                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><Clock className="w-3 h-3 text-orange-500" /> {evento.fecha} | {evento.hora.substring(0, 5)}</span>
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <Clock className="w-3 h-3 text-orange-500" /> 
+                          {evento.fecha} | {(() => {
+                            const [h, m] = evento.hora.split(':');
+                            let hour = parseInt(h);
+                            const ampm = hour >= 12 ? 'PM' : 'AM';
+                            hour = hour % 12 || 12;
+                            return `${hour}:${m} ${ampm}`;
+                          })()}
+                        </span>
                         {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-orange-500" /> {evento.lugar}</span>}
                         {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-50 p-1 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id.split(' ')[0]}</span>}
                       </div>
