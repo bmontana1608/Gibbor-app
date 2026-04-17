@@ -304,7 +304,15 @@ export default function DashboardFutbolista() {
                         clubName={clubConfig.nombre_club} 
                         season={clubConfig.temporada_actual} 
                       />
-                      <button onClick={handleExportCard} className="bg-white text-slate-900 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Download className="w-4 h-4" /> Descargar Carta</button>
+                      <button 
+                        onClick={handleExportCard} 
+                        className="group relative bg-gradient-to-br from-orange-400 to-orange-600 text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center gap-3 overflow-hidden"
+                      >
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform"></div>
+                        <Download className="w-4 h-4" /> 
+                        <span>Descargar Carta</span>
+                      </button>
                     </div>
                     <div className="flex flex-col items-center p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center uppercase">ADN Técnico Gibbor</h4>

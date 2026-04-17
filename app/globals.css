@@ -55,7 +55,12 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #FF9900;
+  background: #ea580c;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 /* Evitar que el scroll de la página principal sea feo */
