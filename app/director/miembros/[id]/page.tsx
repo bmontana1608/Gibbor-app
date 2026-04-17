@@ -383,11 +383,11 @@ export default function FichaDelJugador() {
                         ))}
                     </div>
                   </div>
-
                   {todosLosJugadores.length === 0 && <p className="text-center py-10 text-slate-400 text-xs italic">No hay jugadores activos para vincular.</p>}
                 </div>
               </div>
             )}
+          </div>
 
             {/* Acudiente */}
             {formData.rol === 'Futbolista' && (
