@@ -219,14 +219,16 @@ export default function DirectorioMiembros() {
 
       {isModalAccesoOpen && miembroAgestionar && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="bg-slate-900 p-6 text-white relative">
-              <button onClick={() => setIsModalAccesoOpen(false)} className="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors"><X className="w-6 h-6" /></button>
+          <div className="bg-white rounded-[2.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-100">
+            <div className="p-8 pb-0 relative">
+              <button onClick={() => setIsModalAccesoOpen(false)} className="absolute right-6 top-8 text-slate-300 hover:text-slate-500 transition-colors"><X className="w-6 h-6" /></button>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg"><ShieldCheck className="w-6 h-6" /></div>
+                <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center shadow-sm border border-orange-100">
+                  <ShieldCheck className="w-6 h-6 text-orange-500" />
+                </div>
                 <div>
-                  <h3 className="text-xl font-black tracking-tight tracking-tight">Acceso App Gibbor</h3>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{miembroAgestionar.rol}</p>
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none">Acceso App Gibbor</h3>
+                  <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest mt-1.5">{miembroAgestionar.rol}</p>
                 </div>
               </div>
             </div>
@@ -293,7 +295,7 @@ export default function DirectorioMiembros() {
                            }
                         }}
                         disabled={generandoAcceso}
-                        className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl"
+                        className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-orange-600/20"
                       >
                         {generandoAcceso ? 'Cargando...' : 'Activar Acceso'}
                       </button>
