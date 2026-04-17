@@ -3,7 +3,11 @@ import { Toaster } from 'sonner';
 
 export const metadata = {
   title: 'Gibbor App',
-  description: 'Gestión Deportiva',
+  description: 'Plataforma de Gestión Deportiva EFD Gibbor',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  }
 };
 
 export default function RootLayout({
