@@ -163,28 +163,35 @@ export default function DashboardFutbolista() {
       if (session) {
         // Lógica de Selección de Perfil Única
         let currentPerfilId = session.user.id;
-        const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
-        
         const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
-
-        // Si hay un hijo seleccionado en el Modo Familia, lo cargamos vía API Segura
         if (savedHijoId && savedHijoId !== session.user.id) {
-          try {
-            const res = await fetch(`/api/perfil?id=${savedHijoId}`);
-            const targetPerfil = await res.json();
-            if (targetPerfil && !targetPerfil.error) {
-              setPerfil(targetPerfil);
-              currentPerfilId = targetPerfil.id;
-            } else {
-              setPerfil(myPerfil);
-            }
-          } catch (err) {
-            setPerfil(myPerfil);
+          currentPerfilId = savedHijoId;
+        }
+
+        // 1. CARGA DE PERFIL COMPLETO (SÍMBOLO + INSIGNIAS) VÍA API SEGURA
+        try {
+          const res = await fetch(`/api/perfil?id=${currentPerfilId}`);
+          const perfilCompleto = await res.json();
+          
+          if (perfilCompleto && !perfilCompleto.error) {
+            setPerfil(perfilCompleto);
+            
+            // 2. PROCESAR INSIGNIAS FRESCAS
+            const colMap: any = {
+              goleador: 'from-orange-400 to-red-500',
+              muro: 'from-blue-500 to-indigo-700',
+              cerebro: 'from-purple-500 to-pink-600',
+              fairplay: 'from-green-400 to-emerald-600',
+              rayo: 'from-yellow-400 to-orange-500'
+            };
+            const insigniasToDisplay = (perfilCompleto.insignias || []).map((i: any) => ({
+              ...i.insignias,
+              color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
+            }));
+            setInsignias(insigniasToDisplay);
           }
-        } else {
-          // Si no hay selección, mostramos el perfil propio (sea director o futbolista)
-          setPerfil(myPerfil);
-          currentPerfilId = session.user.id;
+        } catch (err) {
+          console.error("Error cargando perfil completo:", err);
         }
 
         if (currentPerfilId) {
@@ -208,20 +215,6 @@ export default function DashboardFutbolista() {
           } catch (err) {
             console.error("Error cargando carta PRO:", err);
           }
-
-          // 4. Procesar insignias con colores automáticos usando los datos FRESCOS de la API
-          const colMap: any = {
-            goleador: 'from-orange-400 to-red-500',
-            muro: 'from-blue-500 to-indigo-700',
-            cerebro: 'from-purple-500 to-pink-600',
-            fairplay: 'from-green-400 to-emerald-600',
-            rayo: 'from-yellow-400 to-orange-500'
-          };
-          const insigniasToDisplay = (data.insignias || []).map((i: any) => ({
-            ...i.insignias,
-            color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
-          }));
-          setInsignias(insigniasToDisplay);
 
           const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
           if (cfg) setClubConfig(cfg);
