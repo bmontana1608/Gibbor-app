@@ -129,7 +129,14 @@ export default function DashboardFutbolista() {
   const [cargando, setCargando] = useState(true);
 
   const [pagos, setPagos] = useState<any[]>([]);
-  const [radarData, setRadarData] = useState<any[]>([]);
+  const [radarData, setRadarData] = useState<any[]>([
+    { label: 'Ritmo', value: 50 },
+    { label: 'Tiro', value: 50 },
+    { label: 'Pase', value: 50 },
+    { label: 'Regate', value: 50 },
+    { label: 'Defensa', value: 50 },
+    { label: 'Físico', value: 50 },
+  ]);
   const [asistenciaPct, setAsistenciaPct] = useState(0);
   const [activeTab, setActiveTab] = useState<'perfil' | 'disciplina' | 'pagos'>('perfil');
   const [asistenciasLogs, setAsistenciasLogs] = useState<any[]>([]);
@@ -183,8 +190,6 @@ export default function DashboardFutbolista() {
             const evalData = await resEval.json();
             if (evalData && evalData.stats) {
               setRadarData(Object.entries(evalData.stats).map(([label, value]) => ({ label, value: Number(value) })));
-            } else {
-              setRadarData([]); // Limpiar si no hay datos
             }
           } catch (err) {
             console.error("Error cargando carta PRO:", err);
