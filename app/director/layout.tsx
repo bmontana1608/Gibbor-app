@@ -25,6 +25,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
   const menu = [
     { name: 'Inicio (Dashboard)', path: '/director', icon: <Home className="w-5 h-5" /> },
     { name: 'Miembros', path: '/director/miembros', icon: <Users className="w-5 h-5" /> },
+    { name: 'Agenda', path: '/director/eventos', icon: <Calendar className="w-5 h-5" /> },
     { name: 'Cobranza', path: '/director/cobranza', icon: <CreditCard className="w-5 h-5" /> },
     { name: 'Nómina', path: '/director/nomina', icon: <Briefcase className="w-5 h-5" /> },
     { name: 'Asistencia', path: '/director/asistencia', icon: <ClipboardCheck className="w-5 h-5" /> },
