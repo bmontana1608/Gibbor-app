@@ -109,25 +109,25 @@ export default function AutoRegistroPublico() {
         <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Forma parte de nuestra escuela de formación deportiva. Completa los datos para iniciar tu proceso.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-100 rounded-[3rem] p-8 md:p-14 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-14 animate-in fade-in zoom-in duration-500">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-200/60 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_80px_-15px_rgba(15,23,42,0.08)] space-y-14 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
         
         {/* 1. Datos del Miembro */}
-        <section>
+        <section className="relative z-10">
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100/50">
-              <User className="text-orange-500 w-6 h-6" />
+            <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
+              <User className="text-orange-600 w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Datos del Jugador</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
             <div className="group">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nombres Completos *</label>
-              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nombres Completos *</label>
+              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Apellidos *</label>
-              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Apellidos *</label>
+              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Documento Identidad *</label>
@@ -178,73 +178,74 @@ export default function AutoRegistroPublico() {
         )}
 
         {/* 3. Información Médica */}
-        <section>
+        <section className="relative z-10">
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100">
-              <HeartPulse className="text-orange-500 w-6 h-6" />
+            <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
+              <HeartPulse className="text-orange-600 w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Información Médica</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Tipo de Sangre *</label>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Tipo de Sangre *</label>
               <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer" required>
                 <option value="">Selección...</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EPS o Seguro *</label>
-              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">EPS o Seguro *</label>
+              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Talla Uniforme</label>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Talla Uniforme</label>
               <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer">
                 <option value="">S/M/L/6-16</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
               </select>
             </div>
             <div className="md:col-span-3">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Patologías o Alergias</label>
-              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={2} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Patologías o Alergias</label>
+              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={2} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/95 p-8 rounded-[2rem] shadow-2xl shadow-slate-900/10 border border-slate-800">
-            <div className="md:col-span-2 flex items-center gap-3 mb-2">
-              <CheckCircle2 className="w-4 h-4 text-orange-500" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900 border border-slate-800 p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full"></div>
+            <div className="md:col-span-2 flex items-center gap-3 mb-2 relative z-10">
+              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
               <h3 className="text-xs font-black text-white uppercase tracking-widest">En caso de emergencia avisar a:</h3>
             </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nombre Completo *</label>
+            <div className="relative z-10">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nombre Completo *</label>
               <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
             </div>
-            <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teléfono Urgencias *</label>
+            <div className="relative z-10">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Teléfono Urgencias *</label>
               <input type="tel" name="emergencia_telefono" value={formData.emergencia_telefono} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
             </div>
           </div>
         </section>
 
         {/* 4. Documentación */}
-        <section>
+        <section className="relative z-10">
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100/50">
-              <FileText className="text-orange-500 w-6 h-6" />
+            <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
+              <FileText className="text-orange-600 w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Documentación</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
-            <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer shadow-sm">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform text-slate-300">📸</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
+            <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
+              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">📸</span>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Foto Documento</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lado Cara (Jugador)</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lado Cara (Jugador)</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
-            <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer shadow-sm">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform text-slate-300">🏥</span>
+            <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
+              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">🏥</span>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro EPS</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
           </div>
