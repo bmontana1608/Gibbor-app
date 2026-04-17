@@ -20,6 +20,7 @@ export default function DirectorioMiembros() {
   // Estados para gestión de acceso
   const [miembroAgestionar, setMiembroAgestionar] = useState<any>(null);
   const [isModalAccesoOpen, setIsModalAccesoOpen] = useState(false);
+  const [isModalInvitacionOpen, setIsModalInvitacionOpen] = useState(false);
   const [emailAcceso, setEmailAcceso] = useState('');
   const [generandoAcceso, setGenerandoAcceso] = useState(false);
 
@@ -110,6 +111,9 @@ export default function DirectorioMiembros() {
           <p className="text-sm text-slate-500 mt-1">Gestión de staff, jugadores y accesos.</p>
         </div>
         <div className="flex gap-3">
+          <button onClick={() => setIsModalInvitacionOpen(true)} className="bg-white border border-slate-200 text-orange-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-orange-50 transition-colors">
+            <Mail className="w-4 h-4" /> Invitación
+          </button>
           <button onClick={exportarAExcel} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
             <Download className="w-4 h-4" /> Exportar
           </button>
@@ -305,6 +309,58 @@ export default function DirectorioMiembros() {
                     </button>
                   </div>
                </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE INVITACIÓN (CÓDIGO DE REGISTRO) */}
+      {isModalInvitacionOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="p-8 text-center">
+              <div className="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Mail className="w-10 h-10 text-orange-500" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic">Invitar a un Miembro</h3>
+              <p className="text-slate-500 text-sm font-medium mt-3 px-6">Envía este enlace a los padres o nuevos miembros para que se registren por su cuenta.</p>
+              
+              <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Link de Registro Exclusivo</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-white p-4 rounded-xl border border-slate-200 text-xs font-mono text-slate-600 truncate overflow-hidden">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/registro?invite=true` : ''}
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const link = `${window.location.origin}/registro?invite=true`;
+                      navigator.clipboard.writeText(link);
+                      toast.success("¡Enlace copiado al portapapeles!");
+                    }}
+                    className="p-4 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all"
+                  >
+                    <Download className="w-5 h-5" style={{transform: 'rotate(270deg)'}} />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-8 flex flex-col gap-3">
+                <button 
+                  onClick={() => {
+                    const mensaje = `¡Hola! Bienvenido a la academia 👋. Para unirte a nuestra plataforma oficial, regístrate en el siguiente enlace:\n\n🔗 ${window.location.origin}/registro?invite=true`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
+                  }}
+                  className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2"
+                >
+                  <Smartphone className="w-5 h-5" /> Compartir en WhatsApp
+                </button>
+                <button 
+                  onClick={() => setIsModalInvitacionOpen(false)}
+                  className="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -8,6 +8,11 @@ export default function InstallPrompt() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    // No mostrar el prompt si el usuario viene de una invitación para no distraer en el registro
+    if (typeof window !== 'undefined' && window.location.search.includes('invite=true')) {
+      return;
+    }
+
     // Escuchar el evento de instalación del navegador
     const handler = (e: any) => {
       e.preventDefault();
