@@ -39,10 +39,11 @@ export async function GET(request: Request) {
       // 5. Configuración Club
       supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').single(),
 
-      // 6. Próximos Eventos (Agenda)
+      // 6. Próximos Eventos (Filtrados por Categoría o Globales)
       supabaseAdmin.from('eventos')
         .select('*')
         .gte('fecha', new Date().toISOString().split('T')[0])
+        .or(`categoria_id.is.null,categoria_id.eq."${perfilRes.data?.grupos}"`)
         .order('fecha', { ascending: true })
         .limit(3)
     ]);
