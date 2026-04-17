@@ -39,9 +39,28 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           setHijos(misPerfiles);
           
           const guardado = localStorage.getItem('hijo_seleccionado_id');
-          const seleccionado = misPerfiles.find(h => h.id === guardado) || misPerfiles[0];
-          setUsuario(seleccionado);
-          console.log("👤 Jugador activo:", seleccionado.nombres);
+          
+          // Si tenemos un hijo guardado, usamos el salvoconducto para asegurar que tenemos sus datos frescos
+          let perfilActivo = null;
+          if (guardado && guardado !== session.user.id) {
+            try {
+              const resP = await fetch(`/api/perfil?id=${guardado}`);
+              const perfilHijo = await resP.json();
+              if (perfilHijo && !perfilHijo.error) {
+                perfilActivo = perfilHijo;
+              } else {
+                perfilActivo = misPerfiles.find(h => h.id === session.user.id) || misPerfiles[0];
+              }
+            } catch (err) {
+              perfilActivo = misPerfiles.find(h => h.id === guardado) || misPerfiles[0];
+            }
+          } else {
+            // Si no hay hijo guardado, mostramos el perfil del usuario logueado (Admin o Futbolista)
+            perfilActivo = misPerfiles.find(h => h.id === session.user.id) || misPerfiles[0];
+          }
+
+          setUsuario(perfilActivo);
+          console.log("👤 Jugador activo en layout:", perfilActivo?.nombres);
           
           // Verificación de Rango de Director
           const perfilOriginal = misPerfiles.find(p => p.id === session.user.id);
