@@ -62,8 +62,8 @@ export default function InstallPrompt() {
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-black text-sm tracking-tight leading-none mb-1 text-left">Instalar Gibbor App</h3>
-          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest text-left">Acceso directo en tu pantalla</p>
+          <h3 className="text-white font-black text-sm tracking-tight leading-none mb-1 text-left">Instalar Portal Gibbor Pro</h3>
+          <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest text-left">Ecosistema de Alto Rendimiento</p>
         </div>
 
         <div className="flex flex-col gap-2">
