@@ -17,6 +17,8 @@ export default function GestionEventos() {
     categoria_id: ''
   });
 
+  const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+
   const fetchEventos = async () => {
     const res = await fetch('/api/eventos');
     const data = await res.json();
@@ -54,12 +56,13 @@ export default function GestionEventos() {
     }
   };
 
-  const eliminarEvento = async (id: string) => {
-    if (!confirm("¿Seguro que quieres eliminar este evento?")) return;
+  const confirmarEliminacion = async () => {
+    if (!showConfirmModal) return;
     
-    const res = await fetch(`/api/eventos?id=${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/eventos?id=${showConfirmModal}`, { method: 'DELETE' });
     if (res.ok) {
       toast.success("Evento eliminado");
+      setShowConfirmModal(null);
       fetchEventos();
     }
   };
@@ -182,7 +185,7 @@ export default function GestionEventos() {
                       </div>
                     </div>
                   </div>
-                  <button onClick={() => eliminarEvento(evento.id)} className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-5 h-5" /></button>
+                  <button onClick={() => setShowConfirmModal(evento.id)} className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-5 h-5" /></button>
                 </div>
               ))}
             </div>
@@ -194,6 +197,38 @@ export default function GestionEventos() {
           )}
         </div>
       </div>
+
+      {/* MODAL DE CONFIRMACIÓN PREMIUM */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowConfirmModal(null)}
+          ></div>
+          <div className="relative bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in duration-300">
+             <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-10 h-10 text-rose-500" />
+             </div>
+             <h3 className="text-2xl font-black text-slate-900 text-center uppercase tracking-tighter leading-tight">¿Eliminar este<br/>evento?</h3>
+             <p className="text-slate-500 text-center text-sm font-medium mt-3 px-4">Esta acción no se puede deshacer y el evento desaparecerá de la agenda de los alumnos.</p>
+             
+             <div className="grid grid-cols-2 gap-3 mt-8">
+                <button 
+                  onClick={() => setShowConfirmModal(null)}
+                  className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmarEliminacion}
+                  className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all"
+                >
+                  Sí, Eliminar
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
