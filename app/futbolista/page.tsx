@@ -6,8 +6,12 @@ import { supabase } from "@/lib/supabase";
 import { 
   Trophy, Zap, Star, Calendar, 
   TrendingUp, ArrowUpRight, CheckCircle2, 
-  AlertCircle, Download, Users
+  AlertCircle, Download, Users, Share2,
+  CalendarCheck, Dumbbell, DollarSign,
+  FileText
 } from "lucide-react";
+import { toast } from "sonner";
+import { toPng } from 'html-to-image';
 
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -56,49 +60,61 @@ function RadarChart({ data, size = 300 }: { data: { label: string, value: number
   );
 }
 
-function FifaCard({ perfil, stats }: { perfil: any, stats: any[] }) {
+function FifaCard({ perfil, stats, clubName = 'EFD GIBBOR', season = 'TEMPORADA 2024' }: { perfil: any, stats: any[], clubName?: string, season?: string }) {
   const media = stats.length > 0 ? Math.round(stats.reduce((acc, curr) => acc + curr.value, 0) / stats.length) : '--';
   
   return (
-    <div className="relative w-64 h-96 mx-auto group perspective-1000">
-      {/* Brillo de fondo */}
-      <div className="absolute inset-0 bg-orange-500/20 blur-[50px] rounded-full group-hover:bg-orange-500/30 transition-all duration-700"></div>
-      
-      {/* Estructura de la Carta */}
-      <div className="relative w-full h-full bg-gradient-to-br from-zinc-900 via-zinc-800 to-black rounded-[2rem] border-[3px] border-orange-500/50 p-6 flex flex-col items-center overflow-hidden shadow-2xl transition-transform duration-500 group-hover:rotate-y-12">
-        
-        {/* Patrón de fondo holográfico */}
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl"></div>
-        
-        {/* Encabezado OVR */}
-        <div className="w-full flex justify-between items-start z-10">
-          <div className="flex flex-col items-center">
-            <span className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-white to-orange-400 leading-none">{media}</span>
-            <span className="text-[10px] font-black text-orange-500 tracking-tighter uppercase mt-1">{perfil?.posicion || 'PRO'}</span>
-          </div>
-          <img src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" alt="Logo" className="w-10 h-auto drop-shadow-lg" />
+    <div className="relative w-80 h-[550px] mx-auto group">
+      <div id="pro-card-capture" className="relative w-full h-full bg-[#1a1a1a] rounded-[3rem] border-4 border-[#FF9900] overflow-hidden flex flex-col p-6 shadow-2xl">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] scale-150 z-0">
+           <img src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" className="w-full h-auto grayscale" alt="Watermark" />
         </div>
-
-        {/* Foto del Jugador (Placeholder Estético) */}
-        <div className="relative w-32 h-32 mt-2 z-10 flex items-center justify-center">
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 to-transparent z-20"></div>
-            <Users className="w-20 h-20 text-zinc-700 mb-4" />
+        <div className="flex justify-between items-start z-20">
+           <div className="flex flex-col">
+              <span className="text-5xl font-black italic tracking-tighter text-[#FF9900] leading-none drop-shadow-md">
+                {media}
+              </span>
+              <span className="text-[12px] font-black text-[#FF9900] uppercase tracking-wider mt-1">
+                {perfil?.posicion || 'PRO'}
+              </span>
+           </div>
+           <img src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" className="w-18 h-auto drop-shadow-lg" alt="Logo" />
         </div>
-
-        {/* Nombre */}
-        <div className="z-10 text-center mt-2 w-full border-b border-orange-500/30 pb-2">
-          <h3 className="text-xl font-black italic tracking-tighter uppercase text-white truncate px-2">{perfil?.nombres?.split(' ')[0]}</h3>
+         <div className="relative flex-grow flex items-center justify-center -mt-8 -mb-4 overflow-visible z-10">
+            {perfil?.foto_url ? (
+                <img 
+                    src={perfil.foto_url} 
+                    alt="Player" 
+                    className="h-full w-auto object-contain z-0 scale-125 origin-bottom"
+                    style={{ 
+                      maskImage: 'linear-gradient(to top, transparent, black 15%)',
+                      WebkitMaskImage: 'linear-gradient(to top, transparent, black 15%)'
+                    }}
+                />
+            ) : (
+                <Users className="w-24 h-24 text-zinc-800" />
+            )}
         </div>
-
-        {/* Stats Cortos (Estilo FIFA) */}
-        <div className="z-10 grid grid-cols-2 gap-x-4 gap-y-1 mt-4 w-full">
-          {stats.slice(0, 6).map((s, idx) => (
-            <div key={idx} className="flex items-center gap-2">
-              <span className="text-sm font-black text-orange-500 italic">{s.value}</span>
-              <span className="text-[9px] font-bold text-zinc-400 uppercase">{s.label.substring(0, 3)}</span>
-            </div>
-          ))}
+        <div className="w-full text-center z-20 py-1">
+           <h3 className="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] leading-none">
+             {perfil?.nombres?.split(' ')[0]}
+           </h3>
+           <p className="text-sm font-medium uppercase tracking-[0.3em] text-slate-400 mt-1">
+             {perfil?.apellidos?.split(' ')[0]}
+           </p>
+        </div>
+        <div className="w-full h-[1px] bg-[#FF9900]/30 my-3 z-20"></div>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-2 pb-2 z-20">
+           {stats.slice(0, 6).map((s, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                 <span className="text-xl font-black text-[#FF9900] italic leading-none w-8 text-right italic">
+                   {s.value}
+                 </span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                   {s.label.substring(0, 3)}
+                 </span>
+              </div>
+           ))}
         </div>
       </div>
     </div>
@@ -115,146 +131,102 @@ export default function DashboardFutbolista() {
   const [pagos, setPagos] = useState<any[]>([]);
   const [radarData, setRadarData] = useState<any[]>([]);
   const [asistenciaPct, setAsistenciaPct] = useState(0);
+  const [activeTab, setActiveTab] = useState<'perfil' | 'disciplina' | 'pagos'>('perfil');
+  const [asistenciasLogs, setAsistenciasLogs] = useState<any[]>([]);
+  const [insignias, setInsignias] = useState<any[]>([]);
+  const [clubConfig, setClubConfig] = useState({ nombre_club: 'EFD GIBBOR', temporada_actual: 'TEMPORADA 2024' });
 
   useEffect(() => {
     const fetchDatos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         let currentPerfilId = session.user.id;
-        
-        // 1. Cargamos el perfil de quien está logueado
         const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
         
         if (myPerfil?.rol === "Director") {
-          // Si es director, buscamos sus hijos en la config
           const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").single();
-          
           if (config?.hijos_config) {
             const ids = config.hijos_config.split(",").map((id: string) => id.trim());
-            const { data: hijosData, error: errHijos } = await supabase.from("perfiles").select("*").in("id", ids);
-            
+            const { data: hijosData } = await supabase.from("perfiles").select("*").in("id", ids);
             if (hijosData && hijosData.length > 0) {
               setHijos(hijosData);
-              // Prioridad: 1. El hijo seleccionado manualmente, 2. El primer hijo de la lista
-              const firstChildId = hijosData[0].id;
-              const targetId = selectedHijoId || firstChildId;
-              
+              const targetId = selectedHijoId || hijosData[0].id;
               const hijoActivo = hijosData.find(h => h.id === targetId) || hijosData[0];
               setPerfil(hijoActivo);
               currentPerfilId = hijoActivo.id;
-              
-              if (!selectedHijoId) setSelectedHijoId(firstChildId);
-            } else {
-              setPerfil(null); // No se encontraron los hijos en perfiles
+              if (!selectedHijoId) setSelectedHijoId(hijosData[0].id);
             }
-          } else {
-            setPerfil(null); // No hay configuración de hijos
           }
         } else {
           setPerfil(myPerfil);
         }
 
-        // Si tenemos un perfil (ya sea el propio o del hijo), cargamos sus datos deportivos
         if (currentPerfilId) {
-          // Fetch Real Pagos
-          const { data: pagosBD } = await supabase
-             .from("pagos_ingresos")
-             .select("*")
-             .eq("jugador_id", currentPerfilId)
-             .order("fecha", { ascending: false })
-             .limit(3);
+          const { data: pagosBD } = await supabase.from("pagos_ingresos").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(6);
           if (pagosBD) setPagos(pagosBD);
 
-          // Fetch Asistencias
-          const { data: asisData } = await supabase.from("asistencias").select("estado").eq("jugador_id", currentPerfilId);
+          const { data: asisData } = await supabase.from("asistencias").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false });
           if (asisData && asisData.length > 0) {
              const presentes = asisData.filter(a => a.estado === 'Presente').length;
              setAsistenciaPct(Math.round((presentes / asisData.length) * 100));
-          } else {
-             setAsistenciaPct(0);
+             setAsistenciasLogs(asisData);
           }
 
-          // Fetch Evaluaciones Técnicas para Radar/FifaCard
-          const { data: evals } = await supabase.from("evaluaciones_tecnicas")
-             .select("stats")
-             .eq("jugador_id", currentPerfilId)
-             .order("fecha", { ascending: false })
-             .limit(1);
-          
+          const { data: evals } = await supabase.from("evaluaciones_tecnicas").select("stats").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(1);
           if (evals && evals.length > 0 && evals[0].stats) {
-             const statsObj = evals[0].stats;
-             const newRadar = Object.entries(statsObj).map(([label, value]) => ({
-                label,
-                value: Number(value)
-             }));
-             setRadarData(newRadar);
-          } else {
-             setRadarData([]);
+             setRadarData(Object.entries(evals[0].stats).map(([label, value]) => ({ label, value: Number(value) })));
           }
+
+          const { data: insigData } = await supabase.from("insignias_otorgadas").select("insignia_id, insignias(*)").eq("jugador_id", currentPerfilId);
+          if (insigData) setInsignias(insigData.map(i => i.insignias));
+
+          const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
+          if (cfg) setClubConfig(cfg);
         }
       }
       setCargando(false);
     };
     fetchDatos();
   }, [selectedHijoId]);
+  
+  const handleExportCard = async () => {
+    const node = document.getElementById('pro-card-capture');
+    if (!node) return;
+    const toastId = toast.loading("Preparando tu Ficha Élite...");
+    try {
+      const dataUrl = await toPng(node, { quality: 1, pixelRatio: 2, backgroundColor: '#09090b' });
+      const link = document.createElement('a');
+      link.download = `Gibbor_PRO_${perfil?.nombres?.split(' ')[0]}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("¡Ficha lista para compartir!", { id: toastId });
+    } catch (err) {
+      toast.error("Error al generar imagen", { id: toastId });
+    }
+  };
 
-  if (cargando) return <div className="animate-pulse space-y-8">
-    <div className="h-48 bg-slate-200 rounded-3xl w-full"></div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="h-32 bg-slate-200 rounded-2xl"></div>
-      <div className="h-32 bg-slate-200 rounded-2xl"></div>
-      <div className="h-32 bg-slate-200 rounded-2xl"></div>
-    </div>
-  </div>;
+  if (cargando) return <div className="animate-pulse p-8 space-y-8"><div className="h-48 bg-slate-200 rounded-3xl"></div></div>;
 
-  if (!perfil) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8 bg-white rounded-[3rem] border border-dashed border-slate-200 max-w-2xl mx-auto shadow-2xl shadow-slate-100">
-       <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mb-6">
-          <Users className="w-12 h-12 text-orange-500" />
-       </div>
-       <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-4">Modo Familiar Activo</h2>
-       <p className="text-slate-500 font-medium leading-relaxed mb-8">
-          Para ver el progreso de tus pequeños cracks, primero debes vincular sus perfiles en la configuración del club.
-       </p>
-       <button 
-         onClick={() => router.push('/director/configuracion')}
-         className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-xl shadow-orange-100"
-       >
-         Configurar Vínculos Ahora
-       </button>
-    </div>
-  );
+  if (!perfil) return <div className="p-8 text-center text-slate-500">Perfil no encontrado</div>;
 
   return (
-    <div className="space-y-10 max-w-6xl mx-auto">
-      {/* SELECTOR DE PERFIL PARA DIRECTOR-PAPÁ */}
+    <div className="space-y-10 max-w-6xl mx-auto pb-20">
+      {/* SELECTOR */}
       {hijos.length > 1 && (
         <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-sm inline-flex gap-2">
           {hijos.map(hijo => (
-            <button
-              key={hijo.id}
-              onClick={() => setSelectedHijoId(hijo.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedHijoId === hijo.id || (selectedHijoId === null && hijos[0].id === hijo.id) ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              {hijo.nombres.split(' ')[0]}
-            </button>
+            <button key={hijo.id} onClick={() => setSelectedHijoId(hijo.id)} className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedHijoId === hijo.id ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400'}`}>{hijo.nombres.split(' ')[0]}</button>
           ))}
         </div>
       )}
 
-      {/* HERO SECTION */}
+      {/* HERO */}
       <div className="relative overflow-hidden bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-orange-500/20">
-              <Zap className="w-3.5 h-3.5 fill-orange-400" /> Jugador Élite
-            </div>
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none">
-              ¡HOLA, <span className="text-orange-500">{perfil?.nombres?.split(' ')[0]}!</span>
-            </h1>
-            <p className="text-slate-400 font-medium max-w-md">
-              Tu camino al profesionalismo continúa hoy. Revisa tus metas y prepárate para el próximo entrenamiento en la categoría <span className="text-white font-bold">{perfil?.grupos || 'Sin grupo'}</span>.
-            </p>
+            <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-orange-500/20"><Zap className="w-3.5 h-3.5 fill-orange-400" /> Jugador Élite</div>
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none">¡HOLA, <span className="text-orange-500">{perfil?.nombres?.split(' ')[0]}!</span></h1>
+            <p className="text-slate-400 font-medium max-w-md">Tu camino al profesionalismo continúa hoy en la categoría <span className="text-white font-bold">{perfil?.grupos || 'Sin grupo'}</span>.</p>
           </div>
           <div className="flex gap-4">
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl text-center min-w-[120px]">
@@ -267,155 +239,199 @@ export default function DashboardFutbolista() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* NAVEGACIÓN TIPO APP (TABS) */}
+      <div className="flex bg-white/5 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 sticky top-4 z-50">
+        <button 
+          onClick={() => setActiveTab('perfil')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+        >
+          <Users className="w-4 h-4" /> Perfil
+        </button>
+        <button 
+          onClick={() => setActiveTab('disciplina')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'disciplina' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+        >
+          <CalendarCheck className="w-4 h-4" /> Disciplina
+        </button>
+        <button 
+          onClick={() => setActiveTab('pagos')}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pagos' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+        >
+          <DollarSign className="w-4 h-4" /> Pagos
+        </button>
+      </div>
+
+      {/* RENDERIZADO DINÁMICO SEGÚN PESTAÑA */}
+      <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
         
-        {/* Abstract background shapes */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-      </div>
-
-      {/* QUICK STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-orange-50 rounded-2xl">
-              <Star className="text-orange-500 w-6 h-6 fill-orange-500" />
-            </div>
-            <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs bg-emerald-50 px-2 py-1 rounded-full">
-              <ArrowUpRight className="w-3 h-3" /> +2
-            </div>
-          </div>
-          <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Puntos Acumulados</h3>
-          <p className="text-2xl font-black text-slate-800 mt-1">{perfil?.puntos || 0} pts</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-slate-900 rounded-2xl">
-              <Calendar className="text-orange-500 w-6 h-6" />
-            </div>
-          </div>
-          <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Próximo Partido</h3>
-          <p className="text-2xl font-bold text-slate-800 mt-1">{perfil?.proximo_partido || 'Por definir'}</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-slate-900 rounded-2xl">
-              <Trophy className="text-orange-500 w-6 h-6" />
-            </div>
-          </div>
-          <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tu Ranking</h3>
-          <p className="text-2xl font-black text-slate-800 mt-1">{perfil?.ranking ? `#${perfil.ranking}` : '--'} en {perfil?.grupos || 'Cat'}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* ESTADO DE PAGOS (Dinámico) */}
-        <div className="bg-white rounded-[2rem] border border-slate-200 p-8 shadow-sm">
-          <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-3">
-            <div className="w-2 h-6 bg-orange-500 rounded-full"></div> Estado de Cuenta
-          </h2>
-          
-          <div className={`p-6 rounded-3xl flex items-center justify-between border ${perfil?.estado_pago === 'Al día' ? 'bg-emerald-50/50 border-emerald-100' : 'bg-amber-50/50 border-amber-100'}`}>
-            <div className="flex items-center gap-4">
-              {perfil?.estado_pago === 'Al día' ? (
-                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20"><CheckCircle2 className="w-7 h-7" /></div>
-              ) : (
-                <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-amber-500/20"><AlertCircle className="w-7 h-7" /></div>
-              )}
-              <div>
-                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Mensualidad actual</p>
-                <p className="text-xl font-black text-slate-800">{perfil?.estado_pago || 'Pendiente'}</p>
-              </div>
-            </div>
-            {perfil?.estado_pago !== 'Al día' && (
-               <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold hover:scale-105 transition-transform">Ver Recibo</button>
-            )}
-          </div>
-          
-          <div className="mt-8 space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Historial Reciente</p>
-            {pagos.length > 0 ? (
-               pagos.map((pago: any) => (
-                 <div key={pago.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                   <div className="flex items-center gap-3">
-                     <div className="p-2 bg-white rounded-lg border border-slate-200"><Download className="w-4 h-4 text-slate-400" /></div>
-                     <p className="text-sm font-bold text-slate-700">{pago.concepto || 'Abono Mensualidad'}</p>
-                   </div>
-                   <p className={`text-xs font-bold ${pago.estado === 'Pendiente' ? 'text-amber-600' : 'text-emerald-600'}`}>
-                     {pago.estado?.toUpperCase() || 'PAGADO'}
-                   </p>
-                 </div>
-               ))
-            ) : (
-               <p className="text-xs text-slate-500 font-medium text-center py-4 bg-slate-50 rounded-2xl border border-slate-100">No hay transacciones recientes.</p>
-            )}
-          </div>
-        </div>
-
-        {/* SECCIÓN DE DATOS ÉLITE (GIBBOR STATS LAB) */}
-        <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 p-8 md:p-12 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-          
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            
-            {/* IZQUIERDA: GIBBOR PRO CARD */}
-            <div className="space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-orange-500/10 text-orange-500 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-orange-500/20">
-                <Trophy className="w-3 h-3" /> Technical Profile v2.0
-              </div>
-              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none">
-                TU CARTA <span className="text-orange-500">PRO.</span>
-              </h2>
-              <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto lg:mx-0">
-                Esta tarjeta se actualiza automáticamente con cada evaluación de tu entrenador. ¡Mejora tus stats en cada entreno!
-              </p>
-              
-              <div className="pt-4 lg:pt-8">
-                {radarData.length > 0 ? (
-                  <FifaCard perfil={perfil} stats={radarData} />
-                ) : (
-                  <div className="w-64 h-96 mx-auto bg-slate-800/50 rounded-[2rem] border border-dashed border-slate-700 flex flex-col items-center justify-center p-8 text-center">
-                    <Zap className="w-12 h-12 text-slate-700 mb-4" />
-                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Sin Carta Activa</p>
+        {activeTab === 'perfil' && (
+          <div className="space-y-10">
+            <div className="bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-[120px] -mr-48 -mt-48"></div>
+              <div className="relative z-10">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+                  <div>
+                    <span className="bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block">Technical Profile v2.0</span>
+                    <h2 className="text-4xl font-black text-white tracking-tighter text-5xl">TU CARTA <span className="text-orange-500">PRO.</span></h2>
                   </div>
+                </div>
+                {radarData.length > 0 ? (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                    <div className="flex flex-col items-center gap-6">
+                      <FifaCard 
+                        perfil={perfil} 
+                        stats={radarData} 
+                        clubName={clubConfig.nombre_club} 
+                        season={clubConfig.temporada_actual} 
+                      />
+                      <button onClick={handleExportCard} className="bg-white text-slate-900 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Share2 className="w-4 h-4" /> Exportar Ficha</button>
+                    </div>
+                    <div className="flex flex-col items-center p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center uppercase">ADN Técnico Gibbor</h4>
+                      <RadarChart data={radarData} size={320} />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                      {radarData.map((stat, idx) => (
+                        <div key={idx} className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{stat.label}</span>
+                            <span className="text-xs font-black text-white">{stat.value}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-black/40 rounded-full overflow-hidden p-0.5"><div className="h-full bg-orange-500 rounded-full" style={{ width: `${stat.value}%` }}></div></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-[3rem] text-slate-500 font-bold uppercase tracking-widest">Esperando evaluación técnica...</div>
                 )}
               </div>
             </div>
 
-            {/* DERECHA: RADAR DETALLADO */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-[2rem] p-8 border border-white/5 flex flex-col items-center">
-              <h3 className="text-white font-black text-xs uppercase tracking-widest mb-8 flex items-center gap-2">
-                <Star className="w-4 h-4 text-orange-500" /> Atributos Técnicos
-              </h3>
-              
-              {radarData.length > 0 ? (
-                 <div className="w-full space-y-8">
-                    <RadarChart data={radarData} size={280} />
-                    
-                    <div className="grid grid-cols-2 gap-4 mt-8">
-                      {radarData.map((stat, idx) => (
-                        <div key={idx} className="bg-white/5 p-3 rounded-2xl border border-white/5">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{stat.label}</span>
-                            <span className="text-xs font-black text-white">{stat.value}%</span>
-                          </div>
-                          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-orange-500" style={{ width: `${stat.value}%` }}></div>
-                          </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm"><h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Puntos Acumulados</h3><p className="text-2xl font-black text-slate-800 mt-1">{perfil?.puntos || 0} pts</p></div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm"><h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Próximo Partido</h3><p className="text-2xl font-bold text-slate-800 mt-1">{perfil?.proximo_partido || 'Por definir'}</p></div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm"><h3 className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Tu Ranking</h3><p className="text-2xl font-black text-slate-800 mt-1">{perfil?.ranking || '--'} en Cat</p></div>
+            </div>
+
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+               <h2 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center gap-3"><div className="w-2 h-6 bg-orange-500 rounded-full"></div> Vitrina</h2>
+               {insignias.length > 0 ? (
+                  <div className="flex flex-wrap gap-8 justify-center">
+                    {insignias.map((insig, idx) => (
+                      <div key={idx} className="flex flex-col items-center gap-3 group">
+                        <div className="w-20 h-20 relative">
+                          <div className="absolute inset-0 bg-yellow-400/20 rounded-full blur-xl group-hover:bg-yellow-400/40 transition-all scale-0 group-hover:scale-110"></div>
+                          <img src={insig.icono_url} alt={insig.nombre} className="w-full h-full object-contain relative z-10 drop-shadow-lg scale-90 group-hover:scale-100 transition-transform" />
                         </div>
-                      ))}
-                    </div>
-                 </div>
-              ) : (
-                 <div className="flex flex-col items-center justify-center py-20">
-                    <AlertCircle className="w-10 h-10 text-orange-500/20 mb-4" />
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Pendiente de evaluación</p>
-                 </div>
-              )}
+                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-tighter text-center max-w-[80px] leading-tight">{insig.nombre}</span>
+                      </div>
+                    ))}
+                  </div>
+               ) : (
+                  <div className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs border-2 border-dashed border-slate-100 rounded-3xl">Gana insignias en tus entrenamientos</div>
+               )}
             </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === 'disciplina' && (
+          <div className="bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200 shadow-xl">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+              <div>
+                <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Bitácora de <span className="text-orange-500">Disciplina</span></h2>
+                <p className="text-slate-500 font-medium">Historial detallado de entrenamientos y partidos.</p>
+              </div>
+              <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Tu Promedio</p>
+                  <p className={`text-2xl font-black ${asistenciaPct >= 80 ? 'text-emerald-500' : 'text-orange-500'}`}>{asistenciaPct}%</p>
+                </div>
+                <div className={`w-12 h-12 rounded-full border-4 ${asistenciaPct >= 80 ? 'border-emerald-500' : 'border-orange-500'} flex items-center justify-center`}>
+                  <CalendarCheck className={asistenciaPct >= 80 ? 'text-emerald-500' : 'text-orange-500'} />
+                </div>
+              </div>
+            </div>
+
+            {asistenciasLogs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {asistenciasLogs.slice(0, 12).map((log, idx) => (
+                  <div key={idx} className={`p-5 rounded-[2rem] border transition-all ${log.estado === 'Presente' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
+                        {log.estado}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">{new Date(log.fecha).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${log.estado === 'Presente' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                        {log.tipo_sesion === 'Partido' ? <Trophy className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-slate-800 leading-none">{log.tipo_sesion || 'Entrenamiento'}</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-tighter">EFD GIBBOR</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-16 text-center border-2 border-dashed border-slate-100 rounded-[2.5rem] bg-slate-50">
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300"><Calendar className="w-8 h-8" /></div>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Aún no hay registros de asistencia.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'pagos' && (
+          <div className="bg-white rounded-[3rem] p-8 md:p-12 border border-slate-200 shadow-xl animate-in zoom-in-95 duration-300">
+             <div className="mb-10 flex justify-between items-center">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Gestión <span className="text-orange-500">Financiera</span></h2>
+                  <p className="text-slate-500 font-medium">Estado de mensualidades y uniformes.</p>
+                </div>
+                <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${perfil?.estado_pago === 'Al día' ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
+                  {perfil?.estado_pago || 'Pendiente'}
+                </div>
+             </div>
+             {pagos.length > 0 ? (
+               <div className="space-y-4">
+                 {pagos.map((pago: any) => (
+                   <div key={pago.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:border-orange-200">
+                     <div className="flex items-center gap-4">
+                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-orange-500"><Zap className="w-6 h-6" /></div>
+                       <div>
+                         <p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad EFD'}</p>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{new Date(pago.fecha).toLocaleDateString()}</p>
+                       </div>
+                     </div>
+                     <div className="text-right flex flex-col items-end gap-2">
+                       <p className="text-lg font-black text-slate-800 leading-none lg:mb-1">$ {(pago.monto || pago.total || 0).toLocaleString()}</p>
+                       <div className="flex items-center gap-2">
+                          {pago.recibo_url && (
+                             <a 
+                               href={pago.recibo_url} 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase hover:bg-emerald-200 transition-colors"
+                             >
+                               <FileText className="w-3 h-3" /> Recibo
+                             </a>
+                          )}
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">Verificado</span>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[3rem] text-slate-400 font-bold uppercase tracking-widest text-sm">No hay reportes de pago recientes.</div>
+             )}
+          </div>
+        )}
       </div>
     </div>
   );

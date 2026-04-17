@@ -19,7 +19,9 @@ export default function ConfiguracionGeneral() {
     api_url: '', api_key: '', instance_name: 'Gibbor_App',
     direccion: '', ciudad: '', nequi: '', daviplata: '',
     bre_b: '', banco_nombre: '', banco_numero: '',
-    hijos_config: '' // Usaremos este campo para guardar los IDs
+    hijos_config: '',
+    nombre_club: 'EFD GIBBOR',
+    temporada_actual: 'TEMPORADA 2024'
   });
 
   useEffect(() => {
@@ -81,10 +83,18 @@ export default function ConfiguracionGeneral() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* IDENTIDAD */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-fit">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="w-4 h-4 text-orange-500" /> Identidad</h2>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="w-4 h-4 text-orange-500" /> Identidad del Club</h2>
             <div className="space-y-5">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Dirección</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Nombre del Club (en Carnet)</label>
+                <input type="text" value={config.nombre_club} onChange={(e) => setConfig({...config, nombre_club: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-black text-sm uppercase" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Temporada Actual</label>
+                <input type="text" value={config.temporada_actual} onChange={(e) => setConfig({...config, temporada_actual: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-black text-sm uppercase" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Dirección Sede</label>
                 <input type="text" value={config.direccion} onChange={(e) => setConfig({...config, direccion: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-sm" />
               </div>
               <div>

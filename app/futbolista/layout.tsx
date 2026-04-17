@@ -17,6 +17,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
   // La seguridad se delega al Middleware (Servidor).
   const [verificando, setVerificando] = useState(false);
   const [usuario, setUsuario] = useState<any>(null);
+  const [isDirector, setIsDirector] = useState(false);
 
   useEffect(() => {
     const cargarPerfil = async () => {
@@ -30,8 +31,9 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
         .maybeSingle();
 
       if (perfil) {
-        // Lógica para Director viendo perfiles de hijos o su propio perfil de jugador
+        // Verificamos si es Director para el botón especial
         if (perfil.rol === "Director") {
+          setIsDirector(true);
           const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").maybeSingle();
           if (config?.hijos_config) {
             const ids = config.hijos_config.split(",");
@@ -53,7 +55,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
     { name: "Mi Panel", path: "/futbolista", icon: <Home className="w-5 h-5" /> },
     { name: "Mi Carnet", path: "/futbolista/carnet", icon: <Award className="w-5 h-5" /> },
     { name: "Mis Pagos", path: "/futbolista/pagos", icon: <CreditCard className="w-5 h-5" /> },
-    { name: "Mi Perfil", path: "/futbolista/perfil", icon: <User className="w-5 h-5" /> },
+    { name: "Seguridad", path: "/futbolista/perfil", icon: <ShieldCheck className="w-5 h-5" /> },
   ];
 
   if (verificando) {
@@ -137,12 +139,23 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
             })}
           </nav>
 
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
-            className="flex items-center gap-3 px-5 py-3.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all mt-auto font-bold text-sm"
-          >
-            <LogOut className="w-5 h-5" /> Salir
-          </button>
+          <div className="space-y-4 mt-auto pt-10">
+            {isDirector && (
+              <button 
+                onClick={() => router.push("/director")}
+                className="w-full flex items-center gap-3 px-5 py-3.5 text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 rounded-2xl transition-all font-black text-xs uppercase tracking-tighter border border-orange-500/20 shadow-xl shadow-orange-500/5 group"
+              >
+                <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" /> Volver a Director
+              </button>
+            )}
+
+            <button 
+              onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
+              className="w-full flex items-center gap-3 px-5 py-3.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-2xl transition-all font-bold text-sm"
+            >
+              <LogOut className="w-5 h-5" /> Salir
+            </button>
+          </div>
         </div>
       </aside>
 

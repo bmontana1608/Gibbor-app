@@ -4,16 +4,25 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { 
   ShieldCheck, Share2, Download, 
-  Zap, MapPin, Heart, Fingerprint
+  Zap, MapPin, Heart, Fingerprint, ChevronLeft
 } from "lucide-react";
+import { toPng } from 'html-to-image';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 export default function CarnetFutbolista() {
+  const router = useRouter();
+  const [clubConfig, setClubConfig] = useState({ nombre_club: 'EFD GIBBOR', temporada_actual: 'Temporada 2024-2025' });
   const [perfil, setPerfil] = useState<any>(null);
 
   useEffect(() => {
     const fetchDatos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        // Cargar Configuración del Club
+        const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
+        if (cfg) setClubConfig(cfg);
+
         // 1. Cargamos el perfil base
         const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
         
@@ -37,16 +46,56 @@ export default function CarnetFutbolista() {
     fetchDatos();
   }, []);
 
+  const handleDownload = async () => {
+    const node = document.getElementById('carnet-id-card');
+    if (!node) return;
+
+    const toastId = toast.loading("Generando carnet digital...");
+
+    try {
+      const dataUrl = await toPng(node, { 
+        quality: 1, 
+        pixelRatio: 3, 
+        backgroundColor: '#0f172a' 
+      });
+      const link = document.createElement('a');
+      link.download = `Carnet_Gibbor_${perfil?.nombres}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("¡Carnet descargado!", { id: toastId });
+    } catch (err) {
+      toast.error("Error al generar el carnet", { id: toastId });
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Carnet Oficial ${clubConfig.nombre_club}`,
+          text: `Soy ${perfil?.nombres}, jugador oficial de ${clubConfig.nombre_club}. ¡Mira mi carnet digital!`,
+          url: window.location.href,
+        });
+      } catch (err) {}
+    } else {
+      toast.info("Copia el link para compartir tu carnet");
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto space-y-10">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-black text-slate-800 tracking-tight">IDENTIDAD GIBBOR</h1>
-        <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">Tu carnet oficial en formato digital</p>
+    <div className="max-w-2xl mx-auto space-y-10 p-4 pb-20">
+      <div className="flex items-center justify-between">
+         <button onClick={() => router.back()} className="p-2 bg-slate-100 rounded-full text-slate-500"><ChevronLeft /></button>
+         <div className="text-center space-y-1">
+            <h1 className="text-xl font-black text-slate-800 tracking-tight italic uppercase">IDENTIDAD {clubConfig.nombre_club}</h1>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">{clubConfig.temporada_actual}</p>
+         </div>
+         <div className="w-10"></div>
       </div>
 
       {/* CARNET BOX - THE "WOW" FACTOR */}
-      <div className="relative group perspective-1000">
-        <div className="relative w-full max-w-[400px] mx-auto bg-slate-900 aspect-[1.6/1] rounded-[2rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] transition-transform duration-500 group-hover:rotate-1">
+      <div className="relative group">
+        <div id="carnet-id-card" className="relative w-full max-w-[420px] mx-auto bg-slate-900 aspect-[1.6/1] rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
           
           {/* Background Design */}
           <div className="absolute top-0 right-0 w-1/2 h-full bg-orange-500 skew-x-[-20deg] translate-x-12 opacity-90"></div>
@@ -55,11 +104,11 @@ export default function CarnetFutbolista() {
           {/* Logo & Header */}
           <div className="absolute top-6 left-8 flex items-center gap-2 z-10">
             <img src="/logo.png" alt="Gibbor" className="w-8 h-8 object-contain drop-shadow-md" />
-            <span className="text-white font-black italic uppercase tracking-tighter text-sm">GIBBOR EFD</span>
+            <span className="text-white font-black italic uppercase tracking-tighter text-sm">{clubConfig.nombre_club}</span>
           </div>
 
           <div className="absolute top-6 right-8 z-10">
-             <span className="bg-white/10 backdrop-blur-md text-white text-[8px] font-black py-1 px-3 rounded-full border border-white/20 uppercase tracking-widest leading-none">Temporada 2024-2025</span>
+             <span className="bg-white/10 backdrop-blur-md text-white text-[8px] font-black py-1 px-3 rounded-full border border-white/20 uppercase tracking-widest leading-none">{clubConfig.temporada_actual}</span>
           </div>
 
           {/* Player Identity */}
@@ -105,10 +154,10 @@ export default function CarnetFutbolista() {
 
       {/* ACTIONS */}
       <div className="flex grid grid-cols-2 gap-4">
-         <button className="bg-white border-2 border-slate-200 text-slate-700 px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
+         <button onClick={handleShare} className="bg-white border-2 border-slate-200 text-slate-700 px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
             <Share2 className="w-5 h-5 text-orange-500" /> Compartir
          </button>
-         <button className="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
+         <button onClick={handleDownload} className="bg-slate-900 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
             <Download className="w-5 h-5 text-orange-400" /> Descargar
          </button>
       </div>

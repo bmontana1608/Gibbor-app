@@ -1,28 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
 export const dynamic = 'force-dynamic';
+
+async function subirReciboASupabase(pdfBase64: string, nombreArchivo: string) {
+  const buffer = Buffer.from(pdfBase64, 'base64');
+  const { data, error } = await supabaseAdmin.storage
+    .from('recibos')
+    .upload(`recibos/${Date.now()}_${nombreArchivo}`, buffer, {
+      contentType: 'application/pdf',
+    });
+
+  if (error) throw error;
+  const { data: urlData } = supabaseAdmin.storage.from('recibos').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     console.log('📩 Webhook recibido:', body);
 
-    // 1. Extraer el mensaje y el remitente (Estructura de Evolution API)
     const message = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '';
     const remoteJid = body.data?.key?.remoteJid;
-    const fromMe = body.data?.key?.fromMe; // Detecta si lo enviaste tú
+    const fromMe = body.data?.key?.fromMe;
 
-    // SEGURIDAD: Solo el dueño del número (!fromMe es falso) y que empiece con !
     if (!fromMe || !message.startsWith('!')) {
       return NextResponse.json({ ok: true });
     }
 
     const command = message.toLowerCase().split(' ')[0];
 
-    // ----- COMANDO: !AYUDA -----
     if (command === '!ayuda') {
       const menu = `🤖 *ASISTENTE GIBBOR APP* \n\n` +
                    `Puedes usar estos comandos desde aquí:\n\n` +
@@ -34,7 +45,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
 
-    // ----- COMANDO: !PAGO -----
     if (command === '!pago') {
       const parts = message.split(' ');
       if (parts.length < 3) {
@@ -55,8 +65,10 @@ export async function POST(req: NextRequest) {
       const alumno = alumnos[0];
       await supabase.from('pagos_ingresos').insert([{
         jugador_id: alumno.id,
+        monto: monto,
         monto_base: monto,
         total: monto,
+        concepto: 'Mensualidad (WhatsApp Bot)',
         metodo_pago: 'Efectivo (Bot)',
         fecha: new Date().toISOString().split('T')[0]
       }]);
@@ -73,7 +85,26 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`);
+      // --- NUEVO: SUBIR A STORAGE ---
+      let reciboUrl = '';
+      try {
+        reciboUrl = await subirReciboASupabase(pdfBase64, `Recibo_${alumno.nombres}.pdf`);
+      } catch (e) {
+        console.error("Error subiendo PDF:", e);
+      }
+
+      await supabase.from('pagos_ingresos').insert([{
+        jugador_id: alumno.id,
+        monto: monto,
+        monto_base: monto,
+        total: monto,
+        concepto: 'Mensualidad (WhatsApp Bot)',
+        metodo_pago: 'Efectivo (Bot)',
+        fecha: new Date().toISOString().split('T')[0],
+        recibo_url: reciboUrl // Guardamos el link oficial
+      }]);
+
+      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*\n\n_El recibo ya está disponible en tu Dashboard._`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`);
     }
 
     // ----- COMANDO: !INFO -----
