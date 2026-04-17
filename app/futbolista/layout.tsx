@@ -36,7 +36,10 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
 
         if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
           console.log("✅ Perfiles encontrados vía API:", misPerfiles.length);
-          setHijos(misPerfiles);
+          
+          // Filtramos para que en el selector de hijos no aparezca el propio Director
+          const soloHijos = misPerfiles.filter(p => p.id !== session.user.id || p.rol !== "Director");
+          setHijos(soloHijos);
           
           const guardado = localStorage.getItem('hijo_seleccionado_id');
           

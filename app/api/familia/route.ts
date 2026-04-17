@@ -60,9 +60,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Eliminar duplicados y filtrar el perfil del Director de la lista de "hijos"
+  // Eliminar duplicados por ID (mantenemos al director para que el Layout sepa quién es)
   const unicos = Array.from(new Map(misPerfiles.map(item => [item.id, item])).values());
-  const soloHijos = unicos.filter(p => p.id !== uid || p.rol !== "Director");
 
-  return NextResponse.json(soloHijos);
+  return NextResponse.json(unicos);
 }
