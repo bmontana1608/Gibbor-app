@@ -257,23 +257,27 @@ export default function FichaDelJugador() {
                   )}
                   <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Los entrenadores pueden tener varias categorías asignadas para gestionar.</p>
                 </div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Posición</label><input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Dorsal</label><input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Plan Financiero</label>
-                  <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
-                    {planes.map(p => (
-                      <option key={p.nombre} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
-                    ))}
-                    {planes.length === 0 && <option value="Regular">Regular</option>}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Estado de Pago</label>
-                  <select name="estado_pago" value={formData.estado_pago || 'Pendiente'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
-                    <option value="Al día">Al día</option><option value="Pendiente">Pendiente</option>
-                  </select>
-                </div>
+                {formData.rol === 'Futbolista' && (
+                  <>
+                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Posición</label><input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Dorsal</label><input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Plan Financiero</label>
+                      <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
+                        {planes.map(p => (
+                          <option key={p.nombre} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
+                        ))}
+                        {planes.length === 0 && <option value="Regular">Regular</option>}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Estado de Pago</label>
+                      <select name="estado_pago" value={formData.estado_pago || 'Pendiente'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
+                        <option value="Al día">Al día</option><option value="Pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

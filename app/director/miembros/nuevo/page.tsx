@@ -276,17 +276,19 @@ export default function NuevoMiembro() {
                 )}
                 <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Los entrenadores pueden tener varias categorías asignadas.</p>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan Financiero Asignado</label>
-                <select name="tipo_plan" value={formData.tipo_plan} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white cursor-pointer font-bold text-emerald-700">
-                  {planes.map(plan => (
-                    <option key={plan.nombre} value={plan.nombre}>
-                      {plan.nombre} (${Number(plan.precio_base).toLocaleString('es-CO')})
-                    </option>
-                  ))}
-                  {planes.length === 0 && <option value="Regular">Regular</option>}
-                </select>
-              </div>
+                {formData.rol === 'Futbolista' && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan Financiero Asignado</label>
+                    <select name="tipo_plan" value={formData.tipo_plan} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm bg-white cursor-pointer font-bold text-emerald-700">
+                      {planes.map(plan => (
+                        <option key={plan.nombre} value={plan.nombre}>
+                          {plan.nombre} (${Number(plan.precio_base).toLocaleString('es-CO')})
+                        </option>
+                      ))}
+                      {planes.length === 0 && <option value="Regular">Regular</option>}
+                    </select>
+                  </div>
+                )}
             </div>
           </section>
 
