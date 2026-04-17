@@ -159,11 +159,11 @@ export default function CarnetFutbolista() {
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
                <p className="text-xs text-slate-400 font-medium">Acudiente Principal</p>
-               <p className="font-bold text-slate-800">{perfil?.acudiente_nombre || '---'}</p>
+               <p className="font-bold text-slate-800">{perfil?.emergencia_nombre || perfil?.acudiente_nombre || '---'}</p>
             </div>
             <div className="space-y-1">
                <p className="text-xs text-slate-400 font-medium">Contacto de Urgencia</p>
-               <p className="font-bold text-slate-800">{perfil?.telefono || '---'}</p>
+               <p className="font-bold text-slate-800">{perfil?.emergencia_telefono || perfil?.telefono || '---'}</p>
             </div>
          </div>
       </div>
