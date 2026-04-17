@@ -161,12 +161,35 @@ export default function DashboardFutbolista() {
     const fetchDatos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Lógica de Selección de Perfil Única
+        // 0. VALIDACIÓN DE FAMILIA AUTORIZADA (EVITA DESFASE CON LAYOUT)
         let currentPerfilId = session.user.id;
-        const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
-        if (savedHijoId && savedHijoId !== session.user.id) {
-          currentPerfilId = savedHijoId;
+        const cleanEmail = session.user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
+        
+        try {
+          const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
+          const misPerfiles = await resFam.json();
+          
+          if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
+            setHijos(misPerfiles.filter((p:any) => p.id !== session.user.id || (p.rol !== "Director" && p.rol !== "Entrenador")));
+            
+            const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
+            const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
+            
+            if (savedHijoId && esValido && savedHijoId !== session.user.id) {
+              currentPerfilId = savedHijoId;
+            } else {
+              const miPerfil = misPerfiles.find((p:any) => p.id === session.user.id);
+              if ((miPerfil?.rol === 'Director' || miPerfil?.rol === 'Entrenador') && misPerfiles.length > 1) {
+                const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
+                if (primerHijo) currentPerfilId = primerHijo.id;
+              }
+            }
+          }
+        } catch (err) {
+          console.error("Error validando familia en dashboard:", err);
         }
+
+        setSelectedHijoId(currentPerfilId);
 
         // 1. CARGA DE PERFIL COMPLETO (SÍMBOLO + INSIGNIAS) VÍA API SEGURA
         try {
