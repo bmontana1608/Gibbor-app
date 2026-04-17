@@ -105,52 +105,52 @@ export default function AutoRegistroPublico() {
             />
           </div>
         </div>
-        <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tighter uppercase italic">Formulario de Inscripción</h1>
-        <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Únete a la academia más grande de la región. Completa tus datos para iniciar el proceso.</p>
+        <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tighter uppercase italic">Solicitud de Ingreso</h1>
+        <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Forma parte de nuestra escuela de formación deportiva. Completa los datos para iniciar tu proceso.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-100 rounded-[3rem] p-8 md:p-14 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.08)] space-y-14 animate-in fade-in zoom-in duration-500">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-100 rounded-[3rem] p-8 md:p-14 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] space-y-14 animate-in fade-in zoom-in duration-500">
         
         {/* 1. Datos del Miembro */}
         <section>
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100">
+            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100/50">
               <User className="text-orange-500 w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Datos del Jugador</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
             <div className="group">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nombres Completos *</label>
-              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" required />
+              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Apellidos *</label>
-              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" required />
+              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Documento Identidad *</label>
-              <input type="text" name="documento_identidad" value={formData.documento_identidad} onChange={handleChange} placeholder="C.C / T.I / R.C" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" required />
+              <input type="text" name="documento_identidad" value={formData.documento_identidad} onChange={handleChange} placeholder="Número C.C / T.I" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Fecha Nacimiento *</label>
-              <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleDateChange} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-500" required />
+              <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleDateChange} className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-500" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Número de WhatsApp *</label>
               <div className="flex">
-                <span className="bg-slate-100 border-none rounded-l-2xl px-4 py-4 text-slate-400 font-bold flex items-center">+57</span>
-                <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="300 000 0000" className="w-full bg-slate-50 border-none rounded-r-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" required />
+                <span className="bg-slate-100 border border-slate-200 border-r-0 rounded-l-2xl px-4 py-4 text-slate-400 font-bold flex items-center">+57</span>
+                <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="300 000 0000" className="w-full bg-white border border-slate-100 rounded-r-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" required />
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
-              <input type="email" name="email_contacto" value={formData.email_contacto} onChange={handleChange} placeholder="ejemplo@gmail.com" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" />
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Correo Electrónico (Opcional)</label>
+              <input type="email" name="email_contacto" value={formData.email_contacto} onChange={handleChange} placeholder="ejemplo@gmail.com" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 flex items-center gap-2"><MapPin className="w-3 h-3" /> Dirección de Residencia</label>
-              <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Barrio y Dirección completa" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-300" />
+              <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Barrio y Dirección" className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 placeholder:text-slate-200" />
             </div>
           </div>
         </section>
@@ -186,64 +186,63 @@ export default function AutoRegistroPublico() {
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Información Médica</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Tipo de Sangre *</label>
-              <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer" required>
+              <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer" required>
                 <option value="">Selección...</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
               </select>
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EPS o Seguro *</label>
-              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Talla Uniforme</label>
-              <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer">
+              <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer">
                 <option value="">S/M/L/6-16</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
               </select>
             </div>
+            <div className="md:col-span-3">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Patologías o Alergias</label>
+              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={2} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
+            </div>
           </div>
           
-          <div className="mb-8">
-            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Patologías o Alergias</label>
-            <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={2} className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900 p-8 rounded-[2rem] shadow-2xl shadow-slate-900/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/95 p-8 rounded-[2rem] shadow-2xl shadow-slate-900/10 border border-slate-800">
             <div className="md:col-span-2 flex items-center gap-3 mb-2">
               <CheckCircle2 className="w-4 h-4 text-orange-500" />
               <h3 className="text-xs font-black text-white uppercase tracking-widest">En caso de emergencia avisar a:</h3>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nombre Completo *</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nombre Completo *</label>
               <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Teléfono Urgencias *</label>
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Teléfono Urgencias *</label>
               <input type="tel" name="emergencia_telefono" value={formData.emergencia_telefono} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
             </div>
           </div>
         </section>
 
-        {/* 4. Documentación (Visual/Mockup) */}
+        {/* 4. Documentación */}
         <section>
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100">
+            <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center border border-orange-100/50">
               <FileText className="text-orange-500 w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Documentación</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="group relative bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">📸</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-1 bg-slate-50/50 rounded-[2.5rem] border border-slate-100/50 p-6 md:p-8">
+            <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer shadow-sm">
+              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform text-slate-300">📸</span>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Foto Documento</p>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lado Cara (Jugador)</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
-            <div className="group relative bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">🏥</span>
+            <div className="group relative bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500 hover:bg-orange-50/30 transition-all cursor-pointer shadow-sm">
+              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform text-slate-300">🏥</span>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro EPS</p>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
