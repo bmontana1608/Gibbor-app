@@ -46,7 +46,7 @@ export async function GET(request: Request) {
       supabaseAdmin.from('eventos')
         .select('*')
         .gte('fecha', new Date().toISOString().split('T')[0])
-        .or(`categoria_id.is.null,categoria_id.eq."${perfilData?.grupos || ''}"`)
+        .or(`categoria_id.is.null,categoria_id.eq."",categoria_id.eq."${perfilData?.grupos || 'NINGUNA'}"`)
         .order('fecha', { ascending: true })
         .limit(3)
     ]);
