@@ -189,39 +189,28 @@ export default function DashboardFutbolista() {
         
         setSelectedHijoId(currentPerfilId);
 
-        // 2. CARGA EN PARALELO DE TODO LO DEMÁS
-        const [resPerfil, resEval, resPagos, resAsis, resCfg] = await Promise.all([
-          fetch(`/api/perfil?id=${currentPerfilId}`).then(r => r.json()),
-          fetch(`/api/evaluaciones?jugador_id=${currentPerfilId}`).then(r => r.json()),
-          supabase.from("pagos_ingresos").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(6),
-          supabase.from("asistencias").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }),
-          supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single()
-        ]);
+        // 2. CARGA UNIFICADA (MEGA API)
+        const resDash = await fetch(`/api/dashboard/futbolista?id=${currentPerfilId}`).then(r => r.json());
 
-        // Procesar Perfil e Insignias
-        if (resPerfil && !resPerfil.error) {
-          setPerfil(resPerfil);
+        if (resDash && !resDash.error) {
+          // Procesar Perfil e Insignias
+          setPerfil(resDash.perfil);
           const colMap: any = { goleador: 'from-orange-400 to-red-500', muro: 'from-blue-500 to-indigo-700', cerebro: 'from-purple-500 to-pink-600', fairplay: 'from-green-400 to-emerald-600', rayo: 'from-yellow-400 to-orange-500' };
-          setInsignias((resPerfil.insignias || []).map((i: any) => ({ ...i.insignias, slug: i.insignia_id, color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800' })));
+          setInsignias((resDash.perfil?.insignias || []).map((i: any) => ({ ...i.insignias, slug: i.insignia_id, color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800' })));
+
+          // Procesar Evaluaciones (Carta PRO)
+          setRadarData(Object.entries(resDash.stats || {}).map(([label, value]) => ({ label, value: Number(value) })));
+
+          // Procesar Pagos
+          setPagos(resDash.pagos || []);
+
+          // Procesar Asistencias
+          setAsistenciaPct(resDash.asistenciaPct || 0);
+          setAsistenciasLogs(resDash.asistencias || []);
+
+          // Procesar Config
+          if (resDash.config) setClubConfig(resDash.config);
         }
-
-        // Procesar Evaluaciones
-        if (resEval?.stats) {
-          setRadarData(Object.entries(resEval.stats).map(([label, value]) => ({ label, value: Number(value) })));
-        }
-
-        // Procesar Pagos
-        if (resPagos.data) setPagos(resPagos.data);
-
-        // Procesar Asistencias
-        if (resAsis.data && resAsis.data.length > 0) {
-          const presentes = resAsis.data.filter(a => a.estado === 'Presente').length;
-          setAsistenciaPct(Math.round((presentes / resAsis.data.length) * 100));
-          setAsistenciasLogs(resAsis.data);
-        }
-
-        // Procesar Config
-        if (resCfg.data) setClubConfig(resCfg.data);
 
       } catch (err) {
         console.error("Error en carga masiva paralela:", err);
