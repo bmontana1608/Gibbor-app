@@ -37,14 +37,15 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
         if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
           console.log("✅ Perfiles encontrados vía API:", misPerfiles.length);
           
+          const guardado = localStorage.getItem('hijo_seleccionado_id');
+          
           // Filtramos para que en el selector de hijos no aparezca el propio Director
           const soloHijos = misPerfiles.filter(p => p.id !== session.user.id || p.rol !== "Director");
           setHijos(soloHijos);
           
-          const guardado = localStorage.getItem('hijo_seleccionado_id');
-          
-          // Si tenemos un hijo guardado, usamos el salvoconducto para asegurar que tenemos sus datos frescos
           let perfilActivo = null;
+          const miPerfil = misPerfiles.find(p => p.id === session.user.id);
+
           if (guardado && guardado !== session.user.id) {
             try {
               const resP = await fetch(`/api/perfil?id=${guardado}`);
@@ -52,14 +53,19 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
               if (perfilHijo && !perfilHijo.error) {
                 perfilActivo = perfilHijo;
               } else {
-                perfilActivo = misPerfiles.find(h => h.id === session.user.id) || misPerfiles[0];
+                perfilActivo = soloHijos.length > 0 ? soloHijos[0] : miPerfil;
               }
             } catch (err) {
-              perfilActivo = misPerfiles.find(h => h.id === guardado) || misPerfiles[0];
+              perfilActivo = soloHijos.find(h => h.id === guardado) || soloHijos[0] || miPerfil;
             }
           } else {
-            // Si no hay hijo guardado, mostramos el perfil del usuario logueado (Admin o Futbolista)
-            perfilActivo = misPerfiles.find(h => h.id === session.user.id) || misPerfiles[0];
+            // LÓGICA CLAVE: Si soy Director, fuerzo la vista del primer hijo por defecto
+            if (miPerfil?.rol === "Director" && soloHijos.length > 0) {
+              perfilActivo = soloHijos[0];
+              localStorage.setItem('hijo_seleccionado_id', soloHijos[0].id);
+            } else {
+              perfilActivo = miPerfil || misPerfiles[0];
+            }
           }
 
           setUsuario(perfilActivo);
