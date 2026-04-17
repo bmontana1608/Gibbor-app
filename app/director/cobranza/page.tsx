@@ -12,6 +12,32 @@ export default function ModuloCobranza() {
   const router = useRouter();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
+  const eliminarPagoHistorial = async (id: string, consecutivo: number) => {
+    if (!window.confirm(`¿Estás seguro de eliminar permanentemente el recibo #${consecutivo}? Esta acción no se puede deshacer y afectará los ingresos del mes.`)) return;
+
+    const toastId = toast.loading("Eliminando registro de pago...");
+    try {
+      const { error } = await supabase.from('pagos_ingresos').delete().eq('id', id);
+      if (error) throw error;
+      toast.success("Pago eliminado correctamente", { id: toastId });
+      cargarDatos(); // Recargamos para actualizar el dashboard
+    } catch (error: any) {
+      toast.error("Error al eliminar: " + error.message, { id: toastId });
+    }
+  };
+
+  const eliminarEgreso = async (id: string) => {
+    if (!window.confirm("¿Seguro que deseas eliminar este registro de gasto?")) return;
+    
+    try {
+      const { error } = await supabase.from('egresos').delete().eq('id', id);
+      if (error) throw error;
+      toast.success("Gasto eliminado");
+      cargarDatos();
+    } catch (error: any) {
+      toast.error("Error: " + error.message);
+    }
+  };
   const [busqueda, setBusqueda] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState('Todos');
   const [activeTab, setActiveTab] = useState<'ingresos' | 'egresos'>('ingresos');
