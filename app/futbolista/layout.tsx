@@ -60,8 +60,8 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
               perfilActivo = soloHijos.find(h => h.id === guardado) || soloHijos[0] || miPerfil;
             }
           } else {
-            // LÓGICA CLAVE: Si soy Director, fuerzo la vista del primer hijo por defecto
-            if (miPerfil?.rol === "Director" && soloHijos.length > 0) {
+            // LÓGICA CLAVE: Si soy Director o Entrenador, fuerzo la vista del primer hijo por defecto
+            if ((miPerfil?.rol === "Director" || miPerfil?.rol === "Entrenador") && soloHijos.length > 0) {
               perfilActivo = soloHijos[0];
               localStorage.setItem('hijo_seleccionado_id', soloHijos[0].id);
             } else {
