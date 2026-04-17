@@ -186,6 +186,7 @@ export default function DashboardFutbolista() {
             };
             const insigniasToDisplay = (perfilCompleto.insignias || []).map((i: any) => ({
               ...i.insignias,
+              slug: i.insignia_id,
               color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
             }));
             setInsignias(insigniasToDisplay);
@@ -366,13 +367,14 @@ export default function DashboardFutbolista() {
                   <div className="flex flex-wrap gap-8 justify-center">
                     {insignias.map((insig: any, idx) => {
                       // Mapeo dinámico de iconos Lucide para un look PRO
-                      const IconComponent = {
+                      const icons: Record<string, any> = {
                         goleador: Target,
                         muro: Shield,
                         cerebro: Zap,
                         fairplay: Heart,
                         rayo: Zap
-                      }[insig.id] || Award;
+                      };
+                      const IconComponent = icons[insig.slug || insig.id] || Award;
 
                       return (
                         <div key={idx} className="flex flex-col items-center gap-4 group animate-in zoom-in duration-500 delay-75">
