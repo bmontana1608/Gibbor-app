@@ -236,7 +236,7 @@ export default function FichaDelJugador() {
                               if (e.target.checked) {
                                 newGroups = [...currentGroups, cat.nombre];
                               } else {
-                                newGroups = currentGroups.filter(g => g !== cat.nombre);
+                                newGroups = currentGroups.filter((g: string) => g !== cat.nombre);
                               }
                               setFormData({ ...formData, grupos: newGroups.join(', ') });
                             }}
