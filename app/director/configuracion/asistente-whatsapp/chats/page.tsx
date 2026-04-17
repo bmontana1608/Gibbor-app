@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Search, MessageSquare, 
-  Send, User, Clock, CheckCheck, Bot, FileText, Wifi
+  Send, User, Clock, CheckCheck, Bot, FileText, Wifi, ChevronLeft
 } from 'lucide-react';
 
 export default function HistorialChats() {
@@ -17,6 +17,7 @@ export default function HistorialChats() {
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [enVivo, setEnVivo] = useState(false);
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const mensajesFinalRef = useRef<HTMLDivElement>(null);
 
   // Función para construir la lista de conversaciones agrupadas por número
@@ -24,7 +25,6 @@ export default function HistorialChats() {
     const uniqueNums = Array.from(new Set(data.map(m => m.destinatario_numero)));
     return uniqueNums.map(num => {
       const lastMsg = data.find(m => m.destinatario_numero === num);
-      // Buscar nombre en perfiles por número de teléfono
       const perfil = Object.values(profiles).find((p: any) => {
         const tel = String(p.telefono || '').replace(/\D/g, '');
         const numLimpio = String(num || '').replace(/\D/g, '');
@@ -45,8 +45,6 @@ export default function HistorialChats() {
   useEffect(() => {
     async function init() {
       setCargando(true);
-
-      // Cargar perfiles para cruzar números con nombres
       const { data: perfilesData } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, telefono, grupos')
@@ -56,8 +54,7 @@ export default function HistorialChats() {
       perfilesData?.forEach(p => { profilesMap[p.id] = p; });
       setPerfiles(profilesMap);
 
-      // Cargar todos los mensajes históricos
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('mensajes_wa')
         .select('*')
         .order('created_at', { ascending: false });
@@ -66,21 +63,20 @@ export default function HistorialChats() {
         setMensajes(data);
         const convs = buildConversaciones(data, profilesMap);
         setConversaciones(convs);
-        if (convs.length > 0) setSelectedChat(convs[0].numero);
+        // En desktop seleccionamos el primero, en móvil no para mostrar la lista
+        if (convs.length > 0 && window.innerWidth >= 768) {
+          setSelectedChat(convs[0].numero);
+        }
       }
-
       setCargando(false);
     }
     init();
   }, []);
 
-  // Suscripción en tiempo real
   useEffect(() => {
     const channel = supabase
       .channel('mensajes_wa_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes_wa' },
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_wa' },
         (payload) => {
           const nuevoMensaje = payload.new;
           setMensajes(prev => {
@@ -91,16 +87,18 @@ export default function HistorialChats() {
           setEnVivo(true);
           setTimeout(() => setEnVivo(false), 3000);
         }
-      )
-      .subscribe();
-
+      ).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [perfiles]);
 
-  // Scroll al último mensaje al abrir un chat
   useEffect(() => {
     mensajesFinalRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [selectedChat, mensajes]);
+
+  const selectChat = (num: string) => {
+    setSelectedChat(num);
+    setShowMobileChat(true);
+  };
 
   const chatActual = mensajes
     .filter(m => m.destinatario_numero === selectedChat)
@@ -118,10 +116,10 @@ export default function HistorialChats() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f0f2f5] overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#f0f2f5] overflow-hidden font-sans relative">
       
       {/* SIDEBAR IZQUIERDO: Conversaciones */}
-      <div className="w-[380px] bg-white border-r border-[#d1d7db] flex flex-col shrink-0">
+      <div className={`w-full md:w-[380px] bg-white border-r border-[#d1d7db] flex flex-col shrink-0 transition-all ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
         {/* Cabecera */}
         <div className="bg-[#f0f2f5] py-3 px-4 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
@@ -158,8 +156,8 @@ export default function HistorialChats() {
           </div>
         </div>
 
-        {/* Stats rápidas */}
-        <div className="px-4 py-2 border-b border-slate-50 flex gap-4">
+        {/* Stats rápidas (Ocultas en móvil muy pequeño) */}
+        <div className="hidden sm:flex px-4 py-2 border-b border-slate-50 gap-4">
           <div className="text-center">
             <p className="text-xs font-black text-slate-800">{conversaciones.length}</p>
             <p className="text-[9px] text-slate-400 uppercase tracking-wider">Contactos</p>
@@ -168,14 +166,10 @@ export default function HistorialChats() {
             <p className="text-xs font-black text-slate-800">{mensajes.length}</p>
             <p className="text-[9px] text-slate-400 uppercase tracking-wider">Mensajes</p>
           </div>
-          <div className="text-center">
-            <p className="text-xs font-black text-emerald-600">{mensajes.filter(m => m.tipo_mensaje === 'Recibo').length}</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-wider">Recibos</p>
-          </div>
         </div>
 
         {/* Lista de Chats */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {cargando ? (
             [1,2,3,4,5].map(i => (
               <div key={i} className="p-4 border-b border-slate-50 flex gap-3 animate-pulse">
@@ -191,18 +185,13 @@ export default function HistorialChats() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                 <MessageSquare className="w-10 h-10 text-slate-200" />
               </div>
-              <p className="text-sm font-bold text-slate-400">
-                {busqueda ? 'No se encontró el contacto' : 'No hay mensajes enviados'}
-              </p>
-              <p className="text-xs text-slate-300 mt-1">
-                {busqueda ? 'Intenta con otro nombre' : 'Las notificaciones que envíes aparecerán aquí.'}
-              </p>
+              <p className="text-sm font-bold text-slate-400">Sin mensajes</p>
             </div>
           ) : (
             convsFiltradas.map(conv => (
               <div 
                 key={conv.numero} 
-                onClick={() => setSelectedChat(conv.numero)}
+                onClick={() => selectChat(conv.numero)}
                 className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-[#f5f6f6] transition-colors border-b border-[#f0f2f5] ${selectedChat === conv.numero ? 'bg-[#f0f2f5]' : ''}`}
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shrink-0 shadow-sm">
@@ -229,7 +218,7 @@ export default function HistorialChats() {
       </div>
 
       {/* ÁREA DE CHAT DERECHA */}
-      <div className="flex-1 flex flex-col relative">
+      <div className={`flex-1 flex flex-col relative transition-all ${!showMobileChat ? 'hidden md:flex' : 'flex'}`}>
         {/* Fondo sutil estilo WA */}
         <div className="absolute inset-0 bg-[#efeae2]" />
 
@@ -237,6 +226,13 @@ export default function HistorialChats() {
           <>
             {/* Cabecera Chat */}
             <div className="bg-[#f0f2f5] py-3 px-4 flex items-center gap-3 border-b border-[#d1d7db] z-10 relative shrink-0">
+              <button 
+                onClick={() => setShowMobileChat(false)}
+                className="md:hidden p-2 -ml-2 hover:bg-slate-200 rounded-full transition-colors"
+                title="Volver a lista"
+              >
+                <ChevronLeft className="w-6 h-6 text-[#54656f]" />
+              </button>
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-white font-black">
                   {chatInfo.nombre ? chatInfo.nombre.charAt(0).toUpperCase() : '#'}
@@ -244,34 +240,30 @@ export default function HistorialChats() {
               </div>
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-[#111b21] leading-none">{chatInfo.nombre}</h4>
-                <p className="text-[10px] text-[#667781] mt-0.5">
+                <p className="text-[10px] text-[#667781] mt-0.5 truncate">
                   {chatInfo.grupo || `+${chatInfo.numero}`} · {chatActual.length} mensaje{chatActual.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+              <div className="hidden sm:flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Historial Activo</span>
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Historial</span>
               </div>
             </div>
 
             {/* Mensajes */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 z-10 relative flex flex-col">
+            <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-2 z-10 relative flex flex-col custom-scrollbar">
               {chatActual.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <p className="text-sm text-slate-400 italic">No hay mensajes en esta conversación.</p>
+                  <p className="text-sm text-slate-400 italic font-medium">Buscando mensajes...</p>
                 </div>
               ) : (
                 <>
                   {chatActual.map((msg, idx) => (
-                    <div 
-                      key={msg.id || idx} 
-                      className="flex justify-end"
-                    >
-                      <div className="max-w-[75%] bg-[#dcf8c6] rounded-lg rounded-tr-none shadow-sm p-2 px-3 relative">
-                        {/* Badge tipo de mensaje */}
+                    <div key={msg.id || idx} className="flex justify-end">
+                      <div className="max-w-[85%] md:max-w-[75%] bg-[#dcf8c6] rounded-lg rounded-tr-none shadow-sm p-2 px-3 relative">
                         {msg.tipo_mensaje && (
                           <div className="flex items-center gap-1 mb-1.5">
-                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1 ${
                               msg.tipo_mensaje === 'Recibo' 
                                 ? 'bg-blue-100 text-blue-600' 
                                 : msg.tipo_mensaje === 'Cobranza'
@@ -302,8 +294,8 @@ export default function HistorialChats() {
 
             {/* Footer */}
             <div className="bg-[#f0f2f5] py-3 px-4 flex items-center gap-3 z-10 relative border-t border-[#d1d7db]">
-              <div className="flex-1 bg-white rounded-full px-4 py-2 text-xs text-slate-400 border border-slate-200 italic shadow-sm">
-                Modo historial. Para enviar mensajes usa el Dashboard o Cobranza.
+              <div className="flex-1 bg-white rounded-full px-4 py-2 text-[10px] md:text-xs text-slate-400 border border-slate-200 italic shadow-sm">
+                Solo lectura. Para enviar mensajes usa el Dashboard.
               </div>
               <div className="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center shadow-lg opacity-40">
                 <Send className="w-5 h-5 text-white" />
@@ -312,20 +304,13 @@ export default function HistorialChats() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 z-10 relative">
-            <div className="w-64 h-64 bg-white/30 rounded-full flex items-center justify-center mb-10 shadow-inner border border-white/50">
-              <Bot className="w-28 h-28 text-[#54656f] opacity-30" />
+            <div className="w-48 h-48 md:w-64 md:h-64 bg-white/30 rounded-full flex items-center justify-center mb-10 shadow-inner border border-white/50 animate-in fade-in duration-700">
+              <Bot className="w-20 h-20 md:w-28 md:h-28 text-[#54656f] opacity-30" />
             </div>
-            <h2 className="text-2xl font-light text-[#54656f] mb-3">Gibbor WA Historial</h2>
-            <p className="max-w-sm text-sm text-[#667781] leading-relaxed">
-              Aquí puedes auditar todos los mensajes enviados.<br/>
-              Selecciona una conversación para ver el detalle.
+            <h2 className="text-xl md:text-2xl font-light text-[#54656f] mb-3">Historial de Mensajes</h2>
+            <p className="max-w-sm text-xs md:text-sm text-[#667781] leading-relaxed">
+              Selecciona un contacto para auditar las notificaciones enviadas automáticamente por el sistema.
             </p>
-            <div className="mt-10 flex items-center gap-2 bg-white/60 px-4 py-2 rounded-full shadow-sm border border-white">
-              <Clock className="w-4 h-4 text-emerald-500" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#667781]">
-                Sincronización en tiempo real activa
-              </span>
-            </div>
           </div>
         )}
       </div>
