@@ -210,16 +210,16 @@ export default function DashboardFutbolista() {
   const handleExportCard = async () => {
     const node = document.getElementById('pro-card-capture');
     if (!node) return;
-    const toastId = toast.loading("Preparando tu Ficha Élite...");
+    const toastId = toast.loading("Forjando tu Carta PRO...");
     try {
       const dataUrl = await toPng(node, { quality: 1, pixelRatio: 2, backgroundColor: '#09090b' });
       const link = document.createElement('a');
       link.download = `Gibbor_PRO_${perfil?.nombres?.split(' ')[0]}.png`;
       link.href = dataUrl;
       link.click();
-      toast.success("¡Ficha lista para compartir!", { id: toastId });
+      toast.success("¡Carta descargada con éxito! Muéstrala a tus amigos", { id: toastId });
     } catch (err) {
-      toast.error("Error al generar imagen", { id: toastId });
+      toast.error("Error al forjar tu carta", { id: toastId });
     }
   };
 
@@ -304,7 +304,7 @@ export default function DashboardFutbolista() {
                         clubName={clubConfig.nombre_club} 
                         season={clubConfig.temporada_actual} 
                       />
-                      <button onClick={handleExportCard} className="bg-white text-slate-900 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Share2 className="w-4 h-4" /> Exportar Ficha</button>
+                      <button onClick={handleExportCard} className="bg-white text-slate-900 px-6 py-3 rounded-full text-[11px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Download className="w-4 h-4" /> Descargar Carta</button>
                     </div>
                     <div className="flex flex-col items-center p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center uppercase">ADN Técnico Gibbor</h4>
