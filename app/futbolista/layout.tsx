@@ -32,7 +32,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       const { data: misPerfiles, error: errFam } = await supabase
         .from("perfiles")
         .select("*")
-        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id},email_contacto.eq.${session.user.email}`);
+        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id},email_contacto.eq."${session.user.email}"`);
 
       if (errFam) console.error("❌ Error familia:", errFam);
 
