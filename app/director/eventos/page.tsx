@@ -51,7 +51,7 @@ export default function GestionEventos() {
       if (res.ok) {
         toast.success("¡Evento publicado con éxito!", { id: toastId });
         setNuevoEvento({ titulo: '', tipo: 'Entrenamiento', fecha: '', hora: '', lugar: '', categoria_id: '' });
-        fetchEventos();
+        fetchDatos();
       } else {
         toast.error("Error al guardar el evento", { id: toastId });
       }
@@ -67,7 +67,7 @@ export default function GestionEventos() {
     if (res.ok) {
       toast.success("Evento eliminado");
       setShowConfirmModal(null);
-      fetchEventos();
+      fetchDatos();
     }
   };
 
