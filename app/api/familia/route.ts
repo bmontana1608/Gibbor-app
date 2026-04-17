@@ -75,8 +75,30 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Eliminar duplicados por ID (mantenemos al director para que el Layout sepa quién es)
+  // Eliminar duplicados por ID
   const unicos = Array.from(new Map(misPerfiles.map(item => [item.id, item])).values());
 
-  return NextResponse.json(unicos);
+  // --- ORDENAMIENTO INTELIGENTE POR PRIORIDAD ---
+  // Prioridad 1: Coincidencia de email o cédula (familia biológica)
+  // Prioridad 2: En hijos_config personal
+  // Prioridad 3: Lo demás
+  const personalesIds = miPerfil?.hijos_config?.split(',').map((id:string) => id.trim()) || [];
+
+  const ordenados = unicos.sort((a, b) => {
+    // 1. Prioridad biológica
+    const aBio = a.email_contacto === email || a.acudiente_identificacion === miCedula;
+    const bBio = b.email_contacto === email || b.acudiente_identificacion === miCedula;
+    if (aBio && !bBio) return -1;
+    if (!aBio && bBio) return 1;
+
+    // 2. Prioridad configuración personal
+    const aPerso = personalesIds.includes(a.id);
+    const bPerso = personalesIds.includes(b.id);
+    if (aPerso && !bPerso) return -1;
+    if (!aPerso && bPerso) return 1;
+
+    return 0;
+  });
+
+  return NextResponse.json(ordenados);
 }
