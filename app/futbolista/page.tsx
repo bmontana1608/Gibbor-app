@@ -140,39 +140,30 @@ export default function DashboardFutbolista() {
     const fetchDatos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Lógica de Selección de Perfil (Modo Familia o Director)
+        // Lógica de Selección de Perfil Única
         let currentPerfilId = session.user.id;
         const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
         
         const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
 
-        if (myPerfil?.rol === "Director") {
-          const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").single();
-          if (config?.hijos_config) {
-            const ids = config.hijos_config.split(",").map((id: string) => id.trim());
-            const { data: hijosData } = await supabase.from("perfiles").select("*").in("id", ids);
-            if (hijosData && hijosData.length > 0) {
-              setHijos(hijosData);
-              const targetId = savedHijoId || selectedHijoId || hijosData[0].id;
-              const hijoActivo = hijosData.find(h => h.id === targetId) || hijosData[0];
-              setPerfil(hijoActivo);
-              currentPerfilId = hijoActivo.id;
-              if (!selectedHijoId) setSelectedHijoId(hijoActivo.id);
-            }
-          }
-        } else {
-          // Si hay un hijo seleccionado en el Modo Familia, usamos ese. Si no, el perfil propio.
-          if (savedHijoId && savedHijoId !== session.user.id) {
-            const { data: targetPerfil } = await supabase.from("perfiles").select("*").eq("id", savedHijoId).single();
-            if (targetPerfil) {
+        // Si hay un hijo seleccionado en el Modo Familia, lo cargamos vía API Segura
+        if (savedHijoId && savedHijoId !== session.user.id) {
+          try {
+            const res = await fetch(`/api/perfil?id=${savedHijoId}`);
+            const targetPerfil = await res.json();
+            if (targetPerfil && !targetPerfil.error) {
               setPerfil(targetPerfil);
               currentPerfilId = targetPerfil.id;
             } else {
               setPerfil(myPerfil);
             }
-          } else {
+          } catch (err) {
             setPerfil(myPerfil);
           }
+        } else {
+          // Si no hay selección, mostramos el perfil propio (sea director o futbolista)
+          setPerfil(myPerfil);
+          currentPerfilId = session.user.id;
         }
 
         if (currentPerfilId) {

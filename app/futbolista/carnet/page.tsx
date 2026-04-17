@@ -27,10 +27,19 @@ export default function CarnetFutbolista() {
         const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
         let targetId = savedHijoId || session.user.id;
 
-        const { data: currentPerfil } = await supabase.from("perfiles").select("*").eq("id", targetId).single();
-        
-        if (currentPerfil) {
-          setPerfil(currentPerfil);
+        try {
+          const res = await fetch(`/api/perfil?id=${targetId}`);
+          const currentPerfil = await res.json();
+          
+          if (currentPerfil && !currentPerfil.error) {
+            setPerfil(currentPerfil);
+          } else {
+            // Fallback al perfil de sesión si falla el seleccionado
+            const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
+            setPerfil(myPerfil);
+          }
+        } catch (err) {
+          console.error("Error cargando perfil carnet:", err);
         }
       }
     };
