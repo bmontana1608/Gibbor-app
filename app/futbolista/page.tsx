@@ -8,7 +8,7 @@ import {
   TrendingUp, ArrowUpRight, CheckCircle2, 
   AlertCircle, Download, Users, Share2,
   CalendarCheck, Dumbbell, DollarSign,
-  FileText
+  FileText, Target, Shield, Award, Heart, ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from 'html-to-image';
