@@ -26,11 +26,11 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Buscamos TODOS los perfiles vinculados a este usuario (por ID o por id_acudiente)
+      // 1. Buscamos TODOS los perfiles que compartan el mismo correo de la sesión
       const { data: misPerfiles } = await supabase
         .from("perfiles")
         .select("*")
-        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id}`);
+        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id},email_contacto.eq.${session.user.email}`);
 
       if (misPerfiles && misPerfiles.length > 0) {
         setHijos(misPerfiles);
