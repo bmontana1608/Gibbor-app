@@ -364,15 +364,44 @@ export default function DashboardFutbolista() {
                <h2 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center gap-3"><div className="w-2 h-6 bg-orange-500 rounded-full"></div> Vitrina</h2>
                {insignias.length > 0 ? (
                   <div className="flex flex-wrap gap-8 justify-center">
-                    {insignias.map((insig: any, idx) => (
-                      <div key={idx} className="flex flex-col items-center gap-3 group animate-in zoom-in duration-300">
-                        <div className="w-20 h-20 relative flex items-center justify-center">
-                          <div className={`absolute inset-0 bg-gradient-to-br ${insig.color || 'from-orange-400 to-orange-600'} rounded-[1.5rem] shadow-xl group-hover:scale-110 transition-transform duration-300`}></div>
-                          <span className="text-4xl relative z-10 drop-shadow-md group-hover:scale-110 transition-transform duration-300">{insig.icono}</span>
+                    {insignias.map((insig: any, idx) => {
+                      // Mapeo dinámico de iconos Lucide para un look PRO
+                      const IconComponent = {
+                        goleador: Target,
+                        muro: Shield,
+                        cerebro: Zap,
+                        fairplay: Heart,
+                        rayo: Zap
+                      }[insig.id] || Award;
+
+                      return (
+                        <div key={idx} className="flex flex-col items-center gap-4 group animate-in zoom-in duration-500 delay-75">
+                          <div className="relative w-24 h-24 flex items-center justify-center">
+                            {/* Brillo de Fondo */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${insig.color || 'from-orange-400 to-red-600'} opacity-10 blur-2xl rounded-full group-hover:opacity-30 transition-opacity duration-500`}></div>
+                            
+                            {/* Medalla Premium */}
+                            <div className={`relative z-10 w-20 h-20 rounded-[2rem] bg-gradient-to-br ${insig.color || 'from-orange-400 to-red-600'} flex items-center justify-center shadow-xl border border-white/20 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-3`}>
+                               <IconComponent className="w-10 h-10 text-white drop-shadow-lg" />
+                               <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-[2rem]"></div>
+                            </div>
+
+                            {/* Etiqueta de Rango */}
+                            <div className="absolute -bottom-1 z-20 bg-slate-900 border border-slate-700 px-3 py-0.5 rounded-full shadow-lg">
+                               <p className="text-[7px] font-black text-white uppercase tracking-[0.2em]">TITULAR</p>
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-slate-800 font-black text-[11px] uppercase tracking-tighter leading-none mb-1 group-hover:text-orange-600 transition-colors uppercase">{insig.nombre}</p>
+                            <div className="flex items-center justify-center gap-1 opacity-20">
+                               <div className="w-4 h-[1px] bg-slate-400"></div>
+                               <Star className="w-2 h-2 text-slate-500" />
+                               <div className="w-4 h-[1px] bg-slate-400"></div>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-[10px] font-black text-slate-800 uppercase tracking-tighter text-center max-w-[80px] leading-tight group-hover:text-orange-600 transition-colors">{insig.nombre}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                ) : (
                   <div className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs border-2 border-dashed border-slate-100 rounded-3xl">Gana insignias en tus entrenamientos</div>
