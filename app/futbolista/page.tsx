@@ -160,91 +160,74 @@ export default function DashboardFutbolista() {
   useEffect(() => {
     const fetchDatos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // 0. VALIDACIÓN DE FAMILIA AUTORIZADA (EVITA DESFASE CON LAYOUT)
-        let currentPerfilId = session.user.id;
+      if (!session) return setCargando(false);
+
+      try {
+        // 1. VALIDACIÓN DE FAMILIA (Necesaria para determinar el ID)
         const cleanEmail = session.user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
+        const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
+        const misPerfiles = await resFam.json();
         
-        try {
-          const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
-          const misPerfiles = await resFam.json();
+        let currentPerfilId = session.user.id;
+
+        if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
+          setHijos(misPerfiles.filter((p:any) => p.id !== session.user.id || (p.rol !== "Director" && p.rol !== "Entrenador")));
           
-          if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
-            setHijos(misPerfiles.filter((p:any) => p.id !== session.user.id || (p.rol !== "Director" && p.rol !== "Entrenador")));
-            
-            const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
-            const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
-            
-            if (savedHijoId && esValido && savedHijoId !== session.user.id) {
-              currentPerfilId = savedHijoId;
-            } else {
-              const miPerfil = misPerfiles.find((p:any) => p.id === session.user.id);
-              if ((miPerfil?.rol === 'Director' || miPerfil?.rol === 'Entrenador') && misPerfiles.length > 1) {
-                const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
-                if (primerHijo) currentPerfilId = primerHijo.id;
-              }
+          const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
+          const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
+          
+          if (savedHijoId && esValido && savedHijoId !== session.user.id) {
+            currentPerfilId = savedHijoId;
+          } else {
+            const miPerfil = misPerfiles.find((p:any) => p.id === session.user.id);
+            if ((miPerfil?.rol === 'Director' || miPerfil?.rol === 'Entrenador') && misPerfiles.length > 1) {
+              const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
+              if (primerHijo) currentPerfilId = primerHijo.id;
             }
           }
-        } catch (err) {
-          console.error("Error validando familia en dashboard:", err);
         }
-
+        
         setSelectedHijoId(currentPerfilId);
 
-        // 1. CARGA DE PERFIL COMPLETO (SÍMBOLO + INSIGNIAS) VÍA API SEGURA
-        try {
-          const res = await fetch(`/api/perfil?id=${currentPerfilId}`);
-          const perfilCompleto = await res.json();
-          
-          if (perfilCompleto && !perfilCompleto.error) {
-            setPerfil(perfilCompleto);
-            
-            // 2. PROCESAR INSIGNIAS FRESCAS
-            const colMap: any = {
-              goleador: 'from-orange-400 to-red-500',
-              muro: 'from-blue-500 to-indigo-700',
-              cerebro: 'from-purple-500 to-pink-600',
-              fairplay: 'from-green-400 to-emerald-600',
-              rayo: 'from-yellow-400 to-orange-500'
-            };
-            const insigniasToDisplay = (perfilCompleto.insignias || []).map((i: any) => ({
-              ...i.insignias,
-              slug: i.insignia_id,
-              color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
-            }));
-            setInsignias(insigniasToDisplay);
-          }
-        } catch (err) {
-          console.error("Error cargando perfil completo:", err);
+        // 2. CARGA EN PARALELO DE TODO LO DEMÁS
+        const [resPerfil, resEval, resPagos, resAsis, resCfg] = await Promise.all([
+          fetch(`/api/perfil?id=${currentPerfilId}`).then(r => r.json()),
+          fetch(`/api/evaluaciones?jugador_id=${currentPerfilId}`).then(r => r.json()),
+          supabase.from("pagos_ingresos").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(6),
+          supabase.from("asistencias").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }),
+          supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single()
+        ]);
+
+        // Procesar Perfil e Insignias
+        if (resPerfil && !resPerfil.error) {
+          setPerfil(resPerfil);
+          const colMap: any = { goleador: 'from-orange-400 to-red-500', muro: 'from-blue-500 to-indigo-700', cerebro: 'from-purple-500 to-pink-600', fairplay: 'from-green-400 to-emerald-600', rayo: 'from-yellow-400 to-orange-500' };
+          setInsignias((resPerfil.insignias || []).map((i: any) => ({ ...i.insignias, slug: i.insignia_id, color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800' })));
         }
 
-        if (currentPerfilId) {
-          const { data: pagosBD } = await supabase.from("pagos_ingresos").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(6);
-          if (pagosBD) setPagos(pagosBD);
-
-          const { data: asisData } = await supabase.from("asistencias").select("*").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false });
-          if (asisData && asisData.length > 0) {
-             const presentes = asisData.filter(a => a.estado === 'Presente').length;
-             setAsistenciaPct(Math.round((presentes / asisData.length) * 100));
-             setAsistenciasLogs(asisData);
-          }
-
-          // Cargar Evaluaciones Técnicas (Carta PRO) vía API Segura
-          try {
-            const resEval = await fetch(`/api/evaluaciones?jugador_id=${currentPerfilId}`);
-            const evalData = await resEval.json();
-            if (evalData && evalData.stats) {
-              setRadarData(Object.entries(evalData.stats).map(([label, value]) => ({ label, value: Number(value) })));
-            }
-          } catch (err) {
-            console.error("Error cargando carta PRO:", err);
-          }
-
-          const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
-          if (cfg) setClubConfig(cfg);
+        // Procesar Evaluaciones
+        if (resEval?.stats) {
+          setRadarData(Object.entries(resEval.stats).map(([label, value]) => ({ label, value: Number(value) })));
         }
+
+        // Procesar Pagos
+        if (resPagos.data) setPagos(resPagos.data);
+
+        // Procesar Asistencias
+        if (resAsis.data && resAsis.data.length > 0) {
+          const presentes = resAsis.data.filter(a => a.estado === 'Presente').length;
+          setAsistenciaPct(Math.round((presentes / resAsis.data.length) * 100));
+          setAsistenciasLogs(resAsis.data);
+        }
+
+        // Procesar Config
+        if (resCfg.data) setClubConfig(resCfg.data);
+
+      } catch (err) {
+        console.error("Error en carga masiva paralela:", err);
+      } finally {
+        setCargando(false);
       }
-      setCargando(false);
     };
     fetchDatos();
   }, [selectedHijoId]);
@@ -265,7 +248,13 @@ export default function DashboardFutbolista() {
     }
   };
 
-  if (cargando) return <div className="animate-pulse p-8 space-y-8"><div className="h-48 bg-slate-200 rounded-3xl"></div></div>;
+  if (cargando) return (
+    <div className="space-y-10 max-w-6xl mx-auto animate-pulse">
+      <div className="h-64 bg-slate-200 rounded-[2.5rem]"></div>
+      <div className="h-16 bg-slate-100 rounded-2xl w-3/4 mx-auto"></div>
+      <div className="h-[500px] bg-slate-200 rounded-[3rem]"></div>
+    </div>
+  );
 
   if (!perfil) return <div className="p-8 text-center text-slate-500">Perfil no encontrado</div>;
 
