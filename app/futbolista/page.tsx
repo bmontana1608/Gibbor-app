@@ -209,8 +209,19 @@ export default function DashboardFutbolista() {
             console.error("Error cargando carta PRO:", err);
           }
 
-          const { data: insigData } = await supabase.from("insignias_otorgadas").select("insignia_id, insignias(*)").eq("jugador_id", currentPerfilId);
-          if (insigData) setInsignias(insigData.map(i => i.insignias));
+          // 4. Procesar insignias con colores automáticos para la vitrina
+          const colMap: any = {
+            goleador: 'from-orange-400 to-red-500',
+            muro: 'from-blue-500 to-indigo-700',
+            cerebro: 'from-purple-500 to-pink-600',
+            fairplay: 'from-green-400 to-emerald-600',
+            rayo: 'from-yellow-400 to-orange-500'
+          };
+          const insigniasToDisplay = (perfil?.insignias || []).map((i: any) => ({
+            ...i.insignias,
+            color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800'
+          }));
+          setInsignias(insigniasToDisplay);
 
           const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
           if (cfg) setClubConfig(cfg);

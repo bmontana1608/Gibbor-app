@@ -25,5 +25,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(perfil);
+  // 2. Traer insignias con join a la tabla maestra
+  const { data: insignias } = await supabaseAdmin
+    .from("insignias_otorgadas")
+    .select("insignia_id, fecha, insignias(*)")
+    .eq("jugador_id", id);
+
+  return NextResponse.json({
+    ...perfil,
+    insignias: insignias || []
+  });
 }
