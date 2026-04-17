@@ -155,6 +155,7 @@ export default function DashboardFutbolista() {
   const [activeTab, setActiveTab] = useState<'perfil' | 'disciplina' | 'pagos'>('perfil');
   const [asistenciasLogs, setAsistenciasLogs] = useState<any[]>([]);
   const [insignias, setInsignias] = useState<any[]>([]);
+  const [eventos, setEventos] = useState<any[]>([]);
   const [clubConfig, setClubConfig] = useState({ nombre_club: 'EFD GIBBOR', temporada_actual: 'TEMPORADA 2024' });
 
   useEffect(() => {
@@ -207,6 +208,9 @@ export default function DashboardFutbolista() {
           // Procesar Asistencias
           setAsistenciaPct(resDash.asistenciaPct || 0);
           setAsistenciasLogs(resDash.asistencias || []);
+
+          // Procesar Eventos
+          setEventos(resDash.eventos || []);
 
           // Procesar Config
           if (resDash.config) setClubConfig(resDash.config);
@@ -277,6 +281,50 @@ export default function DashboardFutbolista() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* AGENDA GIBBOR */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-3">
+          <Calendar className="w-5 h-5 text-orange-500" /> Agenda Próximos Eventos
+        </h2>
+        {eventos.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {eventos.map((evento) => (
+              <div key={evento.id} className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col gap-3 relative overflow-hidden group">
+                <div className="flex justify-between items-start">
+                  <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                    evento.tipo === 'Partido' ? 'bg-orange-500 text-white' : 
+                    evento.tipo === 'Entrenamiento' ? 'bg-blue-500 text-white' : 
+                    'bg-purple-500 text-white'
+                  }`}>
+                    {evento.tipo}
+                  </span>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-slate-800 leading-none">{new Date(evento.fecha + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long' })}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">{new Date(evento.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</p>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-black text-slate-900 leading-tight uppercase">{evento.titulo}</h4>
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-2">
+                    <Zap className="w-3 h-3 text-orange-500" /> {evento.hora.substring(0, 5)} {Number(evento.hora.substring(0,2)) >= 12 ? 'PM' : 'AM'}
+                  </div>
+                  {evento.lugar && (
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 mt-1">
+                      <Target className="w-3 h-3" /> {evento.lugar}
+                    </div>
+                  )}
+                </div>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-110"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-dashed border-slate-200 text-center">
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No hay eventos programados en tu agenda</p>
+          </div>
+        )}
       </div>
 
       {/* NAVEGACIÓN TIPO APP (TABS) */}

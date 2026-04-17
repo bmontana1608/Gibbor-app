@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { 
   Home, User, CreditCard, Award, 
   Settings, LogOut, Menu, X, ShieldCheck, 
-  Zap, Trophy, Calendar
+  Zap, Trophy, Calendar, Bell
 } from "lucide-react";
 
 export default function FutbolistaLayout({ children }: { children: React.ReactNode }) {
@@ -258,7 +258,20 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
 
       {/* MAIN CONTENT */}
       <main className="flex-1 overflow-y-auto bg-[#F8FAFC] md:ml-72">
-        <div className="p-4 md:p-10 pb-24">
+        {/* TOP BAR / NOTIFICATIONS */}
+        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 py-4 flex items-center justify-between z-40">
+           <div className="flex flex-col">
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-tighter italic">Centro de Control</h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{usuario?.nombres ? `Jugador: ${usuario.nombres}` : 'Cargando...'}</p>
+           </div>
+           <div className="flex items-center gap-3">
+              <button className="relative p-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-500 hover:text-orange-500 hover:border-orange-100 transition-all">
+                 <Bell className="w-5 h-5" />
+                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
+              </button>
+           </div>
+        </div>
+        <div className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">
           {children}
         </div>
       </main>

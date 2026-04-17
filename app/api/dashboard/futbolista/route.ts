@@ -36,7 +36,14 @@ export async function GET(request: Request) {
       supabaseAdmin.from("asistencias").select("*").eq("jugador_id", id).order("fecha", { ascending: false }),
       
       // 5. Configuración Club
-      supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').single()
+      supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').single(),
+
+      // 6. Próximos Eventos (Agenda)
+      supabaseAdmin.from('eventos')
+        .select('*')
+        .gte('fecha', new Date().toISOString().split('T')[0])
+        .order('fecha', { ascending: true })
+        .limit(3)
     ]);
 
     // Procesar Datos de Evaluación (Carta PRO)
@@ -67,7 +74,8 @@ export async function GET(request: Request) {
       pagos: pagosRes.data || [],
       asistenciaPct,
       asistencias: asisRes.data || [],
-      config: configRes.data
+      config: configRes.data,
+      eventos: resDash[5]?.data || []
     });
 
   } catch (err: any) {
