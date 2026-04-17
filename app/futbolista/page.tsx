@@ -177,9 +177,17 @@ export default function DashboardFutbolista() {
              setAsistenciasLogs(asisData);
           }
 
-          const { data: evals } = await supabase.from("evaluaciones_tecnicas").select("stats").eq("jugador_id", currentPerfilId).order("fecha", { ascending: false }).limit(1);
-          if (evals && evals.length > 0 && evals[0].stats) {
-             setRadarData(Object.entries(evals[0].stats).map(([label, value]) => ({ label, value: Number(value) })));
+          // Cargar Evaluaciones Técnicas (Carta PRO) vía API Segura
+          try {
+            const resEval = await fetch(`/api/evaluaciones?jugador_id=${currentPerfilId}`);
+            const evalData = await resEval.json();
+            if (evalData && evalData.stats) {
+              setRadarData(Object.entries(evalData.stats).map(([label, value]) => ({ label, value: Number(value) })));
+            } else {
+              setRadarData([]); // Limpiar si no hay datos
+            }
+          } catch (err) {
+            console.error("Error cargando carta PRO:", err);
           }
 
           const { data: insigData } = await supabase.from("insignias_otorgadas").select("insignia_id, insignias(*)").eq("jugador_id", currentPerfilId);
