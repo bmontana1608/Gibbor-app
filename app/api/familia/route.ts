@@ -26,26 +26,22 @@ export async function GET(request: Request) {
   const miCedula = miPerfil?.documento_identidad || miPerfil?.acudiente_identificacion;
   const esDirector = miPerfil?.rol === 'Director';
   
-  // Paso 2: Obtener IDs manuales de hijos (pueden venir del perfil del usuario o del global si es Director)
+  // Paso 2: Obtener IDs manuales de hijos según el rol (EXCLUSIVO)
   let manualIds: string[] = [];
   
-  // 2.a Hijos configurados específicamente para este perfil (Entrenador o Padre)
-  if (miPerfil?.hijos_config) {
-    const ids = miPerfil.hijos_config.split(',').map((id: string) => id.trim());
-    manualIds = [...manualIds, ...ids];
-  }
-
-  // 2.b Si es Director, también sumamos los hijos de la configuración global
   if (esDirector) {
+    // 2.a Si es Director, usamos ÚNICAMENTE la configuración global (Ajustes del Club)
     const { data: configGlobal } = await supabaseAdmin
       .from("configuracion_wa")
       .select("hijos_config")
       .single();
     
     if (configGlobal?.hijos_config) {
-      const idsGlobal = configGlobal.hijos_config.split(',').map((id: string) => id.trim());
-      manualIds = [...manualIds, ...idsGlobal];
+      manualIds = configGlobal.hijos_config.split(',').map((id: string) => id.trim());
     }
+  } else if (miPerfil?.hijos_config) {
+    // 2.b Para Entrenadores y otros, usamos su hijos_config personal
+    manualIds = miPerfil.hijos_config.split(',').map((id: string) => id.trim());
   }
 
   // Paso 3: Construimos la cláusula OR
