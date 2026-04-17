@@ -75,7 +75,7 @@ export async function GET(request: Request) {
       asistenciaPct,
       asistencias: asisRes.data || [],
       config: configRes.data,
-      eventos: resDash[5]?.data || []
+      eventos: eventosRes?.data || []
     });
 
   } catch (err: any) {
