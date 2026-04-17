@@ -190,7 +190,10 @@ export default function FichaDelJugador() {
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm" required/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm" required/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Documento</label><input type="text" name="documento_identidad" value={formData.documento_identidad || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Fecha de Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Teléfono</label><input type="text" name="telefono" value={formData.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Email</label><input type="email" name="email_contacto" value={formData.email_contacto || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 mb-1">Dirección de Residencia</label><input type="text" name="direccion" value={formData.direccion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-500 mb-1">Foto de Perfil</label>
                   <div className="flex gap-4 items-center">
@@ -208,8 +211,16 @@ export default function FichaDelJugador() {
 
             {/* Club */}
             <div>
-              <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Club</h3>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Club y Rol</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Rol en el Sistema</label>
+                  <select name="rol" value={formData.rol || 'Futbolista'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer font-bold text-orange-600">
+                    <option value="Futbolista">Futbolista</option>
+                    <option value="Entrenador">Entrenador</option>
+                    <option value="Director">Director</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Categoría / Grupo</label>
                   <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
@@ -236,6 +247,38 @@ export default function FichaDelJugador() {
                     <option value="Al día">Al día</option><option value="Pendiente">Pendiente</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* Acudiente */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Acudiente</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label><input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label><input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+              </div>
+            </div>
+
+            {/* Médico y Emergencias */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Médico y Emergencias</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Tipo de Sangre</label>
+                  <select name="tipo_sangre" value={formData.tipo_sangre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white">
+                    <option value="">Seleccionar...</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+                  </select>
+                </div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">EPS / Seguro</label><input type="text" name="eps" value={formData.eps || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Talla Uniforme</label>
+                  <select name="talla_uniforme" value={formData.talla_uniforme || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white">
+                    <option value="">Seleccionar...</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
+                  </select>
+                </div>
+                <div className="md:col-span-3"><label className="block text-xs font-bold text-slate-500 mb-1">Patologías / Alergias</label><textarea name="patologias" value={formData.patologias || ''} onChange={handleChange} rows={2} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Nombre)</label><input type="text" name="emergencia_nombre" value={formData.emergencia_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Teléfono)</label><input type="text" name="emergencia_telefono" value={formData.emergencia_telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
               </div>
             </div>
 
@@ -343,7 +386,8 @@ export default function FichaDelJugador() {
               <div className="flex justify-between items-center border-b border-slate-50 pb-3"><span className="text-slate-500 text-sm">Documento de Identidad</span><span className="text-slate-800 font-bold">{jugador.documento_identidad || '---'}</span></div>
               <div className="flex justify-between items-center border-b border-slate-50 pb-3"><span className="text-slate-500 text-sm">Fecha de Nacimiento</span><span className="text-slate-800 font-bold">{jugador.fecha_nacimiento || '---'}</span></div>
               <div className="flex justify-between items-center border-b border-slate-50 pb-3"><span className="text-slate-500 text-sm">Teléfono</span><span className="text-slate-800 font-bold">{jugador.telefono || '---'}</span></div>
-              <div className="flex justify-between items-center pb-1"><span className="text-slate-500 text-sm">Email</span><span className="text-slate-800 font-bold">{jugador.email_contacto || '---'}</span></div>
+              <div className="flex justify-between items-center border-b border-slate-50 pb-3"><span className="text-slate-500 text-sm">Email</span><span className="text-slate-800 font-bold">{jugador.email_contacto || '---'}</span></div>
+              <div className="flex justify-between items-center pb-1"><span className="text-slate-500 text-sm">Dirección</span><span className="text-slate-800 font-bold">{jugador.direccion || '---'}</span></div>
             </div>
           </div>
 
