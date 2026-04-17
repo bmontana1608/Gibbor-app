@@ -17,6 +17,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
   // La seguridad se delega al Middleware (Servidor).
   const [verificando, setVerificando] = useState(false);
   const [usuario, setUsuario] = useState<any>(null);
+  const [hijos, setHijos] = useState<any[]>([]);
   const [isDirector, setIsDirector] = useState(false);
 
   useEffect(() => {
@@ -24,32 +25,37 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: perfil } = await supabase
+      // 1. Buscamos TODOS los perfiles vinculados a este usuario (por ID o por id_acudiente)
+      const { data: misPerfiles } = await supabase
         .from("perfiles")
         .select("*")
-        .eq("id", session.user.id)
-        .maybeSingle();
+        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id}`);
 
-      if (perfil) {
-        // Verificamos si es Director para el botón especial
-        if (perfil.rol === "Director") {
+      if (misPerfiles && misPerfiles.length > 0) {
+        setHijos(misPerfiles);
+        
+        // Verificamos si ya había un hijo seleccionado en esta sesión (para no resetear al cambiar de página)
+        const guardado = localStorage.getItem('hijo_seleccionado_id');
+        const seleccionado = misPerfiles.find(h => h.id === guardado) || misPerfiles[0];
+        setUsuario(seleccionado);
+
+        // Verificación de Rango de Director (basado en el perfil real del usuario)
+        const perfilOriginal = misPerfiles.find(p => p.id === session.user.id);
+        if (perfilOriginal?.rol === "Director") {
           setIsDirector(true);
-          const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").maybeSingle();
-          if (config?.hijos_config) {
-            const ids = config.hijos_config.split(",");
-            const { data: hijoPerfil } = await supabase.from("perfiles").select("*").eq("id", ids[0]).maybeSingle();
-            if (hijoPerfil) {
-              setUsuario(hijoPerfil);
-              return;
-            }
-          }
         }
-        setUsuario(perfil);
       }
     };
     cargarPerfil();
-
   }, [router]);
+
+  const cambiarHijo = (hijo: any) => {
+    setUsuario(hijo);
+    localStorage.setItem('hijo_seleccionado_id', hijo.id);
+    setIsSidebarOpen(false);
+    // Forzamos un refresco visual si es necesario, aunque el estado usuario ya dispara el re-render
+    toast.success(`Cambiado a perfil de ${hijo.nombres}`);
+  };
 
   const menu = [
     { name: "Mi Panel", path: "/futbolista", icon: <Home className="w-5 h-5" /> },
@@ -101,7 +107,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           </div>
 
           {/* User Profile Summary */}
-          <div className="bg-slate-800/50 rounded-2xl p-4 mb-10 border border-slate-700/50">
+          <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-slate-700/50">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold border-2 border-orange-500/50 overflow-hidden shrink-0">
                   {usuario?.foto_url ? (
@@ -116,6 +122,35 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
                 </div>
              </div>
           </div>
+
+          {/* FAMILY SWITCHER - SOLO SI TIENE MÁS DE UN HIJO */}
+          {hijos.length > 1 && (
+            <div className="mb-10 px-2">
+              <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest mb-3 ml-2">Tu Familia en Gibbor</p>
+              <div className="space-y-2">
+                {hijos.map((hijo) => {
+                  const esActivo = hijo.id === usuario?.id;
+                  return (
+                    <button 
+                      key={hijo.id}
+                      onClick={() => cambiarHijo(hijo)}
+                      className={`
+                        w-full flex items-center gap-3 p-2 rounded-xl transition-all border
+                        ${esActivo 
+                          ? "bg-orange-500/10 border-orange-500/30 text-orange-500" 
+                          : "border-transparent text-slate-400 hover:bg-slate-800/50"}
+                      `}
+                    >
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${esActivo ? "bg-orange-500 text-white" : "bg-slate-700 text-slate-400"}`}>
+                        {hijo.nombres.charAt(0)}
+                      </div>
+                      <span className="text-xs font-bold truncate">{hijo.nombres}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <nav className="space-y-2 flex-1">
             {menu.map((item) => {
