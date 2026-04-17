@@ -13,6 +13,7 @@ export default function NuevoMiembro() {
   const [isMinor, setIsMinor] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
+  const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
 
   useEffect(() => {
     async function cargarDatosInscripcion() {
@@ -23,6 +24,16 @@ export default function NuevoMiembro() {
       // Cargar planes de pago dinámicos
       const { data: planesData } = await supabase.from('planes').select('nombre, precio_base').order('precio_base', { ascending: true });
       if (planesData) setPlanes(planesData);
+
+      // Cargar jugadores para vinculación opcional
+      const { data: todosJugadoresBD } = await supabase
+        .from('perfiles')
+        .select('id, nombres, apellidos, grupos')
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo')
+        .order('nombres', { ascending: true });
+      
+      if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
     }
     cargarDatosInscripcion();
   }, []);
@@ -54,7 +65,8 @@ export default function NuevoMiembro() {
     tipo_plan: 'Regular',
     rol: 'Futbolista',
     estado_pago: 'Pendiente',
-    estado_miembro: 'Activo'
+    estado_miembro: 'Activo',
+    hijos_config: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -289,6 +301,49 @@ export default function NuevoMiembro() {
                     </select>
                   </div>
                 )}
+
+              {/* Vincular Familia (Solo Entrenador/Director) */}
+              {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
+                <div className="md:col-span-2 bg-orange-50/50 border border-orange-100 rounded-xl p-6 mt-4">
+                  <h3 className="text-sm font-bold text-orange-800 mb-4 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-orange-600" /> Vincular Familia (Jugadores a cargo)
+                  </h3>
+                  <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                    {categorias.map(cat => (
+                      <div key={cat.nombre}>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">{cat.nombre}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {todosLosJugadores
+                            .filter(j => j.grupos === cat.nombre)
+                            .map(jug => (
+                              <label key={jug.id} className="flex items-center gap-2 p-2 rounded-xl border border-white bg-white/50 hover:bg-white hover:border-orange-200 transition-all cursor-pointer">
+                                <input 
+                                  type="checkbox"
+                                  checked={formData.hijos_config.includes(jug.id)}
+                                  onChange={(e) => {
+                                    const currentIds = (formData.hijos_config || '').split(',').map(id => id.trim()).filter(Boolean);
+                                    let newIds;
+                                    if (e.target.checked) {
+                                      newIds = [...currentIds, jug.id];
+                                    } else {
+                                      newIds = currentIds.filter(id => id !== jug.id);
+                                    }
+                                    setFormData({ ...formData, hijos_config: newIds.join(',') });
+                                  }}
+                                  className="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                                />
+                                <div className="overflow-hidden">
+                                  <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
+                                  <p className="text-[9px] text-slate-400 truncate leading-none">{jug.apellidos}</p>
+                                </div>
+                              </label>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 

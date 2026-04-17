@@ -21,6 +21,7 @@ export default function FichaDelJugador() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
+  const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
 
   useEffect(() => {
     async function cargarJugador() {
@@ -56,6 +57,16 @@ export default function FichaDelJugador() {
         .order('fecha', { ascending: false });
       
       if (pagosBD) setPagos(pagosBD);
+
+      // Cargar TODOS los jugadores para vinculación familiar
+      const { data: todosJugadoresBD } = await supabase
+        .from('perfiles')
+        .select('id, nombres, apellidos, grupos')
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo')
+        .order('nombres', { ascending: true });
+      
+      if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
 
       setCargando(false);
     }
@@ -278,8 +289,105 @@ export default function FichaDelJugador() {
                     </div>
                   </>
                 )}
-              </div>
             </div>
+
+            {/* Vincular Hijos / Jugadores (Solo para Entrenadores o Staff) */}
+            {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
+              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+                <h3 className="text-sm font-bold text-orange-800 mb-4 flex items-center gap-2">
+                  <Users className="w-5 h-5" /> Vincular "Tu Familia" en Gibbor
+                </h3>
+                <p className="text-[10px] text-orange-600 mb-4 font-medium uppercase tracking-wider italic">
+                  Selecciona los jugadores que verá este {formData.rol === 'Director' ? 'Director' : 'Entrenador'} en su selector de perfiles (modo familia).
+                </p>
+                
+                <div className="max-h-[300px] overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+                  {/* Agrupamos por categoría para facilitar la búsqueda */}
+                  {categorias.map(cat => (
+                    <div key={cat.nombre}>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">{cat.nombre}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {todosLosJugadores
+                          .filter(j => j.grupos === cat.nombre)
+                          .map(jug => (
+                            <label 
+                              key={jug.id} 
+                              className={`
+                                flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer bg-white
+                                ${(formData.hijos_config || '').includes(jug.id) 
+                                  ? 'border-orange-500 bg-orange-50 shadow-sm' 
+                                  : 'border-slate-100 hover:border-orange-200 hover:bg-orange-50/10'}
+                              `}
+                            >
+                              <input 
+                                type="checkbox"
+                                checked={(formData.hijos_config || '').includes(jug.id)}
+                                onChange={(e) => {
+                                  const currentIds = (formData.hijos_config || '').split(',').map((id:string) => id.trim()).filter(Boolean);
+                                  let newIds;
+                                  if (e.target.checked) {
+                                    newIds = [...currentIds, jug.id];
+                                  } else {
+                                    newIds = currentIds.filter((id: string) => id !== jug.id);
+                                  }
+                                  setFormData({ ...formData, hijos_config: newIds.join(',') });
+                                }}
+                                className="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                              />
+                              <div className="overflow-hidden">
+                                <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
+                                <p className="text-[9px] text-slate-400 truncate leading-none">{jug.apellidos}</p>
+                              </div>
+                            </label>
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Jugadores sin categoría */}
+                  <div className="pt-2">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">Sin Categoría Asignada</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      {todosLosJugadores
+                        .filter(j => !j.grupos || j.grupos === '')
+                        .map(jug => (
+                          <label 
+                            key={jug.id} 
+                            className={`
+                              flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer bg-white
+                              ${(formData.hijos_config || '').includes(jug.id) 
+                                ? 'border-orange-500 bg-orange-50 shadow-sm' 
+                                : 'border-slate-100 hover:border-orange-200 hover:bg-orange-50/10'}
+                            `}
+                          >
+                            <input 
+                              type="checkbox"
+                              checked={(formData.hijos_config || '').includes(jug.id)}
+                              onChange={(e) => {
+                                const currentIds = (formData.hijos_config || '').split(',').map((id:string) => id.trim()).filter(Boolean);
+                                let newIds;
+                                if (e.target.checked) {
+                                  newIds = [...currentIds, jug.id];
+                                } else {
+                                  newIds = currentIds.filter((id: string) => id !== jug.id);
+                                }
+                                setFormData({ ...formData, hijos_config: newIds.join(',') });
+                              }}
+                              className="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                            />
+                            <div className="overflow-hidden">
+                              <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
+                              <p className="text-[9px] text-slate-400 truncate leading-none">{jug.apellidos}</p>
+                            </div>
+                          </label>
+                        ))}
+                    </div>
+                  </div>
+
+                  {todosLosJugadores.length === 0 && <p className="text-center py-10 text-slate-400 text-xs italic">No hay jugadores activos para vincular.</p>}
+                </div>
+              </div>
+            )}
 
             {/* Acudiente */}
             {formData.rol === 'Futbolista' && (
