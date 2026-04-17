@@ -124,7 +124,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       {/* ASIDE / SIDEBAR */}
       <aside className={`
         fixed inset-y-0 left-0 w-72 bg-slate-900 z-[100] transform transition-transform duration-300 ease-in-out
-        md:sticky md:top-0 md:h-screen md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <div className="p-8 flex flex-col h-full">
           {/* Logo Section */}
@@ -230,7 +230,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-y-auto bg-[#F8FAFC]">
+      <main className="flex-1 overflow-y-auto bg-[#F8FAFC] md:ml-72">
         <div className="p-4 md:p-10 pb-24">
           {children}
         </div>
