@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.103.0",
+    "@supabase/supabase-js": "^2.103.3",
     "@types/react-signature-canvas": "^1.0.7",
     "axios": "^1.15.0",
+    "dotenv": "^17.4.2",
     "html-to-image": "^1.11.13",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.7",
