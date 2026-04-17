@@ -45,13 +45,17 @@ export async function GET(request: Request) {
   }
 
   // Paso 3: Construimos la cláusula OR
+  // Solo buscamos Futbolistas por email/cédula para evitar que el Staff se mezcle
   const orParts = [
     `id.eq.${uid}`,
-    email ? `email_contacto.eq."${email}"` : null,
   ];
   
+  if (email) {
+    orParts.push(`and(email_contacto.eq."${email}",rol.eq.Futbolista)`);
+  }
+
   if (miCedula) {
-    orParts.push(`acudiente_identificacion.eq."${miCedula}"`);
+    orParts.push(`and(acudiente_identificacion.eq."${miCedula}",rol.eq.Futbolista)`);
   }
 
   // Añadimos TODOS los IDs manuales recolectados
