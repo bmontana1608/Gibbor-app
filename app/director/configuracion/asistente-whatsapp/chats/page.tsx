@@ -119,7 +119,7 @@ export default function HistorialChats() {
     <div className="flex h-screen bg-[#f0f2f5] overflow-hidden font-sans relative">
       
       {/* SIDEBAR IZQUIERDO: Conversaciones */}
-      <div className={`w-full md:w-[380px] bg-white border-r border-[#d1d7db] flex flex-col shrink-0 transition-all ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`${showMobileChat ? 'hidden' : 'flex'} w-full md:w-[380px] md:flex bg-white border-r border-[#d1d7db] flex flex-col shrink-0 transition-all duration-300`}>
         {/* Cabecera */}
         <div className="bg-[#f0f2f5] py-3 px-4 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-3">
@@ -218,7 +218,7 @@ export default function HistorialChats() {
       </div>
 
       {/* ÁREA DE CHAT DERECHA */}
-      <div className={`flex-1 flex flex-col relative transition-all ${!showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`${!showMobileChat ? 'hidden' : 'flex'} flex-1 md:flex flex-col relative transition-all duration-300`}>
         {/* Fondo sutil estilo WA */}
         <div className="absolute inset-0 bg-[#efeae2]" />
 
