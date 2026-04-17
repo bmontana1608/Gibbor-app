@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import ThemeToggle from "@/components/ThemeToggle";
 import { 
   Home, User, CreditCard, Award, 
   Settings, LogOut, Menu, X, ShieldCheck, 
@@ -265,9 +266,10 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{usuario?.nombres ? `Jugador: ${usuario.nombres}` : 'Cargando...'}</p>
            </div>
            <div className="flex items-center gap-3">
-              <button className="relative p-2 bg-slate-50 border border-slate-100 rounded-xl text-slate-500 hover:text-orange-500 hover:border-orange-100 transition-all">
+              <ThemeToggle />
+              <button className="relative p-2 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-orange-500 hover:border-orange-100 dark:hover:border-orange-900 transition-all">
                  <Bell className="w-5 h-5" />
-                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
+                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white dark:border-slate-800"></span>
               </button>
            </div>
         </div>

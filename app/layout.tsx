@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Toaster } from 'sonner';
+import { ThemeProvider } from 'next-themes';
 
 export const metadata = {
   title: 'Gibbor App',
@@ -25,11 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="bg-slate-50 text-slate-800 antialiased">
-        {children}
-        <Toaster richColors position="top-right" />
-        <InstallPrompt />
+    <html lang="es" suppressHydrationWarning>
+      <body className="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          {children}
+          <Toaster richColors position="top-right" />
+          <InstallPrompt />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -102,19 +102,19 @@ export default function DirectorioMiembros() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 transition-colors">
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <Users className="text-orange-500 w-7 h-7" /> Directorio de Miembros
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Gestión de staff, jugadores y accesos.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gestión de staff, jugadores y accesos.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setIsModalInvitacionOpen(true)} className="bg-white border border-slate-200 text-orange-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-orange-50 transition-colors">
+          <button onClick={() => setIsModalInvitacionOpen(true)} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-orange-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
             <Mail className="w-4 h-4" /> Invitación
           </button>
-          <button onClick={exportarAExcel} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
+          <button onClick={exportarAExcel} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
             <Download className="w-4 h-4" /> Exportar
           </button>
           <button onClick={() => router.push('/director/miembros/nuevo')} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
@@ -123,36 +123,36 @@ export default function DirectorioMiembros() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6 border-b border-slate-200 pb-px">
-        <button onClick={() => setPestaña('Registrados')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${pestaña === 'Registrados' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+      <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-800 pb-px">
+        <button onClick={() => setPestaña('Registrados')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${pestaña === 'Registrados' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
           Plantilla Oficial
         </button>
-        <button onClick={() => setPestaña('Pendientes')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${pestaña === 'Pendientes' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+        <button onClick={() => setPestaña('Pendientes')} className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${pestaña === 'Pendientes' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
           Solicitudes Pendientes {listaAVisualizar.length > 0 && pestaña === 'Pendientes' && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{listaAVisualizar.length}</span>}
         </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 md:p-5 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="relative md:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm" />
+          <input type="text" placeholder="Buscar..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none text-sm dark:text-white" />
         </div>
-        <select value={rolFiltro} onChange={(e) => setRolFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+        <select value={rolFiltro} onChange={(e) => setRolFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none text-sm dark:text-white">
           <option value="Todos">Todos los roles</option>
           <option value="Futbolista">Solo Futbolistas</option>
           <option value="Entrenador">Solo Entrenadores</option>
         </select>
-        <select value={grupoFiltro} onChange={(e) => setGrupoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+        <select value={grupoFiltro} onChange={(e) => setGrupoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none text-sm dark:text-white">
           {gruposDisponibles.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
-        <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm">
+        <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg outline-none text-sm dark:text-white">
           <option value="Todos">Todos los estados</option>
           <option value="Activo">Activos</option>
           <option value="Inactivo">Inactivos</option>
         </select>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse min-w-max">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">

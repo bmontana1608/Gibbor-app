@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import ThemeToggle from "@/components/ThemeToggle";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar } from 'lucide-react';
 
 export default function DirectorLayout({ children }: { children: React.ReactNode }) {
@@ -55,10 +56,10 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
   /* PANTALLA DE CARGA DE SEGURIDAD */
   if (verificando) {
     return (
-      <div className="flex min-h-screen bg-slate-50 items-center justify-center font-sans tracking-tight">
+      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950 items-center justify-center font-sans tracking-tight">
         <div className="flex flex-col items-center gap-4 text-orange-500">
           <Loader className="w-10 h-10 animate-spin" />
-          <h2 className="text-xl font-bold text-slate-700">Verificando seguridad...</h2>
+          <h2 className="text-xl font-bold text-slate-700 dark:text-slate-300">Verificando seguridad...</h2>
           <p className="text-sm text-slate-400">Protegiendo el área de dirección</p>
         </div>
       </div>
@@ -66,22 +67,25 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       
       {/* =========================================
           HEADER MÓVIL (Solo visible en celulares) 
           ========================================= */}
-      <div className="md:hidden fixed top-0 w-full bg-white border-b border-slate-200 z-30 flex items-center justify-between p-4 shadow-sm">
+      <div className="md:hidden fixed top-0 w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 flex items-center justify-between p-4 shadow-sm">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="Gibbor Logo" className="w-8 h-8 object-contain rounded-full shadow-sm" />
-          <span className="text-lg font-black text-slate-800 tracking-tight">Gibbor App</span>
+          <span className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Gibbor App</span>
         </div>
-        <button 
-          onClick={() => setIsSidebarOpen(true)}
-          className="text-slate-600 hover:text-orange-600 focus:outline-none p-1 transition-colors"
-        >
-          <Menu className="w-7 h-7" />
-        </button>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="text-slate-600 dark:text-slate-400 hover:text-orange-600 focus:outline-none p-1 transition-colors"
+          >
+            <Menu className="w-7 h-7" />
+          </button>
+        </div>
       </div>
 
       {/* =========================================
@@ -97,21 +101,26 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
       {/* =========================================
           MENÚ LATERAL (Fijo en PC, Deslizante en Móvil)
           ========================================= */}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
         {/* Cabecera del Menú */}
-        <div className="p-6 flex items-center justify-between border-b border-slate-100">
+        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Gibbor Logo" className="w-9 h-9 object-contain rounded-full shadow-sm" />
-            <span className="text-xl font-black text-slate-800 tracking-tight">Gibbor App</span>
+            <span className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Gibbor App</span>
           </div>
-          {/* Botón X para cerrar en móvil */}
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden text-slate-400 hover:text-red-500 p-1 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+               <ThemeToggle />
+            </div>
+            {/* Botón X para cerrar en móvil */}
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              className="md:hidden text-slate-400 hover:text-red-500 p-1 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
         {/* Enlaces de Navegación */}
@@ -125,8 +134,8 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
                 onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   activo
-                    ? 'bg-orange-50 text-orange-600 font-bold shadow-sm border border-orange-100/50'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800 font-medium'
+                    ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold shadow-sm border border-orange-100/50 dark:border-orange-500/20'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100 font-medium'
                 }`}
               >
                 <span className={activo ? 'opacity-100' : 'opacity-70'}>{item.icon}</span>
@@ -163,10 +172,10 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
         </nav>
 
         {/* Botón Salir */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <button 
             onClick={cerrarSesion}
-            className="flex items-center gap-3 text-red-500 font-bold px-4 py-3 hover:bg-red-50 w-full rounded-xl transition-colors group"
+            className="flex items-center gap-3 text-red-500 font-bold px-4 py-3 hover:bg-red-50 dark:hover:bg-red-500/10 w-full rounded-xl transition-colors group"
           >
             <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" /> Salir
           </button>
@@ -176,7 +185,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
       {/* =========================================
           CONTENIDO PRINCIPAL
           ========================================= */}
-      <main className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+      <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 pt-16 md:pt-0">
         {children}
       </main>
       
