@@ -124,7 +124,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       {/* ASIDE / SIDEBAR */}
       <aside className={`
         fixed inset-y-0 left-0 w-72 bg-slate-900 z-[100] transform transition-transform duration-300 ease-in-out
-        md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:sticky md:top-0 md:h-screen md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}>
         <div className="p-8 flex flex-col h-full">
           {/* Logo Section */}
