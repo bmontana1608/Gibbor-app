@@ -93,41 +93,52 @@ export default function AutoRegistroPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 py-16 px-4 font-sans tracking-tight">
+    <div className="min-h-screen bg-slate-50 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
+      {/* Decorative Branding Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/5 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-900/5 rounded-full blur-[120px]"></div>
+
       {/* HEADER SECTION */}
-      <div className="max-w-3xl mx-auto text-center mb-16 animate-in slide-in-from-top-10 duration-700">
-        <div className="flex justify-center mb-6">
-          <div className="relative p-2 bg-white rounded-[2rem] shadow-xl shadow-orange-500/5">
+      <div className="max-w-3xl mx-auto text-center mb-16 animate-in slide-in-from-top-10 duration-700 relative z-10">
+        <div className="flex justify-center mb-8">
+          <div className="relative p-3 bg-white rounded-[2.5rem] shadow-2xl shadow-orange-500/10 border border-slate-100 ring-4 ring-orange-500/5">
             <img 
               src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" 
               alt="Gibbor FC" 
-              className="h-20 md:h-24 object-contain" 
+              className="h-24 md:h-28 object-contain" 
             />
           </div>
         </div>
-        <h1 className="text-4xl font-black text-slate-900 mb-3 tracking-tighter uppercase italic">Solicitud de Ingreso</h1>
-        <p className="text-slate-500 font-medium max-w-md mx-auto leading-relaxed">Forma parte de nuestra escuela de formación deportiva. Completa los datos para iniciar tu proceso.</p>
+        <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">
+          <span className="text-orange-500">Solicitud</span> de Ingreso
+        </h1>
+        <p className="text-slate-500 font-bold max-w-md mx-auto leading-relaxed border-t-2 border-orange-500/20 pt-4">
+          Inicia tu camino a la élite deportiva con Gibbor FC.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-200/60 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_80px_-15px_rgba(15,23,42,0.08)] space-y-14 animate-in fade-in zoom-in duration-500 relative overflow-hidden">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
         
         {/* 1. Datos del Miembro */}
-        <section className="relative z-10">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
-              <User className="text-orange-600 w-6 h-6" />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Datos del Jugador</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
-            <div className="group">
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nombres Completos *</label>
-              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+        <section>
+          <div className="flex items-center gap-5 mb-12">
+            <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center border-b-4 border-orange-500 shadow-xl">
+              <User className="text-orange-500 w-7 h-7" />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Apellidos *</label>
-              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+              <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter">Datos del Jugador</h2>
+              <div className="h-1 w-20 bg-orange-500 mt-1 rounded-full"></div>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-inner">
+            <div className="group">
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Nombres Completos *</label>
+              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+            </div>
+            <div>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Apellidos *</label>
+              <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} placeholder="Ej: Pérez Rodríguez" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Documento Identidad *</label>
@@ -155,73 +166,84 @@ export default function AutoRegistroPublico() {
           </div>
         </section>
 
-        {/* 2. Acudiente (Condicional con acento visual) */}
+        {/* 2. Acudiente (Branding Gibbor) */}
         {isMinor && (
-          <section className="bg-orange-50/50 border border-orange-100 rounded-[2rem] p-8 md:p-10 animate-in slide-in-from-right-4 duration-500">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                <ShieldCheck className="text-orange-500 w-6 h-6" />
+          <section className="bg-slate-900 border-l-8 border-orange-500 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group animate-in slide-in-from-right-10 duration-500">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 blur-3xl rounded-full group-hover:bg-orange-500/10 transition-colors"></div>
+            <div className="flex items-center gap-5 mb-10 relative z-10">
+              <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                <ShieldCheck className="text-orange-400 w-7 h-7" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Responsable Legal</h2>
+              <div>
+                <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Responsante Legal</h2>
+                <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Requerido para menores</p>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
               <div>
-                <label className="block text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2 ml-1">Nombre Representante *</label>
-                <input type="text" name="acudiente_nombre" value={formData.acudiente_nombre} onChange={handleChange} placeholder="Padre o Madre" className="w-full bg-white border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">Nombre Representante *</label>
+                <input type="text" name="acudiente_nombre" value={formData.acudiente_nombre} onChange={handleChange} placeholder="Padre o Madre" className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-white shadow-sm" required />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-orange-400 uppercase tracking-widest mb-2 ml-1">Documento Identidad *</label>
-                <input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion} onChange={handleChange} placeholder="Número de C.C." className="w-full bg-white border-none rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+                <label className="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">Documento Identidad *</label>
+                <input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion} onChange={handleChange} placeholder="Número de C.C." className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-white shadow-sm" required />
               </div>
             </div>
           </section>
         )}
 
-        {/* 3. Información Médica */}
-        <section className="relative z-10">
-          <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
-              <HeartPulse className="text-orange-600 w-6 h-6" />
+        {/* 3. Información Médica (Branding Gibbor) */}
+        <section>
+          <div className="flex items-center gap-5 mb-12">
+            <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center border-b-4 border-slate-300 shadow-sm">
+              <HeartPulse className="text-orange-500 w-7 h-7" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Información Médica</h2>
+            <div>
+              <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter">Ficha Médica</h2>
+              <div className="h-1 w-20 bg-slate-300 mt-1 rounded-full"></div>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-slate-50 rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-inner mb-10">
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Tipo de Sangre *</label>
-              <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer" required>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Tipo de Sangre *</label>
+              <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer focus:border-orange-500/30 transition-all" required>
                 <option value="">Selección...</option><option>O+</option><option>O-</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option>
               </select>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">EPS o Seguro *</label>
-              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">EPS o Seguro *</label>
+              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Talla Uniforme</label>
-              <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer">
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Talla Uniforme</label>
+              <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer focus:border-orange-500/30 transition-all">
                 <option value="">S/M/L/6-16</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
               </select>
             </div>
             <div className="md:col-span-3">
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Patologías o Alergias</label>
-              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={2} className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Patologías o Alergias</label>
+              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={3} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-slate-700 shadow-sm resize-none"></textarea>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900 border border-slate-800 p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full"></div>
-            <div className="md:col-span-2 flex items-center gap-3 mb-2 relative z-10">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest">En caso de emergencia avisar a:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-orange-500 rounded-[2.5rem] p-8 md:p-12 shadow-[0_20px_40px_-10px_rgba(249,115,22,0.3)] relative overflow-hidden group">
+            <div className="absolute inset-0 bg-slate-900 opacity-0 group-hover:opacity-5 transition-opacity"></div>
+            <div className="md:col-span-2 flex items-center gap-4 mb-3 relative z-10">
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
+                <Smartphone className="text-orange-600 w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 italic">
+                Contacto de Emergencia
+              </h3>
             </div>
             <div className="relative z-10">
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nombre Completo *</label>
-              <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
+              <label className="block text-[10px] font-black text-orange-900/60 uppercase tracking-widest mb-3">Nombre Completo *</label>
+              <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange} className="w-full bg-white/20 border-white/20 border rounded-2xl px-6 py-4 focus:bg-white outline-none transition-all font-bold text-white focus:text-slate-900 text-sm placeholder:text-orange-100/50" required placeholder="Nombre de contacto" />
             </div>
             <div className="relative z-10">
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Teléfono Urgencias *</label>
-              <input type="tel" name="emergencia_telefono" value={formData.emergencia_telefono} onChange={handleChange} className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500/50 outline-none transition-all font-bold text-white text-sm" required />
+              <label className="block text-[10px] font-black text-orange-900/60 uppercase tracking-widest mb-3">Teléfono Urgencias *</label>
+              <input type="tel" name="emergencia_telefono" value={formData.emergencia_telefono} onChange={handleChange} className="w-full bg-white/20 border-white/20 border rounded-2xl px-6 py-4 focus:bg-white outline-none transition-all font-bold text-white focus:text-slate-900 text-sm placeholder:text-orange-100/50" required placeholder="Nro de celular" />
             </div>
           </div>
         </section>
