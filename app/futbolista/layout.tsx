@@ -155,8 +155,9 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
                 </div>
              </div>
           </div>
-
-          {/* FAMILY SWITCHER - SOLO SI TIENE MÁS DE UN HIJO */}
+          {/* Seccion Deslizable */}
+          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-8">
+            {/* FAMILY SWITCHER - SOLO SI TIENE MÁS DE UN HIJO */}
           {hijos.length > 1 && (
             <div className="mb-10 px-2">
               <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest mb-3 ml-2">Tu Familia en Gibbor</p>
@@ -206,8 +207,9 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
               );
             })}
           </nav>
+          </div>
 
-          <div className="space-y-4 mt-auto pt-10">
+          <div className="space-y-4 pt-6 border-t border-slate-800/50 mt-6 shrink-0">
             {isDirector && (
               <button 
                 onClick={() => router.push("/director")}
