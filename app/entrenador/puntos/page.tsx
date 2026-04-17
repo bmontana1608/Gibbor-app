@@ -84,36 +84,27 @@ export default function AsignarPuntosGibbor() {
     const toastId = toast.loading(`Asignando +${montoPuntos} puntos...`);
 
     try {
-      // 1. Obtener datos del profesor
       const { data: { user } } = await supabase.auth.getUser();
       const { data: prof } = await supabase.from('perfiles').select('nombres, apellidos').eq('id', user?.id).single();
 
-      // 2. Realizar actualizaciones masivas (Nota: Supabase no soporta increment masivo con .update fácilmente sin RPC, 
-      // así que lo haremos secuencial o uno por uno para asegurar consistencia si no hay RPC configurado)
-      // Usaremos un bucle simple para esta versión, pero en prod se recomienda un RPC.
-      
-      for (const id of alumnosSeleccionados) {
-        const alumno = alumnos.find(a => a.id === id);
-        const puntosActuales = alumno?.puntos || 0;
-        
-        // Actualizar perfil
-        await supabase.from('perfiles').update({ puntos: puntosActuales + montoPuntos }).eq('id', id);
-        
-        // Guardar en log (si la tabla existe)
-        await supabase.from('puntos_log').insert([{
-          jugador_id: id,
-          puntos: montoPuntos,
+      const res = await fetch('/api/recompensas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'puntos',
+          jugadorIds: alumnosSeleccionados,
+          monto: montoPuntos,
           motivo: razon,
-          otorgado_por: `${prof?.nombres} ${prof?.apellidos}`,
-          fecha: new Date().toISOString()
-        }]);
-      }
+          otorgadoPor: `${prof?.nombres} ${prof?.apellidos}`
+        })
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
 
       toast.success(`¡Felicidades! Se han otorgado ${montoPuntos} Gibbor Points.`, { id: toastId });
       setAlumnosSeleccionados([]);
-      // Recargar datos
       seleccionarCategoria(catSeleccionada);
-
     } catch (error: any) {
       toast.error("Error: " + error.message, { id: toastId });
     } finally {
@@ -128,31 +119,22 @@ export default function AsignarPuntosGibbor() {
     const toastId = toast.loading(`Condecorando con ${insigniaSeleccionada.nombre}...`);
 
     try {
-      // 1. Asegurar que las insignias base existen en la tabla 'insignias'
-      for (const ins of insigniasDisponibles) {
-        const { data: exists } = await supabase.from('insignias').select('id').eq('id', ins.id).single();
-        if (!exists) {
-          await supabase.from('insignias').insert([{
-            id: ins.id,
-            nombre: ins.nombre,
-            icono: ins.icono,
-            descripcion: ins.desc,
-            nivel: 'Bronce'
-          }]);
-        }
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: prof } = await supabase.from('perfiles').select('nombres, apellidos').eq('id', user?.id).single();
 
-      // 2. Otorgar
-      for (const id of alumnosSeleccionados) {
-        const { data: yaLaTiene } = await supabase.from('insignias_otorgadas').select('id').eq('jugador_id', id).eq('insignia_id', insigniaSeleccionada.id).single();
-        if (!yaLaTiene) {
-          await supabase.from('insignias_otorgadas').insert([{
-            jugador_id: id,
-            insignia_id: insigniaSeleccionada.id,
-            fecha: new Date().toISOString()
-          }]);
-        }
-      }
+      const res = await fetch('/api/recompensas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'insignia',
+          jugadorIds: alumnosSeleccionados,
+          insigniaId: insigniaSeleccionada.id,
+          otorgadoPor: `${prof?.nombres} ${prof?.apellidos}`
+        })
+      });
+
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
 
       toast.success(`¡Misión cumplida! Insignias otorgadas con éxito.`, { id: toastId });
       setAlumnosSeleccionados([]);
