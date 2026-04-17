@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Paso 1: Obtener la cédula del usuario actual para buscar a sus hijos
+  // Paso 1: Obtener la cédula del usuario actual
   const { data: miPerfil } = await supabaseAdmin
     .from("perfiles")
     .select("documento_identidad, acudiente_identificacion")
@@ -25,7 +25,15 @@ export async function GET(request: Request) {
 
   const miCedula = miPerfil?.documento_identidad || miPerfil?.acudiente_identificacion;
 
-  // Paso 2: Construimos la cláusula OR buscando por ID, por Cédula de Acudiente o por Email
+  // Paso 2: Obtener IDs configurados manualmente en hijos_config
+  const { data: config } = await supabaseAdmin
+    .from("configuracion_wa")
+    .select("hijos_config")
+    .single();
+  
+  const manualIds = config?.hijos_config ? config.hijos_config.split(',').map((id: string) => id.trim()) : [];
+
+  // Paso 3: Construimos la cláusula OR buscando por ID, por Cédula de Acudiente, por Email o por IDs manuales
   const orParts = [
     `id.eq.${uid}`,
     email ? `email_contacto.eq."${email}"` : null,
@@ -35,9 +43,14 @@ export async function GET(request: Request) {
     orParts.push(`acudiente_identificacion.eq."${miCedula}"`);
   }
 
+  // Añadimos los IDs de la configuración manual
+  manualIds.forEach((id: string) => {
+    if (id && id.length > 5) orParts.push(`id.eq.${id}`);
+  });
+
   const orClause = orParts.filter(Boolean).join(',');
 
-  // Buscamos por ID, por Acudiente y por Correo
+  // Buscamos todos los perfiles que coincidan con alguna condición
   const { data: misPerfiles, error } = await supabaseAdmin
     .from("perfiles")
     .select("*")
