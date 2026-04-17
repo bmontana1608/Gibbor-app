@@ -16,25 +16,36 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Paso 1: Obtener la cédula y el rol del usuario actual
+  // Paso 1: Obtener la cédula, el rol y la configuración de hijos del usuario actual
   const { data: miPerfil } = await supabaseAdmin
     .from("perfiles")
-    .select("documento_identidad, acudiente_identificacion, rol")
+    .select("documento_identidad, acudiente_identificacion, rol, hijos_config")
     .eq("id", uid)
     .single();
 
   const miCedula = miPerfil?.documento_identidad || miPerfil?.acudiente_identificacion;
   const esDirector = miPerfil?.rol === 'Director';
-
-  // Paso 2: Obtener IDs configurados manualmente (solo si es Director)
+  
+  // Paso 2: Obtener IDs manuales de hijos (pueden venir del perfil del usuario o del global si es Director)
   let manualIds: string[] = [];
+  
+  // 2.a Hijos configurados específicamente para este perfil (Entrenador o Padre)
+  if (miPerfil?.hijos_config) {
+    const ids = miPerfil.hijos_config.split(',').map((id: string) => id.trim());
+    manualIds = [...manualIds, ...ids];
+  }
+
+  // 2.b Si es Director, también sumamos los hijos de la configuración global
   if (esDirector) {
-    const { data: config } = await supabaseAdmin
+    const { data: configGlobal } = await supabaseAdmin
       .from("configuracion_wa")
       .select("hijos_config")
       .single();
     
-    manualIds = config?.hijos_config ? config.hijos_config.split(',').map((id: string) => id.trim()) : [];
+    if (configGlobal?.hijos_config) {
+      const idsGlobal = configGlobal.hijos_config.split(',').map((id: string) => id.trim());
+      manualIds = [...manualIds, ...idsGlobal];
+    }
   }
 
   // Paso 3: Construimos la cláusula OR
@@ -47,12 +58,10 @@ export async function GET(request: Request) {
     orParts.push(`acudiente_identificacion.eq."${miCedula}"`);
   }
 
-  // Solo añadimos los IDs manuales si el usuario es el Director
-  if (esDirector) {
-    manualIds.forEach((id: string) => {
-      if (id && id.length > 5) orParts.push(`id.eq.${id}`);
-    });
-  }
+  // Añadimos TODOS los IDs manuales recolectados
+  manualIds.forEach((id: string) => {
+    if (id && id.length > 5) orParts.push(`id.eq.${id}`);
+  });
 
   const orClause = orParts.filter(Boolean).join(',');
 

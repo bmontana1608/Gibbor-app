@@ -32,7 +32,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       console.log("🔍 Escaneando familia vía API Segura para:", cleanEmail);
       
       try {
-        const res = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`);
+        const res = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
         const misPerfiles = await res.json();
 
         if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
