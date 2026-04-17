@@ -121,6 +121,15 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
 
         {/* Pie de Página Fijo */}
         <div className="p-4 border-t border-slate-100 bg-white space-y-2">
+            {/* BOTÓN MODO FAMILIA PARA STAFF */}
+            <button 
+                onClick={() => router.push("/futbolista")}
+                className="w-full flex items-center gap-3 px-4 py-3 text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-slate-100 group shadow-sm"
+            >
+                <Users className="w-4 h-4 text-orange-500 group-hover:scale-110 transition-transform" /> 
+                <span className="truncate">Modo Familia</span>
+            </button>
+
             {rol === 'Director' && (
               <button 
                 onClick={() => router.push("/director")}

@@ -20,6 +20,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
   const [usuario, setUsuario] = useState<any>(null);
   const [hijos, setHijos] = useState<any[]>([]);
   const [isDirector, setIsDirector] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
 
   useEffect(() => {
     const cargarPerfil = async () => {
@@ -71,10 +72,12 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           setUsuario(perfilActivo);
           console.log("👤 Jugador activo en layout:", perfilActivo?.nombres);
           
-          // Verificación de Rango de Director
+          // Verificación de Rango
           const perfilOriginal = misPerfiles.find(p => p.id === session.user.id);
           if (perfilOriginal?.rol === "Director") {
             setIsDirector(true);
+          } else if (perfilOriginal?.rol === "Entrenador") {
+            setIsStaff(true);
           }
         }
       } catch (err) {
@@ -216,14 +219,21 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           </div>
 
           <div className="space-y-4 pt-6 border-t border-slate-800/50 mt-6 shrink-0">
-            {isDirector && (
+            {isDirector ? (
               <button 
                 onClick={() => router.push("/director")}
                 className="w-full flex items-center gap-3 px-5 py-3.5 text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 rounded-2xl transition-all font-black text-xs uppercase tracking-tighter border border-orange-500/20 shadow-xl shadow-orange-500/5 group"
               >
                 <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" /> Volver a Director
               </button>
-            )}
+            ) : isStaff ? (
+              <button 
+                onClick={() => router.push("/entrenador")}
+                className="w-full flex items-center gap-3 px-5 py-3.5 text-orange-500 bg-orange-500/5 hover:bg-orange-500/10 rounded-2xl transition-all font-black text-xs uppercase tracking-tighter border border-orange-500/20 shadow-xl shadow-orange-500/5 group"
+              >
+                <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" /> Volver a Staff
+              </button>
+            ) : null}
 
             <button 
               onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
