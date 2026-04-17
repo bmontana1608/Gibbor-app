@@ -26,15 +26,20 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // 1. Buscamos TODOS los perfiles que compartan el mismo correo de la sesión
-      console.log("🔍 Buscando perfiles para:", session.user.email, "ID:", session.user.id);
+      // 1. Buscamos por ID directo, por Acudiente y por Correo (3 búsquedas seguras)
+      console.log("🔍 Escaneando familia para:", session.user.email);
       
-      const { data: misPerfiles, error: errFam } = await supabase
-        .from("perfiles")
-        .select("*")
-        .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id},email_contacto.eq."${session.user.email}"`);
+      const resId = await supabase.from("perfiles").select("*").eq("id", session.user.id);
+      const resAcudiente = await supabase.from("perfiles").select("*").eq("id_acudiente", session.user.id);
+      const resEmail = session.user.email ? await supabase.from("perfiles").select("*").eq("email_contacto", session.user.email) : { data: [] };
 
-      if (errFam) console.error("❌ Error familia:", errFam);
+      // Fusionamos y eliminamos duplicados por ID
+      const todosLosDatos = [...(resId.data || []), ...(resAcudiente.data || []), ...(resEmail.data || [])];
+      const misPerfiles = Array.from(new Map(todosLosDatos.map(item => [item.id, item])).values());
+
+      if (resId.error || resAcudiente.error || resEmail.error) {
+        console.error("❌ Error en alguna búsqueda:", resId.error || resAcudiente.error || resEmail.error);
+      }
 
       if (misPerfiles && misPerfiles.length > 0) {
         console.log("✅ Perfiles encontrados:", misPerfiles.length);
