@@ -37,9 +37,18 @@ export default function PizarraTactica() {
     
     // Check orientation
     const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
     
+    const handleResize = () => {
+      checkOrientation();
+      inicializarPizzara();
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     // Inicializar jugadores si no hay
     if (jugadores.length === 0) {
       const initialJugadores = [];
@@ -416,7 +425,7 @@ export default function PizarraTactica() {
         </div>
 
         {/* Cancha */}
-        <div ref={containerRef} className={`pizarra-container relative mx-auto aspect-[3/2] ${fullScreen ? 'w-screen h-[calc(screen*2/3)] max-h-screen' : 'w-full max-w-[calc(1.5*(100vh-100px))] lg:max-w-5xl'} bg-emerald-600 rounded-[10px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[4px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500`}>
+        <div ref={containerRef} className={`pizarra-container relative mx-auto aspect-[3/2] ${fullScreen ? 'w-screen h-screen' : 'w-full max-h-[calc(100vh-120px)]'} bg-emerald-600 rounded-[10px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[4px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500`}>
           
           {/* Capa 1: Cancha (Inmune a borrador) */}
           <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
