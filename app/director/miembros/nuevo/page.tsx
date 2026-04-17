@@ -165,7 +165,7 @@ export default function NuevoMiembro() {
           </section>
 
           {/* 2. ACUDIENTE (CONDICIONAL) */}
-          {isMinor && (
+          {formData.rol === 'Futbolista' && isMinor && (
             <section className="bg-orange-50/50 border border-orange-100 rounded-xl p-5 md:p-6 shadow-sm">
               <h2 className="text-lg font-bold text-orange-800 border-b border-orange-200/50 pb-3 mb-2 flex items-center gap-2">
                 <Users className="w-5 h-5 text-orange-600" /> Datos del Acudiente

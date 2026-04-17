@@ -282,13 +282,15 @@ export default function FichaDelJugador() {
             </div>
 
             {/* Acudiente */}
-            <div>
-              <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Acudiente</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label><input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label><input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+            {formData.rol === 'Futbolista' && (
+              <div>
+                <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Acudiente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label><input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label><input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Médico y Emergencias */}
             <div>
@@ -462,7 +464,7 @@ export default function FichaDelJugador() {
             </div>
           </div>
           
-          {(jugador.acudiente_nombre || jugador.acudiente_identificacion) && (
+          {jugador.rol === 'Futbolista' && (jugador.acudiente_nombre || jugador.acudiente_identificacion) && (
             <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4">
                 <Users className="w-5 h-5 text-orange-500" /> Acudiente
