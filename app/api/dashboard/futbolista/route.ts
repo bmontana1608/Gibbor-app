@@ -15,35 +15,38 @@ export async function GET(request: Request) {
   );
 
   try {
-    // Ejecutamos TODO en paralelo en el servidor
+    // 1. Obtenemos el perfil primero (necesario para el filtro de eventos)
+    const { data: perfilData } = await supabaseAdmin
+      .from('perfiles')
+      .select('*, insignias:insignias_otorgadas(insignia_id, insignias(*))')
+      .eq('id', id)
+      .single();
+
+    // 2. Ejecutamos el resto en paralelo usando los datos del perfil
     const [
-      perfilRes,
       evalRes,
       pagosRes,
       asisRes,
       configRes,
       eventosRes
     ] = await Promise.all([
-      // 1. Perfil completo e insignias
-      supabaseAdmin.from('perfiles').select('*, insignias:insignias_otorgadas(insignia_id, insignias(*))').eq('id', id).single(),
-      
-      // 2. Evaluaciones técnicas (Promedios)
+      // Evaluaciones técnicas (Promedios)
       supabaseAdmin.from('evaluaciones').select('tecnica, tactica, fisico, mental, ritmo, tiro, pase, regate, defensa').eq('jugador_id', id).order('fecha', { ascending: false }).limit(5),
       
-      // 3. Pagos
+      // Pagos
       supabaseAdmin.from("pagos_ingresos").select("*").eq("jugador_id", id).order("fecha", { ascending: false }).limit(6),
       
-      // 4. Asistencias
+      // Asistencias
       supabaseAdmin.from("asistencias").select("*").eq("jugador_id", id).order("fecha", { ascending: false }),
       
-      // 5. Configuración Club
+      // Configuración Club
       supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').single(),
 
-      // 6. Próximos Eventos (Filtrados por Categoría o Globales)
+      // Próximos Eventos (Filtrados)
       supabaseAdmin.from('eventos')
         .select('*')
         .gte('fecha', new Date().toISOString().split('T')[0])
-        .or(`categoria_id.is.null,categoria_id.eq."${perfilRes.data?.grupos}"`)
+        .or(`categoria_id.is.null,categoria_id.eq."${perfilData?.grupos || ''}"`)
         .order('fecha', { ascending: true })
         .limit(3)
     ]);
@@ -71,7 +74,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      perfil: perfilRes.data,
+      perfil: perfilData,
       stats,
       pagos: pagosRes.data || [],
       asistenciaPct,
