@@ -332,9 +332,9 @@ export default function DashboardFutbolista() {
                       <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center uppercase">ADN Técnico Gibbor</h4>
                       <RadarChart data={radarData} size={320} />
                     </div>
-                    <div className="flex flex-col gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 w-full">
                       {radarData.map((stat, idx) => (
-                        <div key={idx} className="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <div key={idx} className="bg-white/5 p-3 md:p-4 rounded-2xl border border-white/10">
                           <div className="flex justify-between items-center mb-1">
                             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{stat.label}</span>
                             <span className="text-xs font-black text-white">{stat.value}%</span>
