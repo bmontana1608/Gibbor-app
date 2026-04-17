@@ -16,24 +16,28 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  // Paso 1: Obtener la cédula del usuario actual
+  // Paso 1: Obtener la cédula y el rol del usuario actual
   const { data: miPerfil } = await supabaseAdmin
     .from("perfiles")
-    .select("documento_identidad, acudiente_identificacion")
+    .select("documento_identidad, acudiente_identificacion, rol")
     .eq("id", uid)
     .single();
 
   const miCedula = miPerfil?.documento_identidad || miPerfil?.acudiente_identificacion;
+  const esDirector = miPerfil?.rol === 'Director';
 
-  // Paso 2: Obtener IDs configurados manualmente en hijos_config
-  const { data: config } = await supabaseAdmin
-    .from("configuracion_wa")
-    .select("hijos_config")
-    .single();
-  
-  const manualIds = config?.hijos_config ? config.hijos_config.split(',').map((id: string) => id.trim()) : [];
+  // Paso 2: Obtener IDs configurados manualmente (solo si es Director)
+  let manualIds: string[] = [];
+  if (esDirector) {
+    const { data: config } = await supabaseAdmin
+      .from("configuracion_wa")
+      .select("hijos_config")
+      .single();
+    
+    manualIds = config?.hijos_config ? config.hijos_config.split(',').map((id: string) => id.trim()) : [];
+  }
 
-  // Paso 3: Construimos la cláusula OR buscando por ID, por Cédula de Acudiente, por Email o por IDs manuales
+  // Paso 3: Construimos la cláusula OR
   const orParts = [
     `id.eq.${uid}`,
     email ? `email_contacto.eq."${email}"` : null,
@@ -43,10 +47,12 @@ export async function GET(request: Request) {
     orParts.push(`acudiente_identificacion.eq."${miCedula}"`);
   }
 
-  // Añadimos los IDs de la configuración manual
-  manualIds.forEach((id: string) => {
-    if (id && id.length > 5) orParts.push(`id.eq.${id}`);
-  });
+  // Solo añadimos los IDs manuales si el usuario es el Director
+  if (esDirector) {
+    manualIds.forEach((id: string) => {
+      if (id && id.length > 5) orParts.push(`id.eq.${id}`);
+    });
+  }
 
   const orClause = orParts.filter(Boolean).join(',');
 
