@@ -48,16 +48,27 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           const miPerfil = misPerfiles.find(p => p.id === session.user.id);
 
           if (guardado && guardado !== session.user.id) {
-            try {
-              const resP = await fetch(`/api/perfil?id=${guardado}`);
-              const perfilHijo = await resP.json();
-              if (perfilHijo && !perfilHijo.error) {
-                perfilActivo = perfilHijo;
-              } else {
-                perfilActivo = soloHijos.length > 0 ? soloHijos[0] : miPerfil;
+            // Verificamos si el ID guardado sigue perteneciendo a los perfiles permitidos
+            const sigueSiendoFamilia = misPerfiles.some((p: any) => p.id === guardado);
+            
+            if (sigueSiendoFamilia) {
+              try {
+                const resP = await fetch(`/api/perfil?id=${guardado}`);
+                const perfilHijo = await resP.json();
+                if (perfilHijo && !perfilHijo.error) {
+                  perfilActivo = perfilHijo;
+                } else {
+                  perfilActivo = soloHijos.length > 0 ? soloHijos[0] : miPerfil;
+                }
+              } catch (err) {
+                perfilActivo = soloHijos.find(h => h.id === guardado) || soloHijos[0] || miPerfil;
               }
-            } catch (err) {
-              perfilActivo = soloHijos.find(h => h.id === guardado) || soloHijos[0] || miPerfil;
+            } else {
+              // Si ya no es familia, forzamos el primero disponible
+              perfilActivo = (miPerfil?.rol === "Director" || miPerfil?.rol === "Entrenador") && soloHijos.length > 0 
+                ? soloHijos[0] 
+                : miPerfil;
+              if (perfilActivo?.id) localStorage.setItem('hijo_seleccionado_id', perfilActivo.id);
             }
           } else {
             // LÓGICA CLAVE: Si soy Director o Entrenador, fuerzo la vista del primer hijo por defecto
