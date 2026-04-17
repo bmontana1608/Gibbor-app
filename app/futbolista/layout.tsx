@@ -27,18 +27,23 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       if (!session) return;
 
       // 1. Buscamos TODOS los perfiles que compartan el mismo correo de la sesión
-      const { data: misPerfiles } = await supabase
+      console.log("🔍 Buscando perfiles para:", session.user.email, "ID:", session.user.id);
+      
+      const { data: misPerfiles, error: errFam } = await supabase
         .from("perfiles")
         .select("*")
         .or(`id.eq.${session.user.id},id_acudiente.eq.${session.user.id},email_contacto.eq.${session.user.email}`);
 
+      if (errFam) console.error("❌ Error familia:", errFam);
+
       if (misPerfiles && misPerfiles.length > 0) {
+        console.log("✅ Perfiles encontrados:", misPerfiles.length);
         setHijos(misPerfiles);
         
-        // Verificamos si ya había un hijo seleccionado en esta sesión (para no resetear al cambiar de página)
         const guardado = localStorage.getItem('hijo_seleccionado_id');
         const seleccionado = misPerfiles.find(h => h.id === guardado) || misPerfiles[0];
         setUsuario(seleccionado);
+        console.log("👤 Jugador activo:", seleccionado.nombres);
 
         // Verificación de Rango de Director (basado en el perfil real del usuario)
         const perfilOriginal = misPerfiles.find(p => p.id === session.user.id);
