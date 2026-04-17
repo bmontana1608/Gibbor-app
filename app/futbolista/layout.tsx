@@ -27,10 +27,11 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
       if (!session) return;
 
       // 1. Llamamos a nuestra nueva API segura (Server Side) para saltar el RLS
-      console.log("🔍 Escaneando familia vía API Segura para:", session.user.email);
+      const cleanEmail = session.user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,''); // elimina puntos antes de @ y al final
+      console.log("🔍 Escaneando familia vía API Segura para:", cleanEmail);
       
       try {
-        const res = await fetch(`/api/familia?email=${session.user.email}&uid=${session.user.id}`);
+        const res = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`);
         const misPerfiles = await res.json();
 
         if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
