@@ -21,7 +21,8 @@ export async function GET(request: Request) {
       evalRes,
       pagosRes,
       asisRes,
-      configRes
+      configRes,
+      eventosRes
     ] = await Promise.all([
       // 1. Perfil completo e insignias
       supabaseAdmin.from('perfiles').select('*, insignias:insignias_otorgadas(insignia_id, insignias(*))').eq('id', id).single(),
