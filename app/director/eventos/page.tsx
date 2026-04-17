@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function GestionEventos() {
   const [eventos, setEventos] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [nuevoEvento, setNuevoEvento] = useState({
     titulo: '',
@@ -19,15 +20,18 @@ export default function GestionEventos() {
 
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
 
-  const fetchEventos = async () => {
-    const res = await fetch('/api/eventos');
-    const data = await res.json();
-    setEventos(data || []);
+  const fetchDatos = async () => {
+    const [resEv, resCat] = await Promise.all([
+      fetch('/api/eventos').then(r => r.json()),
+      supabase.from('categorias').select('nombre').order('nombre')
+    ]);
+    setEventos(resEv || []);
+    if (resCat.data) setCategorias(resCat.data);
     setCargando(false);
   };
 
   useEffect(() => {
-    fetchEventos();
+    fetchDatos();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,15 +144,36 @@ export default function GestionEventos() {
             </div>
 
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Categoría (Opcional)</label>
-              <input 
-                type="text" 
-                placeholder="Vacio para todos"
-                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
-                value={nuevoEvento.categoria_id}
-                onChange={e => setNuevoEvento({...nuevoEvento, categoria_id: e.target.value})}
-              />
-              <p className="text-[9px] text-slate-400 mt-2 px-2 italic">Si quieres que sea para una categoría, escribe el nombre tal cual aparece en el perfil.</p>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-2 block flex items-center gap-1.5">
+                <Tag className="w-3 h-3" /> Categoría Destino
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
+                  className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
+                    nuevoEvento.categoria_id === '' 
+                    ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' 
+                    : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
+                  }`}
+                >
+                  Global (Todos)
+                </button>
+                {categorias.map((cat) => (
+                  <button
+                    key={cat.nombre}
+                    type="button"
+                    onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
+                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
+                      nuevoEvento.categoria_id === cat.nombre 
+                      ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' 
+                      : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
+                    }`}
+                  >
+                    {cat.nombre.split(' ')[0]} {cat.nombre.split(' ')[1] || ''}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button type="submit" className="w-full bg-orange-500 text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
