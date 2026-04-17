@@ -2,14 +2,14 @@ import "./globals.css";
 import { Toaster } from 'sonner';
 
 export const metadata = {
-  title: 'GIBBOR PRO',
-  description: 'Portal de Alto Rendimiento - EFD Gibbor',
+  title: 'Gibbor App',
+  description: 'Plataforma de Gestión Deportiva EFD Gibbor',
   manifest: '/manifest.json',
   themeColor: '#ea580c',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'GIBBOR PRO',
+    title: 'Gibbor App',
   },
   icons: {
     icon: '/logo.png',
