@@ -23,24 +23,15 @@ export default function CarnetFutbolista() {
         const { data: cfg } = await supabase.from('configuracion_wa').select('nombre_club, temporada_actual').single();
         if (cfg) setClubConfig(cfg);
 
-        // 1. Cargamos el perfil base
-        const { data: myPerfil } = await supabase.from("perfiles").select("*").eq("id", session.user.id).single();
+        // Identificar el perfil a cargar (Prioridad: Hijo seleccionado en Modo Familia)
+        const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
+        let targetId = savedHijoId || session.user.id;
+
+        const { data: currentPerfil } = await supabase.from("perfiles").select("*").eq("id", targetId).single();
         
-        if (myPerfil?.rol === "Director") {
-          // Si es director, buscamos a su primer hijo en la config (modo papá)
-          const { data: config } = await supabase.from("configuracion_wa").select("hijos_config").single();
-          if (config?.hijos_config) {
-            const ids = config.hijos_config.split(",");
-            const { data: hijoPerfil } = await supabase.from("perfiles").select("*").eq("id", ids[0]).single();
-            if (hijoPerfil) {
-               setPerfil(hijoPerfil);
-               return; // Salimos para no setear el del director
-            }
-          }
+        if (currentPerfil) {
+          setPerfil(currentPerfil);
         }
-        
-        // Si no es director o no tiene hijos vinculados, cargamos el suyo normal
-        setPerfil(myPerfil);
       }
     };
     fetchDatos();
@@ -136,7 +127,7 @@ export default function CarnetFutbolista() {
                       </div>
                       <div className="flex items-center gap-1.5 text-orange-400">
                          <Heart className="w-3 h-3" />
-                         <span className="text-[10px] font-bold uppercase tracking-tighter text-white">RH: {perfil?.rh || 'O+'}</span>
+                         <span className="text-[10px] font-bold uppercase tracking-tighter text-white">RH: {perfil?.tipo_sangre || 'O+'}</span>
                       </div>
                    </div>
                 </div>
@@ -168,7 +159,7 @@ export default function CarnetFutbolista() {
          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
                <p className="text-xs text-slate-400 font-medium">Acudiente Principal</p>
-               <p className="font-bold text-slate-800">{perfil?.nombre_acudiente || '---'}</p>
+               <p className="font-bold text-slate-800">{perfil?.acudiente_nombre || '---'}</p>
             </div>
             <div className="space-y-1">
                <p className="text-xs text-slate-400 font-medium">Contacto de Urgencia</p>
