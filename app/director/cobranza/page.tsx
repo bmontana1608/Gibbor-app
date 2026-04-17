@@ -152,23 +152,6 @@ export default function ModuloCobranza() {
     }
   };
 
-  const eliminarEgreso = async (id: string) => {
-    if (window.confirm("¿Eliminar este registro de gasto?")) {
-      await supabase.from('pagos_egresos').delete().eq('id', id);
-      cargarDatos();
-    }
-  };
-
-  const eliminarPagoHistorial = async (id: string, numero: number) => {
-    if (window.confirm(`¿Estás seguro de eliminar el registro del recibo № ${numero}? Esto no cambiará el estado de deuda del alumno.`)) {
-      const { error } = await supabase.from('pagos_ingresos').delete().eq('id', id);
-      if (error) toast.error("Error al eliminar: " + error.message);
-      else {
-        toast.success("Registro eliminado");
-        cargarDatos();
-      }
-    }
-  };
   useEffect(() => {
     cargarDatos();
   }, []);
