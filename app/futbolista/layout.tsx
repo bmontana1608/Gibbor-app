@@ -56,11 +56,15 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
   }, [router]);
 
   const cambiarHijo = (hijo: any) => {
-    setUsuario(hijo);
     localStorage.setItem('hijo_seleccionado_id', hijo.id);
+    setUsuario(hijo);
     setIsSidebarOpen(false);
-    // Forzamos un refresco visual si es necesario, aunque el estado usuario ya dispara el re-render
     toast.success(`Cambiado a perfil de ${hijo.nombres}`);
+    
+    // Forzamos la recarga para que todas las páginas se enteren
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
   };
 
   const menu = [

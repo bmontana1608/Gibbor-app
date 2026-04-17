@@ -16,11 +16,32 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
+  // Paso 1: Obtener la cédula del usuario actual para buscar a sus hijos
+  const { data: miPerfil } = await supabaseAdmin
+    .from("perfiles")
+    .select("documento_identidad, acudiente_identificacion")
+    .eq("id", uid)
+    .single();
+
+  const miCedula = miPerfil?.documento_identidad || miPerfil?.acudiente_identificacion;
+
+  // Paso 2: Construimos la cláusula OR buscando por ID, por Cédula de Acudiente o por Email
+  const orParts = [
+    `id.eq.${uid}`,
+    email ? `email_contacto.eq."${email}"` : null,
+  ];
+  
+  if (miCedula) {
+    orParts.push(`acudiente_identificacion.eq."${miCedula}"`);
+  }
+
+  const orClause = orParts.filter(Boolean).join(',');
+
   // Buscamos por ID, por Acudiente y por Correo
   const { data: misPerfiles, error } = await supabaseAdmin
     .from("perfiles")
     .select("*")
-    .or(`id.eq.${uid},id_acudiente.eq.${uid},email_contacto.eq.${email}`);
+    .or(orClause);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
