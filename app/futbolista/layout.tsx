@@ -41,7 +41,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
           const guardado = localStorage.getItem('hijo_seleccionado_id');
           
           // Filtramos para que en el selector de hijos no aparezca el propio Director o Entrenador
-          const soloHijos = misPerfiles.filter(p => p.id !== session.user.id || (p.rol !== "Director" && p.rol !== "Entrenador"));
+          const soloHijos = misPerfiles.filter(p => !(p.id === session.user.id && (p.rol === "Director" || p.rol === "Entrenador")));
           setHijos(soloHijos);
           
           let perfilActivo = null;
