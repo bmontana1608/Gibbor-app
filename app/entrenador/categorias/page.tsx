@@ -87,10 +87,25 @@ export default function GestionCategoriasEntrenador() {
   const cargarCategorias = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos').eq('id', session.user.id).single();
-    const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
-    const { data } = await supabase.from('categorias').select('*').ilike('entrenadores', `%${nombreCompleto}%`);
-    setCategorias(data || []);
+    
+    const { data: usuario } = await supabase
+      .from('perfiles')
+      .select('grupos')
+      .eq('id', session.user.id)
+      .single();
+    
+    const categoriasAsignadas = (usuario?.grupos || '').split(', ').filter(Boolean);
+    
+    if (categoriasAsignadas.length > 0) {
+      const { data } = await supabase
+        .from('categorias')
+        .select('*')
+        .in('nombre', categoriasAsignadas);
+      setCategorias(data || []);
+    } else {
+      setCategorias([]);
+    }
+    
     setCargando(false);
   };
 

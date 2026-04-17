@@ -29,8 +29,18 @@ export default function DashboardEntrenador() {
       if (usuario) {
         setPerfil(usuario);
         
-        // Métricas Reales
-        const { data: mAlumnos } = await supabase.from('perfiles').select('id').eq('rol', 'Futbolista').eq('grupos', usuario.grupos || 'Todas');
+        // Métricas Reales - Soporte Multi-Categoría
+        const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
+        
+        const queryAlumnos = supabase.from('perfiles').select('id').eq('rol', 'Futbolista');
+        
+        if (categoriasAsignadas.length > 0) {
+          queryAlumnos.in('grupos', categoriasAsignadas);
+        } else {
+          queryAlumnos.eq('grupos', 'Ninguna');
+        }
+
+        const { data: mAlumnos } = await queryAlumnos;
         const { data: mAsistencias } = await supabase.from('asistencias').select('estado').gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
         
         setMetricas({

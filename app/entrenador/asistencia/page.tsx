@@ -29,13 +29,17 @@ export default function AsistenciaEntrenador() {
         setPerfil(usuario);
         const nombreCompleto = `${usuario.nombres} ${usuario.apellidos}`;
         
-        // Cargar categorías donde aparece el entrenador
-        const { data: cats } = await supabase
-          .from('categorias')
-          .select('*')
-          .filter('entrenadores', 'ilike', `%${nombreCompleto}%`);
+        // Cargar categorías basadas en el campo 'grupos' del perfil
+        const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
         
-        if (cats) setCategorias(cats);
+        if (categoriasAsignadas.length > 0) {
+          const { data: cats } = await supabase
+            .from('categorias')
+            .select('*')
+            .in('nombre', categoriasAsignadas);
+          
+          if (cats) setCategorias(cats);
+        }
       }
       setCargando(false);
     }

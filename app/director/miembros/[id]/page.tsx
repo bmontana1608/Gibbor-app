@@ -221,14 +221,41 @@ export default function FichaDelJugador() {
                     <option value="Director">Director</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Categoría / Grupo</label>
-                  <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
-                    <option value="">Sin categoría / Sin asignar</option>
-                    {categorias.map(cat => (
-                      <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
-                    ))}
-                  </select>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 font-black text-orange-600">Categoría(s) / Grupo(s) Asignados</label>
+                  {formData.rol === 'Entrenador' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border border-orange-100 rounded-xl p-4 bg-orange-50/30">
+                      {categorias.map(cat => (
+                        <label key={cat.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:text-orange-600 transition-colors">
+                          <input 
+                            type="checkbox" 
+                            checked={(formData.grupos || '').split(', ').includes(cat.nombre)}
+                            onChange={(e) => {
+                              const currentGroups = (formData.grupos || '').split(', ').filter(Boolean);
+                              let newGroups;
+                              if (e.target.checked) {
+                                newGroups = [...currentGroups, cat.nombre];
+                              } else {
+                                newGroups = currentGroups.filter(g => g !== cat.nombre);
+                              }
+                              setFormData({ ...formData, grupos: newGroups.join(', ') });
+                            }}
+                            className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                          />
+                          {cat.nombre}
+                        </label>
+                      ))}
+                      {categorias.length === 0 && <p className="text-[10px] text-slate-400 italic col-span-full">No hay categorías activas creadas.</p>}
+                    </div>
+                  ) : (
+                    <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer font-bold">
+                      <option value="">Sin categoría / Sin asignar</option>
+                      {categorias.map(cat => (
+                        <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Los entrenadores pueden tener varias categorías asignadas para gestionar.</p>
                 </div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Posición</label><input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
                 <div><label className="block text-xs font-bold text-slate-500 mb-1">Dorsal</label><input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
