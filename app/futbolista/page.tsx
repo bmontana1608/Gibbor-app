@@ -286,7 +286,7 @@ export default function DashboardFutbolista() {
         
         {activeTab === 'perfil' && (
           <div className="space-y-10">
-            <div className="bg-slate-900 rounded-[3rem] p-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
+            <div className="bg-slate-900 rounded-[3rem] px-4 py-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-[120px] -mr-48 -mt-48"></div>
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
@@ -296,8 +296,8 @@ export default function DashboardFutbolista() {
                   </div>
                 </div>
                 {radarData.length > 0 ? (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
-                    <div className="flex flex-col items-center gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center justify-items-center overflow-x-hidden">
+                    <div className="flex flex-col items-center justify-center gap-8 w-full">
                       <FifaCard 
                         perfil={perfil} 
                         stats={radarData} 
