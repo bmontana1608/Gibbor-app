@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 import { 
   Home, User, CreditCard, Award, 
   Settings, LogOut, Menu, X, ShieldCheck, 
