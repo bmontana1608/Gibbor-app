@@ -312,10 +312,11 @@ export default function DirectorioMiembros() {
                     >
                       <Smartphone className="w-5 h-5" /> WhatsApp
                     </button>
-                  </div>
-               </div>
-            </div>
-          </      {/* MODAL DE DETALLES DE SOLICITUD */}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE DETALLES DE SOLICITUD */}
       {isModalDetallesOpen && solicitudSeleccionada && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[150] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800 flex flex-col">
@@ -558,11 +559,6 @@ export default function DirectorioMiembros() {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
-}
-       </div>
       )}
     </div>
   );
