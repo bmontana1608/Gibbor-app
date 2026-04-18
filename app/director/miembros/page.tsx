@@ -152,11 +152,11 @@ export default function DirectorioMiembros() {
         </select>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-max">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-              <th className="p-4 md:px-6">Miembro</th>
+            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+              <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Miembro</th>
               <th className="p-4 md:px-6">Rol / Categoria</th>
               <th className="p-4 md:px-6">Contacto</th>
               <th className="p-4 md:px-6 text-center">Estado</th>
@@ -170,25 +170,25 @@ export default function DirectorioMiembros() {
               <tr><td colSpan={5} className="p-10 text-center text-slate-400">Sin resultados</td></tr>
             ) : (
               jugadoresFiltrados.map((jugador) => (
-                <tr key={jugador.id} className="hover:bg-slate-50 transition-colors group">
-                  <td className="p-4 md:px-6">
+                <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                  <td className="p-4 md:px-6 sticky left-0 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 border border-slate-200 uppercase">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase">
                         {jugador.nombres.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-800">{jugador.nombres} {jugador.apellidos}</p>
+                        <p className="font-bold text-slate-800 dark:text-slate-100">{jugador.nombres} {jugador.apellidos}</p>
                         <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{jugador.id.split('-')[0]}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4 md:px-6">
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-600'}`}>{jugador.rol}</span>
-                    <p className="text-xs text-slate-500 mt-1 font-medium">{jugador.grupos || 'Sin grupo'}</p>
+                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{jugador.grupos || 'Sin grupo'}</p>
                   </td>
-                  <td className="p-4 md:px-6 text-slate-600 font-medium">{jugador.telefono || '---'}</td>
+                  <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium">{jugador.telefono || '---'}</td>
                   <td className="p-4 md:px-6 text-center">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 text-slate-500' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>
                       {jugador.estado_miembro || 'Activo'}
                     </span>
                   </td>
@@ -196,16 +196,16 @@ export default function DirectorioMiembros() {
                     <div className="flex justify-end gap-2">
                       <button 
                         onClick={() => { setMiembroAgestionar(jugador); setEmailAcceso(jugador.email || ''); setIsModalAccesoOpen(true); }}
-                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all"
+                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/20 rounded-lg transition-all"
                       >
                         <Key className="w-5 h-5" />
                       </button>
                       {pestaña === 'Registrados' ? (
-                        <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 p-2 hover:text-slate-800"><ExternalLink className="w-5 h-5" /></button>
+                        <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2"><ExternalLink className="w-5 h-5" /></button>
                       ) : (
                         <div className="flex gap-1">
-                          <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg"><Check className="w-4 h-4" /></button>
-                          <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg"><X className="w-4 h-4" /></button>
+                          <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
+                          <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
                         </div>
                       )}
                     </div>
