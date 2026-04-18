@@ -158,11 +158,11 @@ export default function DirectorioMiembros() {
         <table className="w-full text-left border-collapse min-w-max">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
-              <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Miembro</th>
+              <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none truncate">Miembro</th>
               <th className="p-4 md:px-6">Rol / Categoria</th>
-              <th className="p-4 md:px-6">Contacto</th>
+              <th className="p-4 md:px-6 hidden md:table-cell">Contacto</th>
               <th className="p-4 md:px-6 text-center">Estado</th>
-              <th className="p-4 md:px-6 text-right">Accesos</th>
+              <th className="p-4 md:px-6 text-right">Detalle</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
@@ -173,46 +173,40 @@ export default function DirectorioMiembros() {
             ) : (
               jugadoresFiltrados.map((jugador) => (
                 <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                  <td className="p-4 md:px-6 sticky left-0 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase">
+                  <td className="p-4 md:px-6 sticky left-0 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none">
+                    <div className="flex items-center gap-3 truncate">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase text-[10px]">
                         {jugador.nombres.charAt(0)}
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-800 dark:text-slate-100">{jugador.nombres} {jugador.apellidos}</p>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">{jugador.id.split('-')[0]}</p>
+                      <div className="truncate">
+                        <p className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs md:text-sm">{jugador.nombres} {jugador.apellidos}</p>
+                        <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter truncate">{jugador.id.split('-')[0]}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4 md:px-6">
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">{jugador.grupos || 'Sin grupo'}</p>
+                    <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
+                    <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate max-w-[80px] md:max-w-none">{jugador.grupos || 'Sin grupo'}</p>
                   </td>
-                  <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium">{jugador.telefono || '---'}</td>
+                  <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium hidden md:table-cell">{jugador.telefono || '---'}</td>
                   <td className="p-4 md:px-6 text-center">
-                    <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>
-                      {jugador.estado_miembro || 'Activo'}
+                    <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>
+                      {jugador.estado_miembro === 'Inactivo' ? 'Inact' : 'Activo'}
                     </span>
                   </td>
                   <td className="p-4 md:px-6 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-1 md:gap-2">
                       <button 
-                        onClick={() => { setMiembroAgestionar(jugador); setEmailAcceso(jugador.email || ''); setIsModalAccesoOpen(true); }}
-                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/20 rounded-lg transition-all"
+                        onClick={() => { setSolicitudSeleccionada(jugador); setIsModalDetallesOpen(true); }}
+                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-all"
+                        title="Ver Ficha y Accesos"
                       >
-                        <Key className="w-5 h-5" />
+                        <Eye className="w-5 h-5" />
                       </button>
                       {pestaña === 'Registrados' ? (
-                        <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2"><ExternalLink className="w-5 h-5" /></button>
+                        <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 hidden md:block"><ExternalLink className="w-5 h-5" /></button>
                       ) : (
                         <div className="flex gap-1">
-                          <button 
-                            onClick={() => { setSolicitudSeleccionada(jugador); setIsModalDetallesOpen(true); }}
-                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-all"
-                            title="Ver Ficha Completa"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
                           <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
                           <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
                         </div>
@@ -437,22 +431,130 @@ export default function DirectorioMiembros() {
                   <p className="text-sm font-black text-slate-700 dark:text-slate-200">{solicitudSeleccionada.emergencia_telefono || '---'}</p>
                 </div>
               </div>
+
+              {/* 6. Gestión de Accesos (NUEVO: Integrado aquí para móviles) */}
+              <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-500/20 rounded-xl flex items-center justify-center">
+                    <Key className="text-orange-600 dark:text-orange-400 w-5 h-5" />
+                  </div>
+                  <h4 className="text-sm font-black uppercase italic tracking-widest text-slate-800 dark:text-white">Gestión de Acceso App</h4>
+                </div>
+                
+                <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800">
+                  <div className="mb-6">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                       <Mail className="w-3.5 h-3.5 text-orange-500" /> Correo de Acceso
+                    </label>
+                    <input 
+                      type="email" 
+                      value={emailAcceso} 
+                      onChange={(e) => setEmailAcceso(e.target.value)} 
+                      placeholder="ejemplo@correo.com" 
+                      className="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-700 dark:text-slate-200 text-sm" 
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col gap-3">
+                    {solicitudSeleccionada.email ? (
+                      <button 
+                        onClick={async () => {
+                           if (!window.confirm("¿Seguro de restablecer la clave a Gibbor2026*?")) return;
+                           setGenerandoAcceso(true);
+                           const toastId = toast.loading("Restableciendo clave...");
+                           try {
+                             const res = await fetch('/api/admin/reset-password', {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Gibbor2026*' })
+                             });
+                             if (!res.ok) throw new Error('Error al resetear');
+                             toast.success("¡Clave restablecida a Gibbor2026*! 🔑", { id: toastId });
+                           } catch (error: any) {
+                             toast.error("Fallo: " + error.message, { id: toastId });
+                           } finally {
+                             setGenerandoAcceso(false);
+                           }
+                        }}
+                        disabled={generandoAcceso}
+                        className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl transition-all flex items-center justify-center gap-3"
+                      >
+                        {generandoAcceso ? 'Procesando...' : <><Key className="w-5 h-5" /> Resetear Clave</>}
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={async () => {
+                           if (!emailAcceso.includes('@')) return toast.error("Ingresa un correo válido");
+                           setGenerandoAcceso(true);
+                           const toastId = toast.loading("Activando acceso...");
+                           try {
+                             const res = await fetch('/api/admin/crear-usuario', {
+                               method: 'POST',
+                               headers: { 'Content-Type': 'application/json' },
+                               body: JSON.stringify({
+                                 email: emailAcceso,
+                                 password: 'Gibbor2026*',
+                                 rol: solicitudSeleccionada.rol,
+                                 perfilId: solicitudSeleccionada.id
+                               })
+                             });
+                             const data = await res.json();
+                             if (!res.ok) throw new Error(data.error || 'Fallo');
+                             toast.success("¡Acceso activado! ✨", { id: toastId });
+                             setIsModalDetallesOpen(false);
+                             cargarJugadores();
+                           } catch (error: any) {
+                             toast.error("Error: " + error.message, { id: toastId });
+                           } finally {
+                             setGenerandoAcceso(false);
+                           }
+                        }}
+                        disabled={generandoAcceso}
+                        className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-orange-600/20"
+                      >
+                        {generandoAcceso ? 'Cargando...' : 'Activar Acceso App'}
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={() => {
+                        const mensaje = `Hola *${solicitudSeleccionada.nombres}* 👋, acceso a *Gibbor App* activado.\n\n👤 *Usuario:* ${emailAcceso}\n🔑 *Clave:* Gibbor2026*`;
+                        window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(mensaje)}`, '_blank');
+                      }}
+                      className="w-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3"
+                    >
+                      <Smartphone className="w-5 h-5" /> Notificar por WhatsApp
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Footer Actions */}
             <div className="p-8 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-4">
-              <button 
-                onClick={() => { setIsModalDetallesOpen(false); rechazarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
-                className="flex-1 bg-white dark:bg-slate-800 border-2 border-red-500 text-red-500 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-95"
-              >
-                Rechazar Ingreso
-              </button>
-              <button 
-                onClick={() => { setIsModalDetallesOpen(false); aprobarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
-                className="flex-[1.5] bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3"
-              >
-                <Check className="w-5 h-5" /> Aprobar Deportista
-              </button>
+              {pestaña === 'Pendientes' ? (
+                <>
+                  <button 
+                    onClick={() => { setIsModalDetallesOpen(false); rechazarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
+                    className="flex-1 bg-white dark:bg-slate-800 border-2 border-red-500 text-red-500 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-95"
+                  >
+                    Rechazar Solicitud
+                  </button>
+                  <button 
+                    onClick={() => { setIsModalDetallesOpen(false); aprobarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
+                    className="flex-[1.5] bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3"
+                  >
+                    <Check className="w-5 h-5" /> Aprobar y Guardar
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => setIsModalDetallesOpen(false)}
+                  className="w-full bg-slate-900 dark:bg-slate-800 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-95"
+                >
+                  Cerrar Ficha
+                </button>
+              )}
             </div>
           </div>
         </div>
