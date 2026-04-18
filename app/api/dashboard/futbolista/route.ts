@@ -30,8 +30,8 @@ export async function GET(request: Request) {
       configRes,
       eventosRes
     ] = await Promise.all([
-      // Evaluaciones técnicas (Promedios)
-      supabaseAdmin.from('evaluaciones').select('tecnica, tactica, fisico, mental, ritmo, tiro, pase, regate, defensa').eq('jugador_id', id).order('fecha', { ascending: false }).limit(5),
+      // Evaluaciones técnicas reales (Desde el nuevo Stats Lab)
+      supabaseAdmin.from('evaluaciones_tecnicas').select('stats').eq('jugador_id', id).order('fecha', { ascending: false }).limit(5),
       
       // Pagos
       supabaseAdmin.from("pagos_ingresos").select("*").eq("jugador_id", id).order("fecha", { ascending: false }).limit(6),
@@ -51,19 +51,45 @@ export async function GET(request: Request) {
         .limit(3)
     ]);
 
-    // Procesar Datos de Evaluación (Carta PRO)
+    // Procesar Datos de Evaluación (Mapeo Inteligente para Carta PRO)
     let stats = { Ritmo: 50, Tiro: 50, Pase: 50, Regate: 50, Defensa: 50, Físico: 50 };
+    
     if (evalRes.data && evalRes.data.length > 0) {
       const evals = evalRes.data;
       const count = evals.length;
-      stats = {
-        Ritmo: Math.round(evals.reduce((acc, e) => acc + (Number(e.ritmo) || 50), 0) / count),
-        Tiro: Math.round(evals.reduce((acc, e) => acc + (Number(e.tiro) || 50), 0) / count),
-        Pase: Math.round(evals.reduce((acc, e) => acc + (Number(e.pase) || 50), 0) / count),
-        Regate: Math.round(evals.reduce((acc, e) => acc + (Number(e.regate) || 50), 0) / count),
-        Defensa: Math.round(evals.reduce((acc, e) => acc + (Number(e.defensa) || 50), 0) / count),
-        Físico: Math.round(evals.reduce((acc, e) => acc + ((Number(e.fisico) || 50) + (Number(e.mental) || 50)) / 2, 0) / count),
+      
+      // Extraer todas las llaves de stats encontradas en las últimas evaluaciones
+      const sumas: any = { Ritmo: 0, Tiro: 0, Pase: 0, Regate: 0, Defensa: 0, Físico: 0 };
+      const contadores: any = { Ritmo: 0, Tiro: 0, Pase: 0, Regate: 0, Defensa: 0, Físico: 0 };
+
+      // Diccionario de mapeo (Habilidad del Entrenador -> Categoría FIFA)
+      const mapeo: any = {
+        'Velocidad': 'Ritmo', 'Aceleración': 'Ritmo', 'Sprint': 'Ritmo', 'Ritmo': 'Ritmo',
+        'Remate': 'Tiro', 'Potencia': 'Tiro', 'Definición': 'Tiro', 'Tiro': 'Tiro',
+        'Visión': 'Pase', 'Centros': 'Pase', 'Paso Corto': 'Pase', 'Pase': 'Pase',
+        'Agilidad': 'Regate', 'Control': 'Regate', 'Drible': 'Regate', 'Regate': 'Regate',
+        'Marcaje': 'Defensa', 'Entradas': 'Defensa', 'Cabezazo': 'Defensa', 'Defensa': 'Defensa',
+        'Resistencia': 'Físico', 'Fuerza': 'Físico', 'Agresividad': 'Físico', 'Físico': 'Físico', 'Salto': 'Físico'
       };
+
+      evals.forEach(ev => {
+        const s = ev.stats as Record<string, number>;
+        if (s) {
+          Object.entries(s).forEach(([hab, val]) => {
+            const cat = mapeo[hab] || hab; // Si no hay mapeo, intentamos usar el nombre directo
+            if (sumas.hasOwnProperty(cat)) {
+              sumas[cat] += val;
+              contadores[cat]++;
+            }
+          });
+        }
+      });
+
+      // Calcular promedios finales
+      Object.keys(stats).forEach((k: string) => {
+        const valFinal = contadores[k] > 0 ? Math.round(sumas[k] / contadores[k]) : 50;
+        (stats as any)[k] = valFinal;
+      });
     }
 
     // Procesar Asistencia
