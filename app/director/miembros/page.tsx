@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink } from 'lucide-react';
+import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DirectorioMiembros() {
@@ -23,6 +23,8 @@ export default function DirectorioMiembros() {
   const [isModalInvitacionOpen, setIsModalInvitacionOpen] = useState(false);
   const [emailAcceso, setEmailAcceso] = useState('');
   const [generandoAcceso, setGenerandoAcceso] = useState(false);
+  const [isModalDetallesOpen, setIsModalDetallesOpen] = useState(false);
+  const [solicitudSeleccionada, setSolicitudSeleccionada] = useState<any>(null);
 
   // Sincronizar correo automáticamente al gestionar acceso
   useEffect(() => {
@@ -204,6 +206,13 @@ export default function DirectorioMiembros() {
                         <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2"><ExternalLink className="w-5 h-5" /></button>
                       ) : (
                         <div className="flex gap-1">
+                          <button 
+                            onClick={() => { setSolicitudSeleccionada(jugador); setIsModalDetallesOpen(true); }}
+                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-all"
+                            title="Ver Ficha Completa"
+                          >
+                            <Eye className="w-5 h-5" />
+                          </button>
                           <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
                           <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
                         </div>
@@ -312,60 +321,146 @@ export default function DirectorioMiembros() {
                   </div>
                </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DE INVITACIÓN (CÓDIGO DE REGISTRO) */}
-      {isModalInvitacionOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="p-8 text-center">
-              <div className="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <Mail className="w-10 h-10 text-orange-500" />
+          </      {/* MODAL DE DETALLES DE SOLICITUD */}
+      {isModalDetallesOpen && solicitudSeleccionada && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[150] flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800 flex flex-col">
+            {/* Header */}
+            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+                  <User className="text-white w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Ficha de Solicitud</h3>
+                  <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest mt-2 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span> Pendiente de Validación
+                  </p>
+                </div>
               </div>
-              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic">Invitar a un Miembro</h3>
-              <p className="text-slate-500 text-sm font-medium mt-3 px-6">Envía este enlace a los padres o nuevos miembros para que se registren por su cuenta.</p>
+              <button onClick={() => setIsModalDetallesOpen(false)} className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-slate-600 dark:hover:text-white transition-all shadow-sm">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Content Scrollable */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
               
-              <div className="mt-8 p-6 bg-slate-50 rounded-3xl border border-slate-100 relative group">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Link de Registro Exclusivo</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-white p-4 rounded-xl border border-slate-200 text-xs font-mono text-slate-600 truncate overflow-hidden">
-                    {typeof window !== 'undefined' ? `${window.location.origin}/registro?invite=true` : ''}
+              {/* 1. Perfil Principal */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-slate-400 dark:text-slate-500">
+                    <CreditCard className="w-4 h-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Identificación</p>
                   </div>
-                  <button 
-                    onClick={() => {
-                      const link = `${window.location.origin}/registro?invite=true`;
-                      navigator.clipboard.writeText(link);
-                      toast.success("¡Enlace copiado al portapapeles!");
-                    }}
-                    className="p-4 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 hover:scale-105 active:scale-95 transition-all"
-                  >
-                    <Download className="w-5 h-5" style={{transform: 'rotate(270deg)'}} />
-                  </button>
+                  <p className="text-lg font-black text-slate-800 dark:text-white">{solicitudSeleccionada.nombres} {solicitudSeleccionada.apellidos}</p>
+                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">CC/TI: {solicitudSeleccionada.documento_identidad || 'N/A'}</p>
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                    <Calendar className="w-4 h-4 text-orange-500" />
+                    Nacimiento: {solicitudSeleccionada.fecha_nacimiento || '---'}
+                  </div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-inner">
+                  <div className="flex items-center gap-3 text-slate-400 mb-3">
+                    <Smartphone className="w-4 h-4" />
+                    <p className="text-[10px] font-black uppercase tracking-widest">Contacto Directo</p>
+                  </div>
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">{solicitudSeleccionada.telefono || 'Sin teléfono'}</p>
+                  <p className="text-[11px] font-medium text-slate-400 mt-1 truncate">{solicitudSeleccionada.email || 'Sin correo'}</p>
+                  <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-500 uppercase font-black tracking-widest">
+                    <MapPin className="w-3.5 h-3.5 text-orange-500" /> {solicitudSeleccionada.direccion || 'Sin dirección'}
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col gap-3">
-                <button 
-                  onClick={() => {
-                    const mensaje = `¡Hola! Bienvenido a la academia 👋. Para unirte a nuestra plataforma oficial, regístrate en el siguiente enlace:\n\n🔗 ${window.location.origin}/registro?invite=true`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(mensaje)}`, '_blank');
-                  }}
-                  className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2"
-                >
-                  <Smartphone className="w-5 h-5" /> Compartir en WhatsApp
-                </button>
-                <button 
-                  onClick={() => setIsModalInvitacionOpen(false)}
-                  className="w-full bg-slate-100 text-slate-500 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all"
-                >
-                  Cerrar
-                </button>
+              {/* 2. Responsable Legal */}
+              <div className="bg-slate-900 rounded-[2rem] p-6 text-white border-l-4 border-orange-500 shadow-xl overflow-hidden relative group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full"></div>
+                <div className="flex items-center gap-4 mb-4 relative z-10">
+                  <ShieldCheck className="text-orange-400 w-6 h-6" />
+                  <h4 className="text-sm font-black uppercase italic tracking-widest">Acudiente / Representante</h4>
+                </div>
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Nombre Completo</p>
+                    <p className="text-sm font-black border-b border-white/10 pb-2">{solicitudSeleccionada.acudiente_nombre || 'No registrado'}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Identificación</p>
+                    <p className="text-sm font-black border-b border-white/10 pb-2">{solicitudSeleccionada.acudiente_identificacion || 'N/A'}</p>
+                  </div>
+                </div>
               </div>
+
+              {/* 3. Salud y Tallas */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl shadow-sm text-center">
+                  <HeartPulse className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Sangre</p>
+                  <p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.tipo_sangre || '--'}</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl shadow-sm text-center">
+                  <Activity className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">EPS</p>
+                  <p className="text-sm font-black text-slate-800 dark:text-white">{solicitudSeleccionada.eps || 'No registrada'}</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl shadow-sm text-center">
+                  <Download className="w-6 h-6 text-orange-500 mx-auto mb-2" style={{transform: 'rotate(180deg)'}} />
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Talla Uniforme</p>
+                  <p className="text-xl font-black text-slate-800 dark:text-white uppercase">{solicitudSeleccionada.talla_uniforme || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* 4. Patologías */}
+              <div className={`p-6 rounded-[2rem] border-2 ${solicitudSeleccionada.patologias ? 'bg-red-50 border-red-100 dark:bg-red-500/5 dark:border-red-500/20' : 'bg-slate-50 border-slate-100 dark:bg-slate-800/40 dark:border-slate-800'}`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <Activity className={`w-5 h-5 ${solicitudSeleccionada.patologias ? 'text-red-500' : 'text-slate-400'}`} />
+                  <h4 className={`text-xs font-black uppercase tracking-widest ${solicitudSeleccionada.patologias ? 'text-red-700 dark:text-red-400' : 'text-slate-500'}`}>Observaciones Médicas / Alergias</h4>
+                </div>
+                <p className={`text-sm font-bold ${solicitudSeleccionada.patologias ? 'text-red-600 dark:text-red-300' : 'text-slate-400'}`}>
+                  {solicitudSeleccionada.patologias || 'El jugador no reportó patologías o alergias conocidas.'}
+                </p>
+              </div>
+
+              {/* 5. Contacto Emergencia */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 flex items-center gap-3 mb-1 text-slate-400">
+                  < Smartphone className="w-4 h-4 text-orange-500" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">En caso de emergencia avisar a:</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Nombre</p>
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">{solicitudSeleccionada.emergencia_nombre || '---'}</p>
+                </div>
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Teléfono</p>
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">{solicitudSeleccionada.emergencia_telefono || '---'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="p-8 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-4">
+              <button 
+                onClick={() => { setIsModalDetallesOpen(false); rechazarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
+                className="flex-1 bg-white dark:bg-slate-800 border-2 border-red-500 text-red-500 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/5 active:scale-95"
+              >
+                Rechazar Ingreso
+              </button>
+              <button 
+                onClick={() => { setIsModalDetallesOpen(false); aprobarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }}
+                className="flex-[1.5] bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-emerald-500/20 hover:bg-emerald-600 hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3"
+              >
+                <Check className="w-5 h-5" /> Aprobar Deportista
+              </button>
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+       </div>
       )}
     </div>
   );
