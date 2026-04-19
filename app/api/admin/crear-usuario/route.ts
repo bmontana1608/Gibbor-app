@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       .from('perfiles')
       .update({ 
         id: authUser.user.id, // Cambiamos el ID del perfil para que coincida con el de Auth
-        email: email 
+        email_contacto: email 
       })
       .eq('id', perfilId); // El ID temporal que tenía en la base de datos
 
