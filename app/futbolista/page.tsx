@@ -524,9 +524,17 @@ export default function DashboardFutbolista() {
                   <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Gestión <span className="text-orange-500">Financiera</span></h2>
                   <p className="text-slate-500 font-medium">Estado de mensualidades y uniformes.</p>
                 </div>
-                <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${perfil?.estado_pago === 'Al día' ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
-                  {perfil?.estado_pago || 'Pendiente'}
-                </div>
+                {(() => {
+                  const esBecado = (perfil?.tipo_plan || '').toLowerCase().includes('beca');
+                  const alDia = perfil?.estado_pago === 'Al día' || esBecado;
+                  
+                  return (
+                    <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${alDia ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
+                      {esBecado && <Shield className="w-3.5 h-3.5" />}
+                      {alDia ? 'Al día' : 'Pendiente'}
+                    </div>
+                  );
+                })()}
              </div>
              {pagos.length > 0 ? (
                <div className="space-y-4">

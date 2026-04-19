@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles } from 'lucide-react';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 
 export default function ModuloCobranza() {
@@ -514,7 +514,8 @@ export default function ModuloCobranza() {
 
   const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
-    const esAlDia = idsPagadosEsteMes.has(j.id);
+    // Un jugador está al día si tiene pago este mes O si es becado (tarifa 0)
+    const esAlDia = idsPagadosEsteMes.has(j.id) || tarifa === 0;
     return { ...j, esAlDia, tarifa };
   });
 
@@ -867,7 +868,9 @@ export default function ModuloCobranza() {
                             <td className="p-4 md:px-6 font-black text-slate-700">${jugador.tarifa.toLocaleString('es-CO')}</td>
                             <td className="p-4 md:px-6">
                               {jugador.tarifa === 0 ? (
-                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-100 text-blue-700 border border-blue-200">Beca</span>
+                                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center w-fit gap-1.5 shadow-sm">
+                                  <ShieldCheck className="w-3.5 h-3.5" /> Becado / Al día
+                                </span>
                               ) : (
                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
                                   {esAlDia ? 'Al día' : 'Pendiente'}

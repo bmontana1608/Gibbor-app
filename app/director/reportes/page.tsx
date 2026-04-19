@@ -120,11 +120,13 @@ export default function ModuloReportes() {
     const filas = miembrosFiltrados.map(j => {
       const plan = planes.find(p => p.nombre === j.tipo_plan);
       const tarifa = plan?.precio_base || 0;
-      const pagado = pagos.find(p => p.jugador_id === j.id) ? tarifa : 0;
+      const pagado = (pagos.find(p => p.jugador_id === j.id) || tarifa === 0) ? tarifa : 0;
       const asisIndividual = obtenerAsistenciaGrupo(j.grupos);
+      const labelEstado = tarifa === 0 ? 'Becado' : (j.estado_pago || 'Pendiente');
+      
       return [
         `"${j.nombres} ${j.apellidos}"`, `"${j.grupos || 'Sin grupo'}"`, `"${asisIndividual}%"`, 
-        `"${new Date(j.created_at).toLocaleDateString('es-ES')}"`, `"${j.estado_pago || 'Pendiente'}"`, `"${pagado}"`
+        `"${new Date(j.created_at).toLocaleDateString('es-ES')}"`, `"${labelEstado}"`, `"${pagado}"`
       ];
     });
     // Se usa el separador ; para compatibilidad directa con el Excel de LATAM/España
@@ -370,7 +372,8 @@ export default function ModuloReportes() {
                         miembrosFiltrados.map(j => {
                           const tarifa = calcularTarifa(j.tipo_plan);
                           const estado = (j.estado_pago || '').trim().toLowerCase();
-                          const esAlDia = estado === 'al día' || estado === 'al dia';
+                          // Becados o marcados manualmente
+                          const esAlDia = estado === 'al día' || estado === 'al dia' || tarifa === 0;
                           const fechaCorta = new Date(j.created_at).toLocaleDateString('es-ES');
 
                           return (
@@ -386,7 +389,7 @@ export default function ModuloReportes() {
                               <td className="py-3 px-4 text-slate-600 font-medium flex items-center gap-1.5"><Calendar className="w-3 h-3 text-slate-400" /> {fechaCorta}</td>
                               <td className="py-3 px-4 text-center">
                                 <span className={`px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                                  {esAlDia ? 'Al día' : 'En Mora'}
+                                  {tarifa === 0 ? 'Becado' : (esAlDia ? 'Al día' : 'En Mora')}
                                 </span>
                               </td>
                               <td className={`py-3 px-4 text-right font-bold ${esAlDia ? 'text-emerald-600' : 'text-slate-400'}`}>

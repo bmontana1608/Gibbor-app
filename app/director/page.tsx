@@ -101,17 +101,16 @@ export default function DashboardDirector() {
             totalProyectado += precio;
             
             // CONTEO REAL: Solo pago físico registrado O beca legítima
-            // (No se usa estado_pago del perfil porque es un dato estático que no se resetea mensualmente)
             const tienePago = idsPagados.has(j.id);
             const esBecado = precio === 0;
             // Para excluir de alertas: también consideramos marcado manual
-            const marcadoAlDia = j.estado_pago === 'Al día';
+            const marcadoAlDia = j.estado_pago === 'Al día' || esBecado;
 
             if (tienePago || esBecado) {
               alDiaCount++;
             }
 
-            if (!tienePago && !esBecado && !marcadoAlDia) {
+            if (!tienePago && !esBecado && j.estado_pago !== 'Al día') {
               const numLimpio = String(j.telefono || '').replace(/\D/g, '');
               morosos.push({ 
                 ...j, 
