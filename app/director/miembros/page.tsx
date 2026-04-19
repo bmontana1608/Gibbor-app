@@ -183,7 +183,13 @@ export default function DirectorioMiembros() {
                     </td>
                     <td className="p-4 md:px-6 text-right">
                       <div className="flex justify-end gap-1 md:gap-2">
-                        <button onClick={() => { setSolicitudSeleccionada(jugador); setEmailAcceso(jugador.email || ''); setIsModalDetallesOpen(true); }} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
+                        <button onClick={() => { 
+                          setSolicitudSeleccionada(jugador); 
+                          // Priorizar email de contacto del formulario sobre el email de auth (que estará vacío inicialmente)
+                          const emailSugerido = jugador.email_contacto || jugador.email || '';
+                          setEmailAcceso(emailSugerido); 
+                          setIsModalDetallesOpen(true); 
+                        }} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
                         {pestaña === 'Registrados' ? (
                           <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 hidden md:block"><ExternalLink className="w-5 h-5" /></button>
                         ) : (
@@ -280,9 +286,46 @@ export default function DirectorioMiembros() {
                   <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl mb-4 font-bold outline-none focus:ring-2 focus:ring-orange-500" />
                   <div className="flex flex-col gap-3">
                     {solicitudSeleccionada.email && pestaña === 'Registrados' ? (
-                      <button onClick={async () => { if(!window.confirm("¿Resetear?")) return; setGenerandoAcceso(true); const tid = toast.loading("Reseteando..."); await fetch('/api/admin/reset-password', { method: 'POST', body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Gibbor2026*' }) }); toast.success("Reset OK", {id: tid}); setGenerandoAcceso(false); }} disabled={generandoAcceso} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Resetear Clave</button>
+                      <button onClick={async () => { 
+                        if(!window.confirm("¿Seguro que deseas resetear la clave de este usuario?")) return; 
+                        setGenerandoAcceso(true); 
+                        const tid = toast.loading("Reseteando clave..."); 
+                        const res = await fetch('/api/admin/reset-password', { 
+                          method: 'POST', 
+                          body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Gibbor2026*' }) 
+                        }); 
+                        if(res.ok) toast.success("Clave reseteada a Gibbor2026*", {id: tid});
+                        else toast.error("Error al resetear clave", {id: tid});
+                        setGenerandoAcceso(false); 
+                      }} disabled={generandoAcceso} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Resetear Clave</button>
                     ) : (
-                      <button onClick={async () => { if(!emailAcceso) return; setGenerandoAcceso(true); const res = await fetch('/api/admin/crear-usuario', { method: 'POST', body: JSON.stringify({ email: emailAcceso, password: 'Gibbor2026*', rol: solicitudSeleccionada.rol, perfilId: solicitudSeleccionada.id }) }); if(res.ok) { toast.success("Activado!"); setIsModalDetallesOpen(false); cargarJugadores(); } else { toast.error("Fallo"); } setGenerandoAcceso(false); }} disabled={generandoAcceso} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
+                      <button onClick={async () => { 
+                        if(!emailAcceso) return toast.error("Por favor ingresa un correo"); 
+                        setGenerandoAcceso(true); 
+                        const tid = toast.loading("Activando acceso...");
+                        try {
+                          const res = await fetch('/api/admin/crear-usuario', { 
+                            method: 'POST', 
+                            body: JSON.stringify({ 
+                              email: emailAcceso, 
+                              password: 'Gibbor2026*', 
+                              rol: solicitudSeleccionada.rol || 'Futbolista', 
+                              perfilId: solicitudSeleccionada.id 
+                            }) 
+                          }); 
+                          const data = await res.json();
+                          if(res.ok) { 
+                            toast.success("¡Acceso activado correctamente!", { id: tid }); 
+                            setIsModalDetallesOpen(false); 
+                            cargarJugadores(); 
+                          } else { 
+                            toast.error("Error: " + (data.error || "Fallo desconocido"), { id: tid }); 
+                          }
+                        } catch (err) {
+                           toast.error("Error de conexión", { id: tid });
+                        }
+                        setGenerandoAcceso(false); 
+                      }} disabled={generandoAcceso} className="w-full bg-orange-500 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
                     )}
                     <button onClick={() => window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=Acceso Activado.`, '_blank')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
                   </div>
