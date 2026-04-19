@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from 'html-to-image';
+import jsPDF from 'jspdf';
+import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -48,7 +50,6 @@ function RadarChart({ data, size = 300 }: { data: { label: string, value: number
       {data.map((d, i) => {
         const x = center + radius * Math.cos(i * angleStep - Math.PI / 2);
         const y = center + radius * Math.sin(i * angleStep - Math.PI / 2);
-        // Desplazamiento inteligente de etiquetas según posición
         const offsetX = Math.cos(i * angleStep - Math.PI / 2) * 35;
         const offsetY = Math.sin(i * angleStep - Math.PI / 2) * 25;
         return (
@@ -164,7 +165,6 @@ export default function DashboardFutbolista() {
       if (!session) return setCargando(false);
 
       try {
-        // 1. VALIDACIÓN DE FAMILIA (Necesaria para determinar el ID)
         const cleanEmail = session.user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
         const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
         const misPerfiles = await resFam.json();
@@ -190,29 +190,17 @@ export default function DashboardFutbolista() {
         
         setSelectedHijoId(currentPerfilId);
 
-        // 2. CARGA UNIFICADA (MEGA API)
         const resDash = await fetch(`/api/dashboard/futbolista?id=${currentPerfilId}`).then(r => r.json());
 
         if (resDash && !resDash.error) {
-          // Procesar Perfil e Insignias
           setPerfil(resDash.perfil);
           const colMap: any = { goleador: 'from-orange-400 to-red-500', muro: 'from-blue-500 to-indigo-700', cerebro: 'from-purple-500 to-pink-600', fairplay: 'from-green-400 to-emerald-600', rayo: 'from-yellow-400 to-orange-500' };
           setInsignias((resDash.perfil?.insignias || []).map((i: any) => ({ ...i.insignias, slug: i.insignia_id, color: colMap[i.insignia_id] || 'from-slate-700 to-slate-800' })));
-
-          // Procesar Evaluaciones (Carta PRO)
           setRadarData(Object.entries(resDash.stats || {}).map(([label, value]) => ({ label, value: Number(value) })));
-
-          // Procesar Pagos
           setPagos(resDash.pagos || []);
-
-          // Procesar Asistencias
           setAsistenciaPct(resDash.asistenciaPct || 0);
           setAsistenciasLogs(resDash.asistencias || []);
-
-          // Procesar Eventos
           setEventos(resDash.eventos || []);
-
-          // Procesar Config
           if (resDash.config) setClubConfig(resDash.config);
         }
 
@@ -238,6 +226,83 @@ export default function DashboardFutbolista() {
       toast.success("¡Carta descargada con éxito! Muéstrala a tus amigos", { id: toastId });
     } catch (err) {
       toast.error("Error al forjar tu carta", { id: toastId });
+    }
+  };
+
+  const handleVerRecibo = async (pago: any) => {
+    const toastId = toast.loading("Generando tu recibo oficial...");
+    try {
+      const doc = new jsPDF();
+      
+      try {
+        doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 10, 20, 20);
+      } catch (e) {
+        console.warn("No se pudo cargar el logo en el PDF");
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(22);
+      doc.setTextColor(249, 115, 22);
+      doc.text('EFD GIBBOR', 40, 20);
+      
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(clubConfig.nombre_club || 'Escuela de Formación Deportiva', 40, 25);
+      doc.text('Documento Digital de Soporte', 40, 29);
+
+      doc.setDrawColor(240, 240, 240);
+      doc.line(15, 35, 195, 35);
+
+      doc.setFontSize(10);
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.text('DETALLES DEL RECIBO', 15, 45);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(14);
+      doc.text(`Recibo № ${String(pago.consecutivo || '000').padStart(4, '0')}`, 195, 45, { align: 'right' });
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(15, 50, 180, 40, 3, 3, 'F');
+      
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('ALUMNO:', 20, 60);
+      doc.text('FECHA:', 20, 70);
+      doc.text('MÉTODO:', 20, 80);
+      doc.text('CONCEPTO:', 100, 70);
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${perfil.nombres} ${perfil.apellidos}`.toUpperCase(), 40, 60);
+      doc.text(new Date(pago.fecha).toLocaleDateString(), 40, 70);
+      doc.text(pago.metodo_pago || 'Electrónico', 40, 80);
+      doc.text(pago.concepto || 'Mensualidad EFD', 125, 70);
+
+      doc.setFillColor(30, 41, 59);
+      doc.rect(15, 100, 180, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.text('DESCRIPCIÓN', 20, 106.5);
+      doc.text('TOTAL', 185, 106.5, { align: 'right' });
+
+      doc.setTextColor(30, 41, 59);
+      doc.setFont("helvetica", "normal");
+      doc.text('Aporte Mensual Formación Deportiva', 20, 120);
+      doc.setFont("helvetica", "bold");
+      doc.text(`$ ${Number(pago.total || 0).toLocaleString()}`, 185, 120, { align: 'right' });
+      
+      doc.line(15, 125, 195, 125);
+
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text('Este es un comprobante oficial generado por Gibbor App. Gracias por tu confianza.', 105, 150, { align: 'center' });
+
+      doc.save(`Recibo_Gibbor_${pago.consecutivo || 'pago'}.pdf`);
+      toast.success("Recibo generado correctamente", { id: toastId });
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al generar el recibo", { id: toastId });
     }
   };
 
@@ -334,31 +399,13 @@ export default function DashboardFutbolista() {
         )}
       </div>
 
-      {/* NAVEGACIÓN TIPO APP (TABS) */}
       <div className="flex bg-white/5 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 sticky top-4 z-50">
-        <button 
-          onClick={() => setActiveTab('perfil')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-        >
-          <Users className="w-4 h-4" /> Perfil
-        </button>
-        <button 
-          onClick={() => setActiveTab('disciplina')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'disciplina' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-        >
-          <CalendarCheck className="w-4 h-4" /> Disciplina
-        </button>
-        <button 
-          onClick={() => setActiveTab('pagos')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pagos' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-        >
-          <DollarSign className="w-4 h-4" /> Pagos
-        </button>
+        <button onClick={() => setActiveTab('perfil')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}><Users className="w-4 h-4" /> Perfil</button>
+        <button onClick={() => setActiveTab('disciplina')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'disciplina' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}><CalendarCheck className="w-4 h-4" /> Disciplina</button>
+        <button onClick={() => setActiveTab('pagos')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pagos' ? 'bg-orange-500 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}><DollarSign className="w-4 h-4" /> Pagos</button>
       </div>
 
-      {/* RENDERIZADO DINÁMICO SEGÚN PESTAÑA */}
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
         {activeTab === 'perfil' && (
           <div className="space-y-10">
             <div className="bg-slate-900 rounded-[3rem] px-4 py-8 md:p-12 border border-slate-800 shadow-2xl relative overflow-hidden">
@@ -373,20 +420,10 @@ export default function DashboardFutbolista() {
                 {radarData.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center justify-items-center overflow-x-hidden">
                     <div className="flex flex-col items-center justify-center gap-8 w-full">
-                      <FifaCard 
-                        perfil={perfil} 
-                        stats={radarData} 
-                        clubName={clubConfig.nombre_club} 
-                        season={clubConfig.temporada_actual} 
-                      />
-                      <button 
-                        onClick={handleExportCard} 
-                        className="group relative bg-gradient-to-br from-orange-400 to-orange-600 text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center gap-3 overflow-hidden"
-                      >
-                        {/* Shimmer effect */}
+                      <FifaCard perfil={perfil} stats={radarData} clubName={clubConfig.nombre_club} season={clubConfig.temporada_actual} />
+                      <button onClick={handleExportCard} className="group relative bg-gradient-to-br from-orange-400 to-orange-600 text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center gap-3 overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform"></div>
-                        <Download className="w-4 h-4" /> 
-                        <span>Descargar Carta</span>
+                        <Download className="w-4 h-4" /> <span>Descargar Carta</span>
                       </button>
                     </div>
                     <div className="flex flex-col items-center p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
@@ -422,29 +459,16 @@ export default function DashboardFutbolista() {
                {insignias.length > 0 ? (
                   <div className="flex flex-wrap gap-8 justify-center">
                     {insignias.map((insig: any, idx) => {
-                      // Mapeo dinámico de iconos Lucide para un look PRO
-                      const icons: Record<string, any> = {
-                        goleador: Target,
-                        muro: Shield,
-                        cerebro: Zap,
-                        fairplay: Heart,
-                        rayo: Zap
-                      };
+                      const icons: Record<string, any> = { goleador: Target, muro: Shield, cerebro: Zap, fairplay: Heart, rayo: Zap };
                       const IconComponent = icons[insig.slug || insig.id] || Award;
-
                       return (
                         <div key={idx} className="flex flex-col items-center gap-4 group animate-in zoom-in duration-500 delay-75">
                           <div className="relative w-24 h-24 flex items-center justify-center">
-                            {/* Brillo de Fondo */}
                             <div className={`absolute inset-0 bg-gradient-to-br ${insig.color || 'from-orange-400 to-red-600'} opacity-10 blur-2xl rounded-full group-hover:opacity-30 transition-opacity duration-500`}></div>
-                            
-                            {/* Medalla Premium */}
                             <div className={`relative z-10 w-20 h-20 rounded-[2rem] bg-gradient-to-br ${insig.color || 'from-orange-400 to-red-600'} flex items-center justify-center shadow-xl border border-white/20 group-hover:scale-110 transition-transform duration-500 group-hover:rotate-3`}>
                                <IconComponent className="w-10 h-10 text-white drop-shadow-lg" />
                                <div className="absolute top-0 left-0 w-full h-1/2 bg-white/10 rounded-t-[2rem]"></div>
                             </div>
-
-                            {/* Etiqueta de Rango */}
                             <div className="absolute -bottom-1 z-20 bg-slate-900 border border-slate-700 px-3 py-0.5 rounded-full shadow-lg">
                                <p className="text-[7px] font-black text-white uppercase tracking-[0.2em]">TITULAR</p>
                             </div>
@@ -452,9 +476,7 @@ export default function DashboardFutbolista() {
                           <div className="text-center">
                             <p className="text-slate-800 font-black text-[11px] uppercase tracking-tighter leading-none mb-1 group-hover:text-orange-600 transition-colors uppercase">{insig.nombre}</p>
                             <div className="flex items-center justify-center gap-1 opacity-20">
-                               <div className="w-4 h-[1px] bg-slate-400"></div>
-                               <Star className="w-2 h-2 text-slate-500" />
-                               <div className="w-4 h-[1px] bg-slate-400"></div>
+                               <div className="w-4 h-[1px] bg-slate-400"></div><Star className="w-2 h-2 text-slate-500" /><div className="w-4 h-[1px] bg-slate-400"></div>
                             </div>
                           </div>
                         </div>
@@ -485,21 +507,16 @@ export default function DashboardFutbolista() {
                 </div>
               </div>
             </div>
-
             {asistenciasLogs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {asistenciasLogs.slice(0, 12).map((log, idx) => (
                   <div key={idx} className={`p-5 rounded-[2rem] border transition-all ${log.estado === 'Presente' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
                     <div className="flex justify-between items-start mb-4">
-                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
-                        {log.estado}
-                      </span>
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>{log.estado}</span>
                       <span className="text-[10px] font-bold text-slate-400">{new Date(log.fecha).toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl ${log.estado === 'Presente' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
-                        {log.tipo_sesion === 'Partido' ? <Trophy className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />}
-                      </div>
+                      <div className={`p-2 rounded-xl ${log.estado === 'Presente' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>{log.tipo_sesion === 'Partido' ? <Trophy className="w-5 h-5" /> : <Dumbbell className="w-5 h-5" />}</div>
                       <div>
                         <p className="text-sm font-black text-slate-800 leading-none">{log.tipo_sesion || 'Entrenamiento'}</p>
                         <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-tighter">EFD GIBBOR</p>
@@ -525,13 +542,12 @@ export default function DashboardFutbolista() {
                   <p className="text-slate-500 font-medium">Estado de mensualidades y uniformes.</p>
                 </div>
                 {(() => {
-                  const esBecado = (perfil?.tipo_plan || '').toLowerCase().includes('beca');
-                  const alDia = perfil?.estado_pago === 'Al día' || esBecado;
-                  
+                  const plan = (perfil?.tipo_plan || '').toLowerCase();
+                  const esBeca100 = plan.includes('100') || (perfil?.precio_plan === 0);
+                  const alDia = perfil?.estado_pago === 'Al día' || esBeca100;
                   return (
                     <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${alDia ? 'bg-emerald-100 text-emerald-600' : 'bg-orange-100 text-orange-600'}`}>
-                      {esBecado && <Shield className="w-3.5 h-3.5" />}
-                      {alDia ? 'Al día' : 'Pendiente'}
+                      {esBeca100 ? <><Shield className="w-3.5 h-3.5" /> Becado / Al día</> : (alDia ? 'Al día' : 'Pendiente')}
                     </div>
                   );
                 })()}
@@ -542,24 +558,12 @@ export default function DashboardFutbolista() {
                    <div key={pago.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 transition-all hover:border-orange-200">
                      <div className="flex items-center gap-4">
                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-orange-500"><Zap className="w-6 h-6" /></div>
-                       <div>
-                         <p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad EFD'}</p>
-                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{new Date(pago.fecha).toLocaleDateString()}</p>
-                       </div>
+                       <div><p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad EFD'}</p><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">{new Date(pago.fecha).toLocaleDateString()}</p></div>
                      </div>
                      <div className="text-right flex flex-col items-end gap-2">
                        <p className="text-lg font-black text-slate-800 leading-none lg:mb-1">$ {(pago.monto || pago.total || 0).toLocaleString()}</p>
                        <div className="flex items-center gap-2">
-                          {pago.recibo_url && (
-                             <a 
-                               href={pago.recibo_url} 
-                               target="_blank" 
-                               rel="noopener noreferrer"
-                               className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase hover:bg-emerald-200 transition-colors"
-                             >
-                               <FileText className="w-3 h-3" /> Recibo
-                             </a>
-                          )}
+                          <button onClick={() => handleVerRecibo(pago)} className="flex items-center gap-1 bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase hover:bg-emerald-200 transition-colors"><FileText className="w-3 h-3" /> Recibo</button>
                           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500">Verificado</span>
                        </div>
                      </div>

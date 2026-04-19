@@ -514,9 +514,15 @@ export default function ModuloCobranza() {
 
   const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
-    // Un jugador está al día si tiene pago este mes O si es becado (tarifa 0)
-    const esAlDia = idsPagadosEsteMes.has(j.id) || tarifa === 0;
-    return { ...j, esAlDia, tarifa };
+    const planLabel = (j.tipo_plan || '').toLowerCase();
+    
+    // Un jugador está al día si:
+    // 1. Tiene pago este mes
+    // 2. Es becado al 100% (tarifa 0 o nombre indica 100%)
+    const esBeca100 = tarifa === 0 || planLabel.includes('100');
+    const esAlDia = idsPagadosEsteMes.has(j.id) || esBeca100;
+    
+    return { ...j, esAlDia, tarifa, esBeca100 };
   });
 
   const totalAlDia = jugadoresFin.filter(j => j.esAlDia && j.tarifa > 0).length;
@@ -867,14 +873,19 @@ export default function ModuloCobranza() {
                             </td>
                             <td className="p-4 md:px-6 font-black text-slate-700">${jugador.tarifa.toLocaleString('es-CO')}</td>
                             <td className="p-4 md:px-6">
-                              {jugador.tarifa === 0 ? (
+                              {jugador.esBeca100 ? (
                                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center w-fit gap-1.5 shadow-sm">
-                                  <ShieldCheck className="w-3.5 h-3.5" /> Becado / Al día
+                                  <ShieldCheck className="w-3.5 h-3.5" /> Beca 100% / Al día
                                 </span>
                               ) : (
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                                  {esAlDia ? 'Al día' : 'Pendiente'}
-                                </span>
+                                <div className="flex flex-col gap-1">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
+                                    {esAlDia ? 'Al día' : 'Pendiente'}
+                                  </span>
+                                  {(jugador.tipo_plan || '').toLowerCase().includes('50') && (
+                                    <span className="text-[9px] font-black text-orange-500 uppercase tracking-tighter">Beneficio Beca 50%</span>
+                                  )}
+                                </div>
                               )}
                             </td>
                             <td className="p-4 md:px-6 text-right">
