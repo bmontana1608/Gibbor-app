@@ -264,11 +264,19 @@ export default function ReporteAsistenciaDirector() {
                       <div key={reg.id} className="py-4 flex items-center justify-between">
                          <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                               {reg.perfiles?.foto_url ? <img src={reg.perfiles.foto_url} className="w-full h-full object-cover" /> : reg.perfiles?.nombres?.charAt(0)}
+                               {reg.perfiles?.foto_url ? (
+                                 <img src={reg.perfiles.foto_url} className="w-full h-full object-cover" />
+                               ) : (
+                                 reg.perfiles?.nombres?.charAt(0) || '?'
+                               )}
                             </div>
                             <div>
-                               <p className="font-bold text-slate-800 dark:text-white text-sm">{reg.perfiles?.nombres} {reg.perfiles?.apellidos}</p>
-                               <p className="text-[9px] text-slate-400 font-bold uppercase">{reg.perfiles?.id.split('-')[0]}</p>
+                               <p className="font-bold text-slate-800 dark:text-white text-sm">
+                                 {reg.perfiles?.nombres || 'Sin'} {reg.perfiles?.apellidos || 'Nombre'}
+                               </p>
+                               <p className="text-[9px] text-slate-400 font-bold uppercase">
+                                 ID: {reg.perfiles?.id?.split('-')[0] || '---'}
+                               </p>
                             </div>
                          </div>
                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
