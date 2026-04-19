@@ -139,7 +139,7 @@ export default function AutoRegistroPublico() {
           </div>
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">
-          Solicitud de Ingreso
+          <span className="text-orange-500">Solicitud</span> de Ingreso
         </h1>
         <p className="text-slate-500 font-bold max-w-md mx-auto leading-relaxed border-t-2 border-orange-500/20 pt-4">
           Inicia tu camino a la élite deportiva con Gibbor FC.
@@ -308,7 +308,7 @@ export default function AutoRegistroPublico() {
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <FileText className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
-              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad Alumno</p>
+              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Jugador</span></p>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lado frontal (T.I / C.C)</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
@@ -316,7 +316,7 @@ export default function AutoRegistroPublico() {
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
-              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro EPS</p>
+              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro <span className="text-orange-500">EPS</span></p>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
@@ -324,7 +324,7 @@ export default function AutoRegistroPublico() {
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <User className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
-              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad Acudiente</p>
+              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Acudiente</span></p>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Cédula del Representante</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
