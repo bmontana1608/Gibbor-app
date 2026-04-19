@@ -1,13 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { User, Mail, Smartphone, MapPin, ShieldCheck, HeartPulse, FileText, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { 
+  User, Mail, Smartphone, MapPin, ShieldCheck, 
+  HeartPulse, FileText, CheckCircle2, Loader2, 
+  ArrowRight, Sparkles, Target
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function AutoRegistroPublico() {
   const [isMinor, setIsMinor] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [registroExitoso, setRegistroExitoso] = useState(false);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [categoriaAsignada, setCategoriaAsignada] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     nombres: '',
@@ -25,6 +32,7 @@ export default function AutoRegistroPublico() {
     patologias: '',
     emergencia_nombre: '',
     emergencia_telefono: '',
+    grupos: '', // Campo para la categoría automática
 
     // DATOS DE CONTROL INTERNO
     rol: 'Futbolista',
@@ -32,6 +40,15 @@ export default function AutoRegistroPublico() {
     estado_pago: 'Pendiente',
     tipo_plan: 'Regular'
   });
+
+  // Cargar categorías al inicio
+  useEffect(() => {
+    async function cargarCategorias() {
+      const { data } = await supabase.from('categorias').select('*').eq('estado', 'Activo');
+      if (data) setCategorias(data);
+    }
+    cargarCategorias();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,12 +58,38 @@ export default function AutoRegistroPublico() {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const dateValue = e.target.value;
     setFormData(prev => ({ ...prev, fecha_nacimiento: dateValue }));
+    
     if (dateValue) {
-      const year = new Date(dateValue).getFullYear();
-      const currentYear = new Date().getFullYear();
-      setIsMinor((currentYear - year) < 18);
+      const birthDate = new Date(dateValue);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      setIsMinor(age < 18);
+
+      // Lógica Inteligente de Asignación de Categoría
+      const match = categorias.find(cat => 
+        age >= (cat.edad_minima || 0) && age <= (cat.edad_maxima || 99)
+      );
+
+      if (match) {
+        setCategoriaAsignada(match);
+        setFormData(prev => ({ ...prev, grupos: match.nombre }));
+        toast.success(`Asignado automáticamente a: ${match.nombre}`, {
+          description: `Basado en la edad (${age} años)`,
+          icon: <Sparkles className="text-orange-500" />
+        });
+      } else {
+        setCategoriaAsignada(null);
+        setFormData(prev => ({ ...prev, grupos: '' }));
+      }
     } else {
       setIsMinor(false);
+      setCategoriaAsignada(null);
     }
   };
 
@@ -59,7 +102,7 @@ export default function AutoRegistroPublico() {
     setGuardando(false);
 
     if (error) {
-      alert('Hubo un error al enviar el registro: ' + error.message);
+       toast.error('Hubo un error al enviar el registro: ' + error.message);
     } else {
       setRegistroExitoso(true); 
     }
@@ -69,22 +112,15 @@ export default function AutoRegistroPublico() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 text-center font-sans tracking-tight transition-all animate-in fade-in duration-700">
         <div className="bg-white border border-slate-100 p-10 md:p-16 rounded-[3rem] max-w-lg w-full shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] relative overflow-hidden">
-          {/* Decorative element */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/5 rounded-full blur-3xl"></div>
-          
           <div className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <CheckCircle2 className="w-12 h-12 text-emerald-500" />
           </div>
-          
           <h1 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">¡Registro Recibido!</h1>
           <p className="text-slate-500 font-medium mb-10 leading-relaxed px-4">
-            Los datos de <strong className="text-orange-600 font-black">{formData.nombres}</strong> han sido enviados correctamente. El Director de la academia revisará la solicitud y te contactará pronto.
+            Los datos de <strong className="text-orange-600 font-black">{formData.nombres}</strong> han sido enviados correctamente. {categoriaAsignada && <span>Asignado preliminarmente a <b>{categoriaAsignada.nombre}</b>. </span>}El Director de la academia revisará la solicitud y te contactará pronto.
           </p>
-          
-          <button 
-            onClick={() => window.location.reload()} 
-            className="group w-full bg-slate-900 text-white font-black py-4 rounded-2xl transition-all shadow-xl hover:shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 text-xs tracking-widest uppercase"
-          >
+          <button onClick={() => window.location.reload()} className="group w-full bg-slate-900 text-white font-black py-4 rounded-2xl transition-all shadow-xl hover:shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-3 text-xs tracking-widest uppercase">
             Nuevo Registro <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -94,19 +130,13 @@ export default function AutoRegistroPublico() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
-      {/* Decorative Branding Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/5 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-900/5 rounded-full blur-[120px]"></div>
 
-      {/* HEADER SECTION */}
       <div className="max-w-3xl mx-auto text-center mb-16 animate-in slide-in-from-top-10 duration-700 relative z-10">
         <div className="flex justify-center mb-8">
           <div className="relative p-3 bg-white rounded-[2.5rem] shadow-2xl shadow-orange-500/10 border border-slate-100 ring-4 ring-orange-500/5">
-            <img 
-              src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" 
-              alt="Gibbor FC" 
-              className="h-24 md:h-28 object-contain" 
-            />
+            <img src="https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png" alt="Gibbor FC" className="h-24 md:h-28 object-contain" />
           </div>
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">
@@ -119,7 +149,6 @@ export default function AutoRegistroPublico() {
 
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
         
-        {/* 1. Datos del Miembro */}
         <section>
           <div className="flex items-center gap-5 mb-12">
             <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center border-b-4 border-orange-500 shadow-xl">
@@ -148,6 +177,27 @@ export default function AutoRegistroPublico() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Fecha Nacimiento *</label>
               <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleDateChange} className="w-full bg-white border border-slate-100 rounded-2xl px-5 py-4 focus:ring-2 focus:ring-orange-500/10 outline-none transition-all font-bold text-slate-500" required />
             </div>
+            
+            {/* CATEGORÍA AUTOMÁTICA VISUAL */}
+            {categoriaAsignada ? (
+              <div className="md:col-span-2 bg-orange-100 dark:bg-orange-500/10 p-5 rounded-2xl border-2 border-orange-500 shadow-lg shadow-orange-500/10 animate-in zoom-in duration-300">
+                <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" /> Categoría Asignada por Sistema
+                </p>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter">{categoriaAsignada.nombre}</h4>
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-full border border-orange-200">
+                    <Target className="w-3.5 h-3.5 text-orange-500" /> {categoriaAsignada.nivel}
+                  </div>
+                </div>
+              </div>
+            ) : formData.fecha_nacimiento && (
+              <div className="md:col-span-2 bg-slate-100 p-5 rounded-2xl border-2 border-dashed border-slate-300 flex items-center gap-4">
+                 <AlertCircle className="w-6 h-6 text-slate-400" />
+                 <p className="text-xs font-bold text-slate-500 leading-tight">No se encontró una categoría activa para esta edad. El director asignará una manualmente tras revisar el registro.</p>
+              </div>
+            )}
+
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Número de WhatsApp *</label>
               <div className="flex">
@@ -166,7 +216,6 @@ export default function AutoRegistroPublico() {
           </div>
         </section>
 
-        {/* 2. Acudiente (Branding Gibbor) */}
         {isMinor && (
           <section className="bg-slate-900 border-l-8 border-orange-500 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden group animate-in slide-in-from-right-10 duration-500">
             <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 blur-3xl rounded-full group-hover:bg-orange-500/10 transition-colors"></div>
@@ -175,7 +224,7 @@ export default function AutoRegistroPublico() {
                 <ShieldCheck className="text-orange-400 w-7 h-7" />
               </div>
               <div>
-                <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Responsante Legal</h2>
+                <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Representante Legal</h2>
                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Requerido para menores</p>
               </div>
             </div>
@@ -192,7 +241,6 @@ export default function AutoRegistroPublico() {
           </section>
         )}
 
-        {/* 3. Información Médica (Branding Gibbor) */}
         <section>
           <div className="flex items-center gap-5 mb-12">
             <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center border-b-4 border-slate-300 shadow-sm">
@@ -248,7 +296,6 @@ export default function AutoRegistroPublico() {
           </div>
         </section>
 
-        {/* 4. Documentación */}
         <section className="relative z-10">
           <div className="flex items-center gap-4 mb-10">
             <div className="w-12 h-12 bg-orange-100/50 rounded-2xl flex items-center justify-center border border-orange-200">
@@ -273,14 +320,12 @@ export default function AutoRegistroPublico() {
           </div>
         </section>
 
-        {/* SUBMIT BUTTON */}
         <div className="pt-8">
           <button 
             type="submit" 
             disabled={guardando} 
             className="group relative w-full bg-slate-900 text-white font-black text-xl py-6 rounded-[2rem] transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] hover:shadow-orange-500/20 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 overflow-hidden"
           >
-             {/* Effect */}
             <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             
             <span className="relative z-10 uppercase italic tracking-tighter">
@@ -294,5 +339,16 @@ export default function AutoRegistroPublico() {
         </div>
       </form>
     </div>
+  );
+}
+
+// Icono extra faltante en la importación inicial
+function AlertCircle({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" x2="12" y1="8" y2="12" />
+      <line x1="12" x2="12.01" y1="16" y2="16" />
+    </svg>
   );
 }
