@@ -309,24 +309,24 @@ export default function AutoRegistroPublico() {
                 <FileText className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Jugador</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lado frontal (T.I / C.C)</p>
-              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Foto, PDF o Word (T.I / C.C)</p>
+              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
             <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro <span className="text-orange-500">EPS</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
-              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado (Imagen/PDF)</p>
+              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
             <div className="md:col-span-2 group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <User className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Acudiente</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Cédula del Representante</p>
-              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Foto, PDF o Word de la Cédula</p>
+              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
           </div>
         </section>
