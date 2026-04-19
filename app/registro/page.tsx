@@ -128,7 +128,7 @@ export default function AutoRegistroPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
+    <div className="min-h-screen bg-slate-100 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/5 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-900/5 rounded-full blur-[120px]"></div>
 
@@ -146,7 +146,7 @@ export default function AutoRegistroPublico() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
         
         <section>
           <div className="flex items-center gap-5 mb-12">
@@ -159,7 +159,7 @@ export default function AutoRegistroPublico() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-inner">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-sm">
             <div className="group">
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Nombres Completos *</label>
               <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 outline-none transition-all font-bold text-slate-700 shadow-sm" required />
@@ -251,7 +251,7 @@ export default function AutoRegistroPublico() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-slate-50 rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-inner mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 bg-white rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-sm mb-10">
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Tipo de Sangre *</label>
               <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-5 py-4 outline-none font-bold text-slate-700 appearance-none shadow-sm cursor-pointer focus:border-orange-500/30 transition-all" required>
@@ -303,7 +303,7 @@ export default function AutoRegistroPublico() {
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Documentación</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-sm">
             <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <FileText className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
