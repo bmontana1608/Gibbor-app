@@ -3,13 +3,6 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import webpush from 'web-push';
 
-// Configurar web-push
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL || 'mailto:admin@efdgibbor.com',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
-
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies();
@@ -38,6 +31,18 @@ export async function POST(req: Request) {
 
     const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
     if (perfil?.rol !== 'Director') return NextResponse.json({ error: 'Solo el director puede enviar alertas' }, { status: 403 });
+
+    // Configurar web-push SOLO cuando se va a usar (Lazy Loading)
+    // Esto evita errores durante el build de Vercel
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+      return NextResponse.json({ error: 'Las llaves VAPID no están configuradas en el servidor' }, { status: 500 });
+    }
+
+    webpush.setVapidDetails(
+      process.env.VAPID_EMAIL || 'mailto:admin@efdgibbor.com',
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
 
     // 1. Obtener todos los suscritos
     const { data: subscripciones, error } = await supabase.from('push_subscriptions').select('*');
