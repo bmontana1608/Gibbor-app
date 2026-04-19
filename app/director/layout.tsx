@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone } from 'lucide-react';
 
 export default function DirectorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,6 +33,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
     { name: 'Asistencia', path: '/director/asistencia', icon: <ClipboardCheck className="w-5 h-5" /> },
     { name: 'Categorías', path: '/director/categorias', icon: <Tags className="w-5 h-5" /> },
     { name: 'Reportes', path: '/director/reportes', icon: <BarChart className="w-5 h-5" /> },
+    { name: 'Comunicados', path: '/director/comunicados', icon: <Megaphone className="w-5 h-5 text-orange-500" /> },
     { name: 'Asistente WA', path: '/director/configuracion/asistente-whatsapp', icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
     { name: 'Ajustes del Club', path: '/director/configuracion', icon: <Settings className="w-5 h-5 text-orange-500" /> },
   ];

@@ -1,0 +1,60 @@
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
+import webpush from 'web-push';
+
+// Configurar web-push
+webpush.setVapidDetails(
+  process.env.VAPID_EMAIL || 'mailto:admin@efdgibbor.com',
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+);
+
+export async function POST(req: Request) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies });
+    const { titulo, mensaje, url } = await req.json();
+
+    // Verificación de seguridad: ¿Es el director?
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'Director') return NextResponse.json({ error: 'Solo el director puede enviar alertas' }, { status: 403 });
+
+    // 1. Obtener todos los suscritos
+    const { data: subscripciones, error } = await supabase.from('push_subscriptions').select('*');
+    if (error) throw error;
+
+    if (!subscripciones || subscripciones.length === 0) {
+      return NextResponse.json({ message: 'No hay usuarios suscritos todavía' });
+    }
+
+    // 2. Enviar a cada uno
+    const notifications = subscripciones.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          sub.subscription,
+          JSON.stringify({
+            title: titulo,
+            body: mensaje,
+            url: url || '/'
+          })
+        );
+      } catch (err: any) {
+        // Si el token ya no es válido (usuario borró la app), lo eliminamos
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+        }
+      }
+    });
+
+    await Promise.all(notifications);
+
+    return NextResponse.json({ success: true, count: subscripciones.length });
+
+  } catch (error: any) {
+    console.error('Error en broadcast:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
