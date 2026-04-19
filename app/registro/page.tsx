@@ -80,8 +80,7 @@ export default function AutoRegistroPublico() {
         setCategoriaAsignada(match);
         setFormData(prev => ({ ...prev, grupos: match.nombre }));
         toast.success(`Asignado automáticamente a: ${match.nombre}`, {
-          description: `Basado en la edad (${age} años)`,
-          icon: <Sparkles className="text-orange-500" />
+          description: `Basado en la edad (${age} años)`
         });
       } else {
         setCategoriaAsignada(null);
@@ -116,7 +115,7 @@ export default function AutoRegistroPublico() {
           <div className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
             <CheckCircle2 className="w-12 h-12 text-emerald-500" />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">¡Registro Recibido!</h1>
+          <h1 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">Registro Recibido</h1>
           <p className="text-slate-500 font-medium mb-10 leading-relaxed px-4">
             Los datos de <strong className="text-orange-600 font-black">{formData.nombres}</strong> han sido enviados correctamente. {categoriaAsignada && <span>Asignado preliminarmente a <b>{categoriaAsignada.nombre}</b>. </span>}El Director de la academia revisará la solicitud y te contactará pronto.
           </p>
@@ -140,7 +139,7 @@ export default function AutoRegistroPublico() {
           </div>
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4 tracking-tighter uppercase italic">
-          <span className="text-orange-500">Solicitud</span> de Ingreso
+          Solicitud de Ingreso
         </h1>
         <p className="text-slate-500 font-bold max-w-md mx-auto leading-relaxed border-t-2 border-orange-500/20 pt-4">
           Inicia tu camino a la élite deportiva con Gibbor FC.
@@ -182,7 +181,7 @@ export default function AutoRegistroPublico() {
             {categoriaAsignada ? (
               <div className="md:col-span-2 bg-orange-100 dark:bg-orange-500/10 p-5 rounded-2xl border-2 border-orange-500 shadow-lg shadow-orange-500/10 animate-in zoom-in duration-300">
                 <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Sparkles className="w-3 h-3" /> Categoría Asignada por Sistema
+                  Categoría Asignada por Sistema
                 </p>
                 <div className="flex items-center justify-between">
                   <h4 className="text-xl font-black text-slate-900 uppercase italic tracking-tighter">{categoriaAsignada.nombre}</h4>
@@ -306,15 +305,27 @@ export default function AutoRegistroPublico() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-100/60 rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-inner">
             <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">📸</span>
-              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Foto Documento</p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lado Cara (Jugador)</p>
+              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
+                <FileText className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
+              </div>
+              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad Alumno</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Lado frontal (T.I / C.C)</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
             <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
-              <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform">🏥</span>
+              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
+                <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
+              </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro EPS</p>
               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado</p>
+              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
+            </div>
+            <div className="md:col-span-2 group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
+              <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
+                <User className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
+              </div>
+              <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad Acudiente</p>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Cédula del Representante</p>
               <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
           </div>
