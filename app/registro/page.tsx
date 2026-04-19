@@ -38,8 +38,20 @@ export default function AutoRegistroPublico() {
     rol: 'Futbolista',
     estado_miembro: 'Pendiente',
     estado_pago: 'Pendiente',
-    tipo_plan: 'Regular'
+    tipo_plan: 'Regular',
+    
+    // CAMPOS PARA ALMACENAR URLS DE DOCUMENTOS
+    doc_jugador_url: '',
+    doc_eps_url: '',
+    doc_acudiente_url: ''
   });
+  
+  // Estado para los archivos físicos antes de subir
+  const [archivos, setArchivos] = useState<{
+    jugador: File | null;
+    eps: File | null;
+    acudiente: File | null;
+  }>({ jugador: null, eps: null, acudiente: null });
 
   // Cargar categorías al inicio
   useEffect(() => {
@@ -96,14 +108,41 @@ export default function AutoRegistroPublico() {
     e.preventDefault();
     setGuardando(true);
 
-    const { error } = await supabase.from('perfiles').insert([formData]);
+    try {
+      const currentFormData = { ...formData };
+      
+      // 1. SUBIR ARCHIVOS SI EXISTEN
+      const uploadFile = async (file: File, folder: string) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${folder}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('documentos')
+          .upload(filePath, file);
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('documentos')
+          .getPublicUrl(filePath);
+          
+        return publicUrl;
+      };
 
-    setGuardando(false);
+      if (archivos.jugador) currentFormData.doc_jugador_url = await uploadFile(archivos.jugador, 'jugadores');
+      if (archivos.eps) currentFormData.doc_eps_url = await uploadFile(archivos.eps, 'eps');
+      if (archivos.acudiente) currentFormData.doc_acudiente_url = await uploadFile(archivos.acudiente, 'acudientes');
 
-    if (error) {
-       toast.error('Hubo un error al enviar el registro: ' + error.message);
-    } else {
-      setRegistroExitoso(true); 
+      // 2. INSERTAR PERFIL CON URLS
+      const { error } = await supabase.from('perfiles').insert([currentFormData]);
+      if (error) throw error;
+      
+      setRegistroExitoso(true);
+    } catch (error: any) {
+      toast.error('Error al procesar el registro: ' + (error.message || 'Error desconocido'));
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -309,24 +348,45 @@ export default function AutoRegistroPublico() {
                 <FileText className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Jugador</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Foto, PDF o Word (T.I / C.C)</p>
-              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                {archivos.jugador ? <span className="text-emerald-500">✓ {archivos.jugador.name}</span> : 'Foto, PDF o Word (T.I / C.C)'}
+              </p>
+              <input 
+                type="file" 
+                accept="image/*,.pdf,.doc,.docx" 
+                onChange={(e) => setArchivos(prev => ({ ...prev, jugador: e.target.files?.[0] || null }))}
+                className="absolute inset-0 opacity-0 cursor-pointer" 
+              />
             </div>
             <div className="group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Registro <span className="text-orange-500">EPS</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Carne o Certificado (Imagen/PDF)</p>
-              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                {archivos.eps ? <span className="text-emerald-500">✓ {archivos.eps.name}</span> : 'Carne o Certificado (Imagen/PDF)'}
+              </p>
+              <input 
+                type="file" 
+                accept="image/*,.pdf,.doc,.docx" 
+                onChange={(e) => setArchivos(prev => ({ ...prev, eps: e.target.files?.[0] || null }))}
+                className="absolute inset-0 opacity-0 cursor-pointer" 
+              />
             </div>
             <div className="md:col-span-2 group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-orange-500/50 hover:bg-orange-50 transition-all cursor-pointer shadow-sm">
               <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-100 transition-colors">
                 <User className="w-5 h-5 text-slate-400 group-hover:text-orange-600" />
               </div>
               <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">Doc. Identidad <span className="text-orange-500">Acudiente</span></p>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Foto, PDF o Word de la Cédula</p>
-              <input type="file" accept="image/*,.pdf,.doc,.docx" className="absolute inset-0 opacity-0 cursor-pointer" />
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
+                {archivos.acudiente ? <span className="text-emerald-500">✓ {archivos.acudiente.name}</span> : 'Foto, PDF o Word de la Cédula'}
+              </p>
+              <input 
+                type="file" 
+                accept="image/*,.pdf,.doc,.docx" 
+                onChange={(e) => setArchivos(prev => ({ ...prev, acudiente: e.target.files?.[0] || null }))}
+                className="absolute inset-0 opacity-0 cursor-pointer" 
+              />
             </div>
           </div>
         </section>
