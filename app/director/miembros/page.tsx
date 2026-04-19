@@ -40,15 +40,45 @@ export default function DirectorioMiembros() {
     cargarJugadores();
   }, []);
 
-  const aprobarJugador = async (id: string, nombreCompleto: string) => {
-    const toastId = toast.loading(`Aprobando a ${nombreCompleto}...`);
-    const { error } = await supabase.from('perfiles').update({ estado_miembro: 'Activo' }).eq('id', id);
-    if (!error) {
-      toast.success(`${nombreCompleto} ha sido aprobado.`, { id: toastId });
-      cargarJugadores();
-    } else {
-      toast.error("Error al aprobar", { id: toastId });
+  const aprobarJugador = async (miembro: any) => {
+    const toastId = toast.loading(`Aprobando y creando acceso para ${miembro.nombres}...`);
+    
+    // 1. Cambiar estado a Activo
+    const { error: errorEstado } = await supabase.from('perfiles').update({ estado_miembro: 'Activo' }).eq('id', miembro.id);
+    
+    if (errorEstado) {
+      toast.error("Error al cambiar estado: " + errorEstado.message, { id: toastId });
+      return;
     }
+
+    // 2. Si tiene email, intentar crear el usuario de acceso automáticamente
+    const emailParaAcceso = miembro.email_contacto || miembro.email;
+    
+    if (emailParaAcceso) {
+      try {
+        const res = await fetch('/api/admin/crear-usuario', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            email: emailParaAcceso, 
+            password: 'Gibbor2026*', 
+            rol: miembro.rol || 'Futbolista', 
+            perfilId: miembro.id 
+          })
+        });
+        
+        if (res.ok) {
+          toast.success(`${miembro.nombres} ya puede ingresar con su correo y clave: Gibbor2026*`, { id: toastId, duration: 6000 });
+        } else {
+          toast.warning(`${miembro.nombres} aprobado, pero el acceso debe crearse manualmente (posible correo duplicado).`, { id: toastId });
+        }
+      } catch (err) {
+        toast.warning(`${miembro.nombres} aprobado, pero hubo un error creando el acceso.`, { id: toastId });
+      }
+    } else {
+      toast.success(`${miembro.nombres} aprobado (Sin correo para crear acceso).`, { id: toastId });
+    }
+    
+    cargarJugadores();
   };
 
   const rechazarJugador = async (id: string, nombreCompleto: string) => {
@@ -158,7 +188,7 @@ export default function DirectorioMiembros() {
                           <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 hidden md:block"><ExternalLink className="w-5 h-5" /></button>
                         ) : (
                           <div className="flex gap-1">
-                            <button onClick={() => aprobarJugador(jugador.id, jugador.nombres)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
+                            <button onClick={() => aprobarJugador(jugador)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
                             <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
                           </div>
                         )}
@@ -264,7 +294,7 @@ export default function DirectorioMiembros() {
               {pestaña === 'Pendientes' ? (
                 <>
                   <button onClick={() => { setIsModalDetallesOpen(false); rechazarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }} className="flex-1 bg-white border-2 border-red-500 text-red-500 py-4 rounded-2xl font-black uppercase text-xs">Rechazar</button>
-                  <button onClick={() => { setIsModalDetallesOpen(false); aprobarJugador(solicitudSeleccionada.id, solicitudSeleccionada.nombres); }} className="flex-[1.5] bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3"><Check className="w-5 h-5" /> Aprobar</button>
+                  <button onClick={() => { setIsModalDetallesOpen(false); aprobarJugador(solicitudSeleccionada); }} className="flex-[1.5] bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs flex items-center justify-center gap-3"><Check className="w-5 h-5" /> Aprobar</button>
                 </>
               ) : (
                 <button onClick={() => setIsModalDetallesOpen(false)} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-xs shadow-xl">Cerrar</button>
