@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity } from 'lucide-react';
+import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DirectorioMiembros() {
