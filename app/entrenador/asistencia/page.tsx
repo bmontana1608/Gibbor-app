@@ -29,16 +29,16 @@ export default function AsistenciaEntrenador() {
         setPerfil(usuario);
         const nombreCompleto = `${usuario.nombres} ${usuario.apellidos}`;
         
-        // Cargar categorías basadas en el campo 'grupos' del perfil
-        const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
+        // UNIFICACIÓN: Buscar categorías donde el nombre del entrenador aparezca registrado
+        const { data: cats, error: errCats } = await supabase
+          .from('categorias')
+          .select('*')
+          .ilike('entrenadores', `%${nombreCompleto}%`);
         
-        if (categoriasAsignadas.length > 0) {
-          const { data: cats } = await supabase
-            .from('categorias')
-            .select('*')
-            .in('nombre', categoriasAsignadas);
-          
-          if (cats) setCategorias(cats);
+        if (cats) {
+          setCategorias(cats);
+        } else if (errCats) {
+          console.error("Error cargando categorías:", errCats.message);
         }
       }
       setCargando(false);
