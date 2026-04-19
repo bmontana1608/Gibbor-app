@@ -23,21 +23,44 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
-    // 2. Vincular el nuevo ID de autenticación con el perfil existente
-    const { error: perfilError } = await supabaseAdmin
+    // 2. MIGRACIÓN SEGURA (Copiar -> Migrar -> Eliminar)
+    
+    // 2.1 Obtener los datos actuales del perfil
+    const { data: perfilOriginal, error: getError } = await supabaseAdmin
       .from('perfiles')
-      .update({ 
-        id: authUser.user.id, // Cambiamos el ID del perfil para que coincida con el de Auth
-        email_contacto: email 
-      })
-      .eq('id', perfilId); // El ID temporal que tenía en la base de datos
+      .select('*')
+      .eq('id', perfilId)
+      .single();
 
-    if (perfilError) {
-      // Si falla la vinculación, borramos el usuario creado para no dejar basura
-      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
-      console.error('Error Perfil:', perfilError.message);
-      return NextResponse.json({ error: 'Error al vincular el perfil: ' + perfilError.message }, { status: 500 });
+    if (getError || !perfilOriginal) {
+       return NextResponse.json({ error: 'No se encontró el perfil original' }, { status: 404 });
     }
+
+    // 2.2 Crear el NUEVO perfil (Clon con nuevo ID)
+    const { error: createError } = await supabaseAdmin
+      .from('perfiles')
+      .insert([{
+        ...perfilOriginal,
+        id: authUser.user.id,
+        email_contacto: email
+      }]);
+
+    if (createError) {
+      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+      return NextResponse.json({ error: 'Error al clonar perfil: ' + createError.message }, { status: 500 });
+    }
+
+    // 2.3 Migrar dependencias al nuevo ID
+    const tablasDependientes = ['pagos_ingresos', 'asistencias', 'evaluaciones_tecnicas'];
+    for (const tabla of tablasDependientes) {
+      await supabaseAdmin
+        .from(tabla)
+        .update({ jugador_id: authUser.user.id })
+        .eq('jugador_id', perfilId);
+    }
+
+    // 2.4 Eliminar el perfil antiguo (El temporal)
+    await supabaseAdmin.from('perfiles').delete().eq('id', perfilId);
 
     return NextResponse.json({ success: true, userId: authUser.user.id });
 
