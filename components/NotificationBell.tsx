@@ -19,8 +19,8 @@ export default function NotificationBell() {
       .eq('estado_miembro', 'Pendiente')
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
-      setNotificaciones(data);
+    if (!error) {
+      setNotificaciones(data || []);
     }
     setCargando(false);
   };

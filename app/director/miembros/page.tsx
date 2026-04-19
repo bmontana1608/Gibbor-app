@@ -30,8 +30,8 @@ export default function DirectorioMiembros() {
 
     if (error) {
        toast.error(`Error de conexión: ${error.message}`);
-    } else if (data) {
-       setJugadores(data);
+    } else {
+       setJugadores(data || []);
     }
     setCargando(false);
   };
