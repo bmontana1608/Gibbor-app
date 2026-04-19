@@ -72,6 +72,13 @@ export async function POST(req: Request) {
 
     await Promise.all(notifications);
 
+    // 3. Guardar en la tabla de notificaciones para que aparezca en la campana
+    await supabase.from('notificaciones_app').insert({
+      titulo,
+      mensaje,
+      tipo: 'comunicado'
+    });
+
     return NextResponse.json({ success: true, count: subscripciones.length });
 
   } catch (error: any) {
