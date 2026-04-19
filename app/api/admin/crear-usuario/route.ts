@@ -9,8 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 });
     }
 
-    // 1. Crear el usuario en Supabase Auth usando el cliente Admin
-    // Esto evita que el usuario tenga que confirmar el email por ahora.
+    // 1. Intentar crear el usuario en Supabase Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -19,6 +18,28 @@ export async function POST(request: Request) {
     });
 
     if (authError) {
+      // SI EL USUARIO YA EXISTE (CASO DE HERMANOS/FAMILIA)
+      if (authError.message.includes('already been registered') || authError.status === 422) {
+        // No creamos usuario nuevo, solo activamos el perfil y lo vinculamos por email_contacto
+        const { error: activateError } = await supabaseAdmin
+          .from('perfiles')
+          .update({ 
+            estado_miembro: 'Activo',
+            email_contacto: email 
+          })
+          .eq('id', perfilId);
+
+        if (activateError) {
+          return NextResponse.json({ error: 'Error al activar perfil familiar: ' + activateError.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ 
+          success: true, 
+          message: 'Perfil vinculado a cuenta familiar existente',
+          isFamilyLink: true 
+        });
+      }
+
       console.error('Error Auth:', authError.message);
       return NextResponse.json({ error: authError.message }, { status: 500 });
     }
