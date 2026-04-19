@@ -167,7 +167,7 @@ export default function AutoRegistroPublico() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
+    <div className="min-h-screen bg-slate-200 text-slate-800 py-16 px-4 font-sans tracking-tight relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-500/5 rounded-full blur-[120px]"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-slate-900/5 rounded-full blur-[120px]"></div>
 
@@ -185,7 +185,7 @@ export default function AutoRegistroPublico() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-slate-100 border border-slate-200 rounded-[3rem] p-8 md:p-14 shadow-[0_40px_100px_-15px_rgba(15,23,42,0.12)] space-y-16 animate-in fade-in zoom-in duration-500 relative z-10">
         
         <section>
           <div className="flex items-center gap-5 mb-12">
