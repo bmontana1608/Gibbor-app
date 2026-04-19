@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
+import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone } from 'lucide-react';
 
 export default function DirectorLayout({ children }: { children: React.ReactNode }) {
@@ -70,6 +71,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+      <PushPermissionBanner />
       
       {/* =========================================
           MENÚ LATERAL (Fijo en PC, Deslizante en Móvil)

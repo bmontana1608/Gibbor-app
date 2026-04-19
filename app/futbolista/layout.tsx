@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
+import PushPermissionBanner from "@/components/PushPermissionBanner";
+import NotificationBell from "@/components/NotificationBell";
 import { 
   Home, User, CreditCard, Award, 
   Settings, LogOut, Menu, X, ShieldCheck, 
@@ -131,6 +133,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden">
+      <PushPermissionBanner />
       {/* HEADER MÓVIL */}
       <div className="md:hidden bg-slate-900 p-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
@@ -267,10 +270,7 @@ export default function FutbolistaLayout({ children }: { children: React.ReactNo
            </div>
            <div className="flex items-center gap-3">
               <ThemeToggle />
-              <button className="relative p-2 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:text-orange-500 hover:border-orange-100 dark:hover:border-orange-900 transition-all">
-                 <Bell className="w-5 h-5" />
-                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-              </button>
+              <NotificationBell />
            </div>
         </div>
         <div className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield, Layout, Trophy, Radar } from 'lucide-react';
+import PushPermissionBanner from "@/components/PushPermissionBanner";
 
 export default function EntrenadorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -45,6 +46,7 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+      <PushPermissionBanner />
       
       {/* HEADER MÓVIL */}
       <div className="md:hidden fixed top-0 w-full bg-slate-900 z-30 flex items-center justify-between p-4 shadow-md">
