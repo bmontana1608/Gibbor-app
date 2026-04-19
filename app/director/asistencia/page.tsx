@@ -2,35 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { UserCheck, BarChart2, TrendingUp, Plus, RefreshCw, ClipboardList, CheckCircle, XCircle, Clock, Search, BookOpen } from 'lucide-react';
+import { 
+  UserCheck, BarChart2, TrendingUp, Plus, RefreshCw, 
+  ClipboardList, CheckCircle, XCircle, Clock, Search, 
+  BookOpen, ChevronRight, Users, Filter, Calendar, MapPin
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ReporteAsistenciaDirector() {
-  const [jugadores, setJugadores] = useState<any[]>([]);
   const [asistencias, setAsistencias] = useState<any[]>([]);
+  const [sesionesAgrupadas, setSesionesAgrupadas] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [procesando, setProcesando] = useState(false); // Para el botón de prueba
-
+  
   // Filtros
   const [grupoFiltro, setGrupoFiltro] = useState('Todos los grupos');
-  const [estadoFiltro, setEstadoFiltro] = useState('Todos los estados');
   const [busqueda, setBusqueda] = useState('');
+  const [sesionSeleccionada, setSesionSeleccionada] = useState<any | null>(null);
 
-  // Función principal para traer la realidad
   async function cargarDatosBD() {
     setCargando(true);
     
-    // 1. Traer jugadores para los filtros y para el registro manual (Solo Alumnos)
-    const { data: dataJugadores, error: errJugadores } = await supabase
-      .from('perfiles')
-      .select('id, nombres, apellidos, grupos')
-      .eq('rol', 'Futbolista')
-      .neq('estado_miembro', 'Pendiente');
-      
-    if (dataJugadores) setJugadores(dataJugadores);
-    if (errJugadores) toast.error("Error cargando jugadores: " + errJugadores.message);
-
-    // 2. Traer el historial real de asistencias cruzando datos con los nombres de los perfiles
+    // Traer el historial real de asistencias
     const { data: dataAsistencias, error } = await supabase
       .from('asistencias')
       .select(`
@@ -41,7 +33,7 @@ export default function ReporteAsistenciaDirector() {
         registrado_por,
         created_at,
         jugador_id,
-        perfiles (nombres, apellidos)
+        perfiles (nombres, apellidos, foto_url)
       `)
       .order('created_at', { ascending: false });
 
@@ -49,242 +41,259 @@ export default function ReporteAsistenciaDirector() {
       toast.error("Error al cargar asistencias: " + error.message);
     } else if (dataAsistencias) {
       setAsistencias(dataAsistencias);
+      agruparPorSesion(dataAsistencias);
     }
     
     setCargando(false);
   }
 
+  // Lógica para agrupar registros individuales en "Sesiones" (Grupo + Fecha)
+  const agruparPorSesion = (registros: any[]) => {
+    const grupos: Record<string, any> = {};
+
+    registros.forEach(r => {
+      const key = `${r.grupo}-${r.fecha}-${r.registrado_por}`;
+      if (!grupos[key]) {
+        grupos[key] = {
+          id: key,
+          grupo: r.grupo,
+          fecha: r.fecha,
+          registrado_por: r.registrado_por,
+          total: 0,
+          presentes: 0,
+          ausentes: 0,
+          excusas: 0,
+          jugadores: []
+        };
+      }
+      grupos[key].total++;
+      if (r.estado === 'Presente') grupos[key].presentes++;
+      else if (r.estado === 'Ausente') grupos[key].ausentes++;
+      else grupos[key].excusas++;
+      
+      grupos[key].jugadores.push(r);
+    });
+
+    setSesionesAgrupadas(Object.values(grupos));
+  };
+
   useEffect(() => {
     cargarDatosBD();
   }, []);
 
-  // --- MATEMÁTICAS REALES BASADAS EN LA BASE DE DATOS ---
-  const totalRegistros = asistencias.length;
-  const presentes = asistencias.filter(a => a.estado === 'Presente').length;
-  const ausentes = asistencias.filter(a => a.estado === 'Ausente').length;
-  const excusas = asistencias.filter(a => a.estado === 'Excusa' || a.estado === 'Tardío').length;
-  const tasaAsistencia = totalRegistros > 0 ? ((presentes / totalRegistros) * 100).toFixed(1) : "0.0";
-
-  const grupos = ['Todos los grupos', ...Array.from(new Set(jugadores.map(j => j.grupos).filter(Boolean)))];
-
-  const asistenciasFiltradas = asistencias.filter(a => {
-    const coincideGrupo = grupoFiltro === 'Todos los grupos' || a.grupo === grupoFiltro;
-    const coincideEstado = estadoFiltro === 'Todos los estados' || a.estado === estadoFiltro;
-    const nombreCompleto = a.perfiles ? `${a.perfiles.nombres} ${a.perfiles.apellidos}` : 'Desconocido';
-    const coincideBusqueda = nombreCompleto.toLowerCase().includes(busqueda.toLowerCase());
-    return coincideGrupo && coincideEstado && coincideBusqueda;
-  });
-
-  // --- FUNCIÓN DE PRUEBA: REGISTRAR ASISTENCIA MANUAL ---
-  const registrarPruebaAleatoria = async () => {
-    if (jugadores.length === 0) return toast.error("No hay jugadores válidos registrados para la prueba.");
-    setProcesando(true);
-    const toastId = toast.loading("Registrando asistencia de prueba...");
-
-    // Seleccionamos un jugador al azar de tu BD real
-    const jugadorAzar = jugadores[Math.floor(Math.random() * jugadores.length)];
-    const estados = ['Presente', 'Presente', 'Presente', 'Ausente', 'Excusa']; // Más probabilidad de presente
-    const estadoAzar = estados[Math.floor(Math.random() * estados.length)];
-
-    const { error } = await supabase
-      .from('asistencias')
-      .insert([
-        {
-          jugador_id: jugadorAzar.id,
-          grupo: jugadorAzar.grupos || 'Sin asignar',
-          estado: estadoAzar,
-          registrado_por: 'Director',
-          fecha: new Date().toISOString().split('T')[0] // Fecha de hoy en formato YYYY-MM-DD
-        }
-      ]);
-
-    if (error) {
-      toast.error("Error al registrar: " + error.message, { id: toastId });
-    } else {
-      toast.success(`${estadoAzar} registrado para ${jugadorAzar.nombres}`, { id: toastId });
-      await cargarDatosBD();
-    }
-    setProcesando(false);
+  // KPIs
+  const totales = {
+    presentes: asistencias.filter(a => a.estado === 'Presente').length,
+    ausentes: asistencias.filter(a => a.estado === 'Ausente').length,
+    total: asistencias.length,
+    tasa: asistencias.length > 0 ? ((asistencias.filter(a => a.estado === 'Presente').length / asistencias.length) * 100).toFixed(1) : "0"
   };
 
+  const gruposUnicos = ['Todos los grupos', ...Array.from(new Set(asistencias.map(a => a.grupo).filter(Boolean)))];
+
+  const sesionesFiltradas = sesionesAgrupadas.filter(s => {
+    const coincideGrupo = grupoFiltro === 'Todos los grupos' || s.grupo === grupoFiltro;
+    const coincideBusqueda = s.grupo.toLowerCase().includes(busqueda.toLowerCase()) || s.registrado_por.toLowerCase().includes(busqueda.toLowerCase());
+    return coincideGrupo && coincideBusqueda;
+  });
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans text-slate-800 dark:text-slate-100 transition-colors">
       
-      {/* 1. CABECERA */}
-      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* HEADER TÁCTICO */}
+      <div className="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <UserCheck className="text-orange-500 w-7 h-7" /> Asistencia
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
+             <BarChart2 className="w-9 h-9 text-orange-500" /> Analítica de Asistencia
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Gestiona y monitorea el historial de asistencia de los miembros</p>
+          <p className="text-slate-500 text-sm font-medium mt-1">Supervisión en tiempo real del quórum de la academia.</p>
+        </div>
+        <div className="flex items-center gap-3">
+           <button onClick={cargarDatosBD} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl text-slate-500 hover:text-orange-500 transition-all shadow-sm">
+             <RefreshCw className={`w-5 h-5 ${cargando ? 'animate-spin' : ''}`} />
+           </button>
         </div>
       </div>
 
-      {/* 2. BARRA DE BOTONES DE ACCIÓN */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2">
-          <BarChart2 className="w-4 h-4" /> Monitoreo Entrenadores
-        </button>
-        <button className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-emerald-500" /> Estadísticas
-        </button>
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        <button onClick={cargarDatosBD} className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-black transition-all shadow-sm flex items-center gap-2">
-          <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin text-orange-500' : 'text-slate-400'}`} /> Actualizar Datos
-        </button>
-      </div>
+        {/* DASHBOARD DE KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/5 rounded-full" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tasa de Asistencia</p>
+              <h3 className="text-3xl font-black text-orange-500">{totales.tasa}%</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">PROMEDIO GLOBAL</p>
+           </div>
+           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Presentes</p>
+              <h3 className="text-3xl font-black text-emerald-500">{totales.presentes}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">JUGADORES EN CAMPO</p>
+           </div>
+           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ausencias Hoy</p>
+              <h3 className="text-3xl font-black text-rose-500">{totales.ausentes}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">ALERTAS DE FALTA</p>
+           </div>
+           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sesiones Registradas</p>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">{sesionesAgrupadas.length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">ENTRENAMIENTOS TOTALES</p>
+           </div>
+        </div>
 
-      {/* 3. TARJETAS DE KPIs (CONECTADAS A BD) */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <p className="text-xs text-slate-500 font-medium mb-1">Total Registros</p>
-          <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-slate-800">{cargando ? <span className="animate-pulse bg-slate-200 h-8 w-12 block rounded"></span> : totalRegistros}</p>
-            <ClipboardList className="text-slate-400 w-6 h-6" />
-          </div>
+        {/* BARRA DE FILTROS MODERNA */}
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-[2rem] border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-4 items-center">
+           <div className="relative flex-1 w-full">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input 
+                type="text" 
+                placeholder="Buscar por grupo o entrenador..." 
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+              />
+           </div>
+           <div className="flex gap-2 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <select 
+                  value={grupoFiltro}
+                  onChange={(e) => setGrupoFiltro(e.target.value)}
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer"
+                >
+                  {gruposUnicos.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 w-4 h-4 rotate-90" />
+              </div>
+           </div>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-emerald-500 hover:shadow-md transition-shadow">
-          <p className="text-xs text-slate-500 font-medium mb-1">Presentes</p>
-          <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-emerald-600">{cargando ? <span className="animate-pulse bg-emerald-100 h-8 w-12 block rounded"></span> : presentes}</p>
-            <CheckCircle className="text-emerald-500 w-6 h-6" />
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-red-500 hover:shadow-md transition-shadow">
-          <p className="text-xs text-slate-500 font-medium mb-1">Ausentes</p>
-          <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-red-600">{cargando ? <span className="animate-pulse bg-red-100 h-8 w-12 block rounded"></span> : ausentes}</p>
-            <XCircle className="text-red-500 w-6 h-6" />
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
-          <p className="text-xs text-slate-500 font-medium mb-1">Excusas / Tardíos</p>
-          <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-orange-600">{cargando ? <span className="animate-pulse bg-orange-100 h-8 w-12 block rounded"></span> : excusas}</p>
-            <Clock className="text-orange-400 w-6 h-6" />
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
-          <p className="text-xs text-slate-500 font-medium mb-1">Tasa Asistencia</p>
-          <div className="flex justify-between items-end">
-            <p className="text-2xl font-bold text-orange-600">{cargando ? <span className="animate-pulse bg-orange-100 h-8 w-16 block rounded"></span> : `${tasaAsistencia}%`}</p>
-            <TrendingUp className="text-orange-500 w-6 h-6" />
-          </div>
-        </div>
-      </div>
 
-      {/* 4. PANEL DE FILTROS SUPER COMPLETO */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 md:p-6 mb-6">
-        <div className="mb-5">
-          <label className="block text-xs font-bold text-slate-700 mb-2">Buscar</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
-              type="text" 
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar por nombre de alumno..." 
-              className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all text-sm text-slate-700"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2">Grupo</label>
-            <select 
-              value={grupoFiltro}
-              onChange={(e) => setGrupoFiltro(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
-            >
-              {grupos.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-2">Estado</label>
-            <select 
-              value={estadoFiltro}
-              onChange={(e) => setEstadoFiltro(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
-            >
-              <option>Todos los estados</option>
-              <option>Presente</option>
-              <option>Ausente</option>
-              <option>Excusa</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 5. TABLA DE DATOS (CONECTADA A BD) */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                <th className="p-4">Miembro</th>
-                <th className="p-4">Grupo</th>
-                <th className="p-4">Fecha</th>
-                <th className="p-4">Estado</th>
-                <th className="p-4">Registrado por</th>
-                <th className="p-4">Hora Registro</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {cargando ? (
-                 Array.from({ length: 5 }).map((_, idx) => (
-                  <tr key={idx} className="animate-pulse">
-                    <td className="p-4"><div className="h-4 bg-slate-200 rounded w-3/4"></div></td>
-                    <td className="p-4"><div className="h-4 bg-slate-200 rounded w-1/2"></div></td>
-                    <td className="p-4"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
-                    <td className="p-4"><div className="h-6 bg-slate-200 rounded-full w-20"></div></td>
-                    <td className="p-4"><div className="h-4 bg-slate-200 rounded w-2/3"></div></td>
-                    <td className="p-4"><div className="h-4 bg-slate-200 rounded w-16"></div></td>
-                  </tr>
-                ))
-              ) : asistenciasFiltradas.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-10 text-center">
-                    <div className="flex flex-col items-center justify-center text-slate-400">
-                      <BookOpen className="w-12 h-12 mb-3 text-slate-300" />
-                      <p className="text-lg font-medium text-slate-600">No hay registros de asistencia en la base de datos.</p>
-                      <p className="text-sm mt-1">Presiona "Registrar Prueba Manual" arriba para hacer una prueba real.</p>
+        {/* GRID DE SESIONES (TARJETAS) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+           {cargando ? (
+             Array.from({ length: 6 }).map((_, i) => (
+               <div key={i} className="bg-white dark:bg-slate-900 h-64 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 animate-pulse" />
+             ))
+           ) : sesionesFiltradas.length === 0 ? (
+             <div className="col-span-full p-20 text-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
+               <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+               <p className="text-slate-400 font-bold italic">No se encontraron sesiones registradas.</p>
+             </div>
+           ) : (
+             sesionesFiltradas.map(sesion => {
+               const tasa = ((sesion.presentes / sesion.total) * 100).toFixed(0);
+               return (
+                 <div 
+                   key={sesion.id}
+                   className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-orange-500 transition-all flex flex-col group relative overflow-hidden"
+                 >
+                    {/* Badge de Tasa de Asistencia */}
+                    <div className="absolute top-6 right-6">
+                       <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-xs ${parseInt(tasa) > 80 ? 'border-emerald-500 text-emerald-500' : 'border-orange-500 text-orange-500'}`}>
+                          {tasa}%
+                       </div>
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                asistenciasFiltradas.map((registro) => {
-                  // Extraemos el nombre gracias a la relación en la base de datos
-                  const nombreJugador = registro.perfiles 
-                    ? `${registro.perfiles.nombres} ${registro.perfiles.apellidos}` 
-                    : 'Jugador Desconocido';
-                  
-                  // Formateamos la hora de creación
-                  const horaFormateada = new Date(registro.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-                  return (
-                    <tr key={registro.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 font-bold text-slate-800">{nombreJugador}</td>
-                      <td className="p-4">{registro.grupo}</td>
-                      <td className="p-4">{registro.fecha}</td>
-                      <td className="p-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                          registro.estado === 'Presente' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 
-                          registro.estado === 'Ausente' ? 'bg-red-50 text-red-700 border-red-200' : 
-                          'bg-blue-50 text-blue-700 border-blue-200'
-                        }`}>
-                          {registro.estado}
-                        </span>
-                      </td>
-                      <td className="p-4 text-slate-500 font-medium">{registro.registrado_por}</td>
-                      <td className="p-4 text-slate-500">{horaFormateada}</td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
+                    <div className="mb-6">
+                       <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 italic">{sesion.fecha}</p>
+                       <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-none">{sesion.grupo}</h4>
+                    </div>
+
+                    <div className="space-y-4 mb-8">
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><Users className="w-4 h-4" /></div>
+                          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Quórum: <span className="text-slate-900 dark:text-white">{sesion.total} jugadores convocados</span></p>
+                       </div>
+                       <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><CheckCircle className="w-4 h-4 text-emerald-500" /></div>
+                          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Asistieron: <span className="text-emerald-600 font-black">{sesion.presentes}</span></p>
+                       </div>
+                    </div>
+
+                    <div className="mt-auto pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                       <div className="overflow-hidden">
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Registrado por</p>
+                          <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{sesion.registrado_por}</p>
+                       </div>
+                       <button 
+                         onClick={() => setSesionSeleccionada(sesion)}
+                         className="p-3 bg-slate-900 dark:bg-orange-600 text-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
+                       >
+                         <ChevronRight className="w-5 h-5" />
+                       </button>
+                    </div>
+                 </div>
+               );
+             })
+           )}
         </div>
       </div>
+
+      {/* MODAL DE DETALLES DE SESIÓN (EL LISTADO) */}
+      {sesionSeleccionada && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+           <div className="bg-white dark:bg-slate-950 rounded-[3rem] w-full max-w-2xl max-h-[85vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800 flex flex-col">
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                 <div>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Detalle de Sesión</h3>
+                    <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest mt-2">{sesionSeleccionada.grupo} • {sesionSeleccionada.fecha}</p>
+                 </div>
+                 <button 
+                   onClick={() => setSesionSeleccionada(null)}
+                   className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-orange-500 transition-all"
+                 >
+                   <XCircle className="w-6 h-6" />
+                 </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 custom-scrollbar">
+                 <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 text-center">
+                       <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Presentes</p>
+                       <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{sesionSeleccionada.presentes}</p>
+                    </div>
+                    <div className="bg-rose-50 dark:bg-rose-500/10 p-4 rounded-2xl border border-rose-100 dark:border-rose-500/20 text-center">
+                       <p className="text-[10px] font-black text-rose-600 uppercase mb-1">Ausentes</p>
+                       <p className="text-2xl font-black text-rose-700 dark:text-rose-400">{sesionSeleccionada.ausentes}</p>
+                    </div>
+                 </div>
+
+                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {sesionSeleccionada.jugadores.map((reg: any) => (
+                      <div key={reg.id} className="py-4 flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-black text-slate-400 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                               {reg.perfiles?.foto_url ? <img src={reg.perfiles.foto_url} className="w-full h-full object-cover" /> : reg.perfiles?.nombres?.charAt(0)}
+                            </div>
+                            <div>
+                               <p className="font-bold text-slate-800 dark:text-white text-sm">{reg.perfiles?.nombres} {reg.perfiles?.apellidos}</p>
+                               <p className="text-[9px] text-slate-400 font-bold uppercase">{reg.perfiles?.id.split('-')[0]}</p>
+                            </div>
+                         </div>
+                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                            reg.estado === 'Presente' ? 'bg-emerald-500 text-white' : 
+                            reg.estado === 'Ausente' ? 'bg-rose-500 text-white' : 
+                            'bg-amber-500 text-white'
+                         }`}>
+                            {reg.estado}
+                         </span>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              <div className="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
+                 <button 
+                   onClick={() => setSesionSeleccionada(null)}
+                   className="w-full bg-slate-900 border border-slate-200 dark:bg-slate-800 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl"
+                 >
+                   Cerrar Detalle
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
 
     </div>
   );
