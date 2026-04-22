@@ -8,6 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function DirectorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,6 +24,26 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
         const res = await fetch('/api/tenant', { cache: 'no-store' });
         const data = await res.json();
         setTenant(data);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return router.push('/');
+
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('rol, club_id')
+          .eq('id', user.id)
+          .single();
+
+        // SEGURIDAD: Solo entran Directores al club que les corresponde 
+        // EXCEPCIÓN: El SuperAdmin puede entrar a CUALQUIER club.
+        const isSuperAdmin = perfil?.rol === 'SuperAdmin';
+        const isDirectorOfThisClub = perfil?.rol === 'Director' && perfil?.club_id === data.id;
+
+        if (!isSuperAdmin && !isDirectorOfThisClub) {
+          toast.error('Acceso denegado: No tienes permisos para este club.');
+          router.push('/');
+          return;
+        }
       } catch (e) {
         console.error("Error loading tenant", e);
       } finally {

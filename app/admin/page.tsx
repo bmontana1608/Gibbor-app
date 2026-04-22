@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
@@ -304,7 +305,12 @@ export default function SuperAdminDashboard() {
                          >
                            {selectedClub.estado === 'Activo' ? 'Suspender Academia' : 'Reactivar Academia'}
                          </button>
-                         <button className="flex-1 bg-white/5 text-slate-400 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl border border-white/5 hover:text-white transition-all">Ver como Director</button>
+                         <Link 
+                           href={`/${selectedClub.slug}/director`}
+                           className="flex-1 bg-white/5 text-slate-400 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl border border-white/5 hover:text-white transition-all flex items-center justify-center gap-2"
+                         >
+                           <ArrowRightLeft size={14} /> Ver como Director
+                         </Link>
                       </div>
                    </div>
                 </div>
