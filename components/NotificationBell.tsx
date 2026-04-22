@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Bell, UserPlus, ArrowRight, Loader2, Megaphone, Trash2 } from 'lucide-react';
+import { Bell, UserPlus, ArrowRight, Loader2, Megaphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-export default function NotificationBell() {
+export default function NotificationBell({ clubId }: { clubId?: string }) {
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   const [rolUsuario, setRolUsuario] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -14,86 +14,58 @@ export default function NotificationBell() {
   const [cargando, setCargando] = useState(true);
   const router = useRouter();
 
-  const cargarDatosIniciales = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    
-    setUserId(user.id);
-
-    // Obtener Rol
-    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
-    setRolUsuario(perfil?.rol || 'Atleta');
-
-    await cargarNotificaciones(perfil?.rol || 'Atleta');
-  };
-
   const cargarNotificaciones = async (rol: string) => {
+    // Si no hay clubId y no es un usuario maestro, no podemos cargar nada relevante del club
+    if (!clubId && rol !== 'SuperAdmin') {
+      setCargando(false);
+      return;
+    }
+
     let todas: any[] = [];
 
-    // 1. Siempre cargar Comunicados Globales
-    const { data: comunicados } = await supabase
+    // 1. Cargar Comunicados (Filtrados por club o globales)
+    const queryComunicados = supabase
       .from('notificaciones_app')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(10);
     
+    if (clubId) {
+      queryComunicados.or(`club_id.eq.${clubId},club_id.is.null`);
+    }
+
+    const { data: comunicados } = await queryComunicados;
     if (comunicados) todas = [...todas, ...comunicados.map(c => ({ ...c, origen: 'comunicado' }))];
 
-    // 2. Si es Director, cargar solicitudes pendientes
-    if (rol === 'Director') {
+    // 2. Si es Director, cargar solicitudes pendientes DE SU CLUB
+    if (rol === 'Director' && clubId) {
       const { data: pendientes } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, created_at, rol')
+        .eq('club_id', clubId)
         .eq('estado_miembro', 'Pendiente')
         .order('created_at', { ascending: false });
       
       if (pendientes) todas = [...todas, ...pendientes.map(p => ({ ...p, origen: 'registro', titulo: 'Nueva Solicitud', mensaje: `${p.nombres} ${p.apellidos} quiere unirse.` }))];
     }
 
-    // Ordenar por fecha
     todas.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    
     setNotificaciones(todas);
     setCargando(false);
   };
 
   useEffect(() => {
-    cargarDatosIniciales();
-
-    // SUSCRIPCIONES EN TIEMPO REAL
-    const channelApp = supabase
-      .channel('cambios-notificaciones')
-      // 1. Escuchar Nuevos Comunicados (Para todos)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notificaciones_app' },
-        (payload) => {
-          setNotificaciones((prev) => [{ ...payload.new, origen: 'comunicado' }, ...prev]);
-          toast.info(`Anuncio: ${payload.new.titulo}`, {
-            icon: <Megaphone className="text-blue-500" />,
-          });
-        }
-      )
-      // 2. Escuchar Nuevos Registros (Solo si es Director)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'perfiles' },
-        (payload) => {
-          // Solo procesamos si el cliente actual es director (aunque el filtro lo hace la UI, aquí blindamos)
-          if (payload.new.estado_miembro === 'Pendiente') {
-            cargarNotificaciones('Director'); // Recargar para asegurar el rol
-            toast.info(`¡Nueva solicitud! ${payload.new.nombres} se acaba de registrar.`, {
-              icon: <UserPlus className="text-orange-500" />,
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channelApp);
-    };
-  }, []);
+    async function iniciar() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setUserId(user.id);
+      const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+      const rol = perfil?.rol || 'Atleta';
+      setRolUsuario(rol);
+      await cargarNotificaciones(rol);
+    }
+    iniciar();
+  }, [clubId]); // Recargar si el club cambia
 
   const total = notificaciones.length;
 
@@ -138,12 +110,13 @@ export default function NotificationBell() {
                   {notificaciones.map((notif, index) => (
                     <div
                       key={notif.id || index}
-                      className="w-full p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group relative"
+                      onClick={() => { if(notif.origen === 'registro') router.push('/director/miembros'); setIsOpen(false); }}
+                      className="w-full p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group relative cursor-pointer"
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${notif.origen === 'registro' ? 'bg-orange-100 dark:bg-orange-500/10 text-orange-600' : 'bg-blue-100 dark:bg-blue-500/10 text-blue-600'}`}>
                         {notif.origen === 'registro' ? <UserPlus className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
                       </div>
-                      <div className="flex-1 overflow-hidden" onClick={() => { if(notif.origen === 'registro') router.push('/director/miembros'); setIsOpen(false); }}>
+                      <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-bold text-slate-800 dark:text-white truncate uppercase italic tracking-tighter">
                           {notif.titulo || 'Aviso Gibbor'}
                         </p>

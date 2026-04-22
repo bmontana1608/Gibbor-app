@@ -213,7 +213,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <NotificationBell />
+            <NotificationBell clubId={tenant?.id} />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
             <ThemeToggle />
             <div className="hidden md:flex items-center gap-2 ml-2 pl-2 border-l border-slate-100 dark:border-slate-800">
