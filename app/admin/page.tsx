@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
