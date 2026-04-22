@@ -28,27 +28,20 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return router.push('/');
 
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('rol, club_id')
-          .eq('id', user.id)
-          .single();
+        const resPerfil = await fetch(`/api/perfil?id=${user.id}`);
+        const perfil = await resPerfil.json();
 
-        // NORMALIZACIÓN DE ROLES
         const userRole = perfil?.rol?.toLowerCase();
         const isSuperAdmin = userRole === 'superadmin';
         const isDirector = userRole === 'director';
         const belongsToClub = perfil?.club_id === data.id;
 
-        // MODO DIOS: Si eres SuperAdmin, pasas sí o sí
-        if (isSuperAdmin) {
-          // Bienvenido, Jefe
-        } else if (isDirector && belongsToClub) {
-          // Bienvenido, Director
+        // ACCESO AUTORIZADO
+        if (isSuperAdmin || (isDirector && belongsToClub)) {
+          // Bienvenido
         } else {
-          // Si no es ninguno de los anteriores, es un intruso
           console.error("Acceso bloqueado: ", { userRole, clubId: perfil?.club_id, tenantId: data.id });
-          toast.error('Sesión restringida: No tienes permisos para este club.');
+          toast.error('Acceso restringido para este club.');
           router.push('/');
           return;
         }
