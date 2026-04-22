@@ -61,6 +61,7 @@ export default function ModuloCobranza() {
   const [descEgreso, setDescEgreso] = useState('');
   const [montoEgreso, setMontoEgreso] = useState('');
   const [catEgreso, setCatEgreso] = useState('Otros');
+  const [tenant, setTenant] = useState<any>(null);
 
   // Historial de Pagos (Ingresos)
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
