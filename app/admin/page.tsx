@@ -23,6 +23,14 @@ export default function SuperAdminDashboard() {
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [clubAudit, setClubAudit] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    nombre: '',
+    slug: '',
+    logo_url: '',
+    color_primario: '#ea580c',
+    correo_director: '',
+    password_director: ''
+  });
 
   // Configuración del Tenant para el Login de SuperAdmin
   const adminTenant = {
@@ -128,15 +136,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  // Manejar creación de club
-  const [formData, setFormData] = useState({
-    nombre: '',
-    slug: '',
-    logo_url: '',
-    color_primario: '#ea580c',
-    correo_director: '',
-    password_director: ''
-  });
 
   const handleCrearClub = async (e: React.FormEvent) => {
     e.preventDefault();
