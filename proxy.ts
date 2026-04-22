@@ -33,7 +33,8 @@ export function proxy(request: NextRequest) {
     const parts = hostname.split('.');
     
     if (parts.length > 2 && parts[0] !== 'www') {
-      slug = parts[0];
+      // Si el subdominio es portalgibbor, lo tratamos como gibbor
+      slug = parts[0] === 'portalgibbor' ? 'gibbor' : parts[0];
     } else {
       // Dominio principal (Cargar Gibbor por defecto para la PWA existente)
       slug = 'gibbor'; 
