@@ -137,28 +137,28 @@ export default function SuperAdminDashboard() {
         {/* Dashboard de Métricas Master */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
            <MetricCard 
-              label="Recaudo Global (Abril)" 
-              value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
-              icon={<CreditCard className="text-emerald-500" />} 
-              sub={`Consolidado de ${metrics?.totalClubes || 0} clubes`} 
+              label="Ingreso SaaS Proyectado" 
+              value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} 
+              icon={<TrendingUp className="text-emerald-500" />} 
+              sub="Basado en $2,000/niño" 
            />
            <MetricCard 
-              label="Población Atleta" 
+              label="Alumnos Globales" 
               value={metrics?.totalJugadores || '0'} 
               icon={<Users className="text-orange-500" />} 
-              sub="Jugadores activos en la red" 
+              sub="Total de deportistas en red" 
+           />
+           <MetricCard 
+              label="Recaudo Academias" 
+              value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
+              icon={<CreditCard className="text-blue-500" />} 
+              sub="Flujo total procesado este mes" 
            />
            <MetricCard 
               label="Clubes Activos" 
               value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
-              icon={<Building2 className="text-blue-500" />} 
-              sub="Tasa de permanencia SaaS" 
-           />
-           <MetricCard 
-              label="Salud del Sistema" 
-              value="100%" 
               icon={<ShieldCheck className="text-purple-500" />} 
-              sub="Servidores y APIs estables" 
+              sub="Tasa de operación SaaS" 
            />
         </section>
         
@@ -196,15 +196,20 @@ export default function SuperAdminDashboard() {
                   <thead>
                     <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
                       <th className="pb-4 px-4">Club</th>
-                      <th className="pb-4 px-4">Subdominio</th>
-                      <th className="pb-4 px-4">Plan</th>
+                      <th className="pb-4 px-4 text-center">Alumnos</th>
+                      <th className="pb-4 px-4">Canon SaaS (Mes)</th>
                       <th className="pb-4 px-4">Estado</th>
                       <th className="pb-4 px-4 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {clubes.map((club) => (
-                      <ClubRow key={club.id} club={club} onToggle={toggleEstadoClub} />
+                      <ClubRow 
+                        key={club.id} 
+                        club={club} 
+                        count={metrics?.alumnosPorClub?.[club.id] || 0}
+                        onToggle={toggleEstadoClub} 
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -282,7 +287,7 @@ function NavItem({ icon, label, active = false }: { icon: any, label: string, ac
   );
 }
 
-function ClubRow({ club, onToggle }: any) {
+function ClubRow({ club, count, onToggle }: any) {
   const [host, setHost] = useState('');
   
   useEffect(() => {
@@ -292,16 +297,11 @@ function ClubRow({ club, onToggle }: any) {
   // Generar la URL del club
   const getClubUrl = () => {
     if (!host) return '#';
-    
-    // Si estamos en localhost (ej: localhost:3000)
-    if (host.includes('localhost')) {
-      return `http://localhost:3000/${club.slug}/director`;
-    }
-    
-    // Si estamos en Vercel (ej: portalgibbor.vercel.app)
-    // Usamos la nueva ruta /slug/...
+    if (host.includes('localhost')) return `http://localhost:3000/${club.slug}/director`;
     return `https://${host}/${club.slug}/director`;
   };
+
+  const canonMensual = count * 2000;
 
   return (
     <tr className="group hover:bg-white/5 transition-colors">
@@ -310,19 +310,21 @@ function ClubRow({ club, onToggle }: any) {
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-white/5 p-1 flex items-center justify-center overflow-hidden">
              <img src={club.logo_url} className="w-full h-full object-contain" />
           </div>
-          <span className="font-bold text-sm text-white">{club.nombre}</span>
+          <div>
+            <p className="font-bold text-sm text-white">{club.nombre}</p>
+            <a href={getClubUrl()} target="_blank" className="text-[9px] font-mono text-orange-500/50 hover:text-orange-500 transition-colors uppercase tracking-widest">/{club.slug}</a>
+          </div>
         </div>
       </td>
-      <td className="py-4 px-4">
-        <a 
-          href={getClubUrl()} 
-          target="_blank" 
-          className="text-[10px] font-mono text-orange-500 hover:underline flex items-center gap-1"
-        >
-          {host.replace('www.', '')}/{club.slug} <Globe size={10} />
-        </a>
+      <td className="py-4 px-4 text-center">
+        <span className="text-xs font-black text-white px-2 py-1 bg-white/5 rounded-md border border-white/5">{count}</span>
       </td>
-      <td className="py-4 px-4"><span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full">{club.plan}</span></td>
+      <td className="py-4 px-4">
+        <span className="text-xs font-black text-emerald-500 tracking-tighter">
+          ${canonMensual.toLocaleString('es-CO')}
+        </span>
+        <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">COP / Mes</p>
+      </td>
       <td className="py-4 px-4">
         <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${club.estado === 'Activo' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
           {club.estado}

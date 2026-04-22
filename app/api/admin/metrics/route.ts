@@ -19,7 +19,7 @@ export async function GET() {
       .select('*', { count: 'exact', head: true })
       .eq('rol', 'Futbolista');
 
-    // 3. Recaudo Global del Mes Actual
+    // 3. Recaudo Global del Mes Actual (Lo que mueven los clubes)
     const inicioMes = new Date();
     inicioMes.setDate(1);
     inicioMes.setHours(0,0,0,0);
@@ -32,7 +32,20 @@ export async function GET() {
 
     const recaudoTotal = pagos?.reduce((acc, p) => acc + parseFloat(p.total || 0), 0) || 0;
 
-    // 4. Clubes Activos vs Inactivos
+    // 4. Conteo de alumnos detallado por Club (Para cobro de 2000 COP)
+    const { data: perfiles } = await supabaseAdmin
+      .from('perfiles')
+      .select('club_id')
+      .eq('rol', 'Futbolista');
+
+    const alumnosPorClub: Record<string, number> = {};
+    perfiles?.forEach(p => {
+      if (p.club_id) {
+        alumnosPorClub[p.club_id] = (alumnosPorClub[p.club_id] || 0) + 1;
+      }
+    });
+
+    // 5. Clubes Activos
     const { count: clubesActivos } = await supabaseAdmin
       .from('clubes')
       .select('*', { count: 'exact', head: true })
@@ -43,6 +56,8 @@ export async function GET() {
       clubesActivos,
       totalJugadores,
       recaudoTotal,
+      proyeccionIngresosSaaS: totalJugadores * 2000,
+      alumnosPorClub,
       mesActual: inicioMes.toLocaleString('es-CO', { month: 'long', year: 'numeric' })
     });
   } catch (error: any) {
