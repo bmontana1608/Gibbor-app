@@ -54,9 +54,9 @@ export async function GET() {
     return NextResponse.json({
       totalClubes,
       clubesActivos,
-      totalJugadores,
+      totalJugadores: totalJugadores || 0,
       recaudoTotal,
-      proyeccionIngresosSaaS: totalJugadores * 2000,
+      proyeccionIngresosSaaS: (totalJugadores || 0) * 2000,
       alumnosPorClub,
       mesActual: inicioMes.toLocaleString('es-CO', { month: 'long', year: 'numeric' })
     });
