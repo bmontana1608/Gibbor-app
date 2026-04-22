@@ -49,6 +49,12 @@ export default function DashboardDirector() {
         const tenantData = await tenantRes.json();
         setTenant(tenantData);
 
+        // Si es el dominio maestro (sin ID de club), no hay nada que mostrar aquí
+        if (tenantData.slug === 'master' || !tenantData.id) {
+          router.push('/admin');
+          return;
+        }
+
         const hoy = new Date();
         const inicioHoy = new Date(hoy);
         inicioHoy.setHours(0, 0, 0, 0);

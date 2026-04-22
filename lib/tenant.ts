@@ -32,9 +32,9 @@ export async function getTenant() {
   const saasMaster = {
     slug: 'master',
     config: {
-      nombre: 'ClubFlow SaaS',
-      color: '#1e293b', // Azul oscuro corporativo neutro
-      logo: 'https://i.postimg.cc/QMcTbgWz/clubflow-logo.png' // Icono ficticio corporativo temporal
+      nombre: 'NexClub SaaS Management',
+      color: '#EA580C',
+      logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
     }
   };
 
