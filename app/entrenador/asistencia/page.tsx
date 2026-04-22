@@ -90,7 +90,8 @@ export default function AsistenciaEntrenador() {
       tipo: 'Entrenamiento',
       fecha: hoy,
       hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      categoria_id: categoriaSeleccionada.id
+      categoria_id: categoriaSeleccionada.id,
+      club_id: perfil?.club_id
     };
 
     const { data, error } = await supabase.from('eventos').insert([nuevaSesion]).select().single();
@@ -116,7 +117,8 @@ export default function AsistenciaEntrenador() {
         grupo: categoriaSeleccionada.nombre,
         estado: asistencia[alumno.id],
         fecha: eventoSeleccionado.fecha,
-        registrado_por: `${perfil.nombres} ${perfil.apellidos}`
+        registrado_por: `${perfil.nombres} ${perfil.apellidos}`,
+        club_id: perfil?.club_id
       };
       
       // Solo enviamos evento_id si existe la intención (se añadirá la columna en SQL)

@@ -50,7 +50,10 @@ export default function ModuloCobranza() {
   const [recargo, setRecargo] = useState(0);
   const [metodoPago, setMetodoPago] = useState('Efectivo');
   const [notas, setNotas] = useState('');
-  const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
+  const [fechaPago, setFechaPago] = useState(() => {
+    const d = new Date();
+    return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+  });
 
   // Estado para Egresos
   const [egresos, setEgresos] = useState<any[]>([]);
@@ -94,6 +97,12 @@ export default function ModuloCobranza() {
 
   const cargarDatos = async () => {
     setCargando(true);
+    
+    // 1. Obtener Tenant primero
+    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantData = await tenantRes.json();
+    setTenant(tenantData);
+
     const { data, error } = await supabase
       .from('perfiles')
       .select('*')
@@ -136,11 +145,15 @@ export default function ModuloCobranza() {
 
   const registrarEgreso = async () => {
     if (!descEgreso || !montoEgreso) return toast.error("Llena todos los campos");
+    const d = new Date();
+    const fechaLet = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+
     const { error } = await supabase.from('pagos_egresos').insert([{
       descripcion: descEgreso,
       monto: Number(montoEgreso),
       categoria: catEgreso,
-      fecha: new Date().toISOString().split('T')[0]
+      fecha: fechaLet,
+      club_id: tenant?.id
     }]);
 
     if (error) toast.error("Error: " + error.message);
@@ -158,15 +171,13 @@ export default function ModuloCobranza() {
 
   useEffect(() => {
     const diaHoy = new Date().getDate();
-    const mesActual = new Date().getMonth() + 1;
-    const anioActual = new Date().getFullYear();
+    const mesActualStr = String(new Date().getMonth() + 1).padStart(2, '0');
+    const anioActualStr = String(new Date().getFullYear());
+    const matchMesAnio = `${anioActualStr}-${mesActualStr}`;
     
     const idsPagados = new Set(
       historialPagos
-        .filter(p => {
-          const f = new Date(p.fecha);
-          return (f.getMonth() + 1) === mesActual && f.getFullYear() === anioActual;
-        })
+        .filter(p => p.fecha && String(p.fecha).startsWith(matchMesAnio))
         .map(p => p.jugador_id)
     );
 
@@ -276,7 +287,8 @@ export default function ModuloCobranza() {
         total,
         metodo_pago: metodoPago,
         notas,
-        fecha: fechaPago
+        fecha: fechaPago,
+        club_id: tenant?.id
       };
 
       const { data: dataHist } = await supabase
@@ -500,15 +512,14 @@ export default function ModuloCobranza() {
   const totalJugadoresCobrales = jugadores.filter(j => calcularTarifa(j.tipo_plan) > 0).length;
   
   // Mapeo de quiénes pagaron este mes para rapidez
-  const mesActual = hoy.getMonth() + 1;
-  const anioActual = hoy.getFullYear();
+  // Mapeo de quiénes pagaron este mes para rapidez
+  const mesActualStr = String(hoy.getMonth() + 1).padStart(2, '0');
+  const anioActualStr = String(hoy.getFullYear());
+  const matchMesAnio = `${anioActualStr}-${mesActualStr}`;
   
   const idsPagadosEsteMes = new Set(
     historialPagos
-      .filter(p => {
-        const fechaPago = new Date(p.fecha);
-        return (fechaPago.getMonth() + 1) === mesActual && fechaPago.getFullYear() === anioActual;
-      })
+      .filter(p => p.fecha && String(p.fecha).startsWith(matchMesAnio))
       .map(p => p.jugador_id)
   );
 
@@ -969,7 +980,7 @@ export default function ModuloCobranza() {
                         <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-4 md:px-6 font-black text-slate-900">№ {pago.consecutivo.toString().padStart(3, '0')}</td>
                           <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
-                          <td className="p-4 md:px-6 text-slate-600 font-medium">{new Date(pago.fecha).toLocaleDateString('es-CO')}</td>
+                          <td className="p-4 md:px-6 text-slate-600 font-medium">{pago.fecha ? pago.fecha.split('-').reverse().join('/') : '---'}</td>
                           <td className="p-4 md:px-6 uppercase font-bold text-[10px] text-slate-500">{pago.metodo_pago}</td>
                           <td className="p-4 md:px-6 text-right font-black text-emerald-600">${parseFloat(pago.total || "0").toLocaleString('es-CO')}</td>
                           <td className="p-4 md:px-6 text-right">
@@ -1037,7 +1048,7 @@ export default function ModuloCobranza() {
                                         <td className="p-4 md:px-6">
                                             <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold uppercase">{eg.categoria}</span>
                                         </td>
-                                        <td className="p-4 md:px-6 text-slate-500">{new Date(eg.fecha).toLocaleDateString('es-CO')}</td>
+                                        <td className="p-4 md:px-6 text-slate-50">{eg.fecha ? eg.fecha.split('-').reverse().join('/') : '---'}</td>
                                         <td className="p-4 md:px-6 text-right font-black text-rose-600">${parseFloat(eg.monto).toLocaleString('es-CO')}</td>
                                         <td className="p-4 md:px-6 text-right">
                                             <button onClick={() => eliminarEgreso(eg.id)} className="text-slate-300 hover:text-rose-500 p-2 transition-colors">
@@ -1079,7 +1090,14 @@ export default function ModuloCobranza() {
               </div>
               <div>
                 <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de pago:</p>
-                <p className="text-sm font-bold text-slate-800 uppercase">{new Date(reciboGenerado.fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric'})}</p>
+                <p className="text-sm font-bold text-slate-800 uppercase">
+                  {(() => {
+                    if (!reciboGenerado.fecha) return '---';
+                    const [y, m, d] = reciboGenerado.fecha.split('-');
+                    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                    return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+                  })()}
+                </p>
                 <p className="text-xs text-slate-500 mt-1">Método: {reciboGenerado.metodo}</p>
               </div>
             </div>

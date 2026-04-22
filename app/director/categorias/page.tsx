@@ -106,10 +106,14 @@ export default function GestionCategorias() {
     setGuardando(true);
     const toastId = toast.loading(grupoEditandoId ? "Actualizando categoría..." : "Creando categoría...");
     
+    // 1. Obtener Tenant para RLS
+    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantData = await tenantRes.json();
+
     const entrenadoresString = entrenadoresSeleccionados.join(', ');
     const horariosString = horariosDinámicos.map(h => `${h.dia} ${h.inicio}-${h.fin}`).join(' | ');
 
-    const datosFinales = { ...formData, entrenadores: entrenadoresString, horarios: horariosString };
+    const datosFinales = { ...formData, entrenadores: entrenadoresString, horarios: horariosString, club_id: tenantData.id };
 
     if (grupoEditandoId) {
       const { error } = await supabase.from('categorias').update(datosFinales).eq('id', grupoEditandoId);

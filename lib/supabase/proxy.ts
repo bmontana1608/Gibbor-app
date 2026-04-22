@@ -39,7 +39,8 @@ export async function updateSession(request: NextRequest) {
   if (!user && (
     url.pathname.startsWith('/director') || 
     url.pathname.startsWith('/entrenador') || 
-    url.pathname.startsWith('/futbolista')
+    url.pathname.startsWith('/futbolista') ||
+    url.pathname.startsWith('/admin')
   )) {
     return NextResponse.redirect(new URL('/', request.url))
   }
@@ -62,6 +63,10 @@ export async function updateSession(request: NextRequest) {
     }
     
     if (url.pathname.startsWith('/entrenador') && rol !== 'Entrenador' && rol !== 'Director') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    if (url.pathname.startsWith('/admin') && rol !== 'SuperAdmin') {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }

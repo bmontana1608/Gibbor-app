@@ -14,11 +14,17 @@ export default function NuevoMiembro() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
   const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
+  const [tenant, setTenant] = useState<any>(null);
 
   useEffect(() => {
     async function cargarDatosInscripcion() {
+      // 1. Cargar Tenant para RLS
+      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      const tenantData = await tenantRes.json();
+      setTenant(tenantData);
+
       // Cargar categorías activas
-      const { data: catData } = await supabase.from('categorias').select('nombre').eq('estado', 'Activo');
+      const { data: catData } = await supabase.from('categorias').select('nombre, id').eq('estado', 'Activo');
       if (catData) setCategorias(catData);
 
       // Cargar planes de pago dinámicos
@@ -97,9 +103,14 @@ export default function NuevoMiembro() {
     setGuardando(true);
     const toastId = toast.loading("Guardando jugador...");
 
+    const payload = {
+      ...formData,
+      club_id: tenant?.id
+    };
+
     const { error } = await supabase
       .from('perfiles')
-      .insert([formData]);
+      .insert([payload]);
 
     setGuardando(false);
 

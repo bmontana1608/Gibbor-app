@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: var(--brand-primary);
+  --color-brand-muted: rgba(var(--brand-primary-rgb), 0.1);
+}
+
 body {
   background-color: #f8fafc;
   color: #1e293b;
 }
 
-/* ELIMINAR WINDOWS 98 - SCROLLBAR PRO GIBBOR */
-
 /* 1. Reset total para todos los elementos con scroll */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 153, 0, 0.4) transparent;
+  scrollbar-color: var(--color-brand-muted) transparent;
 }
 
 /* 2. Estilo específico para Chrome, Safari y Edge */
@@ -19,7 +22,6 @@ body {
   height: 6px;
 }
 
-/* Ocultar los botones de flecha (Windows 98 style) */
 ::-webkit-scrollbar-button {
   display: none;
   width: 0;
@@ -27,7 +29,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent; /* Fondo invisible */
+  background: transparent;
 }
 
 ::-webkit-scrollbar-track-piece {
@@ -35,14 +37,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 153, 0, 0.2); /* Naranja muy suave */
+  background-color: var(--color-brand-muted);
   border-radius: 100px;
   border: none;
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 153, 0, 0.6); /* Se ilumina al pasar el mouse */
+  background-color: var(--color-brand);
+  opacity: 0.8;
 }
 
 /* Clase específica para áreas de scroll sutil como la barra lateral */
@@ -51,11 +54,11 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 153, 0, 0.3);
+  background-color: var(--color-brand-muted);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #ea580c;
+  background: var(--color-brand);
 }
 
 @keyframes shimmer {

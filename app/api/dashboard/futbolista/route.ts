@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getTenant } from '@/lib/tenant';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+
+  // Obtener tenant actual
+  const tenant = await getTenant();
 
   if (!id) {
     return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });
@@ -20,6 +24,7 @@ export async function GET(request: Request) {
       .from('perfiles')
       .select('*, insignias:insignias_otorgadas(insignia_id, insignias(*))')
       .eq('id', id)
+      .eq('club_id', tenant.id)
       .single();
 
     // 2. Ejecutamos el resto en paralelo usando los datos del perfil
@@ -31,21 +36,22 @@ export async function GET(request: Request) {
       eventosRes
     ] = await Promise.all([
       // Evaluaciones técnicas reales (Desde el nuevo Stats Lab)
-      supabaseAdmin.from('evaluaciones_tecnicas').select('stats').eq('jugador_id', id).order('fecha', { ascending: false }).limit(5),
+      supabaseAdmin.from('evaluaciones_tecnicas').select('stats').eq('jugador_id', id).eq('club_id', tenant.id).order('fecha', { ascending: false }).limit(5),
       
       // Pagos
-      supabaseAdmin.from("pagos_ingresos").select("*").eq("jugador_id", id).order("fecha", { ascending: false }).limit(6),
+      supabaseAdmin.from("pagos_ingresos").select("*").eq("jugador_id", id).eq('club_id', tenant.id).order("fecha", { ascending: false }).limit(6),
       
       // Asistencias
-      supabaseAdmin.from("asistencias").select("*").eq("jugador_id", id).order("fecha", { ascending: false }),
+      supabaseAdmin.from("asistencias").select("*").eq("jugador_id", id).eq('club_id', tenant.id).order("fecha", { ascending: false }),
       
       // Configuración Club
-      supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').single(),
+      supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').eq('club_id', tenant.id).single(),
 
       // Próximos Eventos (Filtrados)
       supabaseAdmin.from('eventos')
         .select('*')
         .gte('fecha', new Date().toISOString().split('T')[0])
+        .eq('club_id', tenant.id)
         .or(`categoria_id.is.null,categoria_id.eq."",categoria_id.eq."${perfilData?.grupos || 'NINGUNA'}"`)
         .order('fecha', { ascending: true })
         .limit(3)
