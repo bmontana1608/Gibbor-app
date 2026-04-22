@@ -8,9 +8,9 @@ const supabaseAdmin = createClient(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     // 1. Datos básicos del club
