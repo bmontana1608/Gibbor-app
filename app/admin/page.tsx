@@ -17,6 +17,23 @@ export default function SuperAdminDashboard() {
   const [clubes, setClubes] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+  const [selectedClub, setSelectedClub] = useState<any>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [clubAudit, setClubAudit] = useState<any>(null);
+
+  // Cargar expedientes
+  const auditClub = async (club: any) => {
+    setSelectedClub(club);
+    setDetailsLoading(true);
+    try {
+      const res = await fetch(`/api/admin/clubes/${club.id}`);
+      const data = await res.json();
+      setClubAudit(data);
+    } catch (e) {
+      toast.error('Error al cargar auditoría');
+    }
+    setDetailsLoading(false);
+  };
 
   // Cargar datos consolidados
   const cargarTodo = async () => {
@@ -209,6 +226,7 @@ export default function SuperAdminDashboard() {
                         club={club} 
                         count={metrics?.alumnosPorClub?.[club.id] || 0}
                         onToggle={toggleEstadoClub} 
+                        onAudit={auditClub}
                       />
                     ))}
                   </tbody>
@@ -218,6 +236,82 @@ export default function SuperAdminDashboard() {
           )}
         </section>
       </main>
+
+      {/* MODAL DETALLES CLUB */}
+      {selectedClub && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-end animate-in slide-in-from-right duration-300">
+           <div className="bg-zinc-900 w-full max-w-2xl h-full border-l border-white/10 p-10 flex flex-col shadow-2xl relative overflow-y-auto">
+              <button 
+                onClick={() => { setSelectedClub(null); setClubAudit(null); }} 
+                className="absolute top-8 right-8 text-slate-500 hover:text-white bg-white/5 p-2 rounded-xl transition-colors"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="flex items-center gap-6 mb-10 mt-4">
+                 <div className="w-20 h-20 bg-zinc-950 rounded-[2rem] border border-white/10 p-4 flex items-center justify-center overflow-hidden">
+                    <img src={selectedClub.logo_url} className="w-full h-full object-contain" />
+                 </div>
+                 <div>
+                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white">{selectedClub.nombre}</h3>
+                    <p className="text-orange-500 font-mono text-sm tracking-widest">/{selectedClub.slug}</p>
+                 </div>
+              </div>
+
+              {detailsLoading ? (
+                <div className="flex-1 flex items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                </div>
+              ) : clubAudit && (
+                <div className="space-y-10">
+                   {/* Mini Dashboard del Club */}
+                   <div className="grid grid-cols-2 gap-6">
+                      <div className="bg-zinc-950 p-6 rounded-[2rem] border border-white/5">
+                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Entrenadores</p>
+                         <p className="text-3xl font-black text-white italic tracking-tighter">{clubAudit.stats?.coaches || 0}</p>
+                      </div>
+                      <div className="bg-zinc-950 p-6 rounded-[2rem] border border-white/5">
+                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categorías</p>
+                         <p className="text-3xl font-black text-white italic tracking-tighter">{clubAudit.stats?.categorias || 0}</p>
+                      </div>
+                   </div>
+
+                   {/* Actividad Reciente */}
+                   <div>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-white mb-6 border-b border-white/5 pb-4">Actividad Financiera Reciente</h4>
+                      <div className="space-y-4">
+                         {clubAudit.actividad?.length > 0 ? clubAudit.actividad.map((pago: any) => (
+                           <div key={pago.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                              <div>
+                                 <p className="text-sm font-bold text-white uppercase tracking-tighter">{pago.jugador_nombre || 'Alumno Sin Nombre'}</p>
+                                 <p className="text-[10px] text-slate-500 font-medium">{new Date(pago.fecha).toLocaleDateString()}</p>
+                              </div>
+                              <p className="text-sm font-black text-emerald-500 italic tracking-tighter">+ ${parseFloat(pago.total).toLocaleString('es-CO')}</p>
+                           </div>
+                         )) : (
+                           <p className="text-sm text-slate-500 italic">No hay pagos registrados recientemente.</p>
+                         )}
+                      </div>
+                   </div>
+
+                   {/* Acciones Maestras */}
+                   <div className="pt-10 border-t border-white/5">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-6">Zona de Peligro</h4>
+                      <div className="flex flex-wrap gap-4">
+                         <button 
+                           onClick={() => toggleEstadoClub(selectedClub.id, selectedClub.estado)}
+                           className={`flex-1 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl transition-all ${selectedClub.estado === 'Activo' ? 'bg-red-600/10 text-red-500 border border-red-500/20 hover:bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}
+                         >
+                           {selectedClub.estado === 'Activo' ? 'Suspender Academia' : 'Reactivar Academia'}
+                         </button>
+                         <button className="flex-1 bg-white/5 text-slate-400 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl border border-white/5 hover:text-white transition-all">Ver como Director</button>
+                      </div>
+                   </div>
+                </div>
+              )}
+           </div>
+        </div>
+      )}
 
       {/* MODAL CREAR CLUB */}
       {showModal && (
@@ -287,7 +381,7 @@ function NavItem({ icon, label, active = false }: { icon: any, label: string, ac
   );
 }
 
-function ClubRow({ club, count, onToggle }: any) {
+function ClubRow({ club, count, onToggle, onAudit }: any) {
   const [host, setHost] = useState('');
   
   useEffect(() => {
@@ -338,7 +432,12 @@ function ClubRow({ club, count, onToggle }: any) {
           >
             {club.estado === 'Activo' ? 'Suspender' : 'Activar'}
           </button>
-          <button className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white p-2">Detalles</button>
+          <button 
+            onClick={() => onAudit(club)}
+            className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white p-2 border border-white/5 rounded-lg hover:bg-white/5 transition-all"
+          >
+            Expediente
+          </button>
         </div>
       </td>
     </tr>
