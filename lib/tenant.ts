@@ -22,9 +22,10 @@ export async function getTenant() {
     const parts = host.split('.');
     
     if (parts.length > 2 && parts[0] !== 'www') {
-      slug = parts[0];
+      // Mapeo de alias de producción
+      slug = parts[0] === 'portalgibbor' ? 'gibbor' : parts[0];
     } else {
-      slug = 'master'; // Dominio principal limpio
+      slug = 'gibbor'; // Rescate de PWA en raíz
     }
   }
 
