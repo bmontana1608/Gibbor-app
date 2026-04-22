@@ -37,18 +37,21 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
     router.push('/');
   };
 
+  const tenantSlug = tenant?.slug || '';
+  const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
+
   const menu = [
-    { name: 'Inicio (Dashboard)', path: '/director', icon: <Home className="w-5 h-5" /> },
-    { name: 'Miembros', path: '/director/miembros', icon: <Users className="w-5 h-5" /> },
-    { name: 'Agenda', path: '/director/eventos', icon: <Calendar className="w-5 h-5" /> },
-    { name: 'Cobranza', path: '/director/cobranza', icon: <CreditCard className="w-5 h-5" /> },
-    { name: 'Nómina', path: '/director/nomina', icon: <Briefcase className="w-5 h-5" /> },
-    { name: 'Asistencia', path: '/director/asistencia', icon: <ClipboardCheck className="w-5 h-5" /> },
-    { name: 'Categorías', path: '/director/categorias', icon: <Tags className="w-5 h-5" /> },
-    { name: 'Reportes', path: '/director/reportes', icon: <BarChart className="w-5 h-5" /> },
-    { name: 'Comunicados', path: '/director/comunicados', icon: <Megaphone className="w-5 h-5 text-brand" /> },
-    { name: 'Asistente WA', path: '/director/configuracion/asistente-whatsapp', icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
-    { name: 'Ajustes del Club', path: '/director/configuracion', icon: <Settings className="w-5 h-5 text-brand" /> },
+    { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
+    { name: 'Miembros', path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
+    { name: 'Agenda', path: `${basePath}/director/eventos`, icon: <Calendar className="w-5 h-5" /> },
+    { name: 'Cobranza', path: `${basePath}/director/cobranza`, icon: <CreditCard className="w-5 h-5" /> },
+    { name: 'Nómina', path: `${basePath}/director/nomina`, icon: <Briefcase className="w-5 h-5" /> },
+    { name: 'Asistencia', path: `${basePath}/director/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
+    { name: 'Categorías', path: `${basePath}/director/categorias`, icon: <Tags className="w-5 h-5" /> },
+    { name: 'Reportes', path: `${basePath}/director/reportes`, icon: <BarChart className="w-5 h-5" /> },
+    { name: 'Comunicados', path: `${basePath}/director/comunicados`, icon: <Megaphone className="w-5 h-5 text-brand" /> },
+    { name: 'Asistente WA', path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
+    { name: 'Ajustes del Club', path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5 text-brand" /> },
   ];
 
   const accesosRapidos = [
