@@ -20,10 +20,11 @@ export async function getTenant() {
   // Si por alguna razón no viene (ej: llamadas directas internas), inferimos
   if (!slug) {
     const parts = host.split('.');
-    if (host.includes('portalgibbor.vercel.app')) {
-      slug = 'gibbor';
+    
+    if (parts.length > 2 && parts[0] !== 'www') {
+      slug = parts[0];
     } else {
-      slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'gibbor';
+      slug = 'master'; // Dominio principal limpio
     }
   }
 

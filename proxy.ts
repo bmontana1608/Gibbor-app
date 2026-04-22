@@ -29,12 +29,14 @@ export function proxy(request: NextRequest) {
     finalPathname = '/' + pathParts.slice(1).join('/');
     if (finalPathname === '/') finalPathname = '/'; // Manejar landing de club
   } else {
-    // Caso: /director (sin slug) -> usamos Gibbor por defecto o subdominio
-    if (hostname.includes('portalgibbor.vercel.app')) {
-      slug = 'gibbor';
+    // DETECCIÓN POR SUBDOMINIO
+    const parts = hostname.split('.');
+    
+    if (parts.length > 2 && parts[0] !== 'www') {
+      slug = parts[0];
     } else {
-      const parts = hostname.split('.');
-      slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'gibbor';
+      // Dominio principal (SaaS Master)
+      slug = 'master'; 
     }
   }
 
