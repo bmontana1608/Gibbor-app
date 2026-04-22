@@ -64,7 +64,9 @@ export default function SuperAdminDashboard() {
       .eq('id', user.id)
       .single();
 
-    if (perfil?.rol !== 'SuperAdmin') {
+    const userRole = perfil?.rol?.toLowerCase();
+
+    if (userRole !== 'superadmin') {
       setIsAdmin(false);
       setFetching(false);
       return;

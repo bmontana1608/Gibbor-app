@@ -34,13 +34,21 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
           .eq('id', user.id)
           .single();
 
-        // SEGURIDAD: Solo entran Directores al club que les corresponde 
-        // EXCEPCIÓN: El SuperAdmin puede entrar a CUALQUIER club.
-        const isSuperAdmin = perfil?.rol === 'SuperAdmin';
-        const isDirectorOfThisClub = perfil?.rol === 'Director' && perfil?.club_id === data.id;
+        // NORMALIZACIÓN DE ROLES
+        const userRole = perfil?.rol?.toLowerCase();
+        const isSuperAdmin = userRole === 'superadmin';
+        const isDirector = userRole === 'director';
+        const belongsToClub = perfil?.club_id === data.id;
 
-        if (!isSuperAdmin && !isDirectorOfThisClub) {
-          toast.error('Acceso denegado: No tienes permisos para este club.');
+        // MODO DIOS: Si eres SuperAdmin, pasas sí o sí
+        if (isSuperAdmin) {
+          // Bienvenido, Jefe
+        } else if (isDirector && belongsToClub) {
+          // Bienvenido, Director
+        } else {
+          // Si no es ninguno de los anteriores, es un intruso
+          console.error("Acceso bloqueado: ", { userRole, clubId: perfil?.club_id, tenantId: data.id });
+          toast.error('Sesión restringida: No tienes permisos para este club.');
           router.push('/');
           return;
         }

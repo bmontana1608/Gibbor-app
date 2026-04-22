@@ -41,13 +41,13 @@ export default async function LoginPage() {
 
         if (perfil) {
           const clubSlug = (perfil.clubes as any)?.slug;
-          const rol = perfil.rol?.toLowerCase();
+          const userRole = perfil.rol?.toLowerCase();
 
-          if (perfil.rol === 'SuperAdmin') {
+          if (userRole === 'superadmin') {
             redirect('/admin');
           } else if (clubSlug) {
             // Ejemplo: /gibbor/futbolista o /gibbor/director
-            redirect(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
+            redirect(`/${clubSlug}/${userRole === 'director' ? 'director' : userRole === 'entrenador' ? 'entrenador' : 'futbolista'}`);
           }
         }
       }
