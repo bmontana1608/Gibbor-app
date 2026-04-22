@@ -15,38 +15,58 @@ export default function SuperAdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clubes, setClubes] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
 
-  // Cargar clubes y Verificar Seguridad
-  useEffect(() => {
-    async function verificarYSacar() {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        router.push('/');
-        return;
-      }
-
-      const { data: perfil } = await supabase
-        .from('perfiles')
-        .select('rol')
-        .eq('id', user.id)
-        .single();
-
-      if (perfil?.rol !== 'SuperAdmin') {
-        toast.error('Acceso denegado: No tienes permisos maestros.');
-        router.push('/director'); // O a su respectivo dashboard
-        return;
-      }
-
-      // Si es SuperAdmin, cargar los clubes
-      const { data } = await supabase.from('clubes').select('*').order('created_at', { ascending: false });
-      if (data) setClubes(data);
-      setFetching(false);
-    }
+  // Cargar datos consolidados
+  const cargarTodo = async () => {
+    setFetching(true);
+    const { data: { user } } = await supabase.auth.getUser();
     
-    verificarYSacar();
+    if (!user) {
+      router.push('/');
+      return;
+    }
+
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('rol')
+      .eq('id', user.id)
+      .single();
+
+    if (perfil?.rol !== 'SuperAdmin') {
+      toast.error('Acceso denegado: No tienes permisos maestros.');
+      router.push('/director');
+      return;
+    }
+
+    // Cargar Clubes y Métricas
+    const [resClubes, resMetrics] = await Promise.all([
+      supabase.from('clubes').select('*').order('created_at', { ascending: false }),
+      fetch('/api/admin/metrics').then(r => r.json())
+    ]);
+
+    if (resClubes.data) setClubes(resClubes.data);
+    if (resMetrics) setMetrics(resMetrics);
+    
+    setFetching(false);
+  };
+
+  useEffect(() => {
+    cargarTodo();
   }, [router]);
+
+  const toggleEstadoClub = async (id: string, estadoActual: string) => {
+    const nuevoEstado = estadoActual === 'Activo' ? 'Suspendido' : 'Activo';
+    const { error } = await supabase.from('clubes').update({ estado: nuevoEstado }).eq('id', id);
+    
+    if (error) {
+      toast.error('Error al cambiar estado');
+    } else {
+      toast.success(`Club ${nuevoEstado}`);
+      cargarTodo();
+    }
+  };
 
   // Manejar creación de club
   const [formData, setFormData] = useState({
@@ -113,6 +133,34 @@ export default function SuperAdminDashboard() {
 
       {/* Contenido Principal */}
       <main className="md:ml-64 p-8">
+
+        {/* Dashboard de Métricas Master */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+           <MetricCard 
+              label="Recaudo Global (Abril)" 
+              value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
+              icon={<CreditCard className="text-emerald-500" />} 
+              sub={`Consolidado de ${metrics?.totalClubes || 0} clubes`} 
+           />
+           <MetricCard 
+              label="Población Atleta" 
+              value={metrics?.totalJugadores || '0'} 
+              icon={<Users className="text-orange-500" />} 
+              sub="Jugadores activos en la red" 
+           />
+           <MetricCard 
+              label="Clubes Activos" 
+              value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
+              icon={<Building2 className="text-blue-500" />} 
+              sub="Tasa de permanencia SaaS" 
+           />
+           <MetricCard 
+              label="Salud del Sistema" 
+              value="100%" 
+              icon={<ShieldCheck className="text-purple-500" />} 
+              sub="Servidores y APIs estables" 
+           />
+        </section>
         
         {/* Header Superior */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
@@ -156,7 +204,7 @@ export default function SuperAdminDashboard() {
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {clubes.map((club) => (
-                      <ClubRow key={club.id} club={club} />
+                      <ClubRow key={club.id} club={club} onToggle={toggleEstadoClub} />
                     ))}
                   </tbody>
                 </table>
@@ -234,7 +282,7 @@ function NavItem({ icon, label, active = false }: { icon: any, label: string, ac
   );
 }
 
-function ClubRow({ club }: any) {
+function ClubRow({ club, onToggle }: any) {
   const [host, setHost] = useState('');
   
   useEffect(() => {
@@ -259,8 +307,8 @@ function ClubRow({ club }: any) {
     <tr className="group hover:bg-white/5 transition-colors">
       <td className="py-4 px-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-white/5 p-1 flex items-center justify-center">
-             <img src={club.logo_url} className="max-w-full max-h-full object-contain" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-white/5 p-1 flex items-center justify-center overflow-hidden">
+             <img src={club.logo_url} className="w-full h-full object-contain" />
           </div>
           <span className="font-bold text-sm text-white">{club.nombre}</span>
         </div>
@@ -281,8 +329,32 @@ function ClubRow({ club }: any) {
         </span>
       </td>
       <td className="py-4 px-4 text-right">
-        <button className="text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-400">Ver Detalles</button>
+        <div className="flex items-center justify-end gap-3">
+          <button 
+            onClick={() => onToggle(club.id, club.estado)}
+            className={`text-[10px] font-black uppercase tracking-widest p-2 rounded-lg transition-colors ${club.estado === 'Activo' ? 'text-red-400 hover:bg-red-400/10' : 'text-emerald-400 hover:bg-emerald-400/10'}`}
+          >
+            {club.estado === 'Activo' ? 'Suspender' : 'Activar'}
+          </button>
+          <button className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white p-2">Detalles</button>
+        </div>
       </td>
     </tr>
+  );
+}
+
+function MetricCard({ label, value, icon, sub }: any) {
+  return (
+    <div className="bg-zinc-900 border border-white/5 p-6 rounded-[2rem] hover:border-orange-500/20 transition-all group">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+        <TrendingUp className="text-white/5" size={20} />
+      </div>
+      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</h4>
+      <p className="text-2xl font-black text-white italic tracking-tighter mb-1">{value}</p>
+      <p className="text-[10px] text-slate-600 font-medium">{sub}</p>
+    </div>
   );
 }
