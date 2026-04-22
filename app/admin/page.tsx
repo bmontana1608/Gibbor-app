@@ -246,13 +246,12 @@ function ClubRow({ club }: any) {
     
     // Si estamos en localhost (ej: localhost:3000)
     if (host.includes('localhost')) {
-      return `http://${club.slug}.lvh.me:3000`;
+      return `http://localhost:3000/${club.slug}/director`;
     }
     
     // Si estamos en Vercel (ej: portalgibbor.vercel.app)
-    // Nota: Los subdominios en .vercel.app son limitados, idealmente se usa dominio propio.
-    const baseDomain = host.replace(`${club.slug}.`, '');
-    return `https://${club.slug}.${baseDomain}`;
+    // Usamos la nueva ruta /slug/...
+    return `https://${host}/${club.slug}/director`;
   };
 
   return (
@@ -271,7 +270,7 @@ function ClubRow({ club }: any) {
           target="_blank" 
           className="text-[10px] font-mono text-orange-500 hover:underline flex items-center gap-1"
         >
-          {club.slug}.{host.replace('www.', '')} <Globe size={10} />
+          {host.replace('www.', '')}/{club.slug} <Globe size={10} />
         </a>
       </td>
       <td className="py-4 px-4"><span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full">{club.plan}</span></td>

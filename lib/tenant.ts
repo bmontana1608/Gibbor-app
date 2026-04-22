@@ -13,19 +13,17 @@ const supabaseAdmin = createClient(
  */
 export async function getTenant() {
   const headersList = await headers();
+  // El middleware inyecta 'x-tenant-slug' en todas las peticiones
   let slug = headersList.get('x-tenant-slug');
+  const host = headersList.get('host') || '';
 
-  // 🔥 SOLUCIÓN CRÍTICA: API Routes evaden proxy.ts.
-  // Si no viene la cabecera del slug, la inferimos manualmente del Host.
+  // Si por alguna razón no viene (ej: llamadas directas internas), inferimos
   if (!slug) {
-    const host = headersList.get('host') || '';
     const parts = host.split('.');
-    
-    // Mapeo especial para Producción en Vercel
     if (host.includes('portalgibbor.vercel.app')) {
       slug = 'gibbor';
     } else {
-      slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'master';
+      slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'gibbor';
     }
   }
 

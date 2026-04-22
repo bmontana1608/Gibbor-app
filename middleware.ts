@@ -1,51 +1,64 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * MIDDLEWARE MULTITENANT
- * Detecta el subdominio e inyecta la cabecera x-tenant-slug 
- * para que el resto de la aplicación (Server Components, APIs)
- * sepa con qué club trabajar.
+ * MIDDLEWARE MULTITENANT (Rutas y Subdominios)
+ * Soporta: 
+ * 1. Rutas: portalgibbor.vercel.app/gibbor/director
+ * 2. Subdominios: gibbor.portalgibbor.vercel.app/director
  */
 export function middleware(request: NextRequest) {
-  const url = request.nextUrl
-  const hostname = request.headers.get('host') || ''
-  
-  // 1. Lógica de detección de subdominio
-  const parts = hostname.split('.')
-  let slug = 'master'
+  const url = request.nextUrl.clone();
+  const hostname = request.headers.get('host') || '';
+  const pathname = url.pathname;
 
-  // Mapeo para producción
-  if (hostname.includes('portalgibbor.vercel.app')) {
-    slug = 'gibbor'
-  } else if (parts.length > 2 && parts[0] !== 'www' && !hostname.includes('localhost')) {
-    slug = parts[0]
-  } else if (hostname.includes('lvh.me')) {
-    // Si usas lvh.me para local, el subdominio es el primero
-    slug = parts[0]
+  // 1. OMITIR RUTAS ESTÁTICAS Y DE API
+  if (
+    pathname.includes('.') || 
+    pathname.startsWith('/_next') || 
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/admin')
+  ) {
+    return NextResponse.next();
   }
 
-  // 2. Inyectar el slug en las cabeceras (para Server Components)
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-tenant-slug', slug)
+  // 2. DETECCIÓN POR RUTA (/gibbor/director)
+  const pathParts = pathname.split('/').filter(Boolean);
+  const firstSegment = pathParts[0];
 
-  // 3. Continuar la petición con las nuevas cabeceras
-  return NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
+  // Lista de rutas reservadas que NO son slugs de clubes
+  const reservedPath = ['director', 'entrenador', 'futbolista', 'login', 'perfil'];
+  
+  let slug = '';
+  let finalUrl = url;
+
+  if (firstSegment && !reservedPath.includes(firstSegment)) {
+    // ES UN SLUG (ej: /gibbor/director)
+    slug = firstSegment;
+    // Reescribimos internamente: /gibbor/director -> /director
+    const newPathname = '/' + pathParts.slice(1).join('/');
+    finalUrl.pathname = newPathname || '/';
+  } else {
+    // DETECCIÓN POR SUBDOMINIO O DEFAULT
+    const parts = hostname.split('.');
+    if (hostname.includes('portalgibbor.vercel.app')) {
+      slug = 'gibbor';
+    } else if (parts.length > 2 && parts[0] !== 'www') {
+      slug = parts[0];
+    } else {
+      slug = 'gibbor'; // Fallback para Gibbor
+    }
+  }
+
+  // 3. INYECTAR SLUG EN LA CABECERA PARA EL SERVIDOR
+  // Usamos rewrite para que el servidor vea la ruta limpia pero el cliente vea la ruta con slug
+  const response = NextResponse.rewrite(finalUrl);
+  response.headers.set('x-tenant-slug', slug);
+  
+  return response;
 }
 
-// Configurar en qué rutas se corre el middleware
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc)
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
