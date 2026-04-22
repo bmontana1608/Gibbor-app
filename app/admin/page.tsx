@@ -88,6 +88,20 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     cargarTodo();
+
+    // ESCUCHA DE SESIÓN: Si el usuario se loguea desde el formulario, cargamos todo automáticamente
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        cargarTodo();
+      }
+      if (event === 'SIGNED_OUT') {
+        setIsAdmin(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   if (isAdmin === false) {
