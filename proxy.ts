@@ -35,8 +35,8 @@ export function proxy(request: NextRequest) {
     if (parts.length > 2 && parts[0] !== 'www') {
       slug = parts[0];
     } else {
-      // Dominio principal (SaaS Master)
-      slug = 'master'; 
+      // Dominio principal (Cargar Gibbor por defecto para la PWA existente)
+      slug = 'gibbor'; 
     }
   }
 
