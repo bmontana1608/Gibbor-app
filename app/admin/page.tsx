@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2
+  X, Check, Loader2, ArrowRightLeft
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
