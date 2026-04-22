@@ -124,11 +124,13 @@ export default function ModuloCobranza() {
     const { data: histData } = await supabase
       .from('pagos_ingresos')
       .select('*')
+      .eq('club_id', tenantData.id)
       .order('fecha', { ascending: false });
     
     const { data: egresosData } = await supabase
       .from('pagos_egresos')
       .select('*')
+      .eq('club_id', tenantData.id)
       .order('fecha', { ascending: false });
 
     const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString();
@@ -506,37 +508,33 @@ export default function ModuloCobranza() {
     }
   };
 
-  const ingresosRecaudados = historialPagos.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
-  const egresosTotales = egresos.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
-  const utilidadNeta = ingresosRecaudados - egresosTotales;
-  
-  const totalJugadoresCobrales = jugadores.filter(j => calcularTarifa(j.tipo_plan) > 0).length;
-  
-  // Mapeo de quiénes pagaron este mes para rapidez
-  // Mapeo de quiénes pagaron este mes para rapidez
   const mesActualStr = String(hoy.getMonth() + 1).padStart(2, '0');
   const anioActualStr = String(hoy.getFullYear());
-  const matchMesAnio = `${anioActualStr}-${mesActualStr}`;
+  const matchMesAnio = `${anioActualStr}-${mesActualStr}`; // "2026-04"
+
+  // 📈 CÁLCULOS FINANCIEROS (Solo mes actual)
+  const pagosEsteMes = historialPagos.filter(p => p.fecha && String(p.fecha).includes(matchMesAnio));
+  const ingresosRecaudados = pagosEsteMes.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
   
-  const idsPagadosEsteMes = new Set(
-    historialPagos
-      .filter(p => p.fecha && String(p.fecha).startsWith(matchMesAnio))
-      .map(p => p.jugador_id)
-  );
+  const egresosEsteMes = egresos.filter(e => e.fecha && String(e.fecha).includes(matchMesAnio));
+  const egresosTotales = egresosEsteMes.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
+  
+  const utilidadNeta = ingresosRecaudados - egresosTotales;
+  
+  // 👥 ESTADO DE JUGADORES
+  const idsPagadosEsteMes = new Set(pagosEsteMes.map(p => p.jugador_id));
 
   const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
     const planLabel = (j.tipo_plan || '').toLowerCase();
     
-    // Un jugador está al día si:
-    // 1. Tiene pago este mes
-    // 2. Es becado al 100% (tarifa 0 o nombre indica 100%)
     const esBeca100 = tarifa === 0 || planLabel.includes('100');
     const esAlDia = idsPagadosEsteMes.has(j.id) || esBeca100;
     
     return { ...j, esAlDia, tarifa, esBeca100 };
   });
 
+  const totalJugadoresCobrales = jugadoresFin.filter(j => j.tarifa > 0).length;
   const totalAlDia = jugadoresFin.filter(j => j.esAlDia && j.tarifa > 0).length;
   const totalMora = totalJugadoresCobrales - totalAlDia;
   
