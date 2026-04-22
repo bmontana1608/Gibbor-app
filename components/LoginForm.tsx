@@ -37,7 +37,7 @@ export default function LoginForm({ tenant }: LoginFormProps) {
 
     const { data: perfilData, error: perfilError } = await supabase
       .from('perfiles')
-      .select('rol')
+      .select('rol, club_id, clubes(slug)')
       .eq('id', authData.user.id)
       .single();
 
@@ -47,14 +47,18 @@ export default function LoginForm({ tenant }: LoginFormProps) {
       return;
     }
 
+    const clubSlug = (perfilData.clubes as any)?.slug;
+    const rol = perfilData.rol?.toLowerCase();
+
     if (perfilData.rol === 'SuperAdmin') {
       router.push('/admin');
-    } else if (perfilData.rol === 'Director') {
-      router.push('/director');
-    } else if (perfilData.rol === 'Entrenador') {
-      router.push('/entrenador');
-    } else if (perfilData.rol === 'Futbolista') {
-      router.push('/futbolista');
+    } else if (clubSlug) {
+      // Redirección dinámica basada en Club y Rol
+      const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+      router.push(destino);
+    } else {
+      // Fallback si no tiene club asignado (pero no es SuperAdmin)
+      router.push('/' + (rol || ''));
     }
 
     setLoading(false);
