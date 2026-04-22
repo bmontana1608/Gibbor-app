@@ -28,7 +28,7 @@ export async function getTenant() {
     }
   }
 
-  // Branding Neutro y Profesional del SaaS Matriz
+  // Branding Neutro y Profesional del SaaS Matriz (NexClub)
   const saasMaster = {
     slug: 'master',
     config: {
@@ -38,8 +38,32 @@ export async function getTenant() {
     }
   };
 
-  // Si intentan acceder al dominio general sin subdominio
+  // LÓGICA DE RESCATE: Si estamos en el dominio raíz, BUSCAR GIBBOR por defecto
+  // para que los padres no vean el logo de NexClub.
   if (!slug || slug === 'master' || slug === 'localhost') {
+    // Si el slug es explícitamente 'master', mostrar NexClub
+    if (slug === 'master') return saasMaster;
+
+    // De lo contrario, buscar 'gibbor' como fallback para el dominio principal
+    const { data: defaultClub } = await supabaseAdmin
+      .from('clubes')
+      .select('*')
+      .eq('slug', 'gibbor')
+      .single();
+
+    if (defaultClub) {
+      return {
+        id: defaultClub.id,
+        slug: defaultClub.slug,
+        isMaster: false,
+        config: {
+          nombre: defaultClub.nombre,
+          color: defaultClub.color_primario || '#ea580c',
+          logo: defaultClub.logo_url || '/logo.png'
+        }
+      };
+    }
+
     return saasMaster;
   }
 

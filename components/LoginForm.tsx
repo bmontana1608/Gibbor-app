@@ -15,10 +15,48 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ tenant }: LoginFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [sessionCargada, setSessionCargada] = useState(false);
+
+  // EFECTO DE PERSISTENCIA: Si ya hay sesión en el navegador, brincar el login
+  useEffect(() => {
+    async function chequearSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('rol, club_id, clubes(slug)')
+          .eq('id', session.user.id)
+          .single();
+
+        if (perfil) {
+          const clubSlug = (perfil.clubes as any)?.slug;
+          const rol = perfil.rol?.toLowerCase();
+          
+          if (perfil.rol === 'SuperAdmin') {
+            router.push('/admin');
+            return; // Detener flujo
+          } else if (clubSlug) {
+            router.push(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
+            return; // Detener flujo
+          }
+        }
+      }
+      setSessionCargada(true);
+    }
+    chequearSession();
+  }, []);
+
+  if (!sessionCargada) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
