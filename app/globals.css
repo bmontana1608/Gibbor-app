@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+:root {
+  --brand-primary: #ea580c;
+  --brand-primary-rgb: 234, 88, 12;
+}
+
 @theme {
   --color-brand: var(--brand-primary);
   --color-brand-muted: rgba(var(--brand-primary-rgb), 0.1);

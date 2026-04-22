@@ -10,20 +10,42 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export default function SuperAdminDashboard() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clubes, setClubes] = useState<any[]>([]);
   const [fetching, setFetching] = useState(true);
 
-  // Cargar clubes desde la DB
+  // Cargar clubes y Verificar Seguridad
   useEffect(() => {
-    async function cargarClubes() {
+    async function verificarYSacar() {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/');
+        return;
+      }
+
+      const { data: perfil } = await supabase
+        .from('perfiles')
+        .select('rol')
+        .eq('id', user.id)
+        .single();
+
+      if (perfil?.rol !== 'SuperAdmin') {
+        toast.error('Acceso denegado: No tienes permisos maestros.');
+        router.push('/director'); // O a su respectivo dashboard
+        return;
+      }
+
+      // Si es SuperAdmin, cargar los clubes
       const { data } = await supabase.from('clubes').select('*').order('created_at', { ascending: false });
       if (data) setClubes(data);
       setFetching(false);
     }
-    cargarClubes();
-  }, []);
+    
+    verificarYSacar();
+  }, [router]);
 
   // Manejar creación de club
   const [formData, setFormData] = useState({
@@ -212,6 +234,27 @@ function NavItem({ icon, label, active = false }: { icon: any, label: string, ac
 }
 
 function ClubRow({ club }: any) {
+  const [host, setHost] = useState('');
+  
+  useEffect(() => {
+    setHost(window.location.host);
+  }, []);
+
+  // Generar la URL del club
+  const getClubUrl = () => {
+    if (!host) return '#';
+    
+    // Si estamos en localhost (ej: localhost:3000)
+    if (host.includes('localhost')) {
+      return `http://${club.slug}.lvh.me:3000`;
+    }
+    
+    // Si estamos en Vercel (ej: portalgibbor.vercel.app)
+    // Nota: Los subdominios en .vercel.app son limitados, idealmente se usa dominio propio.
+    const baseDomain = host.replace(`${club.slug}.`, '');
+    return `https://${club.slug}.${baseDomain}`;
+  };
+
   return (
     <tr className="group hover:bg-white/5 transition-colors">
       <td className="py-4 px-4">
@@ -219,10 +262,18 @@ function ClubRow({ club }: any) {
           <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-white/5 p-1 flex items-center justify-center">
              <img src={club.logo_url} className="max-w-full max-h-full object-contain" />
           </div>
-          <span className="font-bold text-sm">{club.nombre}</span>
+          <span className="font-bold text-sm text-white">{club.nombre}</span>
         </div>
       </td>
-      <td className="py-4 px-4 text-xs font-mono text-slate-400">{club.slug}.lvh.me</td>
+      <td className="py-4 px-4">
+        <a 
+          href={getClubUrl()} 
+          target="_blank" 
+          className="text-[10px] font-mono text-orange-500 hover:underline flex items-center gap-1"
+        >
+          {club.slug}.{host.replace('www.', '')} <Globe size={10} />
+        </a>
+      </td>
       <td className="py-4 px-4"><span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full">{club.plan}</span></td>
       <td className="py-4 px-4">
         <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${club.estado === 'Activo' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>

@@ -81,9 +81,24 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
 
   const brandName = tenant?.config?.nombre || 'Gibbor App';
   const brandLogo = tenant?.config?.logo || '/logo.png';
+  const brandColor = tenant?.config?.color || '#ea580c';
+
+  // Función para convertir hex a rgb para las transparencias
+  const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `${r}, ${g}, ${b}`;
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --brand-primary: ${brandColor};
+          --brand-primary-rgb: ${hexToRgb(brandColor)};
+        }
+      `}} />
       <PushPermissionBanner />
       
       <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>

@@ -49,17 +49,35 @@ export async function POST(request: Request) {
         }]);
 
       if (perfilError) {
-        // En caso de que se haya creado el authUser, también deberíamos limpiarlo
         await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
         throw new Error(`Error en Perfil: ${perfilError.message}`);
       }
 
+      // 4. KIT DE BIENVENIDA: Configuración de Marca y WhatsApp
+      await supabaseAdmin.from('configuracion_wa').insert([{
+        club_id: nuevoClub.id,
+        nombre_club: clubData.nombre,
+        temporada_actual: `TEMPORADA ${new Date().getFullYear()}`,
+        direccion: 'Sede Central',
+        ciudad: 'Ciudad de Origen',
+        api_url: 'https://evolution-api-production-c6137.up.railway.app' // API Base
+      }]);
+
+      // 5. KIT DE BIENVENIDA: Plan de Pago Inicial
+      await supabaseAdmin.from('planes').insert([{
+        club_id: nuevoClub.id,
+        nombre: 'Mensualidad Regular',
+        precio_base: 70000,
+        dia_cobro_mensual: 1,
+        dias_limite_pronto_pago: 5,
+        descuento_pronto_pago: 10000
+      }]);
+
       return NextResponse.json(nuevoClub);
 
     } catch (innerError: any) {
-      // ROLLBACK: Borrar el club si algo más adelante falló
       await supabaseAdmin.from('clubes').delete().eq('id', nuevoClub.id);
-      throw innerError; // Relanzar para devolver un 500
+      throw innerError;
     }
 
   } catch (err: any) {
