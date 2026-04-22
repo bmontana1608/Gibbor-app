@@ -38,13 +38,8 @@ export async function getTenant() {
     }
   };
 
-  // LÓGICA DE RESCATE: Si estamos en el dominio raíz, BUSCAR GIBBOR por defecto
-  // para que los padres no vean el logo de NexClub.
-  if (!slug || slug === 'master' || slug === 'localhost') {
-    // Si el slug es explícitamente 'master', mostrar NexClub
-    if (slug === 'master') return saasMaster;
-
-    // De lo contrario, buscar 'gibbor' como fallback para el dominio principal
+  // Si estamos en la raíz o localhost sin slug, devolver GIBBOR por defecto
+  if (!slug || slug === 'localhost') {
     const { data: defaultClub } = await supabaseAdmin
       .from('clubes')
       .select('*')
@@ -63,7 +58,10 @@ export async function getTenant() {
         }
       };
     }
+  }
 
+  // Si el slug es explícitamente 'master', mostrar NexClub
+  if (slug === 'master') {
     return saasMaster;
   }
 

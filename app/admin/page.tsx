@@ -10,9 +10,11 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import LoginForm from '@/components/LoginForm';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clubes, setClubes] = useState<any[]>([]);
@@ -21,6 +23,15 @@ export default function SuperAdminDashboard() {
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [clubAudit, setClubAudit] = useState<any>(null);
+
+  // Configuración del Tenant para el Login de SuperAdmin
+  const adminTenant = {
+    config: {
+      nombre: 'NexClub SaaS Management',
+      color: '#EA580C',
+      logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
+    }
+  };
 
   // Cargar expedientes
   const auditClub = async (club: any) => {
@@ -42,7 +53,8 @@ export default function SuperAdminDashboard() {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      router.push('/');
+      setIsAdmin(false);
+      setFetching(false);
       return;
     }
 
@@ -53,10 +65,12 @@ export default function SuperAdminDashboard() {
       .single();
 
     if (perfil?.rol !== 'SuperAdmin') {
-      toast.error('Acceso denegado: No tienes permisos maestros.');
-      router.push('/director');
+      setIsAdmin(false);
+      setFetching(false);
       return;
     }
+
+    setIsAdmin(true);
 
     // Cargar Clubes y Métricas
     const [resClubes, resMetrics] = await Promise.all([
@@ -73,6 +87,18 @@ export default function SuperAdminDashboard() {
   useEffect(() => {
     cargarTodo();
   }, [router]);
+
+  if (isAdmin === false) {
+    return <LoginForm tenant={adminTenant} />;
+  }
+
+  if (isAdmin === null || fetching) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   const toggleEstadoClub = async (id: string, estadoActual: string) => {
     const nuevoEstado = estadoActual === 'Activo' ? 'Suspendido' : 'Activo';
