@@ -12,6 +12,14 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
+    const insigniasDisponibles = [
+      { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', desc: 'Máximo artillero' },
+      { id: 'muro', nombre: 'Muro Defensivo', icono: '🛡️', desc: 'Defensa impenetrable' },
+      { id: 'cerebro', nombre: 'Cerebro del Campo', icono: '🧠', desc: 'Visión de juego superior' },
+      { id: 'fairplay', nombre: 'Espíritu Gibbor', icono: '🤝', desc: 'Compañerismo y valores' },
+      { id: 'rayo', nombre: 'Rayo Veloz', icono: '⚡', desc: 'Velocidad explosiva' }
+    ];
+
     if (tipo === 'puntos') {
       for (const id of jugadorIds) {
         // 1. Obtener puntos actuales
@@ -21,7 +29,7 @@ export async function POST(request: Request) {
         // 2. Actualizar
         await supabaseAdmin.from('perfiles').update({ puntos: nuevosPuntos }).eq('id', id);
 
-        // 3. Log
+        // 3. Log interno de puntos
         await supabaseAdmin.from('puntos_log').insert([{
           jugador_id: id,
           puntos: monto,
@@ -30,15 +38,16 @@ export async function POST(request: Request) {
           fecha: new Date().toISOString()
         }]);
       }
-      // 4. Auditoría Centralizada
+
+      // 4. Auditoría Centralizada MCM
       const { data: { user } } = await supabaseAdmin.auth.getUser();
       if (user) {
         await logAction({
           userId: user.id,
-          clubId: '', // Necesitaríamos obtener el club_id del usuario, omitimos por ahora o buscamos
+          clubId: '', // Opcional para este contexto
           accion: 'OTORGAR_PUNTOS',
           descripcion: `Se otorgaron ${monto} puntos a ${jugadorIds.length} jugadores. Motivo: ${motivo}`,
-          metadata: { monto, cantidad_jugadores: jugadorIds.length, motivo }
+          metadata: { monto, cantidad_jugadores: jugadorIds.length, motivo, otorgadoPor }
         });
       }
 
@@ -46,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     if (tipo === 'insignia') {
-      // (código omitido para brevedad: upsert de insignias...)
+      // Registrar insignias en la base si no existen
       for (const ins of insigniasDisponibles) {
          await supabaseAdmin.from('insignias').upsert([{ 
            id: ins.id, 
@@ -65,15 +74,15 @@ export async function POST(request: Request) {
         }]);
       }
 
-      // Auditoría de Insignias
+      // Auditoría de Insignias MCM
       const { data: { user } } = await supabaseAdmin.auth.getUser();
       if (user) {
         await logAction({
           userId: user.id,
           clubId: '', 
           accion: 'OTORGAR_INSIGNIA',
-          descripcion: `Se otorgó la insignia [${insigniaId}] a ${jugadorIds.length} jugadores.`,
-          metadata: { insigniaId, cantidad_jugadores: jugadorIds.length }
+          descripcion: `Se otorgó la condecoración [${insigniaId}] a ${jugadorIds.length} jugadores.`,
+          metadata: { insigniaId, cantidad_jugadores: jugadorIds.length, otorgadoPor }
         });
       }
 
