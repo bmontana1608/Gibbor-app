@@ -511,51 +511,68 @@ export default function SuperAdminDashboard() {
         )}
 
         {vista === 'suscripciones' && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Gestión de <span className="text-emerald-500">Suscripciones & Pagos</span></h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Recaudo Estimado (Mes)</p>
-                      <p className="text-3xl font-black text-white italic tracking-tighter">${(metrics?.totalJugadores * 2000)?.toLocaleString('es-CO')}</p>
-                  </div>
-                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Pasarela Activa</p>
-                      <p className="text-xl font-black text-cyan-500 uppercase italic tracking-tighter">Wompi / Bold / Culqi</p>
-                  </div>
-                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tasa de Mora Global</p>
-                      <p className="text-3xl font-black text-red-500 italic tracking-tighter">12.4%</p>
-                  </div>
-              </div>
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             {/* Resumen Financiero */}
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Cartera Total Mes</p>
+                   <h3 className="text-3xl font-black text-emerald-400 italic tracking-tighter">
+                      ${metrics?.proyeccionIngresosSaaS.toLocaleString('es-CO')}
+                   </h3>
+                </div>
+                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Clubes Activos</p>
+                   <h3 className="text-3xl font-black text-cyan-500 italic tracking-tighter">
+                      {metrics?.clubesActivos}
+                   </h3>
+                </div>
+                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
+                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Próximo Ciclo</p>
+                   <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">
+                      1 {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleString('es-CO', { month: 'long' })}
+                   </h3>
+                </div>
+             </div>
 
-              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl">
-                  <h3 className="font-black uppercase italic tracking-tighter text-xl mb-6 flex items-center gap-2">
-                      <CreditCard className="text-emerald-500" size={20} /> Historial de Transacciones Master
-                  </h3>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+             {/* Detalle de Cobros */}
+             <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-[3rem] p-10 shadow-2xl">
+                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter mb-8 flex items-center gap-2">
+                   <CreditCard className="text-emerald-500" size={20} /> Gestión de Cobros por Academia
+                </h2>
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
                       <thead>
-                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                          <th className="pb-6 px-4">Club Nodo</th>
-                          <th className="pb-6 px-4">Referencia</th>
-                          <th className="pb-6 px-4">Fecha</th>
-                          <th className="pb-6 px-4">Monto Bruto</th>
-                          <th className="pb-6 px-4">Estado</th>
-                        </tr>
+                         <tr className="border-b border-white/5">
+                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Club Nodo</th>
+                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center px-4">Alumnos</th>
+                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Canon Mensual</th>
+                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Estado</th>
+                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-4">Acción</th>
+                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/5">
-                        <tr className="hover:bg-white/5 transition-all">
-                          <td className="py-4 px-4 font-bold text-sm uppercase italic">EFD GIBBOR FC</td>
-                          <td className="py-4 px-4 text-[10px] font-mono text-slate-500">MCM-PAY-88219</td>
-                          <td className="py-4 px-4 text-xs text-slate-400">Hoy, 10:45 AM</td>
-                          <td className="py-4 px-4 font-black text-sm text-emerald-500 italic">$450,200</td>
-                          <td className="py-4 px-4"><span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border border-emerald-500/20">Éxito</span></td>
-                        </tr>
+                         {clubes.map((club) => {
+                           const alumnos = metrics?.alumnosPorClub?.[club.id] || 0;
+                           const cobro = alumnos * 2000;
+                           return (
+                             <tr key={club.id} className="group hover:bg-white/[0.02] transition-all">
+                                <td className="py-6 px-4 font-black text-sm text-white uppercase italic">{club.nombre}</td>
+                                <td className="py-6 px-4 text-center text-white font-bold">{alumnos}</td>
+                                <td className="py-6 px-4 text-emerald-400 font-black italic">${cobro.toLocaleString('es-CO')}</td>
+                                <td className="py-6 px-4 text-xs font-black">
+                                   <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg">Al Día</span>
+                                </td>
+                                <td className="py-6 px-4 text-right">
+                                   <button className="text-[10px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-emerald-600 transition-all">Generar Recibo</button>
+                                </td>
+                             </tr>
+                           )
+                         })}
                       </tbody>
-                    </table>
-                  </div>
-              </div>
-          </section>
+                   </table>
+                </div>
+             </div>
+          </div>
         )}
 
         {vista === 'configuracion' && (
