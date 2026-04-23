@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2, ArrowRightLeft
+  X, Check, Loader2, ArrowRightLeft, Trash2
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -145,6 +145,22 @@ export default function SuperAdminDashboard() {
     } else {
       toast.success(`Club ${nuevoEstado}`);
       cargarTodo();
+    }
+  };
+
+  const eliminarClub = async (id: string, nombre: string) => {
+    const confirmar = window.confirm(`¿ESTÁS SEGURO? Esta acción ELIMINARÁ permanentemente a "${nombre.toUpperCase()}" y todos sus datos del ecosistema MCM. No se puede deshacer.`);
+    if (!confirmar) return;
+
+    try {
+      const res = await fetch(`/api/admin/clubes/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      toast.success('Club eliminado definitivamente');
+      cargarTodo();
+    } catch (e: any) {
+      toast.error('Error al eliminar: ' + e.message);
     }
   };
 
@@ -347,6 +363,7 @@ export default function SuperAdminDashboard() {
                             count={metrics?.alumnosPorClub?.[club.id] || 0}
                             onToggle={toggleEstadoClub} 
                             onAudit={auditClub}
+                            onDelete={eliminarClub}
                           />
                         ))}
                       </tbody>
@@ -697,7 +714,7 @@ function MetricCard({ label, value, icon, sub, color = "cyan" }: any) {
   );
 }
 
-function ClubRow({ club, count, onToggle, onAudit }: any) {
+function ClubRow({ club, count, onToggle, onAudit, onDelete }: any) {
   const [host, setHost] = useState('');
   
   useEffect(() => {
@@ -767,6 +784,13 @@ function ClubRow({ club, count, onToggle, onAudit }: any) {
             className="text-[9px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-cyan-600 hover:border-cyan-500 transition-all shadow-xl"
           >
             Detalles
+          </button>
+          <button 
+            onClick={() => onDelete(club.id, club.nombre)}
+            className="p-2 text-slate-600 hover:text-red-500 transition-colors"
+            title="Eliminar Club"
+          >
+            <Trash2 size={16} />
           </button>
         </div>
       </td>
