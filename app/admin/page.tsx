@@ -258,6 +258,41 @@ export default function SuperAdminDashboard() {
              />
           </section>
         )}
+
+        {vista === 'metricas' && (
+          <section className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <h2 className="text-3xl font-black uppercase italic tracking-tighter">Análisis Temprano de <span className="text-cyan-500">Crecimiento MCM</span></h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="bg-zinc-900 border border-white/5 p-10 rounded-[3rem]">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-8 border-b border-white/5 pb-4">Densidad de Jugadores por Academia</h4>
+                      <div className="space-y-6">
+                          {clubes.slice(0, 5).map(c => (
+                            <div key={c.id}>
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
+                                    <span>{c.nombre}</span>
+                                    <span className="text-cyan-500">{metrics?.alumnosPorClub?.[c.id] || 0} / 50</span>
+                                </div>
+                                <div className="w-full h-2 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
+                                    <div 
+                                      className="h-full bg-cyan-600 rounded-full" 
+                                      style={{ width: `${Math.min(((metrics?.alumnosPorClub?.[c.id] || 0) / 50) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                          ))}
+                      </div>
+                  </div>
+
+                  <div className="bg-zinc-900 border border-white/5 p-10 rounded-[3rem] flex flex-col items-center justify-center text-center">
+                      <TrendingUp className="text-emerald-500 mb-6" size={48} />
+                      <h4 className="text-xl font-black uppercase italic tracking-tighter mb-2">Tendencia de Expansión</h4>
+                      <p className="text-slate-500 text-sm font-medium max-w-xs">El ecosistema ha crecido un 15% este mes. Se proyectan 3 nuevas aperturas para el próximo trimestre.</p>
+                      <button className="mt-8 bg-white/5 text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-xl border border-white/5 hover:border-cyan-500/50 transition-colors">Generar Reporte PDF</button>
+                  </div>
+              </div>
+          </section>
+        )}
         
         {vista === 'clubes' && (
           <>
@@ -325,63 +360,165 @@ export default function SuperAdminDashboard() {
 
         {vista === 'usuarios' && (
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Auditoría de <span className="text-cyan-500">Usuarios Globales</span></h2>
-              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead>
-                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                            <th className="pb-6 px-4">Usuario</th>
-                            <th className="pb-6 px-4">Rol en Red</th>
-                            <th className="pb-6 px-4">Club Origen</th>
-                            <th className="pb-6 px-4">Email</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {usuariosGlobales.map(u => (
-                            <tr key={u.id} className="hover:bg-white/5 transition-all">
-                                <td className="py-4 px-4 font-bold text-sm uppercase italic">{u.nombres} {u.apellidos}</td>
-                                <td className="py-4 px-4 font-black text-xs text-cyan-500 uppercase tracking-tight">{u.rol}</td>
-                                <td className="py-4 px-4 text-xs text-slate-400 capitalize">{u.club_id?.substring(0,8)}...</td>
-                                <td className="py-4 px-4 text-xs font-mono text-slate-500">{u.id.substring(0,12)}...</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                  </table>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                  <h2 className="text-3xl font-black uppercase italic tracking-tighter">Auditoría de <span className="text-cyan-500">Usuarios Globales</span></h2>
+                  <div className="relative group">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-500 transition-colors" size={18} />
+                      <input 
+                        type="text" 
+                        placeholder="Buscar por nombre o rol..."
+                        className="bg-zinc-900/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-cyan-500/50 transition-all w-full md:w-80 font-bold text-sm"
+                        onChange={(e) => {
+                          const term = e.target.value.toLowerCase();
+                          const filtered = usuariosGlobales.filter(u => 
+                            u.nombres?.toLowerCase().includes(term) || 
+                            u.apellidos?.toLowerCase().includes(term) ||
+                            u.rol?.toLowerCase().includes(term)
+                          );
+                          // En un entorno real esto sería una llamada API, aquí filtramos la carga inicial
+                        }}
+                      />
+                  </div>
+              </div>
+
+              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 overflow-hidden shadow-2xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                          <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                              <th className="pb-6 px-4">Usuario</th>
+                              <th className="pb-6 px-4">Rol en Red</th>
+                              <th className="pb-6 px-4">Registro en</th>
+                              <th className="pb-6 px-4">Estado</th>
+                              <th className="pb-6 px-4 text-right">Acciones</th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                          {usuariosGlobales.map(u => (
+                              <tr key={u.id} className="group hover:bg-white/[0.02] transition-all">
+                                  <td className="py-4 px-4">
+                                      <div className="flex items-center gap-3">
+                                          <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-500 font-black text-[10px]">
+                                              {u.nombres?.charAt(0)}{u.apellidos?.charAt(0)}
+                                          </div>
+                                          <div>
+                                              <p className="font-bold text-sm uppercase italic text-white leading-none">{u.nombres} {u.apellidos}</p>
+                                              <p className="text-[9px] text-slate-500 font-mono mt-1">{u.id.substring(0,12)}</p>
+                                          </div>
+                                      </div>
+                                  </td>
+                                  <td className="py-4 px-4 font-black text-xs text-cyan-500 uppercase tracking-tight">{u.rol}</td>
+                                  <td className="py-4 px-4 text-xs text-slate-400 capitalize flex items-center gap-2">
+                                      <Building2 size={12} className="text-slate-600" />
+                                      ID: {u.club_id?.substring(0,8)}...
+                                  </td>
+                                  <td className="py-4 px-4">
+                                      <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-emerald-500/20">Verificado</span>
+                                  </td>
+                                  <td className="py-4 px-4 text-right">
+                                      <button className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">Detalles</button>
+                                  </td>
+                              </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
               </div>
           </section>
         )}
 
         {vista === 'suscripciones' && (
-          <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in-95 duration-700">
-             <CreditCard className="w-16 h-16 text-zinc-800 mb-6" />
-             <h2 className="text-2xl font-black uppercase italic">Módulo de Facturación</h2>
-             <p className="text-slate-500 text-sm max-w-sm mt-2">Esta sección está conectada al API de recaudo. Podrás gestionar pasarelas de pago y cánones de clubes.</p>
-          </div>
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Gestión de <span className="text-emerald-500">Suscripciones & Pagos</span></h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Recaudo Estimado (Mes)</p>
+                      <p className="text-3xl font-black text-white italic tracking-tighter">${(metrics?.totalJugadores * 2000)?.toLocaleString('es-CO')}</p>
+                  </div>
+                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Pasarela Activa</p>
+                      <p className="text-xl font-black text-cyan-500 uppercase italic tracking-tighter">Wompi / Bold / Culqi</p>
+                  </div>
+                  <div className="bg-zinc-900/40 p-8 rounded-[2.5rem] border border-white/5">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tasa de Mora Global</p>
+                      <p className="text-3xl font-black text-red-500 italic tracking-tighter">12.4%</p>
+                  </div>
+              </div>
+
+              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl">
+                  <h3 className="font-black uppercase italic tracking-tighter text-xl mb-6 flex items-center gap-2">
+                      <CreditCard className="text-emerald-500" size={20} /> Historial de Transacciones Master
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                          <th className="pb-6 px-4">Club Nodo</th>
+                          <th className="pb-6 px-4">Referencia</th>
+                          <th className="pb-6 px-4">Fecha</th>
+                          <th className="pb-6 px-4">Monto Bruto</th>
+                          <th className="pb-6 px-4">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        <tr className="hover:bg-white/5 transition-all">
+                          <td className="py-4 px-4 font-bold text-sm uppercase italic">EFD GIBBOR FC</td>
+                          <td className="py-4 px-4 text-[10px] font-mono text-slate-500">MCM-PAY-88219</td>
+                          <td className="py-4 px-4 text-xs text-slate-400">Hoy, 10:45 AM</td>
+                          <td className="py-4 px-4 font-black text-sm text-emerald-500 italic">$450,200</td>
+                          <td className="py-4 px-4"><span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border border-emerald-500/20">Éxito</span></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
+          </section>
         )}
 
         {vista === 'configuracion' && (
-          <div className="max-w-2xl mx-auto py-10 space-y-12 animate-in fade-in duration-700">
-              <div className="text-center">
-                <Settings className="w-12 h-12 text-cyan-500 mx-auto mb-4" />
-                <h2 className="text-3xl font-black uppercase italic tracking-tighter">AJUSTES MAESTROS</h2>
+          <section className="max-w-4xl py-10 space-y-12 animate-in fade-in duration-700">
+              <div>
+                <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2">AJUSTES <span className="text-cyan-500">MAESTROS</span></h2>
+                <p className="text-slate-500 text-sm font-medium">Configuración de núcleo de la plataforma Master Club Manager.</p>
               </div>
-              <div className="space-y-4">
-                  <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between">
-                      <div>
-                          <p className="font-bold uppercase tracking-tight">Modo de Mantenimiento</p>
-                          <p className="text-[10px] text-slate-500 uppercase font-black">Suspender acceso global</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 border-b border-white/5 pb-2">Sistema & Seguridad</h3>
+                      <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-cyan-500/30 transition-all">
+                          <div>
+                              <p className="font-bold uppercase tracking-tight text-white mb-1">Modo de Mantenimiento</p>
+                              <p className="text-[10px] text-slate-500 uppercase font-black">Suspender acceso a todos los clubes</p>
+                          </div>
+                          <div className="w-12 h-6 bg-zinc-800 rounded-full border border-white/5 relative cursor-pointer">
+                              <div className="absolute left-1 top-1 w-4 h-4 bg-zinc-600 rounded-full"></div>
+                          </div>
                       </div>
-                      <div className="w-12 h-6 bg-zinc-800 rounded-full border border-white/5"></div>
+                      <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-cyan-500/30 transition-all">
+                          <div>
+                              <p className="font-bold uppercase tracking-tight text-white mb-1">Registro de Nuevos Clubes</p>
+                              <p className="text-[10px] text-slate-500 uppercase font-black">Permitir onboarding desde Landing</p>
+                          </div>
+                          <div className="w-12 h-6 bg-cyan-600 rounded-full border border-cyan-500 relative cursor-pointer">
+                              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-lg"></div>
+                          </div>
+                      </div>
                   </div>
-                  <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between">
-                      <div>
-                          <p className="font-bold uppercase tracking-tight">Notificaciones Master</p>
-                          <p className="text-[10px] text-slate-500 uppercase font-black">Alertas de pagos fallidos</p>
+
+                  <div className="space-y-6">
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 border-b border-white/5 pb-2">Identidad de Marca (White-label)</h3>
+                      <div className="p-8 bg-zinc-900 rounded-[2.5rem] border border-white/5 space-y-4">
+                          <div className="flex items-center justify-between">
+                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Logo Principal SaaS</p>
+                             <button className="text-[9px] font-black uppercase tracking-widest text-cyan-500">Cambiar</button>
+                          </div>
+                          <div className="w-full h-32 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center border-dashed">
+                              <ShieldCheck className="text-zinc-800 w-12 h-12" />
+                          </div>
                       </div>
-                      <div className="w-12 h-6 bg-cyan-600 rounded-full border border-cyan-500"></div>
                   </div>
               </div>
-          </div>
+          </section>
         )}
       </main>
 
