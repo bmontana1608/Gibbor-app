@@ -35,8 +35,8 @@ export default function SuperAdminDashboard() {
   // Configuración del Tenant para el Login de SuperAdmin
   const adminTenant = {
     config: {
-      nombre: 'NexClub SaaS Management',
-      color: '#EA580C',
+      nombre: 'Master Club Manager (MCM)',
+      color: '#0891b2', // Cian corporativo
       logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
     }
   };
@@ -173,12 +173,12 @@ export default function SuperAdminDashboard() {
       {/* Sidebar Lateral */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900/50 backdrop-blur-xl border-r border-white/5 p-6 hidden md:flex flex-col z-50">
         <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-900/40 rotate-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-900/40 rotate-3">
             <ShieldCheck className="text-white w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none">NexClub</h1>
-            <p className="text-[10px] text-orange-500/70 font-bold uppercase tracking-widest">SaaS Architecture</p>
+            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none text-white">MCM</h1>
+            <p className="text-[9px] text-cyan-500/70 font-bold uppercase tracking-widest leading-none mt-1">Master Club Manager</p>
           </div>
         </div>
 
@@ -239,8 +239,8 @@ export default function SuperAdminDashboard() {
         {/* Header Superior */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in duration-1000">
           <div>
-            <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">Nexus <span className="text-orange-500">Command Center</span></h2>
-            <p className="text-slate-500 text-sm font-medium">Control global de la infraestructura multiclub de NexClub.</p>
+            <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">MCM <span className="text-cyan-500">Command Center</span></h2>
+            <p className="text-slate-500 text-sm font-medium">Control global del ecosistema Master Club Manager.</p>
           </div>
           <button 
             onClick={() => setShowModal(true)}

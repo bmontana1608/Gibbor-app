@@ -11,8 +11,8 @@ export const viewport = {
 export async function generateMetadata() {
   const tenant = await getTenant();
   return {
-    title: `${tenant.config.nombre} - Gibbor App`,
-    description: 'Plataforma de Gestión Deportiva EFD Gibbor',
+    title: `${tenant.config.nombre} | MCM`,
+    description: 'Master Club Manager - El corazón de tu formación deportiva',
     manifest: '/manifest.json',
     appleWebApp: {
       capable: true,
