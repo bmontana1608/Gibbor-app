@@ -192,10 +192,19 @@ export default function SuperAdminDashboard() {
         <div className="pt-6 border-t border-white/5 space-y-2">
           <NavItem icon={<Settings size={18} />} label="Configuración" />
           <button 
-            onClick={() => supabase.auth.signOut()}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
+            onClick={async () => {
+              const { error } = await supabase.auth.signOut();
+              if (error) {
+                toast.error("Error al cerrar sesión");
+              } else {
+                toast.success("Sesión cerrada correctamente");
+                setIsAdmin(false);
+                router.refresh();
+              }
+            }}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all group"
           >
-            <LogOut size={18} />
+            <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
             <span className="text-xs font-bold uppercase tracking-widest">Cerrar Sesión</span>
           </button>
         </div>
