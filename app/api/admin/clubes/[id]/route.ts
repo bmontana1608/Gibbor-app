@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { logAction } from '@/lib/audit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -76,12 +77,30 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    // 1. Obtener datos del club antes de borrar para el log
+    const { data: club } = await supabaseAdmin.from('clubes').select('nombre').eq('id', id).single();
+    
+    // 2. Obtener el usuario que está operando (SuperAdmin)
+    const { data: { user } } = await supabaseAdmin.auth.getUser();
+
+    // 3. Eliminar el club
     const { error } = await supabaseAdmin
       .from('clubes')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    // 4. Registrar en Auditoría
+    if (user) {
+      await logAction({
+        userId: user.id,
+        clubId: id,
+        accion: 'ELIMINAR_CLUB',
+        descripcion: `Se eliminó permanentemente el club: ${club?.nombre || id}`,
+        metadata: { club_id: id, nombre: club?.nombre }
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
