@@ -360,69 +360,64 @@ export default function SuperAdminDashboard() {
 
         {vista === 'usuarios' && (
           <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                  <h2 className="text-3xl font-black uppercase italic tracking-tighter">Auditoría de <span className="text-cyan-500">Usuarios Globales</span></h2>
-                  <div className="relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-cyan-500 transition-colors" size={18} />
-                      <input 
-                        type="text" 
-                        placeholder="Buscar por nombre o rol..."
-                        className="bg-zinc-900/50 border border-white/5 rounded-2xl pl-12 pr-6 py-4 outline-none focus:border-cyan-500/50 transition-all w-full md:w-80 font-bold text-sm"
-                        onChange={(e) => {
-                          const term = e.target.value.toLowerCase();
-                          const filtered = usuariosGlobales.filter(u => 
-                            u.nombres?.toLowerCase().includes(term) || 
-                            u.apellidos?.toLowerCase().includes(term) ||
-                            u.rol?.toLowerCase().includes(term)
-                          );
-                          // En un entorno real esto sería una llamada API, aquí filtramos la carga inicial
-                        }}
-                      />
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                  <div>
+                    <h2 className="text-3xl font-black uppercase italic tracking-tighter">Miembros por <span className="text-cyan-500">Club Conectado</span></h2>
+                    <p className="text-slate-500 text-sm font-medium">Distribución global de la población deportiva en la red MCM.</p>
                   </div>
               </div>
 
-              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 overflow-hidden shadow-2xl">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                          <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                              <th className="pb-6 px-4">Usuario</th>
-                              <th className="pb-6 px-4">Rol en Red</th>
-                              <th className="pb-6 px-4">Registro en</th>
-                              <th className="pb-6 px-4">Estado</th>
-                              <th className="pb-6 px-4 text-right">Acciones</th>
-                          </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                          {usuariosGlobales.map(u => (
-                              <tr key={u.id} className="group hover:bg-white/[0.02] transition-all">
-                                  <td className="py-4 px-4">
-                                      <div className="flex items-center gap-3">
-                                          <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-500 font-black text-[10px]">
-                                              {u.nombres?.charAt(0)}{u.apellidos?.charAt(0)}
-                                          </div>
-                                          <div>
-                                              <p className="font-bold text-sm uppercase italic text-white leading-none">{u.nombres} {u.apellidos}</p>
-                                              <p className="text-[9px] text-slate-500 font-mono mt-1">{u.id.substring(0,12)}</p>
-                                          </div>
-                                      </div>
-                                  </td>
-                                  <td className="py-4 px-4 font-black text-xs text-cyan-500 uppercase tracking-tight">{u.rol}</td>
-                                  <td className="py-4 px-4 text-xs text-slate-400 capitalize flex items-center gap-2">
-                                      <Building2 size={12} className="text-slate-600" />
-                                      ID: {u.club_id?.substring(0,8)}...
-                                  </td>
-                                  <td className="py-4 px-4">
-                                      <span className="bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md border border-emerald-500/20">Verificado</span>
-                                  </td>
-                                  <td className="py-4 px-4 text-right">
-                                      <button className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">Detalles</button>
-                                  </td>
-                              </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {clubes.map(club => {
+                    const miembrosClub = usuariosGlobales.filter(u => u.club_id === club.id);
+                    if (miembrosClub.length === 0) return null;
+
+                    return (
+                      <div key={club.id} className="bg-zinc-900/40 backdrop-blur-md rounded-[2.5rem] border border-white/5 p-8 hover:border-cyan-500/30 transition-all group shadow-2xl">
+                          <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
+                              <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden">
+                                 <img src={club.logo_url} className="w-full h-full object-contain" />
+                              </div>
+                              <div>
+                                  <h3 className="font-black text-lg uppercase italic tracking-tighter text-white">{club.nombre}</h3>
+                                  <div className="flex items-center gap-2">
+                                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-none">{miembrosClub.length} Miembros Activos</p>
+                                  </div>
+                              </div>
+                          </div>
+
+                          <div className="space-y-4 mb-8">
+                              {miembrosClub.slice(0, 3).map(u => (
+                                <div key={u.id} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-7 h-7 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-500 text-[8px] font-black">
+                                            {u.nombres?.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-white uppercase italic tracking-tighter leading-none">{u.nombres}</p>
+                                            <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">{u.rol}</p>
+                                        </div>
+                                    </div>
+                                    <Check className="text-emerald-500/20" size={12} />
+                                </div>
+                              ))}
+                              {miembrosClub.length > 3 && (
+                                <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest text-center pt-2">
+                                  + {miembrosClub.length - 3} Miembros adicionales
+                                </p>
+                              )}
+                          </div>
+
+                          <button 
+                            onClick={() => auditClub(club)}
+                            className="w-full bg-white/5 text-[10px] font-black uppercase tracking-widest py-4 rounded-xl border border-white/5 hover:bg-cyan-600 hover:border-cyan-500 hover:text-white transition-all"
+                          >
+                            Ver Nómina Completa
+                          </button>
+                      </div>
+                    );
+                  })}
               </div>
           </section>
         )}
