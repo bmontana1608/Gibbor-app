@@ -74,10 +74,10 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="MCM Logo" className="w-9 h-9 object-contain rounded-full shadow-md" />
+              <img src="/logo.png" alt="Club Logo" className="w-9 h-9 object-contain rounded-full shadow-md" />
               <div>
-                <span className="text-xl font-black text-slate-800 tracking-tighter uppercase italic leading-none block">MCM</span>
-                <span className="text-cyan-600 text-[9px] font-black uppercase tracking-widest leading-none">Master Club Mode</span>
+                <span className="text-xl font-black text-slate-800 tracking-tighter uppercase italic leading-none block">Club</span>
+                <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: 'var(--brand-primary)' }}>Staff Mode</span>
               </div>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-400 p-1">
@@ -86,13 +86,13 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
           </div>
 
           {/* Perfil Staff - Limpieza de NexClub */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-3 mb-2 group hover:border-cyan-500/20 transition-all">
-            <div className="w-10 h-10 rounded-full bg-cyan-50 flex items-center justify-center text-cyan-600 font-bold border border-cyan-100 shrink-0 shadow-inner">
-              {usuario?.nombres?.toLowerCase().includes('nexclub') ? 'M' : (usuario?.nombres?.charAt(0) || 'M')}
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-3 mb-2 group transition-all">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold border shrink-0 shadow-inner" style={{ backgroundColor: 'rgba(var(--brand-primary-rgb), 0.1)', color: 'var(--brand-primary)', borderColor: 'rgba(var(--brand-primary-rgb), 0.2)' }}>
+              {usuario?.nombres?.toLowerCase().includes('nexclub') ? 'M' : (usuario?.nombres?.charAt(0) || 'S')}
             </div>
             <div className="overflow-hidden">
               <p className="font-black text-slate-800 text-sm truncate uppercase italic tracking-tighter">
-                {usuario?.nombres?.toLowerCase().includes('nexclub') ? 'Master User' : (usuario?.nombres?.split(' ')[0] || 'MCM Staff')}
+                {usuario?.nombres?.toLowerCase().includes('nexclub') ? 'Master User' : (usuario?.nombres?.split(' ')[0] || 'Staff User')}
               </p>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none mt-1">{rol}</p>
             </div>
@@ -110,11 +110,12 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
                 onClick={() => setIsSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                   activo
-                    ? 'bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-600/30'
+                    ? 'text-white font-bold shadow-lg'
                     : 'text-slate-500 hover:bg-slate-50 font-semibold'
                 }`}
+                style={activo ? { backgroundColor: 'var(--brand-primary)', boxShadow: `0 8px 20px -5px rgba(var(--brand-primary-rgb), 0.4)` } : {}}
               >
-                <div className={`${activo ? 'text-white' : 'text-slate-400 group-hover:text-cyan-600'} transition-colors`}>
+                <div className={`${activo ? 'text-white' : 'text-slate-400 group-hover:text-[var(--brand-primary)]'} transition-colors`}>
                     {item.icon}
                 </div>
                 <span className={`text-sm tracking-tight ${activo ? 'italic uppercase tracking-tighter' : ''}`}>{item.name}</span>
@@ -130,14 +131,15 @@ export default function EntrenadorLayout({ children }: { children: React.ReactNo
                 onClick={() => router.push("/futbolista")}
                 className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-slate-100 group shadow-sm"
             >
-                <Users className="w-4 h-4 text-cyan-600 group-hover:scale-110 transition-transform" /> 
+                <Users className="w-4 h-4 group-hover:scale-110 transition-transform" style={{ color: 'var(--brand-primary)' }} /> 
                 <span className="truncate">Modo Familia</span>
             </button>
 
             {rol === 'Director' && (
               <button 
                 onClick={() => router.push("/director")}
-                className="w-full flex items-center gap-3 px-4 py-3 text-cyan-600 bg-cyan-50 hover:bg-cyan-100 rounded-xl transition-all font-black text-xs uppercase tracking-tighter border border-cyan-100 shadow-sm group"
+                className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all font-black text-xs uppercase tracking-tighter border shadow-sm group"
+                style={{ color: 'var(--brand-primary)', borderColor: 'rgba(var(--brand-primary-rgb), 0.1)' }}
               >
                 <Shield className="w-5 h-5 group-hover:scale-110 transition-transform" /> Volver a Director
               </button>
