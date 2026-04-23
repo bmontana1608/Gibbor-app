@@ -164,89 +164,107 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-slate-100 font-sans tracking-tight">
+    <div className="min-h-screen bg-[#050505] text-slate-100 font-sans tracking-tight relative overflow-hidden">
       
+      {/* Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
+
       {/* Sidebar Lateral */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900 border-r border-white/5 p-6 hidden md:block">
+      <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900/50 backdrop-blur-xl border-r border-white/5 p-6 hidden md:flex flex-col z-50">
         <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-900/20">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-900/40 rotate-3">
             <ShieldCheck className="text-white w-6 h-6" />
           </div>
           <div>
-            <h1 className="font-black text-sm uppercase tracking-tighter italic">SaaS Master</h1>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Gibbor Cloud v1.0</p>
+            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none">NexClub</h1>
+            <p className="text-[10px] text-orange-500/70 font-bold uppercase tracking-widest">SaaS Architecture</p>
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-2 flex-1">
           <NavItem icon={<Building2 size={18} />} label="Gestión de Clubes" active />
           <NavItem icon={<Users size={18} />} label="Usuarios Globales" />
           <NavItem icon={<CreditCard size={18} />} label="Suscripciones" />
           <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" />
-          <div className="pt-10">
-            <NavItem icon={<Settings size={18} />} label="Configuración" />
-            <NavItem icon={<LogOut size={18} />} label="Cerrar Sesión" />
-          </div>
         </nav>
+
+        <div className="pt-6 border-t border-white/5 space-y-2">
+          <NavItem icon={<Settings size={18} />} label="Configuración" />
+          <button 
+            onClick={() => supabase.auth.signOut()}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all"
+          >
+            <LogOut size={18} />
+            <span className="text-xs font-bold uppercase tracking-widest">Cerrar Sesión</span>
+          </button>
+        </div>
       </aside>
 
       {/* Contenido Principal */}
-      <main className="md:ml-64 p-8">
+      <main className="md:ml-64 p-8 relative z-10">
 
         {/* Dashboard de Métricas Master */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
            <MetricCard 
               label="Ingreso SaaS Proyectado" 
               value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} 
-              icon={<TrendingUp className="text-emerald-500" />} 
-              sub="Basado en $2,000/niño" 
+              icon={<TrendingUp className="text-emerald-400" />} 
+              sub="Canon $2,000 / Niño / Mes" 
+              color="emerald"
            />
            <MetricCard 
-              label="Alumnos Globales" 
+              label="Alumnos en Red" 
               value={metrics?.totalJugadores || '0'} 
-              icon={<Users className="text-orange-500" />} 
-              sub="Total de deportistas en red" 
+              icon={<Users className="text-orange-400" />} 
+              sub="Deportistas activos" 
+              color="orange"
            />
            <MetricCard 
-              label="Recaudo Academias" 
+              label="Recaudo Histórico" 
               value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
-              icon={<CreditCard className="text-blue-500" />} 
-              sub="Flujo total procesado este mes" 
+              icon={<CreditCard className="text-blue-400" />} 
+              sub="Flujo total procesado" 
+              color="blue"
            />
            <MetricCard 
-              label="Clubes Activos" 
+              label="Ecosistema Activo" 
               value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
-              icon={<ShieldCheck className="text-purple-500" />} 
-              sub="Tasa de operación SaaS" 
+              icon={<ShieldCheck className="text-purple-400" />} 
+              sub="Academias en operación" 
+              color="purple"
            />
         </section>
         
         {/* Header Superior */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in duration-1000">
           <div>
-            <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-2">Panel Maestro <span className="text-orange-500">Multiclub</span></h2>
-            <p className="text-slate-500 text-sm font-medium">Gestiona el ecosistema de academias deportivas desde un solo lugar.</p>
+            <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">Nexus <span className="text-orange-500">Command Center</span></h2>
+            <p className="text-slate-500 text-sm font-medium">Control global de la infraestructura multiclub de NexClub.</p>
           </div>
           <button 
             onClick={() => setShowModal(true)}
-            className="bg-orange-600 hover:bg-orange-500 text-white font-black px-6 py-4 rounded-2xl flex items-center gap-3 transition-all shadow-xl shadow-orange-900/20 active:scale-95 text-sm uppercase italic tracking-tighter"
+            className="bg-orange-600 hover:bg-orange-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-orange-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
           >
-            <Plus size={20} strokeWidth={3} /> Nuevo Club
+            <Plus size={20} strokeWidth={3} /> Desplegar Nueva Academia
           </button>
         </header>
 
         {/* Listado de Clubes */}
-        <section className="bg-zinc-900 rounded-[2.5rem] border border-white/5 p-8 shadow-2xl relative min-h-[400px]">
+        <section className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl relative min-h-[400px] animate-in fade-in slide-in-from-bottom-8 duration-1000">
           {fetching ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+              <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="font-black uppercase italic tracking-tighter text-xl">Directorio de Academias</h3>
-                <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
-                  <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div> {clubes.length} Clubes Registrados</span>
+              <div className="flex items-center justify-between mb-10">
+                <div className="flex items-center gap-4">
+                    <div className="w-1.5 h-6 bg-orange-600 rounded-full" />
+                    <h3 className="font-black uppercase italic tracking-tighter text-2xl">Academias Conectadas</h3>
+                </div>
+                <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-6 py-2 rounded-full border border-white/5">
+                  <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div> {clubes.length} Nodos</span>
                 </div>
               </div>
 
@@ -254,11 +272,11 @@ export default function SuperAdminDashboard() {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                      <th className="pb-4 px-4">Club</th>
-                      <th className="pb-4 px-4 text-center">Alumnos</th>
-                      <th className="pb-4 px-4">Canon SaaS (Mes)</th>
-                      <th className="pb-4 px-4">Estado</th>
-                      <th className="pb-4 px-4 text-right">Acciones</th>
+                      <th className="pb-6 px-4">Directorio / Club</th>
+                      <th className="pb-6 px-4 text-center">Población</th>
+                      <th className="pb-6 px-4">Canon SaaS</th>
+                      <th className="pb-6 px-4">Estado Red</th>
+                      <th className="pb-6 px-4 text-right">Controles</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -428,6 +446,34 @@ function NavItem({ icon, label, active = false }: { icon: any, label: string, ac
   );
 }
 
+function MetricCard({ label, value, icon, sub, color = "orange" }: any) {
+  const colorMap: any = {
+    orange: "from-orange-500/20 to-orange-500/5 border-orange-500/20 text-orange-500",
+    emerald: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500",
+    blue: "from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500",
+    purple: "from-purple-500/20 to-purple-500/5 border-purple-500/20 text-purple-500",
+  };
+
+  return (
+    <div className={`relative bg-zinc-900 border ${colorMap[color].split(' ')[2]} p-8 rounded-[2.5rem] hover:scale-[1.02] transition-all group overflow-hidden shadow-2xl`}>
+      <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${colorMap[color].split(' ')[0]} ${colorMap[color].split(' ')[1]} blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity`} />
+      
+      <div className="flex items-center justify-between mb-6 relative z-10">
+        <div className="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
+          {icon}
+        </div>
+        <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full border border-white/5`}>Live</div>
+      </div>
+      
+      <div className="relative z-10">
+        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</h4>
+        <p className="text-3xl font-black text-white italic tracking-tighter mb-2">{value}</p>
+        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-white/5 inline-block px-2 py-0.5 rounded-md">{sub}</p>
+      </div>
+    </div>
+  );
+}
+
 function ClubRow({ club, count, onToggle, onAudit }: any) {
   const [host, setHost] = useState('');
   
@@ -435,7 +481,6 @@ function ClubRow({ club, count, onToggle, onAudit }: any) {
     setHost(window.location.host);
   }, []);
 
-  // Generar la URL del club
   const getClubUrl = () => {
     if (!host) return '#';
     if (host.includes('localhost')) return `http://localhost:3000/${club.slug}/director`;
@@ -445,64 +490,63 @@ function ClubRow({ club, count, onToggle, onAudit }: any) {
   const canonMensual = count * 2000;
 
   return (
-    <tr className="group hover:bg-white/5 transition-colors">
-      <td className="py-4 px-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-white/5 p-1 flex items-center justify-center overflow-hidden">
+    <tr className="group hover:bg-white/[0.02] transition-all">
+      <td className="py-6 px-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden shadow-2xl group-hover:border-orange-500/50 transition-colors">
              <img src={club.logo_url} className="w-full h-full object-contain" />
           </div>
           <div>
-            <p className="font-bold text-sm text-white">{club.nombre}</p>
-            <a href={getClubUrl()} target="_blank" className="text-[9px] font-mono text-orange-500/50 hover:text-orange-500 transition-colors uppercase tracking-widest">/{club.slug}</a>
+            <p className="font-black text-sm text-white uppercase italic tracking-tighter">{club.nombre}</p>
+            <a href={getClubUrl()} target="_blank" className="text-[10px] font-bold text-orange-500/50 hover:text-orange-500 transition-colors uppercase tracking-widest flex items-center gap-1">
+              <Globe size={10} /> <span>/{club.slug}</span>
+            </a>
           </div>
         </div>
       </td>
-      <td className="py-4 px-4 text-center">
-        <span className="text-xs font-black text-white px-2 py-1 bg-white/5 rounded-md border border-white/5">{count}</span>
+      <td className="py-6 px-4 text-center">
+        <div className="inline-flex flex-col">
+          <span className="text-lg font-black text-white italic leading-none">{count}</span>
+          <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Atletas</span>
+        </div>
       </td>
-      <td className="py-4 px-4">
-        <span className="text-xs font-black text-emerald-500 tracking-tighter">
-          ${canonMensual.toLocaleString('es-CO')}
-        </span>
-        <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">COP / Mes</p>
+      <td className="py-6 px-4">
+        <div className="flex flex-col">
+          <span className="text-lg font-black text-emerald-400 italic leading-none">
+            ${canonMensual.toLocaleString('es-CO')}
+          </span>
+          <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest">Facturación / Mes</span>
+        </div>
       </td>
-      <td className="py-4 px-4">
-        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${club.estado === 'Activo' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+      <td className="py-6 px-4">
+        <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl border ${
+          club.estado === 'Activo' 
+            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
+            : 'bg-red-500/10 text-red-500 border-red-500/20'
+        }`}>
           {club.estado}
         </span>
       </td>
-      <td className="py-4 px-4 text-right">
-        <div className="flex items-center justify-end gap-3">
+      <td className="py-6 px-4 text-right">
+        <div className="flex items-center justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={() => onToggle(club.id, club.estado)}
-            className={`text-[10px] font-black uppercase tracking-widest p-2 rounded-lg transition-colors ${club.estado === 'Activo' ? 'text-red-400 hover:bg-red-400/10' : 'text-emerald-400 hover:bg-emerald-400/10'}`}
+            className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${
+              club.estado === 'Activo' 
+                ? 'text-red-400 border-red-500/20 hover:bg-red-500/10' 
+                : 'text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
+            }`}
           >
-            {club.estado === 'Activo' ? 'Suspender' : 'Activar'}
+            {club.estado === 'Activo' ? 'Suspender' : 'Reactivar'}
           </button>
           <button 
             onClick={() => onAudit(club)}
-            className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white p-2 border border-white/5 rounded-lg hover:bg-white/5 transition-all"
+            className="text-[9px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-orange-600 hover:border-orange-500 transition-all shadow-xl"
           >
-            Expediente
+            Detalles
           </button>
         </div>
       </td>
     </tr>
-  );
-}
-
-function MetricCard({ label, value, icon, sub }: any) {
-  return (
-    <div className="bg-zinc-900 border border-white/5 p-6 rounded-[2rem] hover:border-orange-500/20 transition-all group">
-      <div className="flex items-center justify-between mb-4">
-        <div className="w-10 h-10 bg-zinc-950 rounded-xl flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform">
-          {icon}
-        </div>
-        <TrendingUp className="text-white/5" size={20} />
-      </div>
-      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</h4>
-      <p className="text-2xl font-black text-white italic tracking-tighter mb-1">{value}</p>
-      <p className="text-[10px] text-slate-600 font-medium">{sub}</p>
-    </div>
   );
 }
