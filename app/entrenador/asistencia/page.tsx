@@ -32,11 +32,16 @@ export default function AsistenciaEntrenador() {
       const { data: usuario } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
       if (usuario) {
         setPerfil(usuario);
-        const { data: cats } = await supabase
-          .from('categorias')
-          .select('*')
-          .ilike('entrenadores', `%${usuario.nombres} ${usuario.apellidos}%`);
-        if (cats) setCategorias(cats);
+        
+        // Usar API interna para saltar RLS
+        try {
+          const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+          const cats = await res.json();
+          if (Array.isArray(cats)) setCategorias(cats);
+        } catch (err) {
+          console.error("Error cargando categorías:", err);
+          toast.error("Error al cargar categorías");
+        }
       }
       setCargando(false);
     }

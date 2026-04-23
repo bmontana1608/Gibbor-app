@@ -90,20 +90,19 @@ export default function GestionCategoriasEntrenador() {
     
     const { data: usuario } = await supabase
       .from('perfiles')
-      .select('grupos')
+      .select('*')
       .eq('id', session.user.id)
       .single();
     
-    const categoriasAsignadas = (usuario?.grupos || '').split(', ').filter(Boolean);
-    
-    if (categoriasAsignadas.length > 0) {
-      const { data } = await supabase
-        .from('categorias')
-        .select('*')
-        .in('nombre', categoriasAsignadas);
-      setCategorias(data || []);
-    } else {
-      setCategorias([]);
+    // Usar API interna para saltar RLS
+    if (usuario) {
+      try {
+        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setCategorias(data);
+      } catch (err) {
+        console.error("Error:", err);
+      }
     }
     
     setCargando(false);
