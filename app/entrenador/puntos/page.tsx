@@ -45,26 +45,20 @@ export default function AsignarPuntosGibbor() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos, rol, club_id, grupos').eq('id', session.user.id).single();
+      const { data: usuario } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
       
-      let query = supabase.from('categorias').select('*');
-      
-      // Lógica unificada: Si tiene grupos asignados en el perfil, usamos esos nombres. 
-      // Si es SuperAdmin/Director, permitimos ver todo el club.
-      if (usuario?.grupos && usuario.grupos !== 'Ninguna') {
-        const nombresGrupos = usuario.grupos.split(', ').filter(Boolean);
-        query = query.in('nombre', nombresGrupos);
-      } else if (usuario?.rol === 'SuperAdmin' || usuario?.rol === 'Director') {
-        const clubId = usuario?.club_id;
-        if (clubId) query = query.eq('club_id', clubId);
-      } else {
-        // Fallback: búsqueda por nombre de entrenador
-        const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
-        query = query.ilike('entrenadores', `%${nombreCompleto}%`);
+      if (usuario) {
+        try {
+          // Usar la misma API que Asistencia para saltar RLS y asegurar visibilidad
+          const url = `/api/categorias?club_id=${usuario.club_id}${usuario.rol === 'Entrenador' ? `&entrenador_id=${usuario.id}` : ''}`;
+          const res = await fetch(url);
+          const cats = await res.json();
+          if (Array.isArray(cats)) setCategorias(cats);
+        } catch (err) {
+          console.error("Error cargando categorías en puntos:", err);
+          toast.error("Error al conectar con el servidor de categorías");
+        }
       }
-
-      const { data: cats } = await query;
-      setCategorias(cats || []);
       setCargando(false);
     }
     cargarCategorias();
