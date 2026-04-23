@@ -200,13 +200,19 @@ export default function SuperAdminDashboard() {
 
       {/* Sidebar Lateral */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900/50 backdrop-blur-xl border-r border-white/5 p-6 hidden md:flex flex-col z-50">
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-900/40 rotate-3">
-            <ShieldCheck className="text-white w-6 h-6" />
+        <div className="flex items-center gap-4 mb-12 px-2">
+          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(8,145,178,0.3)] border border-white/10 rotate-3 group">
+            <ShieldCheck className="text-white w-7 h-7 group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none text-white">MCM</h1>
-            <p className="text-[9px] text-cyan-500/70 font-bold uppercase tracking-widest leading-none mt-1">Master Club Manager</p>
+            <h1 className="font-black text-2xl uppercase tracking-tighter italic leading-none flex items-center">
+                <span className="text-white">M</span>
+                <span className="text-yellow-500">C</span>
+                <span className="text-cyan-400">M</span>
+            </h1>
+            <p className="text-[7.5px] text-yellow-500/90 font-black uppercase tracking-[0.2em] leading-none mt-1.5 italic">
+                El corazón de tu formación deportiva
+            </p>
           </div>
         </div>
 
