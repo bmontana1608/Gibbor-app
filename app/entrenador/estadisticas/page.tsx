@@ -24,8 +24,20 @@ export default function RankingGibbor() {
   }, [filtro, catFiltro]);
 
   const cargarCategorias = async () => {
-    const { data } = await supabase.from('categorias').select('nombre');
-    setCategorias(data || []);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    
+    const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session.user.id).single();
+    
+    if (usuario) {
+      try {
+        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setCategorias(data);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    }
   };
 
   const cargarRanking = async () => {

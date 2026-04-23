@@ -116,10 +116,18 @@ export default function GestionSkillsEntrenador() {
   const cargarCategorias = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos').eq('id', session.user.id).single();
-    const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
-    const { data } = await supabase.from('categorias').select('*').ilike('entrenadores', `%${nombreCompleto}%`);
-    setCategorias(data || []);
+    
+    const { data: usuario } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
+    
+    if (usuario) {
+      try {
+        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+        const data = await res.json();
+        if (Array.isArray(data)) setCategorias(data);
+      } catch (err) {
+        console.error("Error cargando categorías:", err);
+      }
+    }
   };
 
   const seleccionarCat = async (cat: any) => {
