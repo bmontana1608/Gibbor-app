@@ -201,8 +201,16 @@ export default function SuperAdminDashboard() {
       {/* Sidebar Lateral */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900/50 backdrop-blur-xl border-r border-white/5 p-6 hidden md:flex flex-col z-50">
         <div className="flex items-center gap-4 mb-12 px-2">
-          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 via-cyan-600 to-cyan-800 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(8,145,178,0.3)] border border-white/10 rotate-3 group">
-            <ShieldCheck className="text-white w-7 h-7 group-hover:scale-110 transition-transform" />
+          <div className="relative w-12 h-12 flex items-center justify-center group rotate-3">
+             {/* Fondo de Brillo */}
+             <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full group-hover:bg-cyan-500/40 transition-all"></div>
+             
+             {/* Escudo SVG Personalizado */}
+             <svg width="40" height="44" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10 drop-shadow-xl group-hover:scale-110 transition-transform duration-500">
+                <path d="M20 0L4 7.33333V18.3333C4 28.2333 10.8267 37.4733 20 40.3333C29.1733 37.4733 36 28.2333 36 18.3333V7.33333L20 0Z" fill="#0891b2" stroke="#eab308" strokeWidth="2.5"/>
+                <path d="M20 10V30" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                <path d="M14 20H26" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+             </svg>
           </div>
           <div>
             <h1 className="font-black text-2xl uppercase tracking-tighter italic leading-none flex items-center">
