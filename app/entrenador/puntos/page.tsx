@@ -49,8 +49,8 @@ export default function AsignarPuntosGibbor() {
       
       if (usuario) {
         try {
-          // Usar la misma API que Asistencia para saltar RLS y asegurar visibilidad
-          const url = `/api/categorias?club_id=${usuario.club_id}${usuario.rol === 'Entrenador' ? `&entrenador_id=${usuario.id}` : ''}`;
+          // Forzamos el filtrado por tu ID de entrenador para evitar ver categorías ajenas
+          const url = `/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`;
           const res = await fetch(url);
           const cats = await res.json();
           if (Array.isArray(cats)) setCategorias(cats);
