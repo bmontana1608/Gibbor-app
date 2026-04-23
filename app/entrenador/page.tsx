@@ -63,7 +63,11 @@ export default function DashboardEntrenador() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <p className="text-cyan-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1">Ecosistema Master Club Manager</p>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tighter">Instructor <span className="text-cyan-600">{perfil?.nombres?.split(' ')[0]}</span></h1>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
+            Instructor <span className="text-cyan-600">
+              {perfil?.nombres?.toLowerCase().includes('nexclub') ? 'Master' : (perfil?.nombres?.split(' ')[0] || 'MCM')}
+            </span>
+          </h1>
           <p className="text-slate-500 text-sm mt-1 font-medium italic">Gestionando el talento en <span className="text-slate-900 font-black uppercase">{perfil?.grupos || 'Categoría No asignada'}</span>.</p>
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
