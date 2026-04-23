@@ -188,6 +188,9 @@ export default function SuperAdminDashboard() {
           <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-900/40 rotate-3">
             <ShieldCheck className="text-white w-6 h-6" />
           </div>
+          <div>
+            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none text-white">MCM</h1>
+            <p className="text-[9px] text-cyan-500/70 font-bold uppercase tracking-widest leading-none mt-1">Master Club Manager</p>
           </div>
         </div>
 
