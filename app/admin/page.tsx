@@ -14,10 +14,12 @@ import LoginForm from '@/components/LoginForm';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clubes, setClubes] = useState<any[]>([]);
+  const [usuariosGlobales, setUsuariosGlobales] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
   const [selectedClub, setSelectedClub] = useState<any>(null);
@@ -31,6 +33,16 @@ export default function SuperAdminDashboard() {
     correo_director: '',
     password_director: ''
   });
+
+  // Cargar Usuarios Globales
+  const cargarUsuarios = async () => {
+    const { data } = await supabase.from('perfiles').select('*').limit(50);
+    setUsuariosGlobales(data || []);
+  };
+
+  useEffect(() => {
+    if (vista === 'usuarios') cargarUsuarios();
+  }, [vista]);
 
   // Configuración del Tenant para el Login de SuperAdmin
   const adminTenant = {
@@ -176,21 +188,18 @@ export default function SuperAdminDashboard() {
           <div className="w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-900/40 rotate-3">
             <ShieldCheck className="text-white w-6 h-6" />
           </div>
-          <div>
-            <h1 className="font-black text-base uppercase tracking-tighter italic leading-none text-white">MCM</h1>
-            <p className="text-[9px] text-cyan-500/70 font-bold uppercase tracking-widest leading-none mt-1">Master Club Manager</p>
           </div>
         </div>
 
         <nav className="space-y-2 flex-1">
-          <NavItem icon={<Building2 size={18} />} label="Gestión de Clubes" active />
-          <NavItem icon={<Users size={18} />} label="Usuarios Globales" />
-          <NavItem icon={<CreditCard size={18} />} label="Suscripciones" />
-          <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" />
+          <NavItem icon={<Building2 size={18} />} label="Gestión de Clubes" active={vista === 'clubes'} onClick={() => setVista('clubes')} />
+          <NavItem icon={<Users size={18} />} label="Usuarios Globales" active={vista === 'usuarios'} onClick={() => setVista('usuarios')} />
+          <NavItem icon={<CreditCard size={18} />} label="Suscripciones" active={vista === 'suscripciones'} onClick={() => setVista('suscripciones')} />
+          <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" active={vista === 'metricas'} onClick={() => setVista('metricas')} />
         </nav>
 
         <div className="pt-6 border-t border-white/5 space-y-2">
-          <NavItem icon={<Settings size={18} />} label="Configuración" />
+          <NavItem icon={<Settings size={18} />} label="Configuración" active={vista === 'configuracion'} onClick={() => setVista('configuracion')} />
           <button 
             onClick={async () => {
               const { error } = await supabase.auth.signOut();
@@ -213,97 +222,164 @@ export default function SuperAdminDashboard() {
       {/* Contenido Principal */}
       <main className="md:ml-64 p-8 relative z-10">
 
-        {/* Dashboard de Métricas Master */}
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-           <MetricCard 
-              label="Ingreso SaaS Proyectado" 
-              value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} 
-              icon={<TrendingUp className="text-emerald-400" />} 
-              sub="Canon $2,000 / Niño / Mes" 
-              color="emerald"
-           />
-           <MetricCard 
-              label="Alumnos en Red" 
-              value={metrics?.totalJugadores || '0'} 
-              icon={<Users className="text-cyan-400" />} 
-              sub="Deportistas activos" 
-              color="cyan"
-           />
-           <MetricCard 
-              label="Recaudo Histórico" 
-              value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
-              icon={<CreditCard className="text-blue-400" />} 
-              sub="Flujo total procesado" 
-              color="blue"
-           />
-           <MetricCard 
-              label="Ecosistema Activo" 
-              value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
-              icon={<ShieldCheck className="text-purple-400" />} 
-              sub="Academias en operación" 
-              color="purple"
-           />
-        </section>
+        {/* Dashboard de Métricas Master (Solo se ve en vista 'clubes' o 'metricas') */}
+        {(vista === 'clubes' || vista === 'metricas') && (
+          <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+             <MetricCard 
+                label="Ingreso SaaS Proyectado" 
+                value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} 
+                icon={<TrendingUp className="text-emerald-400" />} 
+                sub="Canon $2,000 / Niño / Mes" 
+                color="emerald"
+             />
+             <MetricCard 
+                label="Alumnos en Red" 
+                value={metrics?.totalJugadores || '0'} 
+                icon={<Users className="text-cyan-400" />} 
+                sub="Deportistas activos" 
+                color="cyan"
+             />
+             <MetricCard 
+                label="Recaudo Histórico" 
+                value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
+                icon={<CreditCard className="text-blue-400" />} 
+                sub="Flujo total procesado" 
+                color="blue"
+             />
+             <MetricCard 
+                label="Ecosistema Activo" 
+                value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
+                icon={<ShieldCheck className="text-purple-400" />} 
+                sub="Academias en operación" 
+                color="purple"
+             />
+          </section>
+        )}
         
-        {/* Header Superior */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in duration-1000">
-          <div>
-            <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">MCM <span className="text-cyan-500">Command Center</span></h2>
-            <p className="text-slate-500 text-sm font-medium">Control global del ecosistema Master Club Manager.</p>
+        {vista === 'clubes' && (
+          <>
+            {/* Header Superior */}
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in duration-1000">
+              <div>
+                <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">MCM <span className="text-cyan-500">Command Center</span></h2>
+                <p className="text-slate-500 text-sm font-medium">Control global del ecosistema Master Club Manager.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(true)}
+                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-cyan-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
+              >
+                <Plus size={20} strokeWidth={3} /> Desplegar Nueva Academia
+              </button>
+            </header>
+
+            {/* Listado de Clubes */}
+            <section className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl relative min-h-[400px] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              {fetching ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-10">
+                    <div className="flex items-center gap-4">
+                        <div className="w-1.5 h-6 bg-cyan-600 rounded-full" />
+                        <h3 className="font-black uppercase italic tracking-tighter text-2xl">Academias Conectadas</h3>
+                    </div>
+                    <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-6 py-2 rounded-full border border-white/5">
+                      <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div> {clubes.length} Nodos</span>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                          <th className="pb-6 px-4">Directorio / Club</th>
+                          <th className="pb-6 px-4 text-center">Población</th>
+                          <th className="pb-6 px-4">Canon SaaS</th>
+                          <th className="pb-6 px-4">Estado Red</th>
+                          <th className="pb-6 px-4 text-right">Controles</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {clubes.map((club) => (
+                          <ClubRow 
+                            key={club.id} 
+                            club={club} 
+                            count={metrics?.alumnosPorClub?.[club.id] || 0}
+                            onToggle={toggleEstadoClub} 
+                            onAudit={auditClub}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </section>
+          </>
+        )}
+
+        {vista === 'usuarios' && (
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-8">Auditoría de <span className="text-cyan-500">Usuarios Globales</span></h2>
+              <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead>
+                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
+                            <th className="pb-6 px-4">Usuario</th>
+                            <th className="pb-6 px-4">Rol en Red</th>
+                            <th className="pb-6 px-4">Club Origen</th>
+                            <th className="pb-6 px-4">Email</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                        {usuariosGlobales.map(u => (
+                            <tr key={u.id} className="hover:bg-white/5 transition-all">
+                                <td className="py-4 px-4 font-bold text-sm uppercase italic">{u.nombres} {u.apellidos}</td>
+                                <td className="py-4 px-4 font-black text-xs text-cyan-500 uppercase tracking-tight">{u.rol}</td>
+                                <td className="py-4 px-4 text-xs text-slate-400 capitalize">{u.club_id?.substring(0,8)}...</td>
+                                <td className="py-4 px-4 text-xs font-mono text-slate-500">{u.id.substring(0,12)}...</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                  </table>
+              </div>
+          </section>
+        )}
+
+        {vista === 'suscripciones' && (
+          <div className="flex flex-col items-center justify-center py-20 text-center animate-in zoom-in-95 duration-700">
+             <CreditCard className="w-16 h-16 text-zinc-800 mb-6" />
+             <h2 className="text-2xl font-black uppercase italic">Módulo de Facturación</h2>
+             <p className="text-slate-500 text-sm max-w-sm mt-2">Esta sección está conectada al API de recaudo. Podrás gestionar pasarelas de pago y cánones de clubes.</p>
           </div>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-cyan-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
-          >
-            <Plus size={20} strokeWidth={3} /> Desplegar Nueva Academia
-          </button>
-        </header>
+        )}
 
-        {/* Listado de Clubes */}
-        <section className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl relative min-h-[400px] animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          {fetching ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-10">
-                <div className="flex items-center gap-4">
-                    <div className="w-1.5 h-6 bg-cyan-600 rounded-full" />
-                    <h3 className="font-black uppercase italic tracking-tighter text-2xl">Academias Conectadas</h3>
-                </div>
-                <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-6 py-2 rounded-full border border-white/5">
-                  <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div> {clubes.length} Nodos</span>
-                </div>
+        {vista === 'configuracion' && (
+          <div className="max-w-2xl mx-auto py-10 space-y-12 animate-in fade-in duration-700">
+              <div className="text-center">
+                <Settings className="w-12 h-12 text-cyan-500 mx-auto mb-4" />
+                <h2 className="text-3xl font-black uppercase italic tracking-tighter">AJUSTES MAESTROS</h2>
               </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                      <th className="pb-6 px-4">Directorio / Club</th>
-                      <th className="pb-6 px-4 text-center">Población</th>
-                      <th className="pb-6 px-4">Canon SaaS</th>
-                      <th className="pb-6 px-4">Estado Red</th>
-                      <th className="pb-6 px-4 text-right">Controles</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {clubes.map((club) => (
-                      <ClubRow 
-                        key={club.id} 
-                        club={club} 
-                        count={metrics?.alumnosPorClub?.[club.id] || 0}
-                        onToggle={toggleEstadoClub} 
-                        onAudit={auditClub}
-                      />
-                    ))}
-                  </tbody>
-                </table>
+              <div className="space-y-4">
+                  <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between">
+                      <div>
+                          <p className="font-bold uppercase tracking-tight">Modo de Mantenimiento</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-black">Suspender acceso global</p>
+                      </div>
+                      <div className="w-12 h-6 bg-zinc-800 rounded-full border border-white/5"></div>
+                  </div>
+                  <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between">
+                      <div>
+                          <p className="font-bold uppercase tracking-tight">Notificaciones Master</p>
+                          <p className="text-[10px] text-slate-500 uppercase font-black">Alertas de pagos fallidos</p>
+                      </div>
+                      <div className="w-12 h-6 bg-cyan-600 rounded-full border border-cyan-500"></div>
+                  </div>
               </div>
-            </>
-          )}
-        </section>
+          </div>
+        )}
       </main>
 
       {/* MODAL DETALLES CLUB */}
@@ -446,9 +522,12 @@ export default function SuperAdminDashboard() {
 }
 
 // Componentes Auxiliares
-function NavItem({ icon, label, active = false }: { icon: any, label: string, active?: boolean }) {
+function NavItem({ icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <div className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-900/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+    <div 
+      onClick={onClick}
+      className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-900/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+    >
       {icon}
       <span className="text-xs font-bold uppercase tracking-widest leading-none">{label}</span>
     </div>
