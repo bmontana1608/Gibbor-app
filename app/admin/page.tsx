@@ -96,7 +96,7 @@ export default function SuperAdminDashboard() {
 
     // Cargar Clubes y Métricas
     const [resClubes, resMetrics] = await Promise.all([
-      supabase.from('clubes').select('*').order('created_at', { ascending: false }),
+      supabase.from('clubes').select('*').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json())
     ]);
 

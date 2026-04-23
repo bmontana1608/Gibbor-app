@@ -77,32 +77,34 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // 1. Obtener datos del club antes de borrar para el log
+    // 1. Obtener datos antes del cambio
     const { data: club } = await supabaseAdmin.from('clubes').select('nombre').eq('id', id).single();
-    
-    // 2. Obtener el usuario que está operando (SuperAdmin)
     const { data: { user } } = await supabaseAdmin.auth.getUser();
 
-    // 3. Eliminar el club
+    // 2. Realizar SOFT DELETE (Baja Lógica)
+    // Cambiamos el estado y marcamos la fecha de eliminación
     const { error } = await supabaseAdmin
       .from('clubes')
-      .delete()
+      .update({ 
+        estado: 'Eliminado',
+        deleted_at: new Date().toISOString() 
+      })
       .eq('id', id);
 
     if (error) throw error;
 
-    // 4. Registrar en Auditoría
+    // 3. Registrar en Auditoría
     if (user) {
       await logAction({
         userId: user.id,
         clubId: id,
-        accion: 'ELIMINAR_CLUB',
-        descripcion: `Se eliminó permanentemente el club: ${club?.nombre || id}`,
+        accion: 'SOFT_DELETE_CLUB',
+        descripcion: `Se dio de baja lógica al club: ${club?.nombre || id}. Sus datos permanecen en archivo.`,
         metadata: { club_id: id, nombre: club?.nombre }
       });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: 'Club dado de baja correctamente' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
