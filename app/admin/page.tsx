@@ -27,7 +27,7 @@ export default function SuperAdminDashboard() {
     nombre: '',
     slug: '',
     logo_url: '',
-    color_primario: '#ea580c',
+    color_primario: '#06b6d4',
     correo_director: '',
     password_director: ''
   });
@@ -119,7 +119,7 @@ export default function SuperAdminDashboard() {
   if (isAdmin === null || fetching) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
       </div>
     );
   }
@@ -154,7 +154,7 @@ export default function SuperAdminDashboard() {
       
       setClubes([data, ...clubes]);
       setShowModal(false);
-      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#ea580c', correo_director: '', password_director: '' });
+      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#06b6d4', correo_director: '', password_director: '' });
       toast.success('¡Academia registrada con éxito!');
     } catch (err: any) {
       toast.error('Error de Seguridad: ' + err.message);
@@ -167,7 +167,7 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-[#050505] text-slate-100 font-sans tracking-tight relative overflow-hidden">
       
       {/* Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-600/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Sidebar Lateral */}
@@ -216,9 +216,9 @@ export default function SuperAdminDashboard() {
            <MetricCard 
               label="Alumnos en Red" 
               value={metrics?.totalJugadores || '0'} 
-              icon={<Users className="text-orange-400" />} 
+              icon={<Users className="text-cyan-400" />} 
               sub="Deportistas activos" 
-              color="orange"
+              color="cyan"
            />
            <MetricCard 
               label="Recaudo Histórico" 
@@ -244,7 +244,7 @@ export default function SuperAdminDashboard() {
           </div>
           <button 
             onClick={() => setShowModal(true)}
-            className="bg-orange-600 hover:bg-orange-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-orange-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
+            className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-cyan-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
           >
             <Plus size={20} strokeWidth={3} /> Desplegar Nueva Academia
           </button>
@@ -260,7 +260,7 @@ export default function SuperAdminDashboard() {
             <>
               <div className="flex items-center justify-between mb-10">
                 <div className="flex items-center gap-4">
-                    <div className="w-1.5 h-6 bg-orange-600 rounded-full" />
+                    <div className="w-1.5 h-6 bg-cyan-600 rounded-full" />
                     <h3 className="font-black uppercase italic tracking-tighter text-2xl">Academias Conectadas</h3>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-6 py-2 rounded-full border border-white/5">
@@ -314,13 +314,13 @@ export default function SuperAdminDashboard() {
                  </div>
                  <div>
                     <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white">{selectedClub.nombre}</h3>
-                    <p className="text-orange-500 font-mono text-sm tracking-widest">/{selectedClub.slug}</p>
+                    <p className="text-cyan-500 font-mono text-sm tracking-widest">/{selectedClub.slug}</p>
                  </div>
               </div>
 
               {detailsLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                  <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
                 </div>
               ) : clubAudit && (
                 <div className="space-y-10">
@@ -356,7 +356,7 @@ export default function SuperAdminDashboard() {
 
                    {/* Acciones Maestras */}
                    <div className="pt-10 border-t border-white/5">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-6">Zona de Peligro</h4>
+                      <h4 className="text-xs font-black uppercase tracking-widest text-cyan-500 mb-6">Zona de Peligro</h4>
                       <div className="flex flex-wrap gap-4">
                          <button 
                            onClick={() => toggleEstadoClub(selectedClub.id, selectedClub.estado)}
@@ -381,23 +381,23 @@ export default function SuperAdminDashboard() {
       {/* MODAL CREAR CLUB */}
       {showModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-zinc-900 border border-white/10 rounded-[3rem] w-full max-w-xl p-10 relative shadow-[0_0_100px_-20px_rgba(234,88,12,0.15)]">
+          <div className="bg-zinc-900 border border-white/10 rounded-[3rem] w-full max-w-xl p-10 relative shadow-[0_0_100px_-20px_rgba(8,145,178,0.15)]">
             <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
               <X size={24} />
             </button>
             <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <Building2 className="text-orange-500" /> Registrar <span className="text-orange-500">Nueva Academia</span>
+              <Building2 className="text-cyan-500" /> Registrar <span className="text-cyan-500">Nueva Academia</span>
             </h3>
 
             <form onSubmit={handleCrearClub} className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-2">
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nombre Oficial</label>
-                  <input required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} type="text" placeholder="Ej: Eagles Football Academy" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 outline-none transition-all font-bold text-sm" />
+                  <input required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} type="text" placeholder="Ej: Eagles Football Academy" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Subdominio (Slug)</label>
-                  <input required value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/\s/g, '-')})} type="text" placeholder="eagles-fc" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 outline-none transition-all font-mono text-sm text-orange-500" />
+                  <input required value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/\s/g, '-')})} type="text" placeholder="eagles-fc" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-mono text-sm text-cyan-500" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Color de Marca</label>
@@ -405,26 +405,26 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div className="col-span-2">
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">URL Logo (Imagen)</label>
-                  <input required value={formData.logo_url} onChange={e => setFormData({...formData, logo_url: e.target.value})} type="url" placeholder="https://..." className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 outline-none transition-all font-bold text-sm" />
+                  <input required value={formData.logo_url} onChange={e => setFormData({...formData, logo_url: e.target.value})} type="url" placeholder="https://..." className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
                 </div>
                 
                 <div className="col-span-2 border-t border-white/5 pt-4 mt-2">
-                  <h4 className="text-xs font-black text-orange-500 uppercase tracking-widest mb-4">Credenciales del Administrador (Dueño)</h4>
+                  <h4 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4">Credenciales del Administrador (Dueño)</h4>
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
-                      <input required value={formData.correo_director} onChange={e => setFormData({...formData, correo_director: e.target.value})} type="email" placeholder="admin@escuela.com" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 outline-none transition-all font-bold text-sm" />
+                      <input required value={formData.correo_director} onChange={e => setFormData({...formData, correo_director: e.target.value})} type="email" placeholder="admin@escuela.com" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Contraseña Temporal</label>
-                      <input required value={formData.password_director} onChange={e => setFormData({...formData, password_director: e.target.value})} type="text" placeholder="Pass1234!" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-orange-500/50 outline-none transition-all font-mono text-sm" />
+                      <input required value={formData.password_director} onChange={e => setFormData({...formData, password_director: e.target.value})} type="text" placeholder="Pass1234!" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-mono text-sm" />
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="pt-6">
-                <button type="submit" disabled={loading} className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 shadow-xl shadow-orange-900/20 active:scale-95 transition-all text-sm uppercase italic tracking-tighter">
+                <button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 shadow-xl shadow-cyan-900/20 active:scale-95 transition-all text-sm uppercase italic tracking-tighter">
                   {loading ? <Loader2 className="animate-spin" /> : <><Check /> Confirmar Registro</>}
                 </button>
               </div>
@@ -439,16 +439,16 @@ export default function SuperAdminDashboard() {
 // Componentes Auxiliares
 function NavItem({ icon, label, active = false }: { icon: any, label: string, active?: boolean }) {
   return (
-    <div className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
+    <div className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-900/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>
       {icon}
       <span className="text-xs font-bold uppercase tracking-widest leading-none">{label}</span>
     </div>
   );
 }
 
-function MetricCard({ label, value, icon, sub, color = "orange" }: any) {
+function MetricCard({ label, value, icon, sub, color = "cyan" }: any) {
   const colorMap: any = {
-    orange: "from-orange-500/20 to-orange-500/5 border-orange-500/20 text-orange-500",
+    cyan: "from-cyan-500/20 to-cyan-500/5 border-cyan-500/20 text-cyan-500",
     emerald: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500",
     blue: "from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500",
     purple: "from-purple-500/20 to-purple-500/5 border-purple-500/20 text-purple-500",
@@ -541,7 +541,7 @@ function ClubRow({ club, count, onToggle, onAudit }: any) {
           </button>
           <button 
             onClick={() => onAudit(club)}
-            className="text-[9px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-orange-600 hover:border-orange-500 transition-all shadow-xl"
+            className="text-[9px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-cyan-600 hover:border-cyan-500 transition-all shadow-xl"
           >
             Detalles
           </button>

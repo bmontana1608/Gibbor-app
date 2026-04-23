@@ -29,12 +29,12 @@ export async function getTenant() {
     }
   }
 
-  // Branding Neutro y Profesional del SaaS Matriz (NexClub)
+  // Branding Neutro y Profesional del SaaS Matriz (Master Club Manager)
   const saasMaster = {
     slug: 'master',
     config: {
-      nombre: 'NexClub SaaS Management',
-      color: '#EA580C',
+      nombre: 'Master Club Manager (MCM)',
+      color: '#06b6d4', // Cian vibrante (Logo MCM)
       logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
     }
   };
@@ -54,7 +54,7 @@ export async function getTenant() {
         isMaster: false,
         config: {
           nombre: defaultClub.nombre,
-          color: defaultClub.color_primario || '#ea580c',
+          color: defaultClub.color_primario || '#06b6d4',
           logo: defaultClub.logo_url || '/logo.png'
         }
       };
@@ -83,7 +83,7 @@ export async function getTenant() {
     isMaster: false,
     config: {
       nombre: club.nombre,
-      color: club.color_primario || '#ea580c',
+      color: club.color_primario || '#06b6d4',
       logo: club.logo_url || '/logo.png'
     }
   };
