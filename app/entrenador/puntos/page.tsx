@@ -45,15 +45,20 @@ export default function AsignarPuntosGibbor() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos, rol, club_id').eq('id', session.user.id).single();
+      const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos, rol, club_id, grupos').eq('id', session.user.id).single();
       
       let query = supabase.from('categorias').select('*');
       
-      // Si es SuperAdmin o Director, mostramos todas las del club. Si es entrenador, solo las suyas.
-      if (usuario?.rol === 'SuperAdmin' || usuario?.rol === 'Director') {
+      // Lógica unificada: Si tiene grupos asignados en el perfil, usamos esos nombres. 
+      // Si es SuperAdmin/Director, permitimos ver todo el club.
+      if (usuario?.grupos && usuario.grupos !== 'Ninguna') {
+        const nombresGrupos = usuario.grupos.split(', ').filter(Boolean);
+        query = query.in('nombre', nombresGrupos);
+      } else if (usuario?.rol === 'SuperAdmin' || usuario?.rol === 'Director') {
         const clubId = usuario?.club_id;
         if (clubId) query = query.eq('club_id', clubId);
       } else {
+        // Fallback: búsqueda por nombre de entrenador
         const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
         query = query.ilike('entrenadores', `%${nombreCompleto}%`);
       }
