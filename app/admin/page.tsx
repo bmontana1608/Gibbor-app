@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2, ArrowRightLeft, Trash2
+  X, Check, Loader2, ArrowRightLeft, Trash2, History
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -14,12 +14,13 @@ import LoginForm from '@/components/LoginForm';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [clubes, setClubes] = useState<any[]>([]);
   const [usuariosGlobales, setUsuariosGlobales] = useState<any[]>([]);
+  const [logs, setLogs] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
   const [selectedClub, setSelectedClub] = useState<any>(null);
@@ -94,14 +95,16 @@ export default function SuperAdminDashboard() {
 
     setIsAdmin(true);
 
-    // Cargar Clubes y Métricas
-    const [resClubes, resMetrics] = await Promise.all([
+    // Cargar Clubes, Métricas y Logs
+    const [resClubes, resMetrics, resLogs] = await Promise.all([
       supabase.from('clubes').select('*').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
-      fetch('/api/admin/metrics').then(r => r.json())
+      fetch('/api/admin/metrics').then(r => r.json()),
+      supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50)
     ]);
 
-    if (resClubes.data) setClubes(resClubes.data);
-    if (resMetrics) setMetrics(resMetrics);
+    setClubes(resClubes.data || []);
+    setMetrics(resMetrics);
+    setLogs(resLogs.data || []);
     
     setFetching(false);
   };
@@ -232,7 +235,19 @@ export default function SuperAdminDashboard() {
         </nav>
 
         <div className="pt-6 border-t border-white/5 space-y-2">
-          <NavItem icon={<Settings size={18} />} label="Configuración" active={vista === 'configuracion'} onClick={() => setVista('configuracion')} />
+          <button onClick={() => setVista('configuracion')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${vista === 'configuracion' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
+            <Settings size={18} />
+            <span className="text-xs font-bold uppercase tracking-widest">Configuración</span>
+          </button>
+
+          <div className="mt-8 pt-8 border-t border-white/5">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 px-4">Seguridad Pro</p>
+            <button onClick={() => setVista('auditoria')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${vista === 'auditoria' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
+              <History size={18} />
+              <span className="text-xs font-bold uppercase tracking-widest">Auditoría</span>
+            </button>
+          </div>
+
           <button 
             onClick={async () => {
               const { error } = await supabase.auth.signOut();
@@ -323,6 +338,48 @@ export default function SuperAdminDashboard() {
               </div>
           </section>
         )}
+
+        {vista === 'auditoria' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+               <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-8">
+                  <div className="flex items-center justify-between mb-8">
+                     <div>
+                        <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Historial de Auditoría</h2>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Control de operaciones maestras MCM</p>
+                     </div>
+                     <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500">
+                        <ShieldCheck size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Blindaje Activo</span>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4">
+                     {logs.map((log: any) => (
+                       <div key={log.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all group">
+                          <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                                  log.accion.includes('ELIMINAR') || log.accion.includes('DELETE') ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'
+                                }`}>
+                                   <History size={16} />
+                                </div>
+                                <div>
+                                   <p className="text-[10px] font-black text-white uppercase tracking-widest">{log.accion.replace(/_/g, ' ')}</p>
+                                   <p className="text-sm text-slate-400 font-medium mt-0.5">{log.descripcion}</p>
+                                </div>
+                             </div>
+                             <div className="text-right">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                   {new Date(log.fecha).toLocaleString()}
+                                </p>
+                             </div>
+                          </div>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+          )}
         
         {vista === 'clubes' && (
           <>
