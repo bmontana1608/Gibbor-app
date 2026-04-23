@@ -35,13 +35,25 @@ export async function GET(
       .select('*', { count: 'exact', head: true })
       .eq('club_id', id);
 
-    // 4. Últimos 5 pagos registrados
+    // 4. Últimos 5 pagos registrados (con JOIN a perfiles para obtener nombres)
     const { data: ultimosPagos } = await supabaseAdmin
       .from('pagos_ingresos')
-      .select('*')
+      .select(`
+        *,
+        perfiles:jugador_id (
+          nombres,
+          apellidos
+        )
+      `)
       .eq('club_id', id)
       .order('fecha', { ascending: false })
-      .limit(5);
+      .limit(10);
+
+    // Mapear para que el frontend reciba 'jugador_nombre'
+    const actividadMapeada = ultimosPagos?.map(pago => ({
+      ...pago,
+      jugador_nombre: pago.perfiles ? `${pago.perfiles.nombres} ${pago.perfiles.apellidos}` : 'Alumno Sin Perfil'
+    }));
 
     return NextResponse.json({
       club,
@@ -49,7 +61,7 @@ export async function GET(
         coaches: coaches || 0,
         categorias: categorias || 0
       },
-      actividad: ultimosPagos || []
+      actividad: actividadMapeada || []
     });
 
   } catch (error: any) {
