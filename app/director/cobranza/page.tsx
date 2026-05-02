@@ -411,7 +411,7 @@ export default function ModuloCobranza() {
         total: Number(montoAbono),
         metodo_pago: metodoPagoAbono,
         notas: `ABONO - ${notasAbono || 'Pago parcial'}`,
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: periodo,   // ← fecha del período cobrado (ej: 2026-04-01), no la fecha de hoy
         club_id: tenant?.id,
       }]);
 
