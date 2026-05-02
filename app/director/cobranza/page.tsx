@@ -669,12 +669,17 @@ export default function ModuloCobranza() {
 
     // Solo calcular mora histórica si no es beca 100%
     if (!esBeca100 && tarifa > 0) {
-      // Límite global = mes de registro del CLUB (tenant), no del jugador individual.
-      // Así Abril siempre está incluido si el club se registró en Abril.
+      // Límite = el MÁS RECIENTE entre: registro del club y registro del jugador.
+      // → Jugadores de Abril: límite = Abril (fecha del club)
+      // → Jugadores nuevos de Mayo: límite = Mayo (su propia fecha), nunca acumulan deuda de Abril
       const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
-      const primerMesValido = tenantCreatedAt
-        ? new Date(tenantCreatedAt.getFullYear(), tenantCreatedAt.getMonth(), 1)
-        : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1); // fallback: 6 meses atrás
+      const jugadorCreatedAt = j.created_at ? new Date(j.created_at) : null;
+
+      const inicioClub   = tenantCreatedAt  ? new Date(tenantCreatedAt.getFullYear(),  tenantCreatedAt.getMonth(),  1) : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
+      const inicioJugador = jugadorCreatedAt ? new Date(jugadorCreatedAt.getFullYear(), jugadorCreatedAt.getMonth(), 1) : inicioClub;
+
+      // El límite real es el más reciente de los dos
+      const primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
 
       for (let i = 1; i <= 6; i++) {
         const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
