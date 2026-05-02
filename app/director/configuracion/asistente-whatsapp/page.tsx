@@ -62,7 +62,12 @@ export default function AsistenteWhatsApp() {
         return;
       }
 
-      const instanceName = configDB.instance_name || 'Gibbor_App';
+      // 1. GENERAR NOMBRE DE INSTANCIA ÚNICO (Vital para Multiclub)
+      // Usamos el ID del club o el nombre para evitar colisiones entre escuelas
+      const clubIdHash = configDB.club_id ? configDB.club_id.substring(0, 8) : 'Global';
+      const instanceName = configDB.instance_name ? `${configDB.instance_name}_${clubIdHash}` : `Gibbor_${clubIdHash}`;
+      
+      console.log("Intentando conectar a instancia:", instanceName);
       let cleanUrl = configDB.api_url.trim();
 
       if (!cleanUrl.startsWith('http')) {
@@ -143,8 +148,12 @@ export default function AsistenteWhatsApp() {
       }
 
     } catch (error: any) {
-      toast.error("Error: " + error.message);
-      console.error(error);
+      if (error.message === 'Failed to fetch') {
+        toast.error("Error de Conexión: El servidor de WhatsApp no responde o bloquea la petición (CORS). Verifica que sea HTTPS.");
+      } else {
+        toast.error("Error: " + error.message);
+      }
+      console.error("Detalle del error:", error);
     } finally {
       setCargando(false);
     }

@@ -21,7 +21,8 @@ export default function ConfiguracionServidor() {
     instance_name: 'Gibbor_App',
     active_webhook: true,
     direccion: 'Calle Ficticia #12-34',
-    ciudad: 'Cúcuta, Norte de Santander'
+    ciudad: 'Cúcuta, Norte de Santander',
+    club_id: ''
   });
 
   useEffect(() => {
@@ -34,8 +35,16 @@ export default function ConfiguracionServidor() {
           instance_name: data.instance_name || 'Gibbor_App',
           active_webhook: data.active_webhook ?? true,
           direccion: data.direccion || 'Calle Ficticia #12-34',
-          ciudad: data.ciudad || 'Cúcuta, Norte de Santander'
+          ciudad: data.ciudad || 'Cúcuta, Norte de Santander',
+          club_id: data.club_id || ''
         });
+      } else {
+        // Si no hay config, al menos cargar el club_id del perfil
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data: prof } = await supabase.from('perfiles').select('club_id').eq('id', session.user.id).single();
+          setConfig(prev => ({ ...prev, club_id: prof?.club_id || '' }));
+        }
       }
       setLoadingConfig(false);
     }
