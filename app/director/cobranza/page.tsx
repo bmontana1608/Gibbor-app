@@ -432,10 +432,11 @@ export default function ModuloCobranza() {
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
       const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
 
-      // Obtener nombre del mes actual
+      // Mes del PERÍODO DE COBRO seleccionado (no el mes actual del sistema)
       const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-      const mesActual = meses[new Date().getMonth()];
-      const anioActual = new Date().getFullYear();
+      const fechaPeriodo = new Date(fechaInicio + 'T12:00:00'); // Evitar desfases de zona horaria
+      const mesActual = meses[fechaPeriodo.getMonth()];
+      const anioActual = fechaPeriodo.getFullYear();
       const diaVence = 5;
       const nombreClub = config?.nombre_club || 'EFD GIBBOR';
 
@@ -492,8 +493,6 @@ export default function ModuloCobranza() {
         ``,
         `💳 *Canales de pago:*`,
         metodosPago || 'Consulta con el club.',
-        ``,
-        `📎 _Adjunta el comprobante de pago al responder este mensaje._`,
         ``,
         `¡Gracias por tu confianza en *${nombreClub}*! ⚽✨`
       ].join('\n');
