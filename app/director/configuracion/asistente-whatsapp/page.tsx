@@ -81,7 +81,7 @@ export default function AsistenteWhatsApp() {
       // 2. Si no responde bien (probablemente no existe), intentamos crearla
       if (!resProxy.ok) {
         console.log("Instancia no encontrada, intentando crear vía Proxy...");
-        await fetch(`/api/whatsapp/proxy`, {
+        const resCreate = await fetch(`/api/whatsapp/proxy`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -99,6 +99,16 @@ export default function AsistenteWhatsApp() {
             }
           })
         });
+
+        const createData = await resCreate.json();
+        console.log("Resultado creación:", createData);
+
+        if (!resCreate.ok) {
+          setRawResponse(`Error al CREAR instancia:\nURL: ${cleanUrl}/instance/create\nRespuesta: ${JSON.stringify(createData, null, 2)}`);
+          toast.error("No se pudo crear la instancia en el servidor.");
+          setCargando(false);
+          return;
+        }
 
         // Reintentamos conectar tras crear
         resProxy = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connect/${instanceName}`)}&apikey=${configDB.api_key}`);
