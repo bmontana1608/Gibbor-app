@@ -59,7 +59,7 @@ export async function generarReciboPDFBase64(datos: {
   // Subtexto de estado
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(esPago ? `Vía: ${datos.metodo.toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 177.5, 27, { align: 'center' });
+  doc.text(esPago ? `Vía: ${(datos.metodo || '').toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 177.5, 27, { align: 'center' });
 
   // Logo e Identidad
   try {
