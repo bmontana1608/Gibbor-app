@@ -79,9 +79,14 @@ export async function POST(req: NextRequest) {
         grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
-          direccion: config?.direccion || 'Sede Deportiva', ciudad: config?.ciudad || 'Cúcuta',
-          nequi: config?.nequi, daviplata: config?.daviplata,
-          banco: config?.banco_nombre ? `${config.banco_nombre}: ${config.banco_numero}` : undefined
+          nombre_club: config?.nombre_club || 'EFD GIBBOR',
+          direccion: config?.direccion || 'Sede Deportiva', 
+          ciudad: config?.ciudad || 'Cúcuta',
+          nequi: config?.nequi, 
+          daviplata: config?.daviplata,
+          bre_b: config?.bre_b,
+          banco_nombre: config?.banco_nombre,
+          banco_numero: config?.banco_numero
         }
       });
 

@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
+import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
 export default function ModuloCobranza() {
   const router = useRouter();
@@ -76,6 +75,16 @@ export default function ModuloCobranza() {
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [notificacionesMes, setNotificacionesMes] = useState<any[]>([]);
+
+  // Filtros de fecha dinámicos
+  const [fechaInicio, setFechaInicio] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+  });
+  const [fechaFin, setFechaFin] = useState(() => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+  });
 
   const hoy = new Date();
   const diaActual = hoy.getDate();
@@ -365,120 +374,25 @@ export default function ModuloCobranza() {
       const statusColor = esVencido ? [220, 38, 38] : [255, 120, 0]; // Rojo : Naranja
 
       // --- GENERACIÓN DE PDF PROFESIONAL ---
-      const doc = new jsPDF();
-      
-      try {
-        const logoUrl = '/logo.png';
-        const img = new Image();
-        img.src = logoUrl;
-        doc.addImage(img, 'PNG', 15, 15, 25, 25);
-      } catch (e) {
-        console.warn("Logo no disponible");
-      }
-
-      // Encabezado Corporativo
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(30, 41, 59);
-      doc.text('EFD GIBBOR', 45, 25);
-      
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(direccionClub, 45, 30);
-      doc.text(ciudadClub, 45, 34);
-      
-      // Caja de Estado Inteligente
-      doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
-      doc.rect(145, 15, 50, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text(statusLabel, 170, 21.5, { align: 'center' });
-
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(8);
-      doc.text(`Expedido: ${fechaActual.toLocaleDateString()}`, 145, 30);
-      doc.text(`Recibo: #${nuevoConsecutivo.toString().padStart(4, '0')}`, 145, 34);
-
-      // Línea divisoria
-      doc.setDrawColor(240, 240, 240);
-      doc.line(15, 45, 195, 45);
-
-      // Alumno
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(15, 50, 180, 20, 3, 3, 'F');
-      doc.setFontSize(7);
-      doc.setTextColor(148, 163, 184);
-      doc.text('RECEPTOR DEL RECIBO', 20, 56);
-      doc.setFontSize(10);
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "bold");
-      doc.text(alumno.nombres.toUpperCase(), 20, 63);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Identificación: ${alumno.documento || '---'}`, 20, 68);
-      doc.text(`Categoría: ${alumno.grupos || 'Juvenil'}`, 100, 68);
-
-      // Detalle Table
-      doc.setFillColor(30, 41, 59);
-      doc.rect(15, 75, 180, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.text('DESCRIPCIÓN DEL CARGO', 20, 80.5);
-      doc.text('MONTO', 175, 80.5, { align: 'right' });
-
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Mensualidad Deportiva - ${mesNombre} ${anioActual}`, 20, 92);
-      doc.text(`$ ${alumno.tarifa.toLocaleString()}`, 175, 92, { align: 'right' });
-      
-      doc.line(15, 98, 195, 98);
-
-      // Total
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text('TOTAL A PAGAR:', 120, 110);
-      doc.setTextColor(255, 120, 0);
-      doc.text(`$ ${alumno.tarifa.toLocaleString()}`, 180, 110, { align: 'right' });
-
-      // BLOQUE DE NOTAS Y PAGOS
-      doc.setFillColor(255, 247, 237); // Light Orange
-      doc.roundedRect(15, 125, 180, 35, 3, 3, 'F');
-      
-      doc.setFontSize(8);
-      doc.setTextColor(194, 65, 12); // Darker Orange
-      doc.setFont("helvetica", "bold");
-      doc.text('POLÍTICAS DE PAGO Y DESCUENTOS:', 20, 132);
-      
-      doc.setFontSize(7.5);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(30, 41, 59);
-      doc.text('• Descuento de $10.000 por pronto pago si se liquida en los primeros 5 días del mes.', 20, 138);
-      doc.text('• Este descuento NO aplica para futbolistas con beca otorgada por el club.', 20, 141);
-      
-      // Métodos de Pago dinámicos con seguridad
-      const pagosNequi = config.nequi ? `Nequi: ${config.nequi}` : "";
-      const pagosDavi = config.daviplata ? `Daviplata: ${config.daviplata}` : "";
-      const pagosBreB = config.bre_b ? `Bre-B: ${config.bre_b}` : "";
-      const pagosBanco = config.banco_nombre ? `${config.banco_nombre}: ${config.banco_numero}` : "";
-
-      const stringMetodos = [pagosNequi, pagosDavi, pagosBreB].filter(Boolean).join(" / ");
-      
-      doc.text(`• Pagos: ${stringMetodos || 'Contactar al club para métodos de pago'}`, 20, 146);
-      if (pagosBanco) {
-        doc.text(`• ${pagosBanco}`, 20, 149);
-      }
-
-      doc.setFont("helvetica", "bold");
-      doc.text('Enviar soporte de pago al asistente de WhatsApp para registro contable.', 20, 154);
-
-      // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text('EFD GIBBOR - Formando Grandes Talentos. Documento digital oficial.', 105, 200, { align: 'center' });
-
-      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      // --- GENERACIÓN DE PDF PROFESIONAL USANDO LA LIBRERÍA CENTRAL ---
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: alumno.nombres,
+        apellidos: alumno.apellidos,
+        documento: alumno.documento,
+        grupo: alumno.grupos || 'GENERAL',
+        tarifa: alumno.tarifa,
+        consecutivo: nuevoConsecutivo,
+        empresa: {
+          nombre_club: config.nombre_club,
+          direccion: config.direccion || 'Sede Deportiva',
+          ciudad: config.ciudad || 'Colombia',
+          nequi: config.nequi,
+          daviplata: config.daviplata,
+          bre_b: config.bre_b,
+          banco_nombre: config.banco_nombre,
+          banco_numero: config.banco_numero
+        }
+      });
 
       // Mensaje de WhatsApp
       const vencimiento = `5/${new Date().getMonth() + 1}/${anioActual}`;
@@ -508,21 +422,22 @@ export default function ModuloCobranza() {
     }
   };
 
-  const mesActualStr = String(hoy.getMonth() + 1).padStart(2, '0');
-  const anioActualStr = String(hoy.getFullYear());
-  const matchMesAnio = `${anioActualStr}-${mesActualStr}`; // "2026-04"
-
-  // 📈 CÁLCULOS FINANCIEROS (Solo mes actual)
-  const pagosEsteMes = historialPagos.filter(p => p.fecha && String(p.fecha).includes(matchMesAnio));
-  const ingresosRecaudados = pagosEsteMes.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
+  // 📈 CÁLCULOS FINANCIEROS (Basados en el rango de fechas seleccionado)
+  const pagosFiltradosPorFecha = historialPagos.filter(p => 
+    p.fecha && p.fecha >= fechaInicio && p.fecha <= fechaFin
+  );
   
-  const egresosEsteMes = egresos.filter(e => e.fecha && String(e.fecha).includes(matchMesAnio));
-  const egresosTotales = egresosEsteMes.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
+  const ingresosRecaudados = pagosFiltradosPorFecha.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
+  
+  const egresosFiltradosPorFecha = egresos.filter(e => 
+    e.fecha && e.fecha >= fechaInicio && e.fecha <= fechaFin
+  );
+  const egresosTotales = egresosFiltradosPorFecha.reduce((acc, eg) => acc + parseFloat(eg.monto || 0), 0);
   
   const utilidadNeta = ingresosRecaudados - egresosTotales;
   
-  // 👥 ESTADO DE JUGADORES
-  const idsPagadosEsteMes = new Set(pagosEsteMes.map(p => p.jugador_id));
+  // 👥 ESTADO DE JUGADORES (Solo mes actual para mora, pero lista filtrada por fechas para recibos)
+  const idsPagadosEsteMes = new Set(pagosFiltradosPorFecha.map(p => p.jugador_id));
 
   const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
@@ -569,86 +484,26 @@ export default function ModuloCobranza() {
       if (cleanedNumber.length === 10) cleanedNumber = `57${cleanedNumber}`;
 
       // 2. Generar PDF Profesional con los datos del recibo manual
-      const doc = new jsPDF();
-      
-      try {
-        doc.addImage('/logo.png', 'PNG', 15, 15, 25, 25);
-      } catch (e) {}
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(30, 41, 59);
-      doc.text('EFD GIBBOR', 45, 25);
-      
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(config.direccion || 'Sede Deportiva Central', 45, 30);
-      doc.text(config.ciudad || 'Colombia', 45, 34);
-      
-      doc.setFillColor(34, 197, 94); // Verde éxito
-      doc.rect(145, 15, 50, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text('PAGO CONFIRMADO', 170, 21.5, { align: 'center' });
-
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(8);
-      doc.text(`Fecha: ${new Date(reciboGenerado.fecha).toLocaleDateString()}`, 145, 30);
-      doc.text(`Recibo: #${reciboGenerado.consecutivo.toString().padStart(4, '0')}`, 145, 34);
-
-      doc.setDrawColor(240, 240, 240);
-      doc.line(15, 45, 195, 45);
-
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(15, 50, 180, 20, 3, 3, 'F');
-      doc.setFontSize(7);
-      doc.setTextColor(148, 163, 184);
-      doc.text('RECIBIDO DE', 20, 56);
-      doc.setFontSize(10);
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${reciboGenerado.nombres} ${reciboGenerado.apellidos}`.toUpperCase(), 20, 63);
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Categoría: ${reciboGenerado.grupo}`, 100, 68);
-
-      // Tabla de cobro
-      doc.setFillColor(30, 41, 59);
-      doc.rect(15, 75, 180, 8, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.text('DESCRIPCIÓN DEL PAGO', 20, 80.5);
-      doc.text('MONTO', 175, 80.5, { align: 'right' });
-
-      doc.setTextColor(30, 41, 59);
-      doc.text(`Mensualidad Deportiva / Cuota Plan`, 20, 92);
-      doc.text(`$ ${reciboGenerado.montoBase.toLocaleString()}`, 175, 92, { align: 'right' });
-      
-      if (reciboGenerado.descuento > 0) {
-        doc.setTextColor(220, 38, 38);
-        doc.text(`Descuento Aplicado`, 20, 98);
-        doc.text(`- $ ${reciboGenerado.descuento.toLocaleString()}`, 175, 98, { align: 'right' });
-      }
-      if (reciboGenerado.recargo > 0) {
-        doc.setTextColor(30, 41, 59);
-        doc.text(`Recargo / Otros`, 20, 104);
-        doc.text(`+ $ ${reciboGenerado.recargo.toLocaleString()}`, 175, 104, { align: 'right' });
-      }
-      
-      doc.line(15, 110, 195, 110);
-
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(16, 185, 129);
-      doc.text('TOTAL RECIBIDO:', 120, 120);
-      doc.text(`$ ${reciboGenerado.total.toLocaleString()}`, 180, 120, { align: 'right' });
-
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text('EFD GIBBOR - Formando Grandes Talentos. Este es un comprobante de pago oficial.', 105, 200, { align: 'center' });
-
-      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      // 2. Generar PDF Profesional usando la librería central
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: reciboGenerado.nombres,
+        apellidos: reciboGenerado.apellidos,
+        grupo: reciboGenerado.grupo,
+        tarifa: reciboGenerado.total,
+        consecutivo: reciboGenerado.consecutivo,
+        fecha: reciboGenerado.fecha,
+        metodo: reciboGenerado.metodo,
+        empresa: {
+          nombre_club: config.nombre_club,
+          direccion: config.direccion || 'Sede Deportiva',
+          ciudad: config.ciudad || 'Colombia',
+          nequi: config.nequi,
+          daviplata: config.daviplata,
+          bre_b: config.bre_b,
+          banco_nombre: config.banco_nombre,
+          banco_numero: config.banco_numero
+        }
+      });
       const texto = `¡Hola! EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
 
       // 3. Envío vía API usando motor central
@@ -786,18 +641,39 @@ export default function ModuloCobranza() {
           </div>
         )}
 
-        <div className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-              <Calendar className="w-5 h-5" />
+        <div className="bg-white border border-slate-200 p-6 rounded-3xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner">
+              <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <p className="font-bold text-sm text-slate-800">Ciclo de Facturación Activo</p>
-              <p className="text-xs text-slate-500">Hoy es día <span className="font-black text-slate-700">{diaActual}</span>. Los descuentos de pronto pago se aplican según la configuración de cada plan.</p>
+              <p className="font-black text-slate-900 tracking-tight">Periodo Contable</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mostrando recibos del rango seleccionado</p>
             </div>
           </div>
-          <div className="hidden md:flex gap-2">
-             <div className="bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 flex items-center gap-2">
+          
+          <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 w-full md:w-auto">
+            <div className="flex flex-col px-3">
+              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Desde</label>
+              <input 
+                type="date" 
+                value={fechaInicio} 
+                onChange={(e) => setFechaInicio(e.target.value)} 
+                className="bg-transparent text-xs font-bold outline-none text-slate-700" 
+              />
+            </div>
+            <div className="w-px h-8 bg-slate-200"></div>
+            <div className="flex flex-col px-3">
+              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Hasta</label>
+              <input 
+                type="date" 
+                value={fechaFin} 
+                onChange={(e) => setFechaFin(e.target.value)} 
+                className="bg-transparent text-xs font-bold outline-none text-slate-700" 
+              />
+            </div>
+          </div>
+        </div>
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                 <span className="text-[10px] font-bold text-slate-600 uppercase">Sistema Automatizado</span>
              </div>
@@ -972,10 +848,10 @@ export default function ModuloCobranza() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                    {historialPagos.length === 0 ? (
-                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No hay historial de ingresos registrado.</td></tr>
+                    {pagosFiltradosPorFecha.length === 0 ? (
+                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No hay ingresos registrados en este rango de fechas.</td></tr>
                     ) : (
-                      historialPagos.map((pago) => (
+                      pagosFiltradosPorFecha.map((pago) => (
                         <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-4 md:px-6 font-black text-slate-900">№ {pago.consecutivo.toString().padStart(3, '0')}</td>
                           <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
@@ -1038,10 +914,10 @@ export default function ModuloCobranza() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-sm">
-                            {egresos.length === 0 ? (
-                                <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic font-medium">No hay gastos registrados este periodo.</td></tr>
+                            {egresosFiltradosPorFecha.length === 0 ? (
+                                <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic font-medium">No hay gastos registrados en este periodo.</td></tr>
                             ) : (
-                                egresos.map(eg => (
+                                egresosFiltradosPorFecha.map(eg => (
                                     <tr key={eg.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="p-4 md:px-6 font-bold text-slate-800 uppercase">{eg.descripcion}</td>
                                         <td className="p-4 md:px-6">
