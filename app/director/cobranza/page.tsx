@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -669,11 +669,15 @@ export default function ModuloCobranza() {
 
     // Solo calcular mora histórica si no es beca 100%
     if (!esBeca100 && tarifa > 0) {
-      // Revisamos los últimos 6 meses hacia atrás desde el período seleccionado
+      // Primer mes válido = mes en que fue registrado el jugador (no hay deuda antes de eso)
+      const fechaRegistro = new Date((j.created_at || new Date()).toString());
+      const primerMesValido = new Date(fechaRegistro.getFullYear(), fechaRegistro.getMonth(), 1);
+
       for (let i = 1; i <= 6; i++) {
         const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
         const mesStr = mesAnterior.toISOString().substring(0, 7); // 'YYYY-MM'
-        if (mesAnterior > hoyDate) break; // No calcular meses futuros
+        if (mesAnterior > hoyDate) break;          // No calcular meses futuros
+        if (mesAnterior < primerMesValido) break;  // No calcular antes del registro
 
         const pagosDelMes = historialPagos
           .filter(p => p.jugador_id === j.id && p.fecha && String(p.fecha).startsWith(mesStr))
