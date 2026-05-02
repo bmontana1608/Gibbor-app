@@ -417,7 +417,68 @@ export default function ModuloCobranza() {
       toast.success(`Recibo #${nuevoConsecutivo} enviado 🚀`);
     } catch (error: any) {
       toast.error("Fallo al enviar: " + error.message);
-      throw error; // Re-lanzar para que el proceso batch sepa que falló
+      throw error;
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  // Cobro manual — genera el PDF de cobro y lo comparte vía WhatsApp nativo del celular
+  const cobrarManual = async (alumno: any) => {
+    if (!alumno.tarifa) alumno.tarifa = calcularTarifa(alumno.tipo_plan);
+    setLoadingBot(`manual-${alumno.id}`);
+    const toastId = toast.loading(`Preparando recibo de cobro para ${alumno.nombres}...`);
+    try {
+      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
+
+      // Sin 'metodo' => el PDF sale en Naranja/Rojo de PENDIENTE
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: alumno.nombres,
+        apellidos: alumno.apellidos,
+        documento: alumno.documento,
+        grupo: alumno.grupos || 'GENERAL',
+        tarifa: alumno.tarifa,
+        consecutivo: nuevoConsecutivo,
+        empresa: {
+          nombre_club: config?.nombre_club,
+          direccion: config?.direccion || 'Sede Deportiva',
+          ciudad: config?.ciudad || 'Colombia',
+          nequi: config?.nequi,
+          daviplata: config?.daviplata,
+          bre_b: config?.bre_b,
+          banco_nombre: config?.banco_nombre,
+          banco_numero: config?.banco_numero
+        }
+      });
+
+      const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const filename = `Cobro_${alumno.nombres.replace(/\s/g, '_')}.pdf`;
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      toast.dismiss(toastId);
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        // 📱 Celular: abre el menú nativo de compartir (incluye WhatsApp)
+        await navigator.share({
+          files: [file],
+          title: `Cobro Mensualidad — ${alumno.nombres}`,
+          text: `Hola ${alumno.nombres} 👋, te adjuntamos tu recibo de mensualidad por $${alumno.tarifa.toLocaleString('es-CO')}. Gracias por confiar en EFD Gibbor ✨`
+        });
+        toast.success('Recibo compartido exitosamente');
+      } else {
+        // 🖥️ Desktop: descarga directa
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        toast.success('Recibo descargado. Compártelo manualmente.');
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        toast.error('Error al generar el cobro: ' + err.message, { id: toastId });
+      }
     } finally {
       setLoadingBot(null);
     }
@@ -791,10 +852,19 @@ export default function ModuloCobranza() {
                                       onClick={() => handleNotificar(jugador)} 
                                       disabled={loadingBot !== null}
                                       className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" 
-                                      title="Invocar Robot de Cobro"
+                                      title="Enviar via Bot WhatsApp"
                                     >
                                       {loadingBot === jugador.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                                      {loadingBot === jugador.id ? 'Enviando...' : 'Notificar'}
+                                      {loadingBot === jugador.id ? 'Enviando...' : 'Bot'}
+                                    </button>
+                                    <button 
+                                      onClick={() => cobrarManual(jugador)}
+                                      disabled={loadingBot !== null}
+                                      className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold"
+                                      title="Generar recibo y compartir manualmente por WhatsApp"
+                                    >
+                                      {loadingBot === `manual-${jugador.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
+                                      {loadingBot === `manual-${jugador.id}` ? 'Generando...' : 'Cobrar'}
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
