@@ -423,16 +423,23 @@ export default function ModuloCobranza() {
     }
   };
 
-  // Cobro manual — genera el PDF de cobro y lo comparte vía WhatsApp nativo del celular
+  // Cobro manual — descarga el PDF y abre WhatsApp directo al contacto con texto pre-escrito
   const cobrarManual = async (alumno: any) => {
     if (!alumno.tarifa) alumno.tarifa = calcularTarifa(alumno.tipo_plan);
     setLoadingBot(`manual-${alumno.id}`);
-    const toastId = toast.loading(`Preparando recibo de cobro para ${alumno.nombres}...`);
+    const toastId = toast.loading(`Preparando recibo para ${alumno.nombres}...`);
     try {
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
       const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
 
-      // Sin 'metodo' => el PDF sale en Naranja/Rojo de PENDIENTE
+      // Obtener nombre del mes actual
+      const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const mesActual = meses[new Date().getMonth()];
+      const anioActual = new Date().getFullYear();
+      const diaVence = 5;
+      const nombreClub = config?.nombre_club || 'EFD GIBBOR';
+
+      // Sin 'metodo' => el PDF sale en Naranja/Rojo PENDIENTE
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres,
         apellidos: alumno.apellidos,
@@ -452,29 +459,56 @@ export default function ModuloCobranza() {
         }
       });
 
+      // 1. Descargar el PDF al dispositivo
       const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
       const blob = new Blob([byteArray], { type: 'application/pdf' });
-      const filename = `Cobro_${alumno.nombres.replace(/\s/g, '_')}.pdf`;
-      const file = new File([blob], filename, { type: 'application/pdf' });
+      const filename = `Cobro_${mesActual}_${alumno.nombres.replace(/\s/g, '_')}.pdf`;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+
+      // 2. Formatear número de teléfono con código de país
+      let telefono = String(alumno.telefono || '').replace(/\D/g, '');
+      if (telefono.length === 10) telefono = `57${telefono}`;
+
+      // 3. Texto del mensaje personalizado
+      const metodosPago = [
+        config?.nequi ? `Nequi: *${config.nequi}*` : '',
+        config?.daviplata ? `Daviplata: *${config.daviplata}*` : '',
+        config?.bre_b ? `Bre-B: *${config.bre_b}*` : '',
+      ].filter(Boolean).join('\n');
+
+      const mensaje = [
+        `Hola ${alumno.nombres} 👋`,
+        ``,
+        `Te enviamos tu *Recibo de Mensualidad* correspondiente al mes de *${mesActual} ${anioActual}*.`,
+        ``,
+        `📋 *Detalle:*`,
+        `• Alumno: *${alumno.nombres} ${alumno.apellidos}*`,
+        `• Categoría: *${alumno.grupos || 'General'}*`,
+        `• Valor: *$${alumno.tarifa.toLocaleString('es-CO')}*`,
+        `• Vence: *Día ${diaVence} de ${mesActual}*`,
+        ``,
+        `💳 *Canales de pago:*`,
+        metodosPago || 'Consulta con el club.',
+        ``,
+        `📎 _Adjunta el comprobante de pago al responder este mensaje._`,
+        ``,
+        `¡Gracias por tu confianza en *${nombreClub}*! ⚽✨`
+      ].join('\n');
 
       toast.dismiss(toastId);
 
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        // 📱 Celular: abre el menú nativo de compartir (incluye WhatsApp)
-        await navigator.share({
-          files: [file],
-          title: `Cobro Mensualidad — ${alumno.nombres}`,
-          text: `Hola ${alumno.nombres} 👋, te adjuntamos tu recibo de mensualidad por $${alumno.tarifa.toLocaleString('es-CO')}. Gracias por confiar en EFD Gibbor ✨`
-        });
-        toast.success('Recibo compartido exitosamente');
+      // 4. Abrir WhatsApp directo al contacto con el mensaje
+      if (telefono.length >= 10) {
+        const waUrl = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(waUrl, '_blank');
+        toast.success(`✅ PDF descargado. WhatsApp abierto con ${alumno.nombres}`);
       } else {
-        // 🖥️ Desktop: descarga directa
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        toast.success('Recibo descargado. Compártelo manualmente.');
+        toast.warning('PDF descargado. Número de teléfono no válido — abre WhatsApp manualmente.');
       }
+
     } catch (err: any) {
       if (err.name !== 'AbortError') {
         toast.error('Error al generar el cobro: ' + err.message, { id: toastId });
@@ -483,6 +517,7 @@ export default function ModuloCobranza() {
       setLoadingBot(null);
     }
   };
+
 
   // 📈 CÁLCULOS FINANCIEROS (Basados en el rango de fechas seleccionado)
   const pagosFiltradosPorFecha = historialPagos.filter(p => 
