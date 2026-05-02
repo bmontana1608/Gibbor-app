@@ -36,10 +36,7 @@ export default function AsistenteWhatsApp() {
       if (!cleanUrl.startsWith('http')) cleanUrl = `https://${cleanUrl}`;
       if (cleanUrl.endsWith('/')) cleanUrl = cleanUrl.slice(0, -1);
 
-      const res = await fetch(`${cleanUrl}/instance/connectionState/${instanceName}`, {
-        method: 'GET',
-        headers: { 'apikey': configDB.api_key }
-      });
+      const res = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connectionState/${instanceName}`)}&apikey=${configDB.api_key}`);
       const data = await res.json();
       if (data.instance?.state === 'open' || data.instance?.status === 'open') {
         setConectado(true);
@@ -78,42 +75,36 @@ export default function AsistenteWhatsApp() {
         cleanUrl = cleanUrl.slice(0, -1);
       }
 
-      // 1. Intentar conectar directamente primero
-      let resQR = await fetch(`${cleanUrl}/instance/connect/${instanceName}`, {
-        method: 'GET',
-        headers: { 'apikey': configDB.api_key }
-      });
+      // 1. Intentar conectar directamente primero (A TRAVÉS DEL PROXY)
+      let resProxy = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connect/${instanceName}`)}&apikey=${configDB.api_key}`);
 
       // 2. Si no responde bien (probablemente no existe), intentamos crearla
-      if (!resQR.ok) {
-        console.log("Instancia no encontrada, intentando crear...");
-        await fetch(`${cleanUrl}/instance/create`, {
+      if (!resProxy.ok) {
+        console.log("Instancia no encontrada, intentando crear vía Proxy...");
+        await fetch(`/api/whatsapp/proxy`, {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'apikey': configDB.api_key 
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            instanceName: instanceName,
-            token: "gibbor_token_unique",
-            qrcode: true,
-            integration: "WHATSAPP-BAILEYS"
+            url: `${cleanUrl}/instance/create`,
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'apikey': configDB.api_key 
+            },
+            data: {
+              instanceName: instanceName,
+              token: "gibbor_token_unique",
+              qrcode: true,
+              integration: "WHATSAPP-BAILEYS"
+            }
           })
         });
 
         // Reintentamos conectar tras crear
-        resQR = await fetch(`${cleanUrl}/instance/connect/${instanceName}`, {
-          method: 'GET',
-          headers: { 'apikey': configDB.api_key }
-        });
+        resProxy = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connect/${instanceName}`)}&apikey=${configDB.api_key}`);
       }
 
-      const contentType = resQR.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("El servidor devolvió un error HTML. Verifica la URL.");
-      }
-
-      const dataQR = await resQR.json();
+      const dataQR = await resProxy.json();
 
       // 4. ESCÁNER UNIVERSAL: Buscamos recursivamente cualquier campo que parezca un QR
       const buscarQR = (obj: any): string | null => {
