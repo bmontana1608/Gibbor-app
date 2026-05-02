@@ -227,3 +227,157 @@ export async function generarReciboPDFBase64(datos: {
 
   return doc.output('datauristring').split(',')[1];
 }
+
+/**
+ * Genera un PDF de Comprobante de Pago de Nómina para Entrenadores
+ */
+export async function generarReciboNominaPDFBase64(datos: {
+  nombres: string;
+  apellidos: string;
+  documento?: string;
+  cargo?: string;
+  monto: number;
+  periodo: string;        // ej: "Mayo 2026"
+  consecutivo: string | number;
+  fecha?: string;
+  empresa: {
+    nombre_club?: string;
+    direccion: string;
+    ciudad: string;
+  }
+}) {
+  const doc = new jsPDF();
+  const fechaActual = datos.fecha ? new Date(datos.fecha) : new Date();
+
+  // Paleta diferenciada: Índigo/Azul para nómina
+  const indigoOscuro   = [30,  27,  75];   // slate alternativo
+  const indigoAccent   = [79,  70, 229];   // #4f46e5
+  const indigoLight    = [238, 242, 255];
+  const slateGris      = [100, 116, 139];
+  const slateOscuro    = [15,  23,  42];
+
+  // 1. ENCABEZADO
+  doc.setFillColor(indigoOscuro[0], indigoOscuro[1], indigoOscuro[2]);
+  doc.rect(0, 0, 210, 40, 'F');
+
+  // Badge tipo
+  doc.setFillColor(indigoAccent[0], indigoAccent[1], indigoAccent[2]);
+  doc.rect(145, 0, 65, 40, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text('COMPROBANTE', 177.5, 19, { align: 'center' });
+  doc.text('DE NÓMINA', 177.5, 26, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.text(`#${String(datos.consecutivo).padStart(4, '0')}`, 177.5, 32, { align: 'center' });
+
+  // Logo e identidad
+  try {
+    doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+  } catch (e) { /* sin logo */ }
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.text(datos.empresa.nombre_club || 'EFD GIBBOR', 45, 22);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(200, 200, 210);
+  doc.text(`${datos.empresa.direccion} • ${datos.empresa.ciudad}`, 45, 28);
+  doc.text(`Período: ${datos.periodo}`, 45, 33);
+
+  // 2. DATOS DEL ENTRENADOR
+  doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text('DATOS DEL ENTRENADOR', 15, 55);
+  doc.setDrawColor(indigoAccent[0], indigoAccent[1], indigoAccent[2]);
+  doc.setLineWidth(0.5);
+  doc.line(15, 57, 30, 57);
+
+  doc.setFillColor(indigoLight[0], indigoLight[1], indigoLight[2]);
+  doc.roundedRect(15, 62, 180, 30, 3, 3, 'F');
+
+  // Columna izquierda
+  doc.setFontSize(7);
+  doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
+  doc.setFont("helvetica", "normal");
+  doc.text('NOMBRE COMPLETO:', 20, 70);
+  doc.text('CARGO / ROL:', 20, 82);
+
+  doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(`${datos.nombres} ${datos.apellidos}`.toUpperCase(), 20, 75, { maxWidth: 85 });
+  doc.text((datos.cargo || 'ENTRENADOR').toUpperCase(), 20, 87, { maxWidth: 85 });
+
+  // Columna derecha
+  doc.setFontSize(7);
+  doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
+  doc.setFont("helvetica", "normal");
+  doc.text('DOCUMENTO ID:', 115, 70);
+  doc.text('FECHA DE PAGO:', 115, 82);
+
+  doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
+  doc.text(fechaActual.toLocaleDateString('es-CO'), 115, 87);
+
+  // 3. TABLA DE CONCEPTO
+  const tableY = 107;
+  doc.setFillColor(indigoOscuro[0], indigoOscuro[1], indigoOscuro[2]);
+  doc.rect(15, tableY, 180, 10, 'F');
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(9);
+  doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
+  doc.text('VALOR', 185, tableY + 6.5, { align: 'right' });
+
+  doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Honorarios / Salario - ${datos.periodo}`, 20, tableY + 18);
+  doc.setFont("helvetica", "bold");
+  doc.text(`$ ${datos.monto.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
+
+  doc.setDrawColor(220, 220, 230);
+  doc.setLineWidth(0.1);
+  doc.line(15, tableY + 25, 195, tableY + 25);
+
+  // Total
+  doc.setFillColor(indigoLight[0], indigoLight[1], indigoLight[2]);
+  doc.rect(130, tableY + 25, 65, 12, 'F');
+  doc.setFontSize(11);
+  doc.setTextColor(indigoAccent[0], indigoAccent[1], indigoAccent[2]);
+  doc.text('TOTAL PAGADO:', 135, tableY + 33);
+  doc.text(`$ ${datos.monto.toLocaleString('es-CO')}`, 190, tableY + 33, { align: 'right' });
+
+  // 4. NOTA LEGAL
+  doc.setFillColor(245, 245, 255);
+  doc.roundedRect(15, tableY + 45, 180, 16, 2, 2, 'F');
+  doc.setFontSize(7.5);
+  doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
+  doc.setFont("helvetica", "normal");
+  doc.text('Este comprobante certifica el pago de honorarios al colaborador indicado por los servicios', 20, tableY + 53);
+  doc.text(`prestados en el período ${datos.periodo}. Documento generado digitalmente por Gibbor App.`, 20, tableY + 58);
+
+  // 5. FIRMA
+  const footerY = 210;
+  // Línea firma entrenador
+  doc.setDrawColor(180, 180, 200);
+  doc.line(20, footerY, 85, footerY);
+  doc.setFontSize(7);
+  doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
+  doc.text('FIRMA DEL ENTRENADOR', 52, footerY + 5, { align: 'center' });
+
+  // Línea firma director
+  doc.line(120, footerY, 185, footerY);
+  doc.text('FIRMA DIRECTOR / ADMINISTRADOR', 152, footerY + 5, { align: 'center' });
+
+  // Pie
+  doc.setFontSize(6);
+  doc.text('EFD GIBBOR — Comprobante oficial de pago de nómina. Conserve este documento.', 105, 280, { align: 'center' });
+
+  return doc.output('datauristring').split(',')[1];
+}

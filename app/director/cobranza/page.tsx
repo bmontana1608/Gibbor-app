@@ -948,66 +948,7 @@ export default function ModuloCobranza() {
         )}
       </div>
 
-      {reciboGenerado && (
-        <div className="hidden print:flex fixed inset-0 bg-white z-[9999] justify-center pt-8 font-sans pb-10">
-          <div className="w-[21.5cm] h-[14cm] border-2 border-emerald-800 p-6 relative flex flex-col outline outline-4 outline-offset-2 outline-emerald-50 bg-white shadow-none">
-            <div className="flex justify-between items-start mb-4">
-               <div className="flex items-center gap-4">
-                <img src="/logo.png" alt="Gibbor" className="w-20 h-20 object-contain rounded-full border border-slate-200" />
-                <div>
-                  <h1 className="text-2xl font-black text-orange-600 tracking-tight uppercase">EFD GIBBOR</h1>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Comprobante de Ingreso</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-emerald-800 uppercase italic">Recibo Oficial</p>
-                <p className="text-2xl font-black text-slate-900">№ {reciboGenerado.consecutivo.toString().padStart(3, '0')}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-8 mb-6 border-y border-slate-200 py-4">
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Recibido de:</p>
-                <p className="text-sm font-black text-slate-800 uppercase">{reciboGenerado.nombres} {reciboGenerado.apellidos}</p>
-                <p className="text-xs text-slate-500 mt-1">Categoría: {reciboGenerado.grupo}</p>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Fecha de pago:</p>
-                <p className="text-sm font-bold text-slate-800 uppercase">
-                  {(() => {
-                    if (!reciboGenerado.fecha) return '---';
-                    const [y, m, d] = reciboGenerado.fecha.split('-');
-                    const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-                    return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
-                  })()}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">Método: {reciboGenerado.metodo}</p>
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-                <div className="flex justify-between text-xs font-bold text-slate-600">
-                  <span>Monto Base:</span>
-                  <span>${reciboGenerado.montoBase.toLocaleString('es-CO')}</span>
-                </div>
-                {reciboGenerado.descuento > 0 && (
-                  <div className="flex justify-between text-xs font-bold text-red-500">
-                    <span>Descuento:</span>
-                    <span>- ${reciboGenerado.descuento.toLocaleString('es-CO')}</span>
-                  </div>
-                )}
-                <div className="border-t border-slate-300 pt-2 flex justify-between text-lg font-black text-slate-900">
-                  <span>TOTAL PAGADO:</span>
-                  <span>${reciboGenerado.total.toLocaleString('es-CO')}</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-6 flex justify-between items-end">
-              <div className="text-[10px] text-slate-400 max-w-xs italic">* Este documento es un comprobante digital de pago emitido por la Escuela Deportiva Gibbor. Consérvelo para cualquier reclamación.</div>
-              <div className="border-t border-slate-400 w-48 text-center pt-1"><p className="text-[10px] font-bold text-slate-600 uppercase">Firma Autorizada</p></div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* El div de impresión fue eliminado — ahora se usa el PDF premium directamente */}
 
       {/* Alerta de confirmación post-pago */}
       {reciboGenerado && !isModalPagoOpen && (
@@ -1030,7 +971,33 @@ export default function ModuloCobranza() {
                 <MessageSquare className="w-5 h-5" /> Compartir PDF Individualmente
               </button>
 
-              <button onClick={() => window.print()} className="w-full bg-slate-50 text-slate-500 font-bold py-3 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex">
+              <button onClick={async () => {
+                const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+                const pdfBase64 = await generarReciboPDFBase64({
+                  nombres: reciboGenerado.nombres,
+                  apellidos: reciboGenerado.apellidos,
+                  grupo: reciboGenerado.grupo,
+                  tarifa: reciboGenerado.total,
+                  consecutivo: reciboGenerado.consecutivo,
+                  fecha: reciboGenerado.fecha,
+                  metodo: reciboGenerado.metodo,
+                  empresa: {
+                    nombre_club: config?.nombre_club,
+                    direccion: config?.direccion || 'Sede Deportiva',
+                    ciudad: config?.ciudad || 'Colombia',
+                    nequi: config?.nequi,
+                    daviplata: config?.daviplata,
+                    bre_b: config?.bre_b,
+                    banco_nombre: config?.banco_nombre,
+                    banco_numero: config?.banco_numero
+                  }
+                });
+                const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const win = window.open(url, '_blank');
+                win?.focus();
+              }} className="w-full bg-slate-50 text-slate-500 font-bold py-3 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex">
                 <Printer className="w-4 h-4" /> Imprimir Recibo
               </button>
               
