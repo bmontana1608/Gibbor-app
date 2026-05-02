@@ -17,8 +17,21 @@ export async function POST(request: NextRequest) {
       body: data ? JSON.stringify(data) : undefined,
     });
 
-    const responseData = await response.json();
-    return NextResponse.json(responseData, { status: response.status });
+    const contentType = response.headers.get("content-type");
+    let responseData;
+    
+    if (contentType && contentType.includes("application/json")) {
+      responseData = await response.json();
+    } else {
+      responseData = { text: await response.text() };
+    }
+
+    return NextResponse.json({ 
+      status: response.status,
+      ok: response.ok,
+      data: responseData,
+      headers: Object.fromEntries(response.headers.entries())
+    });
 
   } catch (error: any) {
     console.error('[WA-PROXY-ERROR]', error);
