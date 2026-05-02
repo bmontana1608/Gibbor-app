@@ -134,8 +134,8 @@ export default function AsistenteWhatsApp() {
         setQrCode(null);
         toast.success("¡Ya estás conectado!");
       } else {
-        setRawResponse(JSON.stringify(dataQR, null, 2));
-        toast.error("QR no encontrado. Revisa el texto en pantalla.");
+        setRawResponse(`URL Intentada: ${cleanUrl}/instance/connect/${instanceName}\n\nRespuesta:\n${JSON.stringify(dataQR, null, 2)}`);
+        toast.error("QR no encontrado. Revisa el log de abajo.");
       }
 
     } catch (error: any) {
