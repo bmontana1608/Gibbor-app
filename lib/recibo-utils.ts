@@ -92,27 +92,43 @@ export async function generarReciboPDFBase64(datos: {
   doc.setLineWidth(0.5);
   doc.line(15, 57, 30, 57);
 
+  // Caja de fondo
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.roundedRect(15, 62, 180, 25, 3, 3, 'F');
-  
-  doc.setFontSize(8);
+  doc.roundedRect(15, 62, 180, 30, 3, 3, 'F');
+
+  // --- COLUMNA IZQUIERDA (Nombre + Categoría) ---
+  // Etiquetas
+  doc.setFontSize(7);
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('NOMBRE COMPLETO:', 22, 70);
-  doc.text('CATEGORÍA / GRUPO:', 22, 80);
-  doc.text('DOCUMENTO ID:', 110, 70);
-  doc.text('FECHA EMISIÓN:', 110, 80);
+  doc.text('NOMBRE COMPLETO:', 20, 70);
+  doc.text('CATEGORÍA / GRUPO:', 20, 82);
+
+  // Valores (truncados para que no invadan la columna derecha)
+  const nombreCompleto = `${datos.nombres} ${datos.apellidos}`.toUpperCase();
+  doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.text(nombreCompleto, 20, 75, { maxWidth: 85 });
+  doc.setFontSize(9);
+  doc.text((datos.grupo || 'GENERAL').toUpperCase(), 20, 87, { maxWidth: 85 });
+
+  // --- COLUMNA DERECHA (Documento + Fecha) — separadas claramente ---
+  doc.setFontSize(7);
+  doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+  doc.setFont("helvetica", "normal");
+  doc.text('DOCUMENTO ID:', 115, 70);
+  doc.text('FECHA EMISIÓN:', 115, 82);
 
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(10);
-  doc.text(`${datos.nombres} ${datos.apellidos}`.toUpperCase(), 55, 70);
-  doc.text(datos.grupo || 'GENERAL', 55, 80);
-  doc.text(datos.documento || '---', 140, 70);
-  doc.text(fechaActual.toLocaleDateString(), 140, 80);
+  doc.setFontSize(9);
+  doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
+  doc.text(fechaActual.toLocaleDateString('es-CO'), 115, 87);
+
 
   // 4. TABLA DE CONCEPTOS (PROFESIONAL)
-  const tableY = 100;
+  const tableY = 107;
   doc.setFillColor(slate900[0], slate900[1], slate900[2]);
   doc.rect(15, tableY, 180, 10, 'F');
   
