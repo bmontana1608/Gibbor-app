@@ -19,7 +19,9 @@ export default function PlanificadorEntrenador() {
     objetivo: '',
     descripcion: '',
     categoria: '',
-    fecha: new Date().toISOString().split('T')[0]
+    fecha: new Date().toISOString().split('T')[0],
+    club_id: '',
+    entrenador_id: ''
   });
 
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -29,13 +31,20 @@ export default function PlanificadorEntrenador() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos').eq('id', session.user.id).single();
+      const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos, club_id').eq('id', session.user.id).single();
       const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
+
+      // Pre-cargar IDs en el form
+      setFormData(prev => ({ 
+        ...prev, 
+        club_id: usuario?.club_id || '',
+        entrenador_id: session.user.id 
+      }));
 
       const { data: cats } = await supabase.from('categorias').select('*').ilike('entrenadores', `%${nombreCompleto}%`);
       setCategorias(cats || []);
 
-      const { data: planesBD } = await supabase.from('planificaciones').select('*').order('fecha', { ascending: false });
+      const { data: planesBD } = await supabase.from('planificaciones').select('*').eq('club_id', usuario?.club_id).order('fecha', { ascending: false });
       setPlanes(planesBD || []);
       
       setCargando(false);
@@ -55,9 +64,17 @@ export default function PlanificadorEntrenador() {
     } else {
       toast.success("¡Plan guardado con éxito!", { id: toastId });
       setMostrarModal(false);
-      setFormData({ titulo: '', objetivo: '', descripcion: '', categoria: '', fecha: new Date().toISOString().split('T')[0] });
+      setFormData({ 
+        titulo: '', 
+        objetivo: '', 
+        descripcion: '', 
+        categoria: '', 
+        fecha: new Date().toISOString().split('T')[0],
+        club_id: formData.club_id,
+        entrenador_id: formData.entrenador_id
+      });
       // Recargar lista
-      const { data } = await supabase.from('planificaciones').select('*').order('fecha', { ascending: false });
+      const { data } = await supabase.from('planificaciones').select('*').eq('club_id', formData.club_id).order('fecha', { ascending: false });
       setPlanes(data || []);
     }
     setGuardando(false);

@@ -28,6 +28,7 @@ ALTER TABLE pagos_ingresos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE asistencias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE configuracion_wa ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mensajes_wa ENABLE ROW LEVEL SECURITY;
+ALTER TABLE planificaciones ENABLE ROW LEVEL SECURITY;
 
 -- 3. APLICAR POLÍTICAS GLOBALES "ISOLATION" A CADA TABLA
 
@@ -68,6 +69,15 @@ FOR ALL USING (
 -- ==================
 DROP POLICY IF EXISTS "Aislamiento Multiclub en Asistencias" ON asistencias;
 CREATE POLICY "Aislamiento Multiclub en Asistencias" ON asistencias
+FOR ALL USING (
+  auth_is_superadmin() OR club_id = auth_my_club_id()
+);
+
+-- ==================
+-- TABLA: planificaciones
+-- ==================
+DROP POLICY IF EXISTS "Aislamiento Multiclub en Planificaciones" ON planificaciones;
+CREATE POLICY "Aislamiento Multiclub en Planificaciones" ON planificaciones
 FOR ALL USING (
   auth_is_superadmin() OR club_id = auth_my_club_id()
 );
