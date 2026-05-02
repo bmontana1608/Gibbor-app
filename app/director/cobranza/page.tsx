@@ -448,6 +448,7 @@ export default function ModuloCobranza() {
         grupo: alumno.grupos || 'GENERAL',
         tarifa: alumno.tarifa,
         consecutivo: nuevoConsecutivo,
+        fecha: fechaInicio,       // ← período seleccionado, no la fecha de hoy
         empresa: {
           nombre_club: config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
