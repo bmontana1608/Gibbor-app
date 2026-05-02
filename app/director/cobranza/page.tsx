@@ -674,11 +674,6 @@ export default function ModuloCobranza() {
             </div>
           </div>
         </div>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-[10px] font-bold text-slate-600 uppercase">Sistema Automatizado</span>
-             </div>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
