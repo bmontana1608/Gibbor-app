@@ -530,28 +530,36 @@ export default function ModuloCobranza() {
     if (!reciboGenerado) return;
     const toastId = toast.loading("Preparando recibo...");
     try {
-      const doc = new jsPDF();
-      try { doc.addImage('/logo.png', 'PNG', 15, 15, 25, 25); } catch (e) {}
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(30, 41, 59);
-      doc.text('EFD GIBBOR', 45, 25);
+      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
       
-      doc.setFontSize(10);
-      doc.text('COMPROBANTE DE PAGO', 45, 32);
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: reciboGenerado.nombres,
+        apellidos: reciboGenerado.apellidos,
+        grupo: reciboGenerado.grupo,
+        tarifa: reciboGenerado.total,
+        consecutivo: reciboGenerado.consecutivo,
+        fecha: reciboGenerado.fecha,
+        metodo: reciboGenerado.metodo,
+        empresa: {
+          nombre_club: config?.nombre_club,
+          direccion: config?.direccion || 'Sede Deportiva',
+          ciudad: config?.ciudad || 'Colombia',
+          nequi: config?.nequi,
+          daviplata: config?.daviplata,
+          bre_b: config?.bre_b,
+          banco_nombre: config?.banco_nombre,
+          banco_numero: config?.banco_numero
+        }
+      });
 
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(8);
-      doc.text(`Fecha: ${new Date(reciboGenerado.fecha).toLocaleDateString()}`, 145, 30);
-      doc.text(`Recibo: #${reciboGenerado.consecutivo.toString().padStart(4, '0')}`, 145, 34);
-
-      doc.line(15, 45, 195, 45);
-      doc.text(`Recibido de: ${reciboGenerado.nombres} ${reciboGenerado.apellidos}`, 20, 60);
-      doc.text(`Monto Total: $ ${reciboGenerado.total.toLocaleString()}`, 20, 70);
-      doc.text(`Método: ${reciboGenerado.metodo}`, 20, 80);
-
-      const pdfBlob = doc.output('blob');
+      const byteCharacters = atob(pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const pdfBlob = new Blob([byteArray], { type: 'application/pdf' });
+      
       const filename = `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}.pdf`;
       const file = new File([pdfBlob], filename, { type: 'application/pdf' });
 
@@ -559,7 +567,10 @@ export default function ModuloCobranza() {
         toast.dismiss(toastId);
         await navigator.share({ files: [file], title: 'Recibo Gibbor' });
       } else {
-        doc.save(filename);
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = filename;
+        link.click();
         toast.success("Recibo descargado.", { id: toastId });
       }
     } catch (err: any) {
