@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -66,6 +66,14 @@ export default function ModuloCobranza() {
   // Historial de Pagos (Ingresos)
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
+
+  // Sistema de Abonos
+  const [abonos, setAbonos] = useState<any[]>([]);
+  const [isModalAbonoOpen, setIsModalAbonoOpen] = useState(false);
+  const [jugadorAbono, setJugadorAbono] = useState<any>(null);
+  const [montoAbono, setMontoAbono] = useState('');
+  const [metodoPagoAbono, setMetodoPagoAbono] = useState('Efectivo');
+  const [notasAbono, setNotasAbono] = useState('');
 
   // Recibo Generado para impresión
   const [reciboGenerado, setReciboGenerado] = useState<any>(null);
@@ -177,6 +185,14 @@ export default function ModuloCobranza() {
     if (histData) setHistorialPagos(histData);
     if (egresosData) setEgresos(egresosData);
     if (msgData) setNotificacionesMes(msgData);
+
+    // Cargar todos los abonos del club
+    const { data: abonosData } = await supabase
+      .from('abonos')
+      .select('*')
+      .eq('club_id', tenantData.id);
+    if (abonosData) setAbonos(abonosData);
+
     setCargando(false);
   };
 
@@ -351,6 +367,59 @@ export default function ModuloCobranza() {
       });
       setIsModalPagoOpen(false);
       cargarDatos();
+    }
+  };
+
+  // ── SISTEMA DE ABONOS PARCIALES ──────────────────────────────────────────
+  const abrirModalAbono = (jugador: any) => {
+    setJugadorAbono(jugador);
+    setMontoAbono('');
+    setMetodoPagoAbono('Efectivo');
+    setNotasAbono('');
+    setIsModalAbonoOpen(true);
+  };
+
+  const registrarAbono = async () => {
+    if (!jugadorAbono || !montoAbono || Number(montoAbono) <= 0)
+      return toast.error('Ingresa un monto válido');
+
+    const toastId = toast.loading(`Registrando abono de ${jugadorAbono.nombres}...`);
+    try {
+      // El período es el primer día del mes de fechaInicio (mes que se está cobrando)
+      const periodo = fechaInicio.substring(0, 7) + '-01';
+
+      const { error } = await supabase.from('abonos').insert([{
+        club_id: tenant?.id,
+        perfil_id: jugadorAbono.id,
+        periodo,
+        monto: Number(montoAbono),
+        metodo: metodoPagoAbono,
+        notas: notasAbono || null,
+      }]);
+
+      if (error) throw error;
+
+      // También registrar en pagos_ingresos para que aparezca en el historial contable
+      await supabase.from('pagos_ingresos').insert([{
+        jugador_id: jugadorAbono.id,
+        nombres: jugadorAbono.nombres,
+        apellidos: jugadorAbono.apellidos,
+        grupo: jugadorAbono.grupos || 'Sin grupo',
+        monto_base: Number(montoAbono),
+        descuento: 0,
+        recargo: 0,
+        total: Number(montoAbono),
+        metodo_pago: metodoPagoAbono,
+        notas: `ABONO - ${notasAbono || 'Pago parcial'}`,
+        fecha: new Date().toISOString().split('T')[0],
+        club_id: tenant?.id,
+      }]);
+
+      toast.success(`✅ Abono de $${Number(montoAbono).toLocaleString('es-CO')} registrado`, { id: toastId });
+      setIsModalAbonoOpen(false);
+      cargarDatos();
+    } catch (err: any) {
+      toast.error('Error al registrar abono: ' + err.message, { id: toastId });
     }
   };
 
@@ -575,11 +644,58 @@ export default function ModuloCobranza() {
   const jugadoresFin = jugadores.map(j => {
     const tarifa = calcularTarifa(j.tipo_plan);
     const planLabel = (j.tipo_plan || '').toLowerCase();
-    
     const esBeca100 = tarifa === 0 || planLabel.includes('100');
-    const esAlDia = idsPagadosEsteMes.has(j.id) || esBeca100;
-    
-    return { ...j, esAlDia, tarifa, esBeca100 };
+
+    // ── Pagos completos este período
+    const pagadoEstePeriodo = pagosFiltradosPorFecha
+      .filter(p => p.jugador_id === j.id)
+      .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
+
+    // ── Abonos del mes de cobro seleccionado
+    const periodoCobro = fechaInicio.substring(0, 7); // 'YYYY-MM'
+    const abonosDelPeriodo = abonos
+      .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(periodoCobro))
+      .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
+
+    const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
+    const esAlDia = totalRecibidoPeriodo >= tarifa || esBeca100;
+    const saldoPendientePeriodo = Math.max(0, tarifa - totalRecibidoPeriodo);
+
+    // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
+    const hoyDate = new Date();
+    const periodoDate = new Date(fechaInicio + 'T12:00:00');
+    const mesesEnMora: string[] = [];
+    let deudaAcumulada = 0;
+
+    // Solo calcular mora histórica si no es beca 100%
+    if (!esBeca100 && tarifa > 0) {
+      // Revisamos los últimos 6 meses hacia atrás desde el período seleccionado
+      for (let i = 1; i <= 6; i++) {
+        const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
+        const mesStr = mesAnterior.toISOString().substring(0, 7); // 'YYYY-MM'
+        if (mesAnterior > hoyDate) break; // No calcular meses futuros
+
+        const pagosDelMes = historialPagos
+          .filter(p => p.jugador_id === j.id && p.fecha && String(p.fecha).startsWith(mesStr))
+          .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
+
+        const abonosMes = abonos
+          .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(mesStr))
+          .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
+
+        const totalMes = pagosDelMes + abonosMes;
+        if (totalMes < tarifa) {
+          const deudaMes = tarifa - totalMes;
+          deudaAcumulada += deudaMes;
+          const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+          mesesEnMora.push(`${meses[mesAnterior.getMonth()]} ${mesAnterior.getFullYear()}`);
+        }
+      }
+    }
+
+    const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
+
+    return { ...j, esAlDia, tarifa, esBeca100, saldoPendientePeriodo, deudaAcumulada, deudaTotal, mesesEnMora, abonosDelPeriodo, totalRecibidoPeriodo };
   });
 
   const totalJugadoresCobrales = jugadoresFin.filter(j => j.tarifa > 0).length;
@@ -907,6 +1023,24 @@ export default function ModuloCobranza() {
                                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
                                     {esAlDia ? 'Al día' : 'Pendiente'}
                                   </span>
+                                  {/* Abono parcial registrado */}
+                                  {jugador.abonosDelPeriodo > 0 && !esAlDia && (
+                                    <span className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">
+                                      Abonado: ${jugador.abonosDelPeriodo.toLocaleString('es-CO')} · Saldo: ${jugador.saldoPendientePeriodo.toLocaleString('es-CO')}
+                                    </span>
+                                  )}
+                                  {/* Deuda de meses anteriores */}
+                                  {jugador.deudaAcumulada > 0 && (
+                                    <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter flex items-center gap-1">
+                                      🔴 Mora histórica: ${jugador.deudaAcumulada.toLocaleString('es-CO')} ({jugador.mesesEnMora.slice(0, 2).join(', ')})
+                                    </span>
+                                  )}
+                                  {/* Deuda total si tiene mora + pendiente actual */}
+                                  {jugador.deudaTotal > jugador.tarifa && (
+                                    <span className="text-[10px] font-black text-red-800 uppercase tracking-tighter">
+                                      ⚠️ Deuda total: ${jugador.deudaTotal.toLocaleString('es-CO')}
+                                    </span>
+                                  )}
                                   {(jugador.tipo_plan || '').toLowerCase().includes('50') && (
                                     <span className="text-[9px] font-black text-orange-500 uppercase tracking-tighter">Beneficio Beca 50%</span>
                                   )}
@@ -936,6 +1070,9 @@ export default function ModuloCobranza() {
                                     >
                                       {loadingBot === `manual-${jugador.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
                                       {loadingBot === `manual-${jugador.id}` ? 'Generando...' : 'Cobrar'}
+                                    </button>
+                                    <button onClick={() => abrirModalAbono(jugador)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar abono parcial">
+                                      <CreditCard className="w-3.5 h-3.5" /> Abonar
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
@@ -1246,6 +1383,52 @@ export default function ModuloCobranza() {
           @page { margin: 0; size: letter portrait; }
         }
       `}} />
+      {/* MODAL DE ABONO PARCIAL */}
+      {isModalAbonoOpen && jugadorAbono && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Abono Parcial</p>
+                  <h2 className="text-xl font-black">{jugadorAbono.nombres} {jugadorAbono.apellidos}</h2>
+                  <p className="text-sm opacity-80 mt-1">Tarifa: ${jugadorAbono.tarifa?.toLocaleString("es-CO")}{jugadorAbono.abonosDelPeriodo > 0 ? ` - Ya abonado: ${jugadorAbono.abonosDelPeriodo?.toLocaleString("es-CO")}` : ""}</p>
+                  {jugadorAbono.deudaTotal > jugadorAbono.tarifa && (
+                    <p className="text-xs font-black text-yellow-300 mt-1">Deuda total: ${jugadorAbono.deudaTotal?.toLocaleString("es-CO")} (meses anteriores)</p>
+                  )}
+                </div>
+                <button onClick={() => setIsModalAbonoOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto del Abono ($) *</label>
+                <input type="number" value={montoAbono} onChange={(e) => setMontoAbono(e.target.value)} className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg text-slate-800" placeholder="0" autoFocus />
+                {montoAbono && jugadorAbono.saldoPendientePeriodo > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">Saldo restante: <span className="font-black text-blue-600">${Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)).toLocaleString("es-CO")}</span></p>
+                )}
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
+                <select value={metodoPagoAbono} onChange={(e) => setMetodoPagoAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white">
+                  {["Efectivo", "Nequi", "Daviplata", "Transferencia", "Bre-B", "Otro"].map(m => (<option key={m} value={m}>{m}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas (opcional)</label>
+                <input type="text" value={notasAbono} onChange={(e) => setNotasAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium" placeholder="Ej: Abono semana 1" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setIsModalAbonoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Cancelar</button>
+                <button onClick={registrarAbono} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100">Registrar Abono</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
