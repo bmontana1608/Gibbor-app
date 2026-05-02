@@ -669,15 +669,18 @@ export default function ModuloCobranza() {
 
     // Solo calcular mora histórica si no es beca 100%
     if (!esBeca100 && tarifa > 0) {
-      // Primer mes válido = mes en que fue registrado el jugador (no hay deuda antes de eso)
-      const fechaRegistro = new Date((j.created_at || new Date()).toString());
-      const primerMesValido = new Date(fechaRegistro.getFullYear(), fechaRegistro.getMonth(), 1);
+      // Límite global = mes de registro del CLUB (tenant), no del jugador individual.
+      // Así Abril siempre está incluido si el club se registró en Abril.
+      const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
+      const primerMesValido = tenantCreatedAt
+        ? new Date(tenantCreatedAt.getFullYear(), tenantCreatedAt.getMonth(), 1)
+        : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1); // fallback: 6 meses atrás
 
       for (let i = 1; i <= 6; i++) {
         const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
         const mesStr = mesAnterior.toISOString().substring(0, 7); // 'YYYY-MM'
-        if (mesAnterior > hoyDate) break;          // No calcular meses futuros
-        if (mesAnterior < primerMesValido) break;  // No calcular antes del registro
+        if (mesAnterior > hoyDate) break;         // No calcular meses futuros
+        if (mesAnterior < primerMesValido) break; // No calcular antes del registro del club
 
         const pagosDelMes = historialPagos
           .filter(p => p.jugador_id === j.id && p.fecha && String(p.fecha).startsWith(mesStr))
@@ -696,6 +699,7 @@ export default function ModuloCobranza() {
         }
       }
     }
+
 
     const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
 
