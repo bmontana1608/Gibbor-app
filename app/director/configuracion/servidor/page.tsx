@@ -218,7 +218,20 @@ export default function ConfiguracionServidor() {
                 >
                   {cargando ? 'Guardando...' : <><Save className="w-5 h-5" /> Guardar Cambios</>}
                 </button>
-                <button className="bg-slate-100 hover:bg-slate-200 text-slate-500 px-8 py-4 rounded-2xl font-bold transition-colors">
+                <button 
+                  onClick={async () => {
+                    if (!config.api_url) return toast.error("Ingresa una URL primero");
+                    const toastId = toast.loading("Probando conexión con el servidor...");
+                    try {
+                      const res = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(config.api_url)}&apikey=${config.api_key}`);
+                      const data = await res.json();
+                      console.log("Respuesta servidor:", data);
+                      toast.success("¡El servidor respondió! (Check consola para detalles)", { id: toastId });
+                    } catch (e: any) {
+                      toast.error("Error: El servidor no responde. Verifica si está activo en Railway.", { id: toastId });
+                    }
+                  }}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-500 px-8 py-4 rounded-2xl font-bold transition-colors">
                   Prueba de Conexión
                 </button>
             </div>
