@@ -95,15 +95,39 @@ export default function ModuloCobranza() {
     if (!planBuscado) return 0;
     
     const limiteProntoPago = planBuscado.dias_limite_pronto_pago || 5;
-    const diaCobro = planBuscado.dia_cobro_mensual || 1;
-
-    // Si el día actual es menor o igual al día de cobro + periodo de gracia
-    // Consideramos pronto pago si estamos dentro de los primeros X días del mes (ajustable)
-    // O mejor: si diaActual <= dias_limite_pronto_pago
     if (diaActual <= limiteProntoPago) {
       return Number(planBuscado.precio_base) - Number(planBuscado.descuento_pronto_pago);
     }
     return Number(planBuscado.precio_base);
+  };
+
+  // Calcula tarifa inteligente según el período de cobro y si es beca
+  const calcularTarifaPeriodo = (tipoPlan: string, fechaPeriodo: string) => {
+    const planBuscado = planes.find(p => p.nombre === (tipoPlan || 'Regular'));
+    if (!planBuscado) return { tarifa: 0, descuento: 0, precioBase: 0 };
+
+    const planLabel = (tipoPlan || '').toLowerCase();
+    // Las becas (cualquier plan con 'beca' en el nombre) NO tienen descuento de pronto pago
+    const esBeca = planLabel.includes('beca');
+
+    const precioBase = Number(planBuscado.precio_base);
+    const descuentoProntoPago = Number(planBuscado.descuento_pronto_pago || 0);
+    const limiteProntoPago = Number(planBuscado.dias_limite_pronto_pago || 5);
+
+    const hoy = new Date();
+    const periodo = new Date(fechaPeriodo + 'T12:00:00');
+
+    // El descuento solo aplica si:
+    // 1. No es una beca
+    // 2. El mes de cobro es el mes actual (no tiene sentido aplicar pronto pago a meses pasados)
+    // 3. Hoy está dentro de los primeros N días del mes
+    const mismoPeriodo = hoy.getMonth() === periodo.getMonth() &&
+                         hoy.getFullYear() === periodo.getFullYear();
+    const dentroVentana = hoy.getDate() <= limiteProntoPago;
+    const aplicaDescuento = !esBeca && mismoPeriodo && dentroVentana;
+
+    const descuento = aplicaDescuento ? descuentoProntoPago : 0;
+    return { tarifa: precioBase - descuento, descuento, precioBase };
   };
 
   const cargarDatos = async () => {
@@ -440,15 +464,22 @@ export default function ModuloCobranza() {
       const diaVence = 5;
       const nombreClub = config?.nombre_club || 'EFD GIBBOR';
 
+      // Calcular tarifa correcta según período y tipo de plan
+      const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
+      // Si la tarifa del alumno ya fue pre-calculada y es diferente, usamos la inteligente
+      const tarifaFinal = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
+
       // Sin 'metodo' => el PDF sale en Naranja/Rojo PENDIENTE
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres,
         apellidos: alumno.apellidos,
         documento: alumno.documento,
         grupo: alumno.grupos || 'GENERAL',
-        tarifa: alumno.tarifa,
+        tarifa: tarifaFinal,
+        precioBase: precioBaseCalculado,
+        descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
-        fecha: fechaInicio,       // ← período seleccionado, no la fecha de hoy
+        fecha: fechaInicio,
         empresa: {
           nombre_club: config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
@@ -481,6 +512,10 @@ export default function ModuloCobranza() {
         config?.bre_b ? `Bre-B: *${config.bre_b}*` : '',
       ].filter(Boolean).join('\n');
 
+      const textoDescuento = descuentoCalculado > 0
+        ? `\n🎁 *¡Paga antes del día ${diaVence} y ahorra $${descuentoCalculado.toLocaleString('es-CO')}!*`
+        : '';
+
       const mensaje = [
         `Hola ${alumno.nombres} 👋`,
         ``,
@@ -489,14 +524,15 @@ export default function ModuloCobranza() {
         `📋 *Detalle:*`,
         `• Alumno: *${alumno.nombres} ${alumno.apellidos}*`,
         `• Categoría: *${alumno.grupos || 'General'}*`,
-        `• Valor: *$${alumno.tarifa.toLocaleString('es-CO')}*`,
+        `• Valor: *$${tarifaFinal.toLocaleString('es-CO')}*`,
         `• Vence: *Día ${diaVence} de ${mesActual}*`,
+        textoDescuento,
         ``,
         `💳 *Canales de pago:*`,
         metodosPago || 'Consulta con el club.',
         ``,
         `¡Gracias por tu confianza en *${nombreClub}*! ⚽✨`
-      ].join('\n');
+      ].filter(l => l !== undefined).join('\n');
 
       toast.dismiss(toastId);
 
