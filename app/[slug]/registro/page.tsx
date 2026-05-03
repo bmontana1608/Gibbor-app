@@ -162,6 +162,8 @@ export default function RegistroPublicoPorClub() {
           <p className="text-slate-500 font-medium mb-10 leading-relaxed">
             Los datos de <strong className="text-orange-600 font-black">{formData.nombres}</strong> han sido enviados a{' '}
             <strong>{club?.nombre}</strong>. El director revisará la solicitud y te contactará pronto.
+            <br />
+            <span className="text-[8px] text-slate-300 font-mono mt-4 block uppercase tracking-widest">Target Club ID: {club?.id}</span>
           </p>
           <button onClick={() => window.location.reload()} className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl text-xs tracking-widest uppercase flex items-center justify-center gap-3">
             Nuevo Registro <ArrowRight className="w-4 h-4" />
