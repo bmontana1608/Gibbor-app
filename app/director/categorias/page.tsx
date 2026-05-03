@@ -113,16 +113,29 @@ export default function GestionCategorias() {
     const entrenadoresString = entrenadoresSeleccionados.join(', ');
     const horariosString = horariosDinámicos.map(h => `${h.dia} ${h.inicio}-${h.fin}`).join(' | ');
 
-    const datosFinales = { ...formData, entrenadores: entrenadoresString, horarios: horariosString, club_id: tenantData.id };
+    // Aseguramos que los valores numéricos sean realmente números y no strings
+    const datosFinales = { 
+      ...formData, 
+      entrenadores: entrenadoresString, 
+      horarios: horariosString, 
+      club_id: tenantData.id,
+      edad_minima: Number(formData.edad_minima),
+      edad_maxima: Number(formData.edad_maxima),
+      capacidad_maxima: Number(formData.capacidad_maxima)
+    };
 
     if (grupoEditandoId) {
-      const { error } = await supabase.from('categorias').update(datosFinales).eq('id', grupoEditandoId);
+      // Al actualizar, eliminamos el ID del cuerpo para evitar conflictos con la PK
+      const { id, created_at, ...datosParaActualizar } = datosFinales;
+      const { error } = await supabase.from('categorias').update(datosParaActualizar).eq('id', grupoEditandoId);
+      
       if (error) {
         toast.error("Error al actualizar: " + error.message, { id: toastId });
       } else { 
         toast.success("Categoría actualizada correctamente.", { id: toastId });
         cerrarModal(); 
-        cargarDatos(); 
+        // Pequeño delay para asegurar que Supabase procesó el cambio antes de re-consultar
+        setTimeout(() => cargarDatos(), 300); 
       }
     } else {
       const { error } = await supabase.from('categorias').insert([datosFinales]);
