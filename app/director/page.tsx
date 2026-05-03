@@ -57,10 +57,11 @@ export default function DashboardDirector() {
         }
 
         const hoy = new Date();
+        const mesActual = hoy.getMonth() + 1; // 1-12
+        const anioActual = hoy.getFullYear();
         const inicioHoy = new Date(hoy);
         inicioHoy.setHours(0, 0, 0, 0);
-        const mesActual = hoy.getMonth();
-        const anioActual = hoy.getFullYear();
+        const diaActual = hoy.getDate();
 
         const [
           { data: jugadores, error: errJug },
@@ -83,7 +84,7 @@ export default function DashboardDirector() {
 
         if (jugadores) {
           const total = jugadores.length;
-          const mesPrefijo = `${anioActual}-${String(mesActual + 1).padStart(2, '0')}`;
+          const mesPrefijo = `${anioActual}-${String(mesActual).padStart(2, '0')}`;
           const pagosFiltrados = pagosMes?.filter(p => p.fecha && String(p.fecha).startsWith(mesPrefijo)) || [];
           const idsPagados = new Set(pagosFiltrados.map((p: any) => p.jugador_id));
           const preciosMap = new Map(planesData?.map(p => [p.nombre, Number(p.precio_base)]) || []);
@@ -164,9 +165,6 @@ export default function DashboardDirector() {
           setGruposRendimiento(Object.entries(gMap).map(([nombre, cantidad]) => ({ nombre, cantidad: cantidad as number })));
 
           // FILTRAR CUMPLEAÑEROS DEL MES
-          const mesActual = new Date().getMonth() + 1;
-          const diaActual = new Date().getDate();
-          
           const listaCumple = jugadores.filter(j => {
             if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
             let mesNac = 0;
