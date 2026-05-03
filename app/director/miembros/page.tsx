@@ -172,23 +172,6 @@ export default function DirectorioMiembros() {
         </div>
       </div>
 
-      {!cargando && (
-        <div className="mb-6 p-4 bg-slate-900 text-white rounded-2xl border-l-4 border-orange-500 shadow-xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-4 opacity-10"><ShieldCheck className="w-20 h-20" /></div>
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-2">Panel de Diagnóstico Multiclub</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-            <div>
-              <p className="text-[9px] text-slate-400 uppercase font-bold">Tu Club ID (Director):</p>
-              <p className="text-xs font-mono text-emerald-400 truncate">{jugadores.length > 0 ? (jugadores[0].club_id || 'No detectado') : 'Sin registros para comparar'}</p>
-            </div>
-            <div>
-              <p className="text-[9px] text-slate-400 uppercase font-bold">Total Jugadores Detectados:</p>
-              <p className="text-xs font-black">{jugadores.length} miembros en este club</p>
-            </div>
-          </div>
-          <p className="text-[8px] text-slate-500 mt-3 italic">* Si registraste a Pepito y el total no subió a {jugadores.length + 1}, el problema es que el formulario está usando un ID diferente al tuyo.</p>
-        </div>
-      )}
 
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
