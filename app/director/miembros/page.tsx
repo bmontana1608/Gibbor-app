@@ -142,11 +142,27 @@ export default function DirectorioMiembros() {
         </div>
       </div>
 
+      {!cargando && !club && (
+        <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-xl flex items-center gap-3 animate-pulse">
+          <ShieldCheck className="text-amber-500 w-6 h-6" />
+          <p className="text-amber-800 text-sm font-bold">
+            Tu perfil no tiene un club asignado. Es posible que no veas a tus jugadores hasta que un Administrador asigne tu club.
+          </p>
+        </div>
+      )}
+
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex bg-slate-200/50 dark:bg-slate-800 p-1 rounded-xl w-full lg:w-auto">
             <button onClick={() => setPestaña('Registrados')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${pestaña === 'Registrados' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>Miembros</button>
-            <button onClick={() => setPestaña('Pendientes')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${pestaña === 'Pendientes' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>Solicitudes</button>
+            <button onClick={() => setPestaña('Pendientes')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all relative ${pestaña === 'Pendientes' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>
+              Solicitudes
+              {jugadores.filter(j => j.estado_miembro === 'Pendiente').length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg border-2 border-white dark:border-slate-700">
+                  {jugadores.filter(j => j.estado_miembro === 'Pendiente').length}
+                </span>
+              )}
+            </button>
           </div>
           <div className="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto flex-1 lg:justify-end">
             <div className="relative w-full md:max-w-md">
