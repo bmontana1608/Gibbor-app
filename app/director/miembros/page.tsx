@@ -117,11 +117,21 @@ export default function DirectorioMiembros() {
     } else if (pestaña === 'Pendientes') {
       cumplePestaña = estado !== 'Activo' && estado !== 'Inactivo';
     } else if (pestaña === 'Cumpleaños') {
-      // Filtrar por mes actual
       if (!jugador.fecha_nacimiento) return false;
+      
       const mesActual = new Date().getMonth() + 1;
-      // Usamos getUTCMonth para evitar problemas de zona horaria con fechas YYYY-MM-DD
-      const mesNac = new Date(jugador.fecha_nacimiento).getUTCMonth() + 1;
+      let mesNac = 0;
+
+      // Intentar parsear fecha manual si viene en formato D/M/YYYY o similar
+      if (jugador.fecha_nacimiento.includes('/')) {
+        const partes = jugador.fecha_nacimiento.split('/');
+        // Si tiene 3 partes, el mes suele ser la segunda (D/M/Y)
+        mesNac = parseInt(partes[1]);
+      } else {
+        // Formato ISO estándar YYYY-MM-DD
+        mesNac = new Date(jugador.fecha_nacimiento).getUTCMonth() + 1;
+      }
+      
       cumplePestaña = (estado === 'Activo') && (mesActual === mesNac);
     }
 
@@ -231,10 +241,19 @@ export default function DirectorioMiembros() {
                 </div>
               ) : (
                 jugadoresFiltrados.map((jugador) => {
-                  const fecha = new Date(jugador.fecha_nacimiento);
-                  const dia = fecha.getUTCDate();
+                  let dia = 0;
+                  let nombreMes = '';
                   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-                  const nombreMes = meses[fecha.getUTCMonth()];
+
+                  if (jugador.fecha_nacimiento.includes('/')) {
+                    const partes = jugador.fecha_nacimiento.split('/');
+                    dia = parseInt(partes[0]);
+                    nombreMes = meses[parseInt(partes[1]) - 1];
+                  } else {
+                    const fecha = new Date(jugador.fecha_nacimiento);
+                    dia = fecha.getUTCDate();
+                    nombreMes = meses[fecha.getUTCMonth()];
+                  }
                   
                   return (
                     <div key={jugador.id} className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 relative overflow-hidden group hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
