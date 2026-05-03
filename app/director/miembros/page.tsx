@@ -137,6 +137,9 @@ export default function DirectorioMiembros() {
           <p className="text-slate-500 text-sm mt-1">Control administrativo de deportistas y entrenadores.</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={cargarJugadores} className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-all shadow-sm" title="Refrescar datos">
+            <Activity className={`w-4 h-4 text-orange-500 ${cargando ? 'animate-spin' : ''}`} />
+          </button>
           <button onClick={() => setIsModalInvitacionOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-xl shadow-slate-900/10"><UserPlus className="w-4 h-4" /> Invitar</button>
           <button onClick={exportarAExcel} className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold text-sm shadow-sm"><Download className="w-4 h-4" /> Exportar</button>
         </div>
@@ -190,7 +193,13 @@ export default function DirectorioMiembros() {
               {cargando ? (
                 <tr><td colSpan={5} className="p-20 text-center"><div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
               ) : jugadoresFiltrados.length === 0 ? (
-                <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
+                <tr>
+                  <td colSpan={5} className="p-20 text-center">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div>
+                    <p className="text-slate-400 font-bold">No se encontraron miembros</p>
+                    <p className="text-[10px] text-slate-300 mt-2 uppercase tracking-widest">Debug: {jugadores.length} registros totales en memoria</p>
+                  </td>
+                </tr>
               ) : (
                 jugadoresFiltrados.map((jugador) => (
                   <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
