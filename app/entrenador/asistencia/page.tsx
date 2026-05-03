@@ -116,31 +116,38 @@ export default function AsistenciaEntrenador() {
     setGuardando(true);
     const toastId = toast.loading("Sincronizando asistencia...");
 
-    const registros = alumnos.map(alumno => {
-      const registro: any = {
-        jugador_id: alumno.id,
-        grupo: categoriaSeleccionada.nombre,
-        estado: asistencia[alumno.id],
-        fecha: eventoSeleccionado.fecha,
-        registrado_por: `${perfil.nombres} ${perfil.apellidos}`,
-        club_id: perfil?.club_id
-      };
-      
-      // Solo enviamos evento_id si existe la intención (se añadirá la columna en SQL)
-      if (eventoSeleccionado.id) registro.evento_id = eventoSeleccionado.id;
-      
-      return registro;
-    });
+    const registrosBase = alumnos.map(alumno => ({
+      jugador_id: alumno.id,
+      grupo: categoriaSeleccionada.nombre,
+      estado: asistencia[alumno.id],
+      fecha: eventoSeleccionado.fecha,
+      registrado_por: `${perfil.nombres} ${perfil.apellidos}`,
+      club_id: perfil?.club_id,
+    }));
 
-    const { error } = await supabase.from('asistencias').insert(registros);
+    // Intentar primero CON evento_id
+    const registrosConEvento = registrosBase.map(r => ({
+      ...r,
+      evento_id: eventoSeleccionado.id || null,
+    }));
+
+    let { error } = await supabase.from('asistencias').insert(registrosConEvento);
+
+    // Si falla por columna inexistente, reintentar SIN evento_id
+    if (error && (error.message.includes('evento_id') || error.message.includes('column'))) {
+      console.warn('evento_id no existe, reintentando sin él:', error.message);
+      const resultado = await supabase.from('asistencias').insert(registrosBase);
+      error = resultado.error;
+    }
 
     if (error) {
-       toast.error("Error al guardar: " + error.message, { id: toastId });
+      toast.error(`Error al guardar: ${error.message}`, { id: toastId });
+      console.error('Supabase error completo:', error);
     } else {
-       toast.success("¡Asistencia guardada con éxito!", { id: toastId });
-       setPaso('categorias');
-       setCategoriaSeleccionada(null);
-       setEventoSeleccionado(null);
+      toast.success("¡Asistencia guardada con éxito!", { id: toastId });
+      setPaso('categorias');
+      setCategoriaSeleccionada(null);
+      setEventoSeleccionado(null);
     }
     setGuardando(false);
   };
