@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity, FileText } from 'lucide-react';
+import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity, FileText, Cake, PartyPopper } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DirectorioMiembros() {
@@ -11,7 +11,7 @@ export default function DirectorioMiembros() {
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
-  const [pestaña, setPestaña] = useState<'Registrados' | 'Pendientes'>('Registrados');
+  const [pestaña, setPestaña] = useState<'Registrados' | 'Pendientes' | 'Cumpleaños'>('Registrados');
   const [filtroGrupo, setFiltroGrupo] = useState('Todos');
   const [isModalInvitacionOpen, setIsModalInvitacionOpen] = useState(false);
   const [emailAcceso, setEmailAcceso] = useState('');
@@ -109,14 +109,25 @@ export default function DirectorioMiembros() {
 
   const jugadoresFiltrados = jugadores.filter(jugador => {
     const estado = jugador.estado_miembro || '';
-    // Solicitudes: Todo lo que no sea Activo o Inactivo (incluyendo vacíos)
-    // Miembros: Activos e Inactivos
-    const cumplePestaña = pestaña === 'Registrados' 
-      ? (estado === 'Activo' || estado === 'Inactivo') 
-      : (estado !== 'Activo' && estado !== 'Inactivo');
+    
+    // Filtro por pestaña
+    let cumplePestaña = false;
+    if (pestaña === 'Registrados') {
+      cumplePestaña = estado === 'Activo' || estado === 'Inactivo';
+    } else if (pestaña === 'Pendientes') {
+      cumplePestaña = estado !== 'Activo' && estado !== 'Inactivo';
+    } else if (pestaña === 'Cumpleaños') {
+      // Filtrar por mes actual
+      if (!jugador.fecha_nacimiento) return false;
+      const mesActual = new Date().getMonth() + 1;
+      // Usamos getUTCMonth para evitar problemas de zona horaria con fechas YYYY-MM-DD
+      const mesNac = new Date(jugador.fecha_nacimiento).getUTCMonth() + 1;
+      cumplePestaña = (estado === 'Activo') && (mesActual === mesNac);
+    }
 
     const coincideBusqueda = (jugador.nombres + ' ' + jugador.apellidos).toLowerCase().includes(busqueda.toLowerCase()) || (jugador.documento_identidad || '').includes(busqueda);
     const coincideGrupo = filtroGrupo === 'Todos' || jugador.grupos === filtroGrupo;
+    
     return cumplePestaña && coincideBusqueda && coincideGrupo;
   });
 
@@ -181,6 +192,21 @@ export default function DirectorioMiembros() {
                 </span>
               )}
             </button>
+            <button onClick={() => setPestaña('Cumpleaños')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all relative flex items-center gap-2 ${pestaña === 'Cumpleaños' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>
+              <Cake className="w-3.5 h-3.5" />
+              Cumpleaños
+              {jugadores.filter(j => {
+                if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
+                return (new Date(j.fecha_nacimiento).getUTCMonth() + 1) === (new Date().getMonth() + 1);
+              }).length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-black rounded-md">
+                  {jugadores.filter(j => {
+                    if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
+                    return (new Date(j.fecha_nacimiento).getUTCMonth() + 1) === (new Date().getMonth() + 1);
+                  }).length}
+                </span>
+              )}
+            </button>
           </div>
           <div className="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto flex-1 lg:justify-end">
             <div className="relative w-full md:max-w-md">
@@ -194,65 +220,114 @@ export default function DirectorioMiembros() {
         </div>
 
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse min-w-max">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
-                <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none truncate">Miembro</th>
-                <th className="p-4 md:px-6">Rol / Categoria</th>
-                <th className="p-4 md:px-6 hidden md:table-cell">Contacto</th>
-                <th className="p-4 md:px-6 text-center">Estado</th>
-                <th className="p-4 md:px-6 text-right">Detalle</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
-              {cargando ? (
-                <tr><td colSpan={5} className="p-20 text-center"><div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
-              ) : jugadoresFiltrados.length === 0 ? (
-                <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
+          {pestaña === 'Cumpleaños' ? (
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jugadoresFiltrados.length === 0 ? (
+                <div className="col-span-full py-20 text-center">
+                  <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Cake className="text-slate-300 w-8 h-8" />
+                  </div>
+                  <p className="text-slate-400 font-bold">No hay cumpleaños este mes</p>
+                </div>
               ) : (
-                jugadoresFiltrados.map((jugador) => (
-                  <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
-                    <td className="p-4 md:px-6 sticky left-0 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none">
-                      <div className="flex items-center gap-3 truncate">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase text-[10px]">{jugador.nombres.charAt(0)}</div>
-                        <div className="truncate">
-                          <p className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs md:text-sm">{jugador.nombres} {jugador.apellidos}</p>
-                          <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter truncate">{jugador.id.split('-')[0]}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 md:px-6">
-                      <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
-                      <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate max-w-[80px] md:max-w-none">{jugador.grupos || 'Sin grupo'}</p>
-                    </td>
-                    <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium hidden md:table-cell">{jugador.telefono || '---'}</td>
-                    <td className="p-4 md:px-6 text-center">
-                      <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>{jugador.estado_miembro === 'Inactivo' ? 'Inact' : 'Activo'}</span>
-                    </td>
-                    <td className="p-4 md:px-6 text-right">
-                      <div className="flex justify-end gap-1 md:gap-2">
-                        <button onClick={() => { 
-                          setSolicitudSeleccionada(jugador); 
-                          // Priorizar email de contacto del formulario sobre el email de auth (que estará vacío inicialmente)
-                          const emailSugerido = jugador.email_contacto || jugador.email || '';
-                          setEmailAcceso(emailSugerido); 
-                          setIsModalDetallesOpen(true); 
-                        }} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
-                        {pestaña === 'Registrados' ? (
-                          <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 hidden md:block"><ExternalLink className="w-5 h-5" /></button>
-                        ) : (
-                          <div className="flex gap-1">
-                            <button onClick={() => aprobarJugador(jugador)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
-                            <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
+                jugadoresFiltrados.map((jugador) => {
+                  const fecha = new Date(jugador.fecha_nacimiento);
+                  const dia = fecha.getUTCDate();
+                  const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                  const nombreMes = meses[fecha.getUTCMonth()];
+                  
+                  return (
+                    <div key={jugador.id} className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 relative overflow-hidden group hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
+                      <div className="absolute -top-4 -right-4 w-20 h-20 bg-orange-500/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-xl">🎂</div>
+                          <div>
+                            <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{dia} de {nombreMes}</p>
+                            <h4 className="font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-tight">{jugador.nombres}</h4>
                           </div>
-                        )}
+                        </div>
+                        
+                        <div className="bg-white dark:bg-slate-900/60 rounded-2xl p-4 mb-4 border border-slate-100 dark:border-slate-800">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Categoría</p>
+                          <p className="text-xs font-black text-slate-700 dark:text-slate-200">{jugador.grupos || 'Sin grupo'}</p>
+                        </div>
+
+                        <button 
+                          onClick={() => {
+                            const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde EFD Gibbor te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
+                            window.open(`https://wa.me/${jugador.telefono?.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                          }}
+                          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2 transition-all"
+                        >
+                          <Smartphone className="w-4 h-4" /> Felicitar por WhatsApp
+                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))
+                    </div>
+                  );
+                })
               )}
-            </tbody>
-          </table>
+            </div>
+          ) : (
+            <table className="w-full text-left border-collapse min-w-max">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+                  <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none truncate">Miembro</th>
+                  <th className="p-4 md:px-6">Rol / Categoria</th>
+                  <th className="p-4 md:px-6 hidden md:table-cell">Contacto</th>
+                  <th className="p-4 md:px-6 text-center">Estado</th>
+                  <th className="p-4 md:px-6 text-right">Detalle</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
+                {cargando ? (
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
+                ) : jugadoresFiltrados.length === 0 ? (
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
+                ) : (
+                  jugadoresFiltrados.map((jugador) => (
+                    <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                      <td className="p-4 md:px-6 sticky left-0 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/50 transition-colors shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none">
+                        <div className="flex items-center gap-3 truncate">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex-shrink-0 flex items-center justify-center font-bold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 uppercase text-[10px]">{jugador.nombres.charAt(0)}</div>
+                          <div className="truncate">
+                            <p className="font-bold text-slate-800 dark:text-slate-100 truncate text-xs md:text-sm">{jugador.nombres} {jugador.apellidos}</p>
+                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-tighter truncate">{jugador.id.split('-')[0]}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 md:px-6">
+                        <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
+                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate max-w-[80px] md:max-w-none">{jugador.grupos || 'Sin grupo'}</p>
+                      </td>
+                      <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium hidden md:table-cell">{jugador.telefono || '---'}</td>
+                      <td className="p-4 md:px-6 text-center">
+                        <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>{jugador.estado_miembro === 'Inactivo' ? 'Inact' : 'Activo'}</span>
+                      </td>
+                      <td className="p-4 md:px-6 text-right">
+                        <div className="flex justify-end gap-1 md:gap-2">
+                          <button onClick={() => { 
+                            setSolicitudSeleccionada(jugador); 
+                            const emailSugerido = jugador.email_contacto || jugador.email || '';
+                            setEmailAcceso(emailSugerido); 
+                            setIsModalDetallesOpen(true); 
+                          }} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
+                          {pestaña === 'Registrados' ? (
+                            <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 hidden md:block"><ExternalLink className="w-5 h-5" /></button>
+                          ) : (
+                            <div className="flex gap-1">
+                              <button onClick={() => aprobarJugador(jugador)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>
+                              <button onClick={() => rechazarJugador(jugador.id, jugador.nombres)} className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 shadow-lg shadow-red-500/20 transition-all"><X className="w-4 h-4" /></button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
