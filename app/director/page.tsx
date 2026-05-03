@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { 
   Wallet, Users, ClipboardList, Calendar, TrendingUp, BarChart2, 
-  Zap, AlertTriangle, ArrowUpRight, TrendingDown, ShieldCheck, MessageSquare, RefreshCw, CheckCheck, X 
+  Zap, AlertTriangle, ArrowUpRight, TrendingDown, ShieldCheck, MessageSquare, RefreshCw, CheckCheck, X, Cake, PartyPopper 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
@@ -35,6 +35,7 @@ export default function DashboardDirector() {
   const [todasLasAlertas, setTodasLasAlertas] = useState<any[]>([]);
   const [gruposRendimiento, setGruposRendimiento] = useState<any[]>([]);
   const [actividadReciente, setActividadReciente] = useState<any[]>([]);
+  const [cumpleañeros, setCumpleañeros] = useState<any[]>([]);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
   const [planesList, setPlanesList] = useState<any[]>([]);
 
@@ -161,6 +162,31 @@ export default function DashboardDirector() {
             return acc;
           }, {});
           setGruposRendimiento(Object.entries(gMap).map(([nombre, cantidad]) => ({ nombre, cantidad: cantidad as number })));
+
+          // FILTRAR CUMPLEAÑEROS DEL MES
+          const mesActual = new Date().getMonth() + 1;
+          const diaActual = new Date().getDate();
+          
+          const listaCumple = jugadores.filter(j => {
+            if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
+            let mesNac = 0;
+            if (j.fecha_nacimiento.includes('/')) {
+              mesNac = parseInt(j.fecha_nacimiento.split('/')[1]);
+            } else {
+              mesNac = new Date(j.fecha_nacimiento).getUTCMonth() + 1;
+            }
+            return mesNac === mesActual;
+          }).map(j => {
+            let diaNac = 0;
+            if (j.fecha_nacimiento.includes('/')) {
+              diaNac = parseInt(j.fecha_nacimiento.split('/')[0]);
+            } else {
+              diaNac = new Date(j.fecha_nacimiento).getUTCDate();
+            }
+            return { ...j, diaCumple: diaNac, esHoy: diaNac === diaActual };
+          }).sort((a, b) => a.diaCumple - b.diaCumple);
+          
+          setCumpleañeros(listaCumple);
         }
       } catch (error: any) {
         toast.error("Error dashboard: " + error.message);
@@ -355,6 +381,48 @@ export default function DashboardDirector() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
+              <Cake className="w-4 h-4 text-orange-500" /> Cumpleaños de Mayo
+            </h3>
+            <PartyPopper className="w-5 h-5 text-orange-500/30" />
+          </div>
+          <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
+            {cumpleañeros.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                <Cake className="w-10 h-10 text-slate-100 mb-2" />
+                <p className="text-xs font-bold text-slate-400">Sin cumpleaños este mes</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cumpleañeros.map((jugador) => (
+                  <div key={jugador.id} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${jugador.esHoy ? 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 ring-1 ring-orange-500/20' : 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${jugador.esHoy ? 'bg-orange-500 text-white animate-bounce' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700'}`}>
+                      {jugador.diaCumple}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-slate-800 dark:text-white text-[11px] truncate uppercase italic tracking-tighter">
+                        {jugador.nombres}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase truncate">{jugador.grupos || 'Sin grupo'}</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde EFD Gibbor te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
+                        window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                      }}
+                      className={`p-2 rounded-xl transition-all ${jugador.esHoy ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-200/50 dark:bg-slate-700 text-slate-400 hover:text-emerald-500'}`}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
