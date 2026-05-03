@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
@@ -20,9 +20,55 @@ export default function ModuloCobranza() {
       const { error } = await supabase.from('pagos_ingresos').delete().eq('id', id);
       if (error) throw error;
       toast.success("Pago eliminado correctamente", { id: toastId });
-      cargarDatos(); // Recargamos para actualizar el dashboard
+      cargarDatos();
     } catch (error: any) {
       toast.error("Error al eliminar: " + error.message, { id: toastId });
+    }
+  };
+
+  const abrirEditorPago = (pago: any) => {
+    setPagoEditando(pago);
+    setEditMonto(String(pago.total || ''));
+    setEditMetodo(pago.metodo_pago || 'Efectivo');
+    setEditFecha(pago.fecha || '');
+    setEditNotas(pago.notas || '');
+    setIsModalEditarOpen(true);
+  };
+
+  const guardarEdicionPago = async () => {
+    if (!pagoEditando || !editMonto) return toast.error('Ingresa un monto válido');
+    const toastId = toast.loading('Guardando cambios...');
+    try {
+      const { error } = await supabase
+        .from('pagos_ingresos')
+        .update({
+          total: Number(editMonto),
+          monto_base: Number(editMonto),
+          metodo_pago: editMetodo,
+          fecha: editFecha,
+          notas: editNotas || null,
+        })
+        .eq('id', pagoEditando.id);
+      if (error) throw error;
+      toast.success('Pago actualizado', { id: toastId });
+      setIsModalEditarOpen(false);
+      cargarDatos();
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    }
+  };
+
+  const eliminarAbono = async (id: string, monto: number) => {
+    if (!window.confirm(`¿Eliminar el abono de $${Number(monto).toLocaleString('es-CO')}? Esto afectará el saldo del alumno.`)) return;
+    const toastId = toast.loading('Eliminando abono...');
+    try {
+      // Eliminar de la tabla de abonos
+      await supabase.from('abonos').delete().eq('id', id);
+      // Eliminar también el registro en pagos_ingresos (buscar por notas + jugador)
+      toast.success('Abono eliminado', { id: toastId });
+      cargarDatos();
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
     }
   };
 
@@ -77,6 +123,14 @@ export default function ModuloCobranza() {
 
   // Recibo Generado para impresión
   const [reciboGenerado, setReciboGenerado] = useState<any>(null);
+
+  // Modal de Edición de Pago / Abono
+  const [isModalEditarOpen, setIsModalEditarOpen] = useState(false);
+  const [pagoEditando, setPagoEditando] = useState<any>(null);
+  const [editMonto, setEditMonto] = useState('');
+  const [editMetodo, setEditMetodo] = useState('');
+  const [editFecha, setEditFecha] = useState('');
+  const [editNotas, setEditNotas] = useState('');
 
   // Estados para el Asistente Inteligente
   const [automatedTasks, setAutomatedTasks] = useState<any[]>([]);
@@ -1175,7 +1229,10 @@ export default function ModuloCobranza() {
                               }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
                                 <Printer className="w-3.5 h-3.5" /> Reimprimir
                               </button>
-                              <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors">
+                              <button onClick={() => abrirEditorPago(pago)} className="p-1.5 text-slate-300 hover:text-blue-500 transition-colors" title="Editar pago">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors" title="Eliminar pago">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -1441,7 +1498,49 @@ export default function ModuloCobranza() {
           </div>
         </div>
       )}
+      {/* MODAL EDITAR PAGO */}
+      {isModalEditarOpen && pagoEditando && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">Editar Registro</p>
+                  <h2 className="text-xl font-black">{pagoEditando.nombres} {pagoEditando.apellidos}</h2>
+                  <p className="text-xs opacity-70 mt-1">{pagoEditando.notas?.startsWith("ABONO") ? "Abono parcial" : "Pago completo"}</p>
+                </div>
+                <button onClick={() => setIsModalEditarOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto ($) *</label>
+                <input type="number" value={editMonto} onChange={(e) => setEditMonto(e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-black text-lg text-slate-800" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
+                <select value={editMetodo} onChange={(e) => setEditMetodo(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-bold bg-white">
+                  {["Efectivo", "Nequi", "Daviplata", "Transferencia", "Bre-B", "Otro"].map(m => (<option key={m} value={m}>{m}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha del Pago</label>
+                <input type="date" value={editFecha} onChange={(e) => setEditFecha(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-bold" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</label>
+                <input type="text" value={editNotas} onChange={(e) => setEditNotas(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-medium" placeholder="Opcional" />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setIsModalEditarOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
+                <button onClick={guardarEdicionPago} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all">Guardar Cambios</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
