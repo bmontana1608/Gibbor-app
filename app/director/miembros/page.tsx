@@ -108,7 +108,13 @@ export default function DirectorioMiembros() {
   };
 
   const jugadoresFiltrados = jugadores.filter(jugador => {
-    const cumplePestaña = pestaña === 'Registrados' ? jugador.estado_miembro === 'Activo' : jugador.estado_miembro === 'Pendiente';
+    const estado = jugador.estado_miembro || '';
+    // Solicitudes: Todo lo que no sea Activo o Inactivo (incluyendo vacíos)
+    // Miembros: Activos e Inactivos
+    const cumplePestaña = pestaña === 'Registrados' 
+      ? (estado === 'Activo' || estado === 'Inactivo') 
+      : (estado !== 'Activo' && estado !== 'Inactivo');
+
     const coincideBusqueda = (jugador.nombres + ' ' + jugador.apellidos).toLowerCase().includes(busqueda.toLowerCase()) || (jugador.documento_identidad || '').includes(busqueda);
     const coincideGrupo = filtroGrupo === 'Todos' || jugador.grupos === filtroGrupo;
     return cumplePestaña && coincideBusqueda && coincideGrupo;
@@ -160,9 +166,9 @@ export default function DirectorioMiembros() {
             <button onClick={() => setPestaña('Registrados')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${pestaña === 'Registrados' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>Miembros</button>
             <button onClick={() => setPestaña('Pendientes')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all relative ${pestaña === 'Pendientes' ? 'bg-white dark:bg-slate-700 text-orange-500 shadow-sm' : 'text-slate-500'}`}>
               Solicitudes
-              {jugadores.filter(j => j.estado_miembro === 'Pendiente').length > 0 && (
+              {jugadores.filter(j => (j.estado_miembro || '') !== 'Activo' && (j.estado_miembro || '') !== 'Inactivo').length > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg border-2 border-white dark:border-slate-700">
-                  {jugadores.filter(j => j.estado_miembro === 'Pendiente').length}
+                  {jugadores.filter(j => (j.estado_miembro || '') !== 'Activo' && (j.estado_miembro || '') !== 'Inactivo').length}
                 </span>
               )}
             </button>
@@ -193,31 +199,7 @@ export default function DirectorioMiembros() {
               {cargando ? (
                 <tr><td colSpan={5} className="p-20 text-center"><div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
               ) : jugadoresFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-20 text-center">
-                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div>
-                    <p className="text-slate-400 font-bold">No se encontraron miembros</p>
-                    <div className="mt-2 flex flex-col items-center gap-1">
-                      <p className="text-[10px] text-slate-300 uppercase tracking-widest font-black">Diagnóstico de Base de Datos:</p>
-                      <div className="flex gap-4">
-                        <span className="text-[10px] text-emerald-500 font-bold">Activos: {jugadores.filter(j => j.estado_miembro === 'Activo').length}</span>
-                        <span className="text-[10px] text-orange-500 font-bold">Pendientes: {jugadores.filter(j => j.estado_miembro === 'Pendiente').length}</span>
-                        <span className="text-[10px] text-slate-400 font-bold">Otros: {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').length}</span>
-                      </div>
-                      {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').length > 0 && (
-                        <div className="mt-2 p-2 bg-slate-100 rounded-lg">
-                          <p className="text-[8px] font-black uppercase text-slate-500 mb-1">Detalle de 'Otros':</p>
-                          {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').map((j, i) => (
-                            <p key={i} className="text-[9px] text-slate-600 font-mono">
-                              {j.nombres}: "{j.estado_miembro}"
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-[9px] text-slate-200 mt-1">Total en memoria: {jugadores.length}</p>
-                    </div>
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
               ) : (
                 jugadoresFiltrados.map((jugador) => (
                   <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">

@@ -120,6 +120,7 @@ export default function RegistroPublicoPorClub() {
       const { error } = await supabase.from('perfiles').insert([{
         ...currentFormData,
         club_id: club.id,
+        estado_miembro: 'Pendiente', // Forzamos estado inicial para evitar errores
       }]);
 
       if (error) throw error;
