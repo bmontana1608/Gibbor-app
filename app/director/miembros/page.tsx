@@ -204,6 +204,16 @@ export default function DirectorioMiembros() {
                         <span className="text-[10px] text-orange-500 font-bold">Pendientes: {jugadores.filter(j => j.estado_miembro === 'Pendiente').length}</span>
                         <span className="text-[10px] text-slate-400 font-bold">Otros: {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').length}</span>
                       </div>
+                      {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').length > 0 && (
+                        <div className="mt-2 p-2 bg-slate-100 rounded-lg">
+                          <p className="text-[8px] font-black uppercase text-slate-500 mb-1">Detalle de 'Otros':</p>
+                          {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').map((j, i) => (
+                            <p key={i} className="text-[9px] text-slate-600 font-mono">
+                              {j.nombres}: "{j.estado_miembro}"
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-[9px] text-slate-200 mt-1">Total en memoria: {jugadores.length}</p>
                     </div>
                   </td>
