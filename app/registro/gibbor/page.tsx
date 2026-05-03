@@ -11,8 +11,8 @@ import {
 import { toast } from 'sonner';
 
 export default function RegistroPublicoPorClub() {
-  const params = useParams();
-  const slug = params?.slug as string;
+  // Al ser una ruta estática en /registro/gibbor, forzamos el slug
+  const slug = 'gibbor';
 
   const [club, setClub] = useState<any>(null);
   const [cargandoClub, setCargandoClub] = useState(true);
