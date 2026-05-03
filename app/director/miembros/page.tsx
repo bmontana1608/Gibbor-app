@@ -18,6 +18,7 @@ export default function DirectorioMiembros() {
   const [generandoAcceso, setGenerandoAcceso] = useState(false);
   const [isModalDetallesOpen, setIsModalDetallesOpen] = useState(false);
   const [solicitudSeleccionada, setSolicitudSeleccionada] = useState<any>(null);
+  const [club, setClub] = useState<any>(null);
 
   const cargarJugadores = async () => {
     setCargando(true);
@@ -38,6 +39,19 @@ export default function DirectorioMiembros() {
 
   useEffect(() => {
     cargarJugadores();
+    
+    // Cargar información del club para el link de invitación
+    async function cargarClub() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', session.user.id).single();
+      if (perfil?.club_id) {
+        const { data: clubData } = await supabase.from('clubs').select('slug').eq('id', perfil.club_id).single();
+        if (clubData) setClub(clubData);
+      }
+    }
+    cargarClub();
   }, []);
 
   const aprobarJugador = async (miembro: any) => {
@@ -219,12 +233,26 @@ export default function DirectorioMiembros() {
               <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 relative group">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Link de Registro</p>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-400 truncate">{typeof window !== 'undefined' ? `${window.location.origin}/registro?invite=true` : ''}</div>
-                  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/registro?invite=true`); toast.success("Copiado!"); }} className="p-4 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 transition-all"><Download className="w-5 h-5 rotate-270" /></button>
+                  <div className="flex-1 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-400 truncate">
+                    {typeof window !== 'undefined' ? `${window.location.origin}/${club?.slug || 'registro'}?invite=true` : ''}
+                  </div>
+                  <button onClick={() => { 
+                    const link = `${window.location.origin}/${club?.slug || 'registro'}?invite=true`;
+                    navigator.clipboard.writeText(link); 
+                    toast.success("Copiado!"); 
+                  }} className="p-4 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 transition-all">
+                    <Download className="w-5 h-5 rotate-270" />
+                  </button>
                 </div>
               </div>
               <div className="mt-8 flex flex-col gap-3">
-                <button onClick={() => { const msg = `¡Hola! Únete a nuestra academia: ${window.location.origin}/registro?invite=true`; window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); }} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2"><Smartphone className="w-5 h-5" /> Compartir WhatsApp</button>
+                <button onClick={() => { 
+                  const link = `${window.location.origin}/${club?.slug || 'registro'}?invite=true`;
+                  const msg = `¡Hola! Únete a nuestra academia: ${link}`; 
+                  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); 
+                }} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2">
+                  <Smartphone className="w-5 h-5" /> Compartir WhatsApp
+                </button>
                 <button onClick={() => setIsModalInvitacionOpen(false)} className="w-full bg-slate-100 dark:bg-slate-800 text-slate-500 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all">Cerrar</button>
               </div>
             </div>
