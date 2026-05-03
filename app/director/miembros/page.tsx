@@ -268,10 +268,10 @@ export default function DirectorioMiembros() {
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-left">Link de Registro</p>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-mono text-slate-600 dark:text-slate-400 truncate">
-                    {typeof window !== 'undefined' ? `${window.location.origin}/registro/${club?.slug || 'registro'}?invite=true` : ''}
+                    {typeof window !== 'undefined' ? `${window.location.origin}/registro-gibbor?invite=true` : ''}
                   </div>
                   <button onClick={() => { 
-                    const link = `${window.location.origin}/registro/${club?.slug || 'registro'}?invite=true`;
+                    const link = `${window.location.origin}/registro-gibbor?invite=true`;
                     navigator.clipboard.writeText(link); 
                     toast.success("Copiado!"); 
                   }} className="p-4 bg-orange-500 text-white rounded-xl shadow-lg shadow-orange-500/20 transition-all">
@@ -281,7 +281,7 @@ export default function DirectorioMiembros() {
               </div>
               <div className="mt-8 flex flex-col gap-3">
                 <button onClick={() => { 
-                  const link = `${window.location.origin}/registro/${club?.slug || 'registro'}?invite=true`;
+                  const link = `${window.location.origin}/registro-gibbor?invite=true`;
                   const msg = `¡Hola! Únete a nuestra academia: ${link}`; 
                   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); 
                 }} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2">
