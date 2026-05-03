@@ -216,49 +216,56 @@ export default function AsistenciaEntrenador() {
         {/* PASO 2: EVENTOS / SESIONES */}
         {paso === 'eventos' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {eventos.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 p-12 rounded-[2.5rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center col-span-full">
-                  <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                  <p className="text-slate-500 font-bold italic mb-6">No hay sesiones programadas para hoy</p>
-                  <button 
-                    onClick={crearSesionRapida}
-                    className="bg-slate-900 dark:bg-orange-600 text-white px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
-                  >
-                    Crear Sesión de Entrenamiento
-                  </button>
+            {/* Botón "Nueva Sesión" siempre visible en la parte superior */}
+            <button
+              onClick={crearSesionRapida}
+              disabled={cargando}
+              className="w-full bg-slate-900 dark:bg-orange-600 text-white px-8 py-5 rounded-[2rem] font-black uppercase text-sm tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl flex items-center justify-center gap-3"
+            >
+              <Plus className="w-6 h-6" />
+              Crear Nueva Sesión de Entrenamiento
+            </button>
+
+            {/* Lista de eventos existentes hoy */}
+            {eventos.length > 0 && (
+              <>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">O continuar con una sesión de hoy</span>
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
                 </div>
-              ) : (
-                <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {eventos.map(ev => (
-                    <button 
-                      key={ev.id} 
+                    <button
+                      key={ev.id}
                       onClick={() => seleccionarEvento(ev)}
                       className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 flex items-center gap-5 hover:border-orange-500 shadow-sm transition-all text-left"
                     >
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${ev.tipo === 'Partido' ? 'bg-indigo-100 text-indigo-600' : 'bg-orange-100 text-orange-600'}`}>
-                         {ev.tipo === 'Partido' ? <Trophy className="w-7 h-7" /> : <ClipboardCheck className="w-7 h-7" />}
+                        {ev.tipo === 'Partido' ? <Trophy className="w-7 h-7" /> : <ClipboardCheck className="w-7 h-7" />}
                       </div>
                       <div className="flex-1">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{ev.tipo}</p>
                         <h4 className="font-black text-slate-800 dark:text-white uppercase italic text-sm">{ev.titulo}</h4>
                         <div className="flex items-center gap-3 mt-2">
-                           <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500"><Clock className="w-3 h-3" /> {ev.hora}</span>
-                           <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500"><MapPin className="w-3 h-3" /> Sede Principal</span>
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500"><Clock className="w-3 h-3" /> {ev.hora}</span>
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500"><MapPin className="w-3 h-3" /> Sede Principal</span>
                         </div>
                       </div>
                       <ChevronRight className="w-6 h-6 text-slate-300" />
                     </button>
                   ))}
-                  <button 
-                    onClick={crearSesionRapida}
-                    className="border-2 border-dashed border-slate-200 dark:border-slate-800 p-6 rounded-[2rem] flex items-center justify-center gap-3 text-slate-400 font-black uppercase text-xs tracking-widest hover:bg-white dark:hover:bg-slate-900 hover:text-orange-500 transition-all"
-                  >
-                    <Plus className="w-5 h-5" /> Nueva Sesión
-                  </button>
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+
+            {eventos.length === 0 && (
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                <Calendar className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-400 font-bold italic text-sm">No hay sesiones previas programadas para hoy.</p>
+                <p className="text-slate-400 text-xs mt-1">Usa el botón de arriba para crear una nueva.</p>
+              </div>
+            )}
           </div>
         )}
 
