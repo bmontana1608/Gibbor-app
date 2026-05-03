@@ -42,7 +42,7 @@ export default function RegistroPublicoPorClub() {
     if (!slug) return;
     async function cargarClub() {
       const { data, error } = await supabase
-        .from('clubs')
+        .from('clubes')
         .select('id, nombre, logo_url, color_primario, slug')
         .eq('slug', slug)
         .single();

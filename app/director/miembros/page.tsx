@@ -47,7 +47,7 @@ export default function DirectorioMiembros() {
       
       const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', session.user.id).single();
       if (perfil?.club_id) {
-        const { data: clubData } = await supabase.from('clubs').select('slug').eq('id', perfil.club_id).single();
+        const { data: clubData } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
         if (clubData) setClub(clubData);
       }
     }
