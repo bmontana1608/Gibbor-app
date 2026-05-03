@@ -197,7 +197,15 @@ export default function DirectorioMiembros() {
                   <td colSpan={5} className="p-20 text-center">
                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div>
                     <p className="text-slate-400 font-bold">No se encontraron miembros</p>
-                    <p className="text-[10px] text-slate-300 mt-2 uppercase tracking-widest">Debug: {jugadores.length} registros totales en memoria</p>
+                    <div className="mt-2 flex flex-col items-center gap-1">
+                      <p className="text-[10px] text-slate-300 uppercase tracking-widest font-black">Diagnóstico de Base de Datos:</p>
+                      <div className="flex gap-4">
+                        <span className="text-[10px] text-emerald-500 font-bold">Activos: {jugadores.filter(j => j.estado_miembro === 'Activo').length}</span>
+                        <span className="text-[10px] text-orange-500 font-bold">Pendientes: {jugadores.filter(j => j.estado_miembro === 'Pendiente').length}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">Otros: {jugadores.filter(j => j.estado_miembro !== 'Activo' && j.estado_miembro !== 'Pendiente').length}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-200 mt-1">Total en memoria: {jugadores.length}</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
