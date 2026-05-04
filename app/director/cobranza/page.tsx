@@ -1054,6 +1054,20 @@ export default function ModuloCobranza() {
           </div>
         </div>
 
+        <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl mt-6 text-white shadow-xl border-l-4 border-orange-500 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5"><ShieldCheck className="w-16 h-16" /></div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-0.5">Herramientas de Control</h4>
+            <p className="text-[10px] text-slate-400 font-bold italic">Borrón y cuenta nueva para la deuda histórica</p>
+          </div>
+          <button 
+            onClick={reiniciarDeudaGlobal}
+            className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg relative z-10"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Reiniciar Deuda
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
@@ -1303,21 +1317,9 @@ export default function ModuloCobranza() {
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                    <Trash2 className="text-rose-500 w-6 h-6" /> Registro de Egresos
                 </h2>
-                <div className="flex flex-wrap items-center gap-3">
-                  <button 
-                      onClick={reiniciarDeudaGlobal}
-                      className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all flex items-center gap-2 shadow-sm"
-                      title="Ignorar deudas de meses pasados"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" /> Reiniciar Deuda
-                    </button>
-                  <button onClick={cargarDatos} className="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-brand transition-colors shadow-sm">
-                      <RefreshCw className={`w-5 h-5 ${cargando ? 'animate-spin' : ''}`} />
+                  <button onClick={() => setIsModalEgresoOpen(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all uppercase tracking-widest">
+                     <PlusCircle className="w-4 h-4" /> Registrar Gasto
                   </button>
-                  <button onClick={() => setIsModalEgresoOpen(true)} className="px-5 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg flex items-center gap-2">
-                      <PlusCircle className="w-4 h-4" /> Registrar Gasto
-                  </button>
-                </div>
              </div>
 
              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
