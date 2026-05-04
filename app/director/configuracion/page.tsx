@@ -14,6 +14,7 @@ export default function ConfiguracionGeneral() {
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [hijosIds, setHijosIds] = useState<string[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
 
   const [config, setConfig] = useState({
     api_url: '', api_key: '', instance_name: 'Gibbor_App',
@@ -39,6 +40,9 @@ export default function ConfiguracionGeneral() {
 
       const { data: jugData } = await supabase.from('perfiles').select('id, nombres, apellidos').eq('rol', 'Futbolista');
       if (jugData) setJugadores(jugData);
+
+      const { data: planesData } = await supabase.from('planes').select('*');
+      if (planesData) setPlanes(planesData);
     }
     loadConfig();
   }, []);
@@ -58,6 +62,34 @@ export default function ConfiguracionGeneral() {
       toast.success("Ajustes y vínculos familiares actualizados ✨");
     }
     setCargando(false);
+  };
+
+  const actualizarDiasPlan = async (planId: string, nuevosDias: number[]) => {
+    const toastId = toast.loading("Actualizando restricciones del plan...");
+    try {
+      const planActual = planes.find(p => p.id === planId);
+      const nuevoTipo = `${planActual.tipo.split(':')[0]}:[${nuevosDias.join(',')}]`;
+      
+      const { error } = await supabase
+        .from('planes')
+        .update({ tipo: nuevoTipo })
+        .eq('id', planId);
+
+      if (error) throw error;
+      
+      setPlanes(planes.map(p => p.id === planId ? { ...p, tipo: nuevoTipo } : p));
+      toast.success("Días de entrenamiento actualizados", { id: toastId });
+    } catch (err: any) {
+      toast.error("Error al actualizar días: " + err.message, { id: toastId });
+    }
+  };
+
+  const getDiasFromTipo = (tipo: string) => {
+    const match = tipo.match(/\[(.*?)\]/);
+    if (match) return match[1].split(',').filter(Boolean).map(Number);
+    
+    // Default si no tiene (asumimos todos para no bloquear)
+    return [0,1,2,3,4,5,6];
   };
 
   if (loadingConfig) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>;
@@ -130,6 +162,11 @@ export default function ConfiguracionGeneral() {
             </div>
 
             {/* WHATSAPP */}
+              </div>
+              </div>
+            </div>
+
+            {/* WHATSAPP */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-500" /> WhatsApp</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -142,6 +179,57 @@ export default function ConfiguracionGeneral() {
                   <input type="password" value={config.api_key} onChange={(e) => setConfig({...config, api_key: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none text-sm" />
                 </div>
               </div>
+            </div>
+
+            {/* GESTIÓN DE PLANES MULTICLUB */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="w-4 h-4 text-orange-500" /> Planes y Restricciones</h2>
+                <p className="text-[9px] font-bold text-orange-500 bg-orange-50 px-3 py-1 rounded-full uppercase tracking-tighter">SaaS Intelligence Active</p>
+              </div>
+              
+              <div className="space-y-4">
+                {planes.map(plan => {
+                  const diasActivos = getDiasFromTipo(plan.tipo);
+                  const diasLetras = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+                  
+                  return (
+                    <div key={plan.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-black text-slate-800 uppercase italic tracking-tight">{plan.nombre}</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">Define qué días autoriza este plan:</p>
+                      </div>
+                      
+                      <div className="flex gap-1.5">
+                        {diasLetras.map((letra, index) => {
+                          const isActive = diasActivos.includes(index);
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                const nuevos = isActive 
+                                  ? diasActivos.filter(d => d !== index)
+                                  : [...diasActivos, index];
+                                actualizarDiasPlan(plan.id, nuevos);
+                              }}
+                              className={`w-7 h-7 rounded-lg text-[9px] font-black transition-all border ${
+                                isActive 
+                                ? 'bg-orange-500 text-white border-orange-600 shadow-sm' 
+                                : 'bg-white text-slate-400 border-slate-200 hover:border-orange-300'
+                              }`}
+                            >
+                              {letra}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[9px] text-slate-400 font-medium italic mt-4 text-center">
+                * El sistema de asistencia solo mostrará a los alumnos en los días marcados aquí.
+              </p>
             </div>
 
             {/* CONFIGURACIÓN FAMILIAR (Director Dad Mode) */}

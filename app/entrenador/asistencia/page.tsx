@@ -24,6 +24,7 @@ export default function AsistenciaEntrenador() {
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [mostrarNoAutorizados, setMostrarNoAutorizados] = useState(false);
+  const [planesConfig, setPlanesConfig] = useState<any[]>([]);
 
   useEffect(() => {
     async function inicializar() {
@@ -43,6 +44,10 @@ export default function AsistenciaEntrenador() {
           console.error("Error cargando categorías:", err);
           toast.error("Error al cargar categorías");
         }
+
+        // Cargar configuración de planes
+        const { data: planesData } = await supabase.from('planes').select('*').eq('club_id', usuario.club_id);
+        if (planesData) setPlanesConfig(planesData);
       }
       setCargando(false);
     }
@@ -162,16 +167,27 @@ export default function AsistenciaEntrenador() {
 
     const fechaEv = new Date(eventoSeleccionado.fecha + 'T12:00:00');
     const diaSemana = fechaEv.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
-    const plan = (a.tipo_plan || '').toLowerCase();
+    const planNombre = a.tipo_plan || '';
 
-    // Regla: Planes de Fin de Semana solo Sab(6) y Dom(0)
-    const esFinDeSemana = plan.includes('fin de semana') || plan.includes('fines de semana') || plan.includes('sabado');
+    // BUSCAMOS LA CONFIGURACIÓN DEL PLAN
+    const configPlan = planesConfig.find(p => p.nombre === planNombre);
+    
+    if (configPlan) {
+      // Extraemos los días del campo 'tipo' (formato Tipo:[1,3,5])
+      const match = configPlan.tipo.match(/\[(.*?)\]/);
+      if (match) {
+        const diasPermitidos = match[1].split(',').filter(Boolean).map(Number);
+        return diasPermitidos.includes(diaSemana);
+      }
+    }
+
+    // Lógica de respaldo si no hay config avanzada
+    const planLower = planNombre.toLowerCase();
+    const esFinDeSemana = planLower.includes('fin de semana') || planLower.includes('fines de semana') || planLower.includes('sabado');
     if (esFinDeSemana) {
       return diaSemana === 6 || diaSemana === 0;
     }
 
-    // Regla: Otros planes (Completa, Beca, etc.) - Asumimos que pueden todos los días de entreno
-    // Si quieres restringir más, aquí se añaden más reglas.
     return true;
   });
 
