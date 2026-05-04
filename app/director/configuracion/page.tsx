@@ -162,11 +162,6 @@ export default function ConfiguracionGeneral() {
             </div>
 
             {/* WHATSAPP */}
-              </div>
-              </div>
-            </div>
-
-            {/* WHATSAPP */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-500" /> WhatsApp</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
