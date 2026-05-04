@@ -23,6 +23,7 @@ export default function AsistenciaEntrenador() {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+  const [mostrarNoAutorizados, setMostrarNoAutorizados] = useState(false);
 
   useEffect(() => {
     async function inicializar() {
@@ -72,7 +73,7 @@ export default function AsistenciaEntrenador() {
     // Cargar alumnos
     const { data: jugs } = await supabase
       .from('perfiles')
-      .select('id, nombres, apellidos, grupos, foto_url')
+      .select('id, nombres, apellidos, grupos, foto_url, tipo_plan')
       .eq('rol', 'Futbolista')
       .eq('grupos', categoriaSeleccionada.nombre)
       .neq('estado_miembro', 'Inactivo');
@@ -152,9 +153,27 @@ export default function AsistenciaEntrenador() {
     setGuardando(false);
   };
 
-  const filtrados = alumnos.filter(a => 
-    `${a.nombres} ${a.apellidos}`.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const filtrados = alumnos.filter(a => {
+    const coincideBusqueda = `${a.nombres} ${a.apellidos}`.toLowerCase().includes(busqueda.toLowerCase());
+    if (!coincideBusqueda) return false;
+
+    // LÓGICA DE ASISTENCIA INTELIGENTE
+    if (!eventoSeleccionado || mostrarNoAutorizados) return true;
+
+    const fechaEv = new Date(eventoSeleccionado.fecha + 'T12:00:00');
+    const diaSemana = fechaEv.getDay(); // 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab
+    const plan = (a.tipo_plan || '').toLowerCase();
+
+    // Regla: Planes de Fin de Semana solo Sab(6) y Dom(0)
+    const esFinDeSemana = plan.includes('fin de semana') || plan.includes('fines de semana') || plan.includes('sabado');
+    if (esFinDeSemana) {
+      return diaSemana === 6 || diaSemana === 0;
+    }
+
+    // Regla: Otros planes (Completa, Beca, etc.) - Asumimos que pueden todos los días de entreno
+    // Si quieres restringir más, aquí se añaden más reglas.
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 animate-in fade-in duration-500">
@@ -287,15 +306,23 @@ export default function AsistenciaEntrenador() {
                       </p>
                     </div>
                   </div>
-                  <div className="relative flex-1 max-w-xs ml-auto">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="text" 
-                      placeholder="Filtrar por nombre..." 
-                      value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
-                    />
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button 
+                      onClick={() => setMostrarNoAutorizados(!mostrarNoAutorizados)}
+                      className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${mostrarNoAutorizados ? 'bg-orange-500 text-white border-orange-600' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'}`}
+                    >
+                      {mostrarNoAutorizados ? 'Viendo Todos' : 'Filtrado x Plan'}
+                    </button>
+                    <div className="relative flex-1 max-w-xs">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Filtrar por nombre..." 
+                        value={busqueda}
+                        onChange={(e) => setBusqueda(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs outline-none focus:ring-2 focus:ring-orange-500 transition-all font-medium"
+                      />
+                    </div>
                   </div>
                </div>
             </div>
