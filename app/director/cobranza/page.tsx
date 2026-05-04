@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil } from 'lucide-react';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
