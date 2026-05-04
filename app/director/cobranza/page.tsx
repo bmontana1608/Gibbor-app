@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -477,6 +477,47 @@ export default function ModuloCobranza() {
     }
   };
 
+  const reiniciarDeudaGlobal = async () => {
+    const confirmacion = window.confirm(
+      "⚠️ ATENCIÓN: Esta acción establecerá un 'Borrón y Cuenta Nueva' para TODOS los jugadores.\n\n" +
+      "Se ignorarán las deudas de meses anteriores y el conteo empezará desde este mes. ¿Deseas continuar?"
+    );
+    
+    if (!confirmacion) return;
+
+    const toastId = toast.loading("Reiniciando historial financiero...");
+    try {
+      // Calculamos el mes anterior para poner la marca de reinicio
+      const d = new Date();
+      const mesAnterior = new Date(d.getFullYear(), d.getMonth() - 1, 1);
+      const fechaMarca = mesAnterior.toISOString().split('T')[0];
+
+      // Creamos los registros de reinicio para todos los jugadores activos
+      const promesas = jugadores.map(j => {
+        return supabase.from('pagos_ingresos').insert([{
+          jugador_id: j.id,
+          nombres: j.nombres,
+          apellidos: j.apellidos,
+          grupo: j.grupos || 'Sistema',
+          monto_base: 0,
+          descuento: 0,
+          recargo: 0,
+          total: 0,
+          metodo_pago: 'Sistema',
+          notas: 'REINICIO DE DEUDA HISTÓRICA (Borrón y cuenta nueva)',
+          fecha: fechaMarca,
+          club_id: tenant?.id
+        }]);
+      });
+
+      await Promise.all(promesas);
+      toast.success("¡Historial reiniciado! Las deudas antiguas han sido archivadas.", { id: toastId });
+      cargarDatos();
+    } catch (error: any) {
+      toast.error("Error al reiniciar: " + error.message, { id: toastId });
+    }
+  };
+
   const [loadingBot, setLoadingBot] = useState<string | null>(null);
 
   const handleNotificar = async (alumno: any) => {
@@ -750,6 +791,17 @@ export default function ModuloCobranza() {
           .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
 
         const totalMes = pagosDelMes + abonosMes;
+        
+        // --- LÓGICA DE REINICIO DE DEUDA ---
+        // Si encontramos un registro que diga 'REINICIO DE DEUDA', dejamos de buscar hacia atrás
+        const hayReinicio = historialPagos.some(p => 
+          p.jugador_id === j.id && 
+          p.fecha && String(p.fecha).startsWith(mesStr) && 
+          String(p.notas || '').includes('REINICIO DE DEUDA')
+        );
+
+        if (hayReinicio) break;
+
         if (totalMes < tarifa) {
           const deudaMes = tarifa - totalMes;
           deudaAcumulada += deudaMes;
@@ -1251,9 +1303,21 @@ export default function ModuloCobranza() {
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                    <Trash2 className="text-rose-500 w-6 h-6" /> Registro de Egresos
                 </h2>
-                <button onClick={() => setIsModalEgresoOpen(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all uppercase tracking-widest">
-                   <PlusCircle className="w-4 h-4" /> Registrar Gasto
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button 
+                      onClick={reiniciarDeudaGlobal}
+                      className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all flex items-center gap-2 shadow-sm"
+                      title="Ignorar deudas de meses pasados"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Reiniciar Deuda
+                    </button>
+                  <button onClick={cargarDatos} className="p-2.5 bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-brand transition-colors shadow-sm">
+                      <RefreshCw className={`w-5 h-5 ${cargando ? 'animate-spin' : ''}`} />
+                  </button>
+                  <button onClick={() => setIsModalEgresoOpen(true)} className="px-5 py-2.5 bg-rose-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg flex items-center gap-2">
+                      <PlusCircle className="w-4 h-4" /> Registrar Gasto
+                  </button>
+                </div>
              </div>
 
              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
