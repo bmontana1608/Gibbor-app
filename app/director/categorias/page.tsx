@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, RefreshCw, Plus, ClipboardList, Users, Shield, TrendingUp, 
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 export default function GestionCategorias() {
   const router = useRouter();
+  const pathname = usePathname();
   const [categorias, setCategorias] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [entrenadoresBD, setEntrenadoresBD] = useState<any[]>([]);
@@ -32,16 +33,19 @@ export default function GestionCategorias() {
 
   const cargarDatos = async () => {
     setCargando(true);
-    const { data: catData, error: catError } = await supabase.from('categorias').select('*').order('created_at', { ascending: true });
+    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantData = await tenantRes.json();
+    
+    const { data: catData, error: catError } = await supabase.from('categorias').select('*').eq('club_id', tenantData.id).order('created_at', { ascending: true });
     
     if (catError) {
       toast.error('Error al cargar categorías: ' + catError.message);
     } else if (catData) setCategorias(catData);
 
-    const { data: jugData } = await supabase.from('perfiles').select('grupos, estado_miembro').eq('rol', 'Futbolista');
+    const { data: jugData } = await supabase.from('perfiles').select('grupos, estado_miembro').eq('club_id', tenantData.id).eq('rol', 'Futbolista');
     if (jugData) setJugadores(jugData);
 
-    const { data: entData } = await supabase.from('perfiles').select('id, nombres, apellidos').or('rol.eq.Entrenador,rol.eq.Director');
+    const { data: entData } = await supabase.from('perfiles').select('id, nombres, apellidos').eq('club_id', tenantData.id).or('rol.eq.Entrenador,rol.eq.Director');
     if (entData) setEntrenadoresBD(entData);
 
     setCargando(false);
@@ -49,7 +53,7 @@ export default function GestionCategorias() {
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [pathname]);
 
   // --- ABRIR MODAL PARA EDITAR ---
   const abrirEditarGrupo = (grupo: any) => {
@@ -169,17 +173,26 @@ export default function GestionCategorias() {
     return coincideBusqueda && coincideNivel;
   });
 
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando categorías...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800 relative">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 relative transition-colors">
       
       {/* CABECERA Y KPIs */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <button onClick={() => router.back()} className="text-slate-500 hover:text-orange-600 font-bold text-sm mb-2 transition-colors flex items-center gap-1 group">
+          <button onClick={() => router.back()} className="text-slate-500 hover:-[var(--brand-primary)] font-bold text-sm mb-2 transition-colors flex items-center gap-1 group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver
           </button>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Target className="w-6 h-6 text-orange-500" /> Grupos Deportivos
+            <Target className="w-6 h-6 -[var(--brand-primary)]" /> Grupos Deportivos
           </h1>
           <p className="text-sm text-slate-500 mt-1">Gestiona la estructura de entrenamiento de tu club</p>
         </div>
@@ -187,7 +200,7 @@ export default function GestionCategorias() {
           <button onClick={cargarDatos} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-slate-50 transition-colors">
             <RefreshCw className="w-4 h-4" /> Actualizar
           </button>
-          <button onClick={() => { cerrarModal(); setMostrarModal(true); }} className="bg-orange-600 hover:bg-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
+          <button onClick={() => { cerrarModal(); setMostrarModal(true); }} className="-[var(--brand-primary)] hover:-[var(--brand-primary)] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
             <Plus className="w-4 h-4" /> Crear Grupo
           </button>
         </div>
@@ -197,16 +210,16 @@ export default function GestionCategorias() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grupos Activos</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : gruposActivos}</p></div><ClipboardList className="text-blue-500 w-8 h-8 opacity-80" /></div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Miembros Totales</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : miembrosTotales}</p></div><Users className="text-emerald-500 w-8 h-8 opacity-80" /></div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Capacidad Total</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : capacidadTotal}</p></div><Shield className="text-purple-500 w-8 h-8 opacity-80" /></div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full bg-orange-500"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ocupación Media</p><p className="text-3xl font-black text-orange-600">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="text-orange-500 w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full -[var(--brand-primary)]"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ocupación Media</p><p className="text-3xl font-black -[var(--brand-primary)]">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="-[var(--brand-primary)] w-8 h-8 opacity-80" /></div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Buscar por grupo o cuerpo técnico..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-orange-500" />
+          <input type="text" placeholder="Buscar por grupo o cuerpo técnico..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:-[var(--brand-primary)]" />
         </div>
         <div className="md:w-48">
-          <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:ring-orange-500 cursor-pointer">
+          <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:-[var(--brand-primary)] cursor-pointer">
             <option value="Todos">Todos los niveles</option>
             <option value="Principiante">Principiante</option>
             <option value="Intermedio">Intermedio</option>
@@ -283,7 +296,7 @@ export default function GestionCategorias() {
                 <button onClick={() => router.push(`/director/categorias/${grupo.id}`)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Eye className="w-4 h-4" /> Ver Ficha
                 </button>
-                <button onClick={() => abrirEditarGrupo(grupo)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-orange-600 transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
+                <button onClick={() => abrirEditarGrupo(grupo)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:-[var(--brand-primary)] transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Edit className="w-4 h-4" /> Editar
                 </button>
                 <button onClick={() => router.push('/director/asistencia')} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-colors flex items-center justify-center gap-1.5 focus:outline-none">
@@ -301,7 +314,7 @@ export default function GestionCategorias() {
           <div className="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col animate-slide-in-right">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                {grupoEditandoId ? <Edit className="w-5 h-5 text-orange-500" /> : <Plus className="w-5 h-5 text-orange-500" />} 
+                {grupoEditandoId ? <Edit className="w-5 h-5 -[var(--brand-primary)]" /> : <Plus className="w-5 h-5 -[var(--brand-primary)]" />} 
                 {grupoEditandoId ? 'Editar Grupo' : 'Nuevo Grupo'}
               </h2>
               <button onClick={cerrarModal} className="text-slate-400 hover:text-slate-600 font-bold p-1 transition-colors">
@@ -313,12 +326,12 @@ export default function GestionCategorias() {
               <form id="grupoForm" onSubmit={handleGuardarGrupo} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm" placeholder="Ej: Élite Sub-15" /></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" placeholder="Ej: Élite Sub-15" /></div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Deporte *</label>
                     <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer"><option value="Fútbol">Fútbol</option><option value="Futsal">Futsal</option></select>
                   </div>
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm" placeholder="Detalles u objetivos de este grupo..."></textarea></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" placeholder="Detalles u objetivos de este grupo..."></textarea></div>
                 </div>
 
                 <div className="pt-2">
@@ -328,8 +341,8 @@ export default function GestionCategorias() {
                       const nombreCompleto = `${ent.nombres} ${ent.apellidos}`;
                       const seleccionado = entrenadoresSeleccionados.includes(nombreCompleto);
                       return (
-                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${seleccionado ? 'bg-orange-50/50' : 'hover:bg-slate-50'}`}>
-                          <input type="checkbox" checked={seleccionado} onChange={() => toggleEntrenador(nombreCompleto)} className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500" />
+                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${seleccionado ? '-[rgba(var(--brand-primary-rgb),0.1)]/50' : 'hover:bg-slate-50'}`}>
+                          <input type="checkbox" checked={seleccionado} onChange={() => toggleEntrenador(nombreCompleto)} className="w-4 h-4 -[var(--brand-primary)] rounded border-slate-300 focus:-[var(--brand-primary)]" />
                           <span className={`text-sm font-medium ${seleccionado ? 'text-slate-800' : 'text-slate-600'}`}>{nombreCompleto}</span>
                         </label>
                       );
@@ -373,7 +386,7 @@ export default function GestionCategorias() {
                       </div>
                     ))}
                   </div>
-                  <button type="button" onClick={() => setHorariosDinámicos(prev => [...prev, { dia: 'Lunes', inicio: '18:00', fin: '19:30' }])} className="text-sm font-bold text-orange-600 flex items-center gap-1 hover:text-orange-700 transition-colors p-1 -ml-1 rounded hover:bg-orange-50">
+                  <button type="button" onClick={() => setHorariosDinámicos(prev => [...prev, { dia: 'Lunes', inicio: '18:00', fin: '19:30' }])} className="text-sm font-bold -[var(--brand-primary)] flex items-center gap-1 hover:-[var(--brand-primary)] transition-colors p-1 -ml-1 rounded hover:-[rgba(var(--brand-primary-rgb),0.1)]">
                     <Plus className="w-4 h-4" /> Agregar franja horaria
                   </button>
                 </div>
@@ -382,7 +395,7 @@ export default function GestionCategorias() {
 
             <div className="p-6 border-t border-slate-100 bg-white flex justify-center gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
               <button type="button" onClick={cerrarModal} className="flex-1 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
-              <button type="submit" form="grupoForm" disabled={guardando} className="flex-1 py-3 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-500 shadow-sm disabled:opacity-50 transition-colors">
+              <button type="submit" form="grupoForm" disabled={guardando} className="flex-1 py-3 -[var(--brand-primary)] text-white rounded-xl text-sm font-bold hover:-[var(--brand-primary)] shadow-sm disabled:opacity-50 transition-colors">
                 {guardando ? 'Guardando...' : (grupoEditandoId ? 'Actualizar Grupo' : 'Guardar Grupo')}
               </button>
             </div>

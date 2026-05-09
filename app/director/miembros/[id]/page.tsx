@@ -162,7 +162,7 @@ export default function FichaDelJugador() {
 
   if (cargando) return (
     <div className="min-h-screen bg-slate-50 flex flex-col gap-4 items-center justify-center text-slate-500 font-medium">
-      <Loader className="w-8 h-8 animate-spin text-orange-500" />
+      <Loader className="w-8 h-8 animate-spin -[var(--brand-primary)]" />
       <p>Cargando expediente del jugador...</p>
     </div>
   );
@@ -185,7 +185,7 @@ export default function FichaDelJugador() {
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Edit className="w-6 h-6 text-orange-500" /> Editando a {jugador.nombres}
+              <Edit className="w-6 h-6 -[var(--brand-primary)]" /> Editando a {jugador.nombres}
             </h1>
             <button onClick={() => setEdicion(false)} className="text-slate-500 hover:text-slate-700 font-bold text-sm transition-colors">
               ✕ Cancelar Edición
@@ -198,22 +198,22 @@ export default function FichaDelJugador() {
             <div>
               <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos Básicos</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm" required/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm" required/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Documento</label><input type="text" name="documento_identidad" value={formData.documento_identidad || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Fecha de Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Teléfono</label><input type="text" name="telefono" value={formData.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Email</label><input type="email" name="email_contacto" value={formData.email_contacto || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 mb-1">Dirección de Residencia</label><input type="text" name="direccion" value={formData.direccion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm" required/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm" required/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Documento</label><input type="text" name="documento_identidad" value={formData.documento_identidad || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Fecha de Nacimiento</label><input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Teléfono</label><input type="text" name="telefono" value={formData.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Email</label><input type="email" name="email_contacto" value={formData.email_contacto || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-500 mb-1">Dirección de Residencia</label><input type="text" name="direccion" value={formData.direccion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-500 mb-1">Foto de Perfil</label>
                   <div className="flex gap-4 items-center">
-                    <label className="relative cursor-pointer bg-slate-100 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-600 hover:text-orange-600 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
+                    <label className="relative cursor-pointer bg-slate-100 hover:-[rgba(var(--brand-primary-rgb),0.1)] border border-slate-200 hover:-[rgba(var(--brand-primary-rgb),0.4)] text-slate-600 hover:-[var(--brand-primary)] px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
                        {subiendoFoto ? <Loader className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                        {subiendoFoto ? "Subiendo..." : "Subir Foto Directo"}
                        <input type="file" accept="image/*" onChange={handleSubirFoto} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={subiendoFoto} />
                     </label>
-                    <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="O pega el link aquí..." className="flex-1 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/>
+                    <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="O pega el link aquí..." className="flex-1 px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/>
                   </div>
                   <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Sube desde tu PC/Móvil o pega un enlace público de internet.</p>
                 </div>
@@ -226,18 +226,18 @@ export default function FichaDelJugador() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Rol en el Sistema</label>
-                  <select name="rol" value={formData.rol || 'Futbolista'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer font-bold text-orange-600">
+                  <select name="rol" value={formData.rol || 'Futbolista'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white cursor-pointer font-bold -[var(--brand-primary)]">
                     <option value="Futbolista">Futbolista</option>
                     <option value="Entrenador">Entrenador</option>
                     <option value="Director">Director</option>
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 mb-1 font-black text-orange-600">Categoría(s) / Grupo(s) Asignados</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-1 font-black -[var(--brand-primary)]">Categoría(s) / Grupo(s) Asignados</label>
                   {formData.rol === 'Entrenador' ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border border-orange-100 rounded-xl p-4 bg-orange-50/30">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border -[rgba(var(--brand-primary-rgb),0.1)] rounded-xl p-4 -[rgba(var(--brand-primary-rgb),0.1)]/30">
                       {categorias.map(cat => (
-                        <label key={cat.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:text-orange-600 transition-colors">
+                        <label key={cat.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:-[var(--brand-primary)] transition-colors">
                           <input 
                             type="checkbox" 
                             checked={(formData.grupos || '').split(', ').includes(cat.nombre)}
@@ -251,7 +251,7 @@ export default function FichaDelJugador() {
                               }
                               setFormData({ ...formData, grupos: newGroups.join(', ') });
                             }}
-                            className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                            className="w-4 h-4 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
                           />
                           {cat.nombre}
                         </label>
@@ -259,7 +259,7 @@ export default function FichaDelJugador() {
                       {categorias.length === 0 && <p className="text-[10px] text-slate-400 italic col-span-full">No hay categorías activas creadas.</p>}
                     </div>
                   ) : (
-                    <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer font-bold">
+                    <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white cursor-pointer font-bold">
                       <option value="">Sin categoría / Sin asignar</option>
                       {categorias.map(cat => (
                         <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
@@ -270,11 +270,11 @@ export default function FichaDelJugador() {
                 </div>
                 {formData.rol === 'Futbolista' && (
                   <>
-                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Posición</label><input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Dorsal</label><input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Posición</label><input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                    <div><label className="block text-xs font-bold text-slate-500 mb-1">Dorsal</label><input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Plan Financiero</label>
-                      <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
+                      <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white cursor-pointer">
                         {planes.map(p => (
                           <option key={p.nombre} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
                         ))}
@@ -283,7 +283,7 @@ export default function FichaDelJugador() {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-500 mb-1">Estado de Pago</label>
-                      <select name="estado_pago" value={formData.estado_pago || 'Pendiente'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white cursor-pointer">
+                      <select name="estado_pago" value={formData.estado_pago || 'Pendiente'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white cursor-pointer">
                         <option value="Al día">Al día</option><option value="Pendiente">Pendiente</option>
                       </select>
                     </div>
@@ -293,11 +293,11 @@ export default function FichaDelJugador() {
 
             {/* Vincular Hijos / Jugadores (Solo para Entrenadores o Staff) */}
             {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
-              <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
-                <h3 className="text-sm font-bold text-orange-800 mb-4 flex items-center gap-2">
+              <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] rounded-2xl p-6">
+                <h3 className="text-sm font-bold -[var(--brand-primary)] mb-4 flex items-center gap-2">
                   <Users className="w-5 h-5" /> Vincular "Tu Familia" en Gibbor
                 </h3>
-                <p className="text-[10px] text-orange-600 mb-4 font-medium uppercase tracking-wider italic">
+                <p className="text-[10px] -[var(--brand-primary)] mb-4 font-medium uppercase tracking-wider italic">
                   Selecciona los jugadores que verá este {formData.rol === 'Director' ? 'Director' : 'Entrenador'} en su selector de perfiles (modo familia).
                 </p>
                 
@@ -315,8 +315,8 @@ export default function FichaDelJugador() {
                               className={`
                                 flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer bg-white
                                 ${(formData.hijos_config || '').includes(jug.id) 
-                                  ? 'border-orange-500 bg-orange-50 shadow-sm' 
-                                  : 'border-slate-100 hover:border-orange-200 hover:bg-orange-50/10'}
+                                  ? '-[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)] shadow-sm' 
+                                  : 'border-slate-100 hover:-[rgba(var(--brand-primary-rgb),0.4)] hover:-[rgba(var(--brand-primary-rgb),0.1)]/10'}
                               `}
                             >
                               <input 
@@ -332,7 +332,7 @@ export default function FichaDelJugador() {
                                   }
                                   setFormData({ ...formData, hijos_config: newIds.join(',') });
                                 }}
-                                className="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                                className="w-3.5 h-3.5 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
                               />
                               <div className="overflow-hidden">
                                 <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
@@ -356,8 +356,8 @@ export default function FichaDelJugador() {
                             className={`
                               flex items-center gap-2 p-2 rounded-xl border transition-all cursor-pointer bg-white
                               ${(formData.hijos_config || '').includes(jug.id) 
-                                ? 'border-orange-500 bg-orange-50 shadow-sm' 
-                                : 'border-slate-100 hover:border-orange-200 hover:bg-orange-50/10'}
+                                ? '-[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)] shadow-sm' 
+                                : 'border-slate-100 hover:-[rgba(var(--brand-primary-rgb),0.4)] hover:-[rgba(var(--brand-primary-rgb),0.1)]/10'}
                             `}
                           >
                             <input 
@@ -373,7 +373,7 @@ export default function FichaDelJugador() {
                                 }
                                 setFormData({ ...formData, hijos_config: newIds.join(',') });
                               }}
-                              className="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                              className="w-3.5 h-3.5 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
                             />
                             <div className="overflow-hidden">
                               <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
@@ -394,8 +394,8 @@ export default function FichaDelJugador() {
               <div>
                 <h3 className="text-sm font-bold text-slate-800 mb-4 border-b pb-2">Datos del Acudiente</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label><input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label><input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label><input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                  <div><label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label><input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
                 </div>
               </div>
             )}
@@ -406,20 +406,20 @@ export default function FichaDelJugador() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Tipo de Sangre</label>
-                  <select name="tipo_sangre" value={formData.tipo_sangre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white">
+                  <select name="tipo_sangre" value={formData.tipo_sangre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white">
                     <option value="">Seleccionar...</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
                   </select>
                 </div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">EPS / Seguro</label><input type="text" name="eps" value={formData.eps || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">EPS / Seguro</label><input type="text" name="eps" value={formData.eps || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Talla Uniforme</label>
-                  <select name="talla_uniforme" value={formData.talla_uniforme || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm bg-white">
+                  <select name="talla_uniforme" value={formData.talla_uniforme || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm bg-white">
                     <option value="">Seleccionar...</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
                   </select>
                 </div>
-                <div className="md:col-span-3"><label className="block text-xs font-bold text-slate-500 mb-1">Patologías / Alergias</label><textarea name="patologias" value={formData.patologias || ''} onChange={handleChange} rows={2} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"></textarea></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Nombre)</label><input type="text" name="emergencia_nombre" value={formData.emergencia_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Teléfono)</label><input type="text" name="emergencia_telefono" value={formData.emergencia_telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-orange-500 text-sm"/></div>
+                <div className="md:col-span-3"><label className="block text-xs font-bold text-slate-500 mb-1">Patologías / Alergias</label><textarea name="patologias" value={formData.patologias || ''} onChange={handleChange} rows={2} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"></textarea></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Nombre)</label><input type="text" name="emergencia_nombre" value={formData.emergencia_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
+                <div><label className="block text-xs font-bold text-slate-500 mb-1">Contacto Emergencia (Teléfono)</label><input type="text" name="emergencia_telefono" value={formData.emergencia_telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm"/></div>
               </div>
             </div>
 
@@ -443,7 +443,7 @@ export default function FichaDelJugador() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800">
       
-      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:text-orange-600 flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
+      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:-[var(--brand-primary)] flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver al Directorio
       </button>
 
@@ -483,10 +483,10 @@ export default function FichaDelJugador() {
 
         <div className="flex items-center gap-3 relative z-10 sm:ml-auto">
           {/* Tarjeta de Puntos Gibbor */}
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4 flex flex-col items-center justify-center min-w-[120px] shadow-sm">
-             <Trophy className="w-5 h-5 text-orange-500 mb-1" />
-             <p className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Gibbor Points</p>
-             <p className="text-2xl font-black text-orange-600 leading-none mt-1">{jugador.puntos || 0} GP</p>
+          <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] rounded-2xl p-4 flex flex-col items-center justify-center min-w-[120px] shadow-sm">
+             <Trophy className="w-5 h-5 -[var(--brand-primary)] mb-1" />
+             <p className="text-[10px] font-black -[rgba(var(--brand-primary-rgb),0.4)] uppercase tracking-widest">Gibbor Points</p>
+             <p className="text-2xl font-black -[var(--brand-primary)] leading-none mt-1">{jugador.puntos || 0} GP</p>
           </div>
           
           <div className="w-px h-12 bg-slate-100 mx-2 hidden md:block"></div>
@@ -534,7 +534,7 @@ export default function FichaDelJugador() {
 
           <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
             <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4">
-              <Trophy className="w-5 h-5 text-orange-500" /> Perfil Deportivo y Financiero
+              <Trophy className="w-5 h-5 -[var(--brand-primary)]" /> Perfil Deportivo y Financiero
             </h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-slate-50 pb-3"><span className="text-slate-500 text-sm">Plan Asignado</span><span className="text-slate-800 font-bold bg-slate-100 px-3 py-1 rounded-lg border border-slate-200">{jugador.tipo_plan || 'Regular'}</span></div>
@@ -575,7 +575,7 @@ export default function FichaDelJugador() {
           {jugador.rol === 'Futbolista' && (jugador.acudiente_nombre || jugador.acudiente_identificacion) && (
             <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4">
-                <Users className="w-5 h-5 text-orange-500" /> Acudiente
+                <Users className="w-5 h-5 -[var(--brand-primary)]" /> Acudiente
               </h3>
               <div className="space-y-4">
                 <div><span className="block text-slate-400 text-[10px] uppercase font-bold tracking-wider mb-1">Nombre Completo</span><span className="text-slate-800 font-bold">{jugador.acudiente_nombre || '---'}</span></div>

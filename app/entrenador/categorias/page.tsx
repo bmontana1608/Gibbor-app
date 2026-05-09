@@ -149,7 +149,7 @@ export default function GestionCategoriasEntrenador() {
         {/* HEADER */}
         <div className="bg-white border-b border-slate-200 p-6 flex items-center justify-between">
             <div className="flex items-center gap-4">
-                <div className="p-3 bg-orange-100 rounded-2xl text-orange-600">
+                <div className="p-3 -[rgba(var(--brand-primary-rgb),0.1)] rounded-2xl -[var(--brand-primary)]">
                     <Users className="w-6 h-6" />
                 </div>
                 <div>
@@ -171,10 +171,10 @@ export default function GestionCategoriasEntrenador() {
             {!catSeleccionada ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-500">
                     {categorias.map(cat => (
-                        <div key={cat.id} className="bg-white rounded-[40px] p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all group flex flex-col justify-between h-64">
+                        <div key={cat.id} className="bg-white rounded-[40px] p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:-[rgba(var(--brand-primary-rgb),0.4)] transition-all group flex flex-col justify-between h-64">
                             <div>
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 font-black text-xl shadow-inner">
+                                    <div className="w-12 h-12 -[rgba(var(--brand-primary-rgb),0.1)] rounded-2xl flex items-center justify-center -[var(--brand-primary)] font-black text-xl shadow-inner">
                                         {cat.nombre.charAt(0)}
                                     </div>
                                     <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full">{cat.nivel}</span>
@@ -184,7 +184,7 @@ export default function GestionCategoriasEntrenador() {
                             </div>
                             <button 
                                 onClick={() => seleccionarCat(cat)}
-                                className="w-full bg-slate-900 group-hover:bg-orange-600 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 italic uppercase tracking-tighter"
+                                className="w-full bg-slate-900 group-hover:-[var(--brand-primary)] text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 italic uppercase tracking-tighter"
                             >
                                 Gestionar Grupo <ChevronRight className="w-4 h-4" />
                             </button>
@@ -203,7 +203,7 @@ export default function GestionCategoriasEntrenador() {
                                 placeholder="Buscar futbolista..." 
                                 value={busqueda}
                                 onChange={(e) => setBusqueda(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold shadow-sm outline-none focus:ring-2 focus:ring-orange-500"
+                                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold shadow-sm outline-none focus:ring-2 focus:-[var(--brand-primary)]"
                             />
                         </div>
 
@@ -216,7 +216,7 @@ export default function GestionCategoriasEntrenador() {
                                     <button 
                                         key={a.id} 
                                         onClick={() => verFicha(a)}
-                                        className={`w-full p-5 flex items-center justify-between group hover:bg-orange-50 transition-colors ${alumnoDetalle?.id === a.id ? 'bg-orange-50 border-l-4 border-orange-500' : ''}`}
+                                        className={`w-full p-5 flex items-center justify-between group hover:-[rgba(var(--brand-primary-rgb),0.1)] transition-colors ${alumnoDetalle?.id === a.id ? '-[rgba(var(--brand-primary-rgb),0.1)] border-l-4 -[var(--brand-primary)]' : ''}`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 text-xs shadow-inner">
@@ -225,11 +225,11 @@ export default function GestionCategoriasEntrenador() {
                                             <div className="text-left">
                                                 <p className="font-black text-slate-800 text-xs uppercase tracking-tight">{a.nombres} {a.apellidos}</p>
                                                 <p className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
-                                                    <Trophy className="w-3 h-3 text-orange-400" /> {a.puntos || 0} GP
+                                                    <Trophy className="w-3 h-3 -[rgba(var(--brand-primary-rgb),0.4)]" /> {a.puntos || 0} GP
                                                 </p>
                                             </div>
                                         </div>
-                                        <ChevronRight className={`w-4 h-4 transition-transform ${alumnoDetalle?.id === a.id ? 'text-orange-500 translate-x-1' : 'text-slate-200'}`} />
+                                        <ChevronRight className={`w-4 h-4 transition-transform ${alumnoDetalle?.id === a.id ? '-[var(--brand-primary)] translate-x-1' : 'text-slate-200'}`} />
                                     </button>
                                 ))}
                             </div>
@@ -244,8 +244,8 @@ export default function GestionCategoriasEntrenador() {
                                 {/* Info Principal */}
                                 <div className="bg-white rounded-[50px] p-8 border border-slate-200 shadow-xl flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-4">
-                                        <div className="bg-orange-500 text-white font-black italic text-2xl px-6 py-2 rounded-2xl shadow-lg shadow-orange-100">
-                                            {alumnoDetalle.puntos || 0} <span className="text-[10px] not-italic block uppercase text-orange-100">Gibbor Points</span>
+                                        <div className="-[var(--brand-primary)] text-white font-black italic text-2xl px-6 py-2 rounded-2xl shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)]">
+                                            {alumnoDetalle.puntos || 0} <span className="text-[10px] not-italic block uppercase -[rgba(var(--brand-primary-rgb),0.1)]">Gibbor Points</span>
                                         </div>
                                     </div>
 
@@ -256,7 +256,7 @@ export default function GestionCategoriasEntrenador() {
                                         <h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase mb-2">{alumnoDetalle.nombres} {alumnoDetalle.apellidos}</h2>
                                         <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                                             <span className="bg-slate-100 text-slate-600 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><User className="w-3 h-3" /> ID: {alumnoDetalle.identificacion || '---'}</span>
-                                            <span className="bg-orange-50 text-orange-600 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><LayoutGrid className="w-3 h-3" /> {catSeleccionada.nombre}</span>
+                                            <span className="-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] px-4 py-1.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><LayoutGrid className="w-3 h-3" /> {catSeleccionada.nombre}</span>
                                             <span className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase flex items-center gap-2"><Star className="w-3 h-3" /> {alumnoDetalle.estado_miembro}</span>
                                         </div>
                                     </div>
@@ -265,9 +265,9 @@ export default function GestionCategoriasEntrenador() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Radar Técnico */}
                                     <div className="bg-white rounded-[40px] p-8 border border-slate-200 shadow-sm relative group overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-orange-500 shadow-lg shadow-orange-500/20"></div>
+                                        <div className="absolute top-0 left-0 w-full h-1 -[var(--brand-primary)] shadow-lg -[var(--brand-primary)]/20"></div>
                                         <div className="flex justify-between items-center mb-8">
-                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><RadarIcon className="w-4 h-4 text-orange-500" /> Desempeño Técnico</h3>
+                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><RadarIcon className="w-4 h-4 -[var(--brand-primary)]" /> Desempeño Técnico</h3>
                                             {lastEval && <span className="text-[8px] font-black text-slate-400">ÚLT. ACTUALIZACIÓN: {new Date(lastEval.fecha).toLocaleDateString()}</span>}
                                         </div>
                                         
@@ -293,7 +293,7 @@ export default function GestionCategoriasEntrenador() {
                                                     <div className="w-px h-8 bg-slate-100"></div>
                                                     <div className="text-center">
                                                         <p className="text-[8px] font-black text-slate-400 uppercase">Evaluador</p>
-                                                        <p className="text-[10px] font-black text-orange-600 uppercase mt-1">PROFE GIBBOR</p>
+                                                        <p className="text-[10px] font-black -[var(--brand-primary)] uppercase mt-1">PROFE GIBBOR</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -310,17 +310,17 @@ export default function GestionCategoriasEntrenador() {
                                     {/* Contacto y Log de Puntos */}
                                     <div className="space-y-6">
                                         <div className="bg-white rounded-[40px] p-8 border border-slate-200 shadow-sm">
-                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Phone className="w-4 h-4 text-orange-500" /> Información de Contacto</h3>
+                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Phone className="w-4 h-4 -[var(--brand-primary)]" /> Información de Contacto</h3>
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-4 group">
-                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors"><Mail className="w-5 h-5" /></div>
+                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:-[rgba(var(--brand-primary-rgb),0.1)] group-hover:-[var(--brand-primary)] transition-colors"><Mail className="w-5 h-5" /></div>
                                                     <div>
                                                         <p className="text-[8px] font-black text-slate-400 uppercase">Acudiente</p>
                                                         <p className="text-sm font-bold text-slate-700">{alumnoDetalle.nombre_acudiente || 'No registrado'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4 group">
-                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors"><Phone className="w-5 h-5" /></div>
+                                                    <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:-[rgba(var(--brand-primary-rgb),0.1)] group-hover:-[var(--brand-primary)] transition-colors"><Phone className="w-5 h-5" /></div>
                                                     <div>
                                                         <p className="text-[8px] font-black text-slate-400 uppercase">Teléfono</p>
                                                         <p className="text-sm font-bold text-slate-700">{alumnoDetalle.telefono_acudiente || 'Sin teléfono'}</p>
@@ -330,7 +330,7 @@ export default function GestionCategoriasEntrenador() {
                                         </div>
 
                                         <div className="bg-white rounded-[40px] p-8 border border-slate-200 shadow-sm">
-                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Trophy className="w-4 h-4 text-orange-500" /> Actividad Reciente</h3>
+                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Trophy className="w-4 h-4 -[var(--brand-primary)]" /> Actividad Reciente</h3>
                                             <div className="space-y-3">
                                                 {puntosLog.map((log, i) => (
                                                     <div key={i} className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
@@ -338,7 +338,7 @@ export default function GestionCategoriasEntrenador() {
                                                             <p className="text-[10px] font-black text-slate-700">{log.motivo}</p>
                                                             <p className="text-[8px] text-slate-400 font-bold uppercase">{new Date(log.fecha).toLocaleDateString()}</p>
                                                         </div>
-                                                        <span className="bg-orange-100 text-orange-600 font-black text-[10px] px-2 py-1 rounded-lg">+{log.puntos}</span>
+                                                        <span className="-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] font-black text-[10px] px-2 py-1 rounded-lg">+{log.puntos}</span>
                                                     </div>
                                                 ))}
                                                 {puntosLog.length === 0 && <p className="text-center text-slate-300 text-[10px] py-4 italic">No hay actividad de puntos aún.</p>}

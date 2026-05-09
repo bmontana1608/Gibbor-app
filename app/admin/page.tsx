@@ -6,15 +6,16 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import LoginForm from '@/components/LoginForm';
+import SaaSManagementView from '@/components/admin/SaaSManagementView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,32 @@ export default function SuperAdminDashboard() {
     color_primario: '#06b6d4',
     correo_director: '',
     password_director: ''
+  });
+
+  // SaaS Governance State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [editFormData, setEditFormData] = useState({
+    nombre: '',
+    correo_administrativo: '',
+    telefono_contacto: '',
+    direccion: '',
+    nombre_legal: '',
+    sync_director_email: false,
+    director_password: '',
+    director_id: ''
+  });
+  const [userFormData, setUserFormData] = useState({
+    newPassword: '',
+    newEmail: ''
+  });
+  const [adminFormData, setAdminFormData] = useState({
+    nombres: '',
+    apellidos: '',
+    email: '',
+    password: ''
   });
 
   // Cargar Usuarios Globales
@@ -97,7 +124,7 @@ export default function SuperAdminDashboard() {
 
     // Cargar Clubes, Métricas y Logs
     const [resClubes, resMetrics, resLogs] = await Promise.all([
-      supabase.from('clubes').select('*').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
+      supabase.from('clubes').select('*, planes_saas(precio_por_jugador)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
       supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50)
     ]);
@@ -194,6 +221,76 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  const handleEditClub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedClub?.id) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/admin/clubes/${selectedClub.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editFormData)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error al actualizar');
+      
+      toast.success('Club actualizado correctamente');
+      setShowEditModal(false);
+      cargarTodo();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManageUser = async (action: 'RESET_PASSWORD' | 'CHANGE_EMAIL') => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/governance/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: selectedUser.id, 
+          action, 
+          payload: userFormData 
+        })
+      });
+      if (!response.ok) throw new Error('Error en la operación');
+      toast.success('Operación exitosa');
+      setShowUserModal(false);
+      setUserFormData({ newPassword: '', newEmail: '' });
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('/api/admin/governance/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'CREATE_ADMIN', 
+          payload: adminFormData 
+        })
+      });
+      if (!response.ok) throw new Error('Error al crear administrador');
+      toast.success('Nuevo SuperAdmin creado');
+      setShowCreateAdminModal(false);
+      setAdminFormData({ nombres: '', apellidos: '', email: '', password: '' });
+      cargarUsuarios();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#050505] text-slate-100 font-sans tracking-tight relative overflow-hidden">
       
@@ -230,7 +327,7 @@ export default function SuperAdminDashboard() {
         <nav className="space-y-2 flex-1">
           <NavItem icon={<Building2 size={18} />} label="Gestión de Clubes" active={vista === 'clubes'} onClick={() => setVista('clubes')} />
           <NavItem icon={<Users size={18} />} label="Usuarios Globales" active={vista === 'usuarios'} onClick={() => setVista('usuarios')} />
-          <NavItem icon={<CreditCard size={18} />} label="Suscripciones" active={vista === 'suscripciones'} onClick={() => setVista('suscripciones')} />
+          <NavItem icon={<CreditCard size={18} />} label="Suscripciones" active={vista === 'saas-billing'} onClick={() => setVista('saas-billing')} />
           <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" active={vista === 'metricas'} onClick={() => setVista('metricas')} />
         </nav>
 
@@ -434,6 +531,20 @@ export default function SuperAdminDashboard() {
                             count={metrics?.alumnosPorClub?.[club.id] || 0}
                             onToggle={toggleEstadoClub} 
                             onAudit={auditClub}
+                            onEdit={(c: any) => {
+                              setSelectedClub(c);
+                              setEditFormData({
+                                nombre: c.nombre,
+                                correo_administrativo: c.correo_administrativo || '',
+                                telefono_contacto: c.telefono_contacto || '',
+                                direccion: c.direccion || '',
+                                nombre_legal: c.nombre_legal || '',
+                                sync_director_email: false,
+                                director_password: '',
+                                director_id: '' 
+                              });
+                              setShowEditModal(true);
+                            }}
                             onDelete={eliminarClub}
                           />
                         ))}
@@ -453,6 +564,12 @@ export default function SuperAdminDashboard() {
                     <h2 className="text-3xl font-black uppercase italic tracking-tighter">Miembros por <span className="text-cyan-500">Club Conectado</span></h2>
                     <p className="text-slate-500 text-sm font-medium">Distribución global de la población deportiva en la red MCM.</p>
                   </div>
+                  <button 
+                    onClick={() => setShowCreateAdminModal(true)}
+                    className="bg-yellow-600 hover:bg-yellow-500 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-xl text-[10px] uppercase tracking-widest"
+                  >
+                    <ShieldCheck size={16} /> Crear SuperAdmin
+                  </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -487,7 +604,17 @@ export default function SuperAdminDashboard() {
                                             <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">{u.rol}</p>
                                         </div>
                                     </div>
-                                    <Check className="text-emerald-500/20" size={12} />
+                                    <button 
+                                      onClick={() => {
+                                        setSelectedUser(u);
+                                        setUserFormData({ newPassword: '', newEmail: u.email_contacto || '' });
+                                        setShowUserModal(true);
+                                      }}
+                                      className="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg hover:bg-white/5 transition-colors"
+                                      title="Gestionar Credenciales"
+                                    >
+                                      <Lock size={12} />
+                                    </button>
                                 </div>
                               ))}
                               {miembrosClub.length > 3 && (
@@ -510,69 +637,8 @@ export default function SuperAdminDashboard() {
           </section>
         )}
 
-        {vista === 'suscripciones' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-             {/* Resumen Financiero */}
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Cartera Total Mes</p>
-                   <h3 className="text-3xl font-black text-emerald-400 italic tracking-tighter">
-                      ${metrics?.proyeccionIngresosSaaS.toLocaleString('es-CO')}
-                   </h3>
-                </div>
-                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Clubes Activos</p>
-                   <h3 className="text-3xl font-black text-cyan-500 italic tracking-tighter">
-                      {metrics?.clubesActivos}
-                   </h3>
-                </div>
-                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 p-8 rounded-[2.5rem]">
-                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Próximo Ciclo</p>
-                   <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">
-                      1 {new Date(new Date().setMonth(new Date().getMonth() + 1)).toLocaleString('es-CO', { month: 'long' })}
-                   </h3>
-                </div>
-             </div>
-
-             {/* Detalle de Cobros */}
-             <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-[3rem] p-10 shadow-2xl">
-                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter mb-8 flex items-center gap-2">
-                   <CreditCard className="text-emerald-500" size={20} /> Gestión de Cobros por Academia
-                </h2>
-                <div className="overflow-x-auto">
-                   <table className="w-full text-left">
-                      <thead>
-                         <tr className="border-b border-white/5">
-                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Club Nodo</th>
-                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center px-4">Alumnos</th>
-                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Canon Mensual</th>
-                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4">Estado</th>
-                            <th className="pb-6 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right px-4">Acción</th>
-                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                         {clubes.map((club) => {
-                           const alumnos = metrics?.alumnosPorClub?.[club.id] || 0;
-                           const cobro = alumnos * 2000;
-                           return (
-                             <tr key={club.id} className="group hover:bg-white/[0.02] transition-all">
-                                <td className="py-6 px-4 font-black text-sm text-white uppercase italic">{club.nombre}</td>
-                                <td className="py-6 px-4 text-center text-white font-bold">{alumnos}</td>
-                                <td className="py-6 px-4 text-emerald-400 font-black italic">${cobro.toLocaleString('es-CO')}</td>
-                                <td className="py-6 px-4 text-xs font-black">
-                                   <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-lg">Al Día</span>
-                                </td>
-                                <td className="py-6 px-4 text-right">
-                                   <button className="text-[10px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-emerald-600 transition-all">Generar Recibo</button>
-                                </td>
-                             </tr>
-                           )
-                         })}
-                      </tbody>
-                   </table>
-                </div>
-             </div>
-          </div>
+        {vista === 'saas-billing' && (
+          <SaaSManagementView />
         )}
 
         {vista === 'configuracion' && (
@@ -659,6 +725,27 @@ export default function SuperAdminDashboard() {
                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categorías</p>
                          <p className="text-3xl font-black text-white italic tracking-tighter">{clubAudit.stats?.categorias || 0}</p>
                       </div>
+                   </div>
+                   
+                   <div className="pt-6 border-t border-white/5">
+                      <button 
+                        onClick={() => {
+                          setEditFormData({
+                            nombre: selectedClub.nombre,
+                            correo_administrativo: selectedClub.correo_administrativo || '',
+                            telefono_contacto: selectedClub.telefono_contacto || '',
+                            direccion: selectedClub.direccion || '',
+                            nombre_legal: selectedClub.nombre_legal || '',
+                            sync_director_email: false,
+                            director_password: '',
+                            director_id: '' 
+                          });
+                          setShowEditModal(true);
+                        }}
+                        className="w-full bg-cyan-600 text-white font-black uppercase tracking-tighter italic py-4 rounded-2xl shadow-2xl shadow-cyan-900/20"
+                      >
+                        Editar Datos Sensibles
+                      </button>
                    </div>
 
                    {/* Actividad Reciente */}
@@ -757,6 +844,191 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* MODAL EDICIÓN CLUB (SaaS Governance) */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 w-full max-w-xl rounded-[2.5rem] p-10 shadow-3xl">
+            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-8 border-b border-white/5 pb-4">Gobernanza de <span className="text-cyan-500">Privacidad</span></h2>
+            <form onSubmit={handleEditClub} className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Nombre Comercial</label>
+                  <input 
+                    type="text" 
+                    value={editFormData.nombre}
+                    onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})}
+                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Nombre Legal / Razón Social</label>
+                  <input 
+                    type="text" 
+                    value={editFormData.nombre_legal}
+                    onChange={(e) => setEditFormData({...editFormData, nombre_legal: e.target.value})}
+                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Correo Administrativo</label>
+                  <input 
+                    type="email" 
+                    value={editFormData.correo_administrativo}
+                    onChange={(e) => setEditFormData({...editFormData, correo_administrativo: e.target.value})}
+                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Teléfono de Contacto</label>
+                  <input 
+                    type="text" 
+                    value={editFormData.telefono_contacto}
+                    onChange={(e) => setEditFormData({...editFormData, telefono_contacto: e.target.value})}
+                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Dirección Física</label>
+                <input 
+                  type="text" 
+                  value={editFormData.direccion}
+                  onChange={(e) => setEditFormData({...editFormData, direccion: e.target.value})}
+                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
+                />
+              </div>
+              
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-yellow-500 uppercase">Sincronizar Acceso</p>
+                  <p className="text-[10px] text-yellow-500/60 font-black uppercase">¿Actualizar el email de login del Director?</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setEditFormData({...editFormData, sync_director_email: !editFormData.sync_director_email})}
+                  className={`w-12 h-6 rounded-full transition-colors relative ${editFormData.sync_director_email ? 'bg-yellow-500' : 'bg-zinc-800 border border-white/5'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editFormData.sync_director_email ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
+
+              {editFormData.sync_director_email && (
+                <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+                  <label className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 block">Nueva Contraseña del Director (Opcional)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Dejar en blanco para no cambiar clave"
+                    value={editFormData.director_password}
+                    onChange={(e) => setEditFormData({...editFormData, director_password: e.target.value})}
+                    className="w-full bg-zinc-950 border border-red-500/20 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none placeholder:text-red-500/30"
+                  />
+                  <p className="text-[8px] text-red-500/60 font-bold uppercase tracking-widest mt-2 flex items-center gap-1">
+                    <AlertTriangle size={8} /> Se actualizará tanto el email como la clave si los proporcionas.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={loading} className="flex-[2] py-4 text-[10px] font-black uppercase tracking-widest text-white bg-cyan-600 rounded-xl shadow-xl shadow-cyan-900/40">Guardar Cambios Maestros</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL GESTIÓN CREDENCIALES (Service Role Power) */}
+      {showUserModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-3xl">
+            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white mb-2">Seguridad <span className="text-red-500">MCM</span></h2>
+            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-8">Gestionando credenciales de: {selectedUser?.nombres}</p>
+            
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Cambiar Email de Acceso</h4>
+                <div className="flex gap-2">
+                  <input 
+                    type="email" 
+                    placeholder="Nuevo correo" 
+                    value={userFormData.newEmail}
+                    onChange={(e) => setUserFormData({...userFormData, newEmail: e.target.value})}
+                    className="flex-1 bg-zinc-950 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-red-500 outline-none"
+                  />
+                  <button onClick={() => handleManageUser('CHANGE_EMAIL')} className="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Actualizar</button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Resetear Contraseña</h4>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="Nueva contraseña temporal" 
+                    value={userFormData.newPassword}
+                    onChange={(e) => setUserFormData({...userFormData, newPassword: e.target.value})}
+                    className="flex-1 bg-zinc-950 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-red-500 outline-none"
+                  />
+                  <button onClick={() => handleManageUser('RESET_PASSWORD')} className="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Resetear</button>
+                </div>
+              </div>
+
+              <button onClick={() => setShowUserModal(false)} className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl mt-4">Cerrar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CREAR SUPER ADMIN */}
+      {showCreateAdminModal && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-3xl">
+            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-2">Nuevo <span className="text-yellow-500">SaaS Master</span></h2>
+            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-8">Este usuario tendrá control TOTAL sobre el ecosistema.</p>
+            
+            <form onSubmit={handleCreateAdmin} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <input 
+                  type="text" 
+                  placeholder="Nombres" 
+                  value={adminFormData.nombres}
+                  onChange={(e) => setAdminFormData({...adminFormData, nombres: e.target.value})}
+                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
+                />
+                <input 
+                  type="text" 
+                  placeholder="Apellidos" 
+                  value={adminFormData.apellidos}
+                  onChange={(e) => setAdminFormData({...adminFormData, apellidos: e.target.value})}
+                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
+                />
+              </div>
+              <input 
+                type="email" 
+                placeholder="Email corporativo" 
+                value={adminFormData.email}
+                onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
+                className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
+              />
+              <input 
+                type="password" 
+                placeholder="Contraseña" 
+                value={adminFormData.password}
+                onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
+                className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
+              />
+              
+              <div className="flex gap-4 pt-4">
+                <button type="button" onClick={() => setShowCreateAdminModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={loading} className="flex-[2] py-4 text-[10px] font-black uppercase tracking-widest text-black bg-yellow-500 rounded-xl font-bold shadow-xl shadow-yellow-900/20">Crear Guardián</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -802,7 +1074,7 @@ function MetricCard({ label, value, icon, sub, color = "cyan" }: any) {
   );
 }
 
-function ClubRow({ club, count, onToggle, onAudit, onDelete }: any) {
+function ClubRow({ club, count, onToggle, onAudit, onEdit, onDelete }: any) {
   const [host, setHost] = useState('');
   
   useEffect(() => {
@@ -815,18 +1087,19 @@ function ClubRow({ club, count, onToggle, onAudit, onDelete }: any) {
     return `https://${host}/${club.slug}/director`;
   };
 
-  const canonMensual = count * 2000;
+  const precioSaaS = club.planes_saas?.precio_por_jugador || 2000;
+  const canonMensual = count * precioSaaS;
 
   return (
     <tr className="group hover:bg-white/[0.02] transition-all">
       <td className="py-6 px-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden shadow-2xl group-hover:border-orange-500/50 transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden shadow-2xl group-hover:-[var(--brand-primary)]/50 transition-colors">
              <img src={club.logo_url} className="w-full h-full object-contain" />
           </div>
           <div>
             <p className="font-black text-sm text-white uppercase italic tracking-tighter">{club.nombre}</p>
-            <a href={getClubUrl()} target="_blank" className="text-[10px] font-bold text-orange-500/50 hover:text-orange-500 transition-colors uppercase tracking-widest flex items-center gap-1">
+            <a href={getClubUrl()} target="_blank" className="text-[10px] font-bold -[var(--brand-primary)]/50 hover:-[var(--brand-primary)] transition-colors uppercase tracking-widest flex items-center gap-1">
               <Globe size={10} /> <span>/{club.slug}</span>
             </a>
           </div>
@@ -866,6 +1139,12 @@ function ClubRow({ club, count, onToggle, onAudit, onDelete }: any) {
             }`}
           >
             {club.estado === 'Activo' ? 'Suspender' : 'Reactivar'}
+          </button>
+          <button 
+            onClick={() => onEdit(club)}
+            className="text-[9px] font-black uppercase tracking-widest text-cyan-400 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl hover:bg-cyan-500 hover:text-white transition-all shadow-xl"
+          >
+            Editar
           </button>
           <button 
             onClick={() => onAudit(club)}

@@ -112,7 +112,7 @@ export default function DetalleCategoria() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800 relative">
       
       {/* 1. CABECERA Y NAVEGACIÓN */}
-      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:text-orange-600 flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
+      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:-[var(--brand-primary)] flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
         <span className="group-hover:-translate-x-1 transition-transform">←</span> Volver a Grupos
       </button>
 
@@ -138,7 +138,7 @@ export default function DetalleCategoria() {
               <span>📋</span> Entrenar
             </button>
             {/* BOTÓN CONECTADO AL MODAL */}
-            <button onClick={abrirEditarGrupo} className="flex-1 md:flex-none bg-orange-600 hover:bg-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
+            <button onClick={abrirEditarGrupo} className="flex-1 md:flex-none -[var(--brand-primary)] hover:-[var(--brand-primary)] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
               <span>✏️</span> Editar Grupo
             </button>
           </div>
@@ -146,13 +146,13 @@ export default function DetalleCategoria() {
 
         {/* MENÚ DE PESTAÑAS */}
         <div className="flex px-6 border-t border-slate-100 bg-slate-50/50 overflow-x-auto custom-scrollbar">
-          <button onClick={() => setPestañaActiva('General')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'General' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button onClick={() => setPestañaActiva('General')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'General' ? '-[var(--brand-primary)] -[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             Vista General
           </button>
-          <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${pestañaActiva === 'Miembros' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${pestañaActiva === 'Miembros' ? '-[var(--brand-primary)] -[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             Miembros <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs">{miembros.length}</span>
           </button>
-          <button onClick={() => setPestañaActiva('Horarios')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'Horarios' ? 'border-orange-500 text-orange-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
+          <button onClick={() => setPestañaActiva('Horarios')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'Horarios' ? '-[var(--brand-primary)] -[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
             Horarios
           </button>
         </div>
@@ -178,13 +178,13 @@ export default function DetalleCategoria() {
 
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
               <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4">
-                <span className="text-orange-500">👨‍🏫</span> Entrenadores Asignados
+                <span className="-[var(--brand-primary)]">👨‍🏫</span> Entrenadores Asignados
               </h3>
               {categoria.entrenadores ? (
                 <div className="flex flex-col gap-3">
                   {categoria.entrenadores.split(', ').map((ent: string, i: number) => (
                     <div key={i} className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold">{ent.charAt(0).toUpperCase()}</div>
+                      <div className="w-10 h-10 rounded-full -[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] flex items-center justify-center font-bold">{ent.charAt(0).toUpperCase()}</div>
                       <p className="font-bold text-slate-700">{ent}</p>
                     </div>
                   ))}
@@ -218,7 +218,7 @@ export default function DetalleCategoria() {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h3 className="font-bold text-slate-800">Listado de Jugadores ({miembros.length})</h3>
-            <button onClick={() => router.push('/director/miembros/nuevo')} className="text-sm font-bold text-orange-600 hover:text-orange-700">+ Añadir Jugador</button>
+            <button onClick={() => router.push('/director/miembros/nuevo')} className="text-sm font-bold -[var(--brand-primary)] hover:-[var(--brand-primary)]">+ Añadir Jugador</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -242,7 +242,7 @@ export default function DetalleCategoria() {
                         </td>
                         <td className="p-4 text-center"><span className={`px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase border ${esInactivo ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{jugador.estado_miembro || 'Activo'}</span></td>
                         <td className="p-4 text-center"><span className={`px-2 py-1 rounded-[4px] text-[10px] font-bold uppercase border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{esAlDia ? 'Al día' : 'Pendiente'}</span></td>
-                        <td className="p-4 text-right"><button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-xs font-bold text-slate-600 hover:text-orange-600 border border-slate-200 px-3 py-1.5 rounded-lg">Ver Ficha</button></td>
+                        <td className="p-4 text-right"><button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-xs font-bold text-slate-600 hover:-[var(--brand-primary)] border border-slate-200 px-3 py-1.5 rounded-lg">Ver Ficha</button></td>
                       </tr>
                     );
                   })
@@ -260,7 +260,7 @@ export default function DetalleCategoria() {
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wider">
               <span className="text-purple-500">🕒</span> Programación de Entrenamientos
             </h3>
-            <button onClick={abrirEditarGrupo} className="text-sm font-bold text-orange-600 hover:text-orange-700 border border-orange-200 bg-orange-50 px-3 py-1.5 rounded-lg">
+            <button onClick={abrirEditarGrupo} className="text-sm font-bold -[var(--brand-primary)] hover:-[var(--brand-primary)] border -[rgba(var(--brand-primary-rgb),0.4)] -[rgba(var(--brand-primary-rgb),0.1)] px-3 py-1.5 rounded-lg">
               ✏️ Modificar
             </button>
           </div>
@@ -279,10 +279,10 @@ export default function DetalleCategoria() {
                 const dia = partes[0] || 'Día';
                 const horas = partes[1] || '--:--';
                 return (
-                  <div key={index} className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-center hover:border-orange-300 hover:shadow-sm transition-all relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-slate-200 group-hover:bg-orange-400 transition-colors"></div>
+                  <div key={index} className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-center hover:-[rgba(var(--brand-primary-rgb),0.4)] hover:shadow-sm transition-all relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-slate-200 group-hover:-[rgba(var(--brand-primary-rgb),0.4)] transition-colors"></div>
                     <span className="text-xl font-black text-slate-800 mb-2">{dia}</span>
-                    <span className="text-sm font-bold text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-100 shadow-sm">
+                    <span className="text-sm font-bold -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)] px-3 py-1.5 rounded-lg border -[rgba(var(--brand-primary-rgb),0.1)] shadow-sm">
                       {horas}
                     </span>
                   </div>
@@ -308,12 +308,12 @@ export default function DetalleCategoria() {
               <form id="editarGrupoForm" onSubmit={handleGuardarGrupo} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm" /></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" /></div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Deporte *</label>
                     <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white"><option value="Fútbol">Fútbol</option><option value="Futsal">Futsal</option></select>
                   </div>
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm"></textarea></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm"></textarea></div>
                 </div>
 
                 <div className="pt-2">
@@ -323,8 +323,8 @@ export default function DetalleCategoria() {
                       const nombreCompleto = `${ent.nombres} ${ent.apellidos}`;
                       const seleccionado = entrenadoresSeleccionados.includes(nombreCompleto);
                       return (
-                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${seleccionado ? 'bg-orange-50/50' : 'hover:bg-slate-50'}`}>
-                          <input type="checkbox" checked={seleccionado} onChange={() => toggleEntrenador(nombreCompleto)} className="w-4 h-4 text-orange-600 rounded border-slate-300 focus:ring-orange-500" />
+                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${seleccionado ? '-[rgba(var(--brand-primary-rgb),0.1)]/50' : 'hover:bg-slate-50'}`}>
+                          <input type="checkbox" checked={seleccionado} onChange={() => toggleEntrenador(nombreCompleto)} className="w-4 h-4 -[var(--brand-primary)] rounded border-slate-300 focus:-[var(--brand-primary)]" />
                           <span className={`text-sm font-medium ${seleccionado ? 'text-slate-800' : 'text-slate-600'}`}>{nombreCompleto}</span>
                         </label>
                       );
@@ -364,14 +364,14 @@ export default function DetalleCategoria() {
                       </div>
                     ))}
                   </div>
-                  <button type="button" onClick={() => setHorariosDinámicos(prev => [...prev, { dia: 'Lunes', inicio: '18:00', fin: '19:30' }])} className="text-sm font-bold text-orange-600 flex items-center gap-1 hover:text-orange-700"><span>+</span> Agregar horario</button>
+                  <button type="button" onClick={() => setHorariosDinámicos(prev => [...prev, { dia: 'Lunes', inicio: '18:00', fin: '19:30' }])} className="text-sm font-bold -[var(--brand-primary)] flex items-center gap-1 hover:-[var(--brand-primary)]"><span>+</span> Agregar horario</button>
                 </div>
               </form>
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-white flex justify-center gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
               <button type="button" onClick={() => setMostrarModal(false)} className="flex-1 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
-              <button type="submit" form="editarGrupoForm" disabled={guardando} className="flex-1 py-3 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-500 shadow-sm disabled:opacity-50">
+              <button type="submit" form="editarGrupoForm" disabled={guardando} className="flex-1 py-3 -[var(--brand-primary)] text-white rounded-xl text-sm font-bold hover:-[var(--brand-primary)] shadow-sm disabled:opacity-50">
                 {guardando ? 'Guardando...' : 'Actualizar Grupo'}
               </button>
             </div>

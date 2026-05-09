@@ -267,7 +267,7 @@ export default function HistorialChats() {
                               msg.tipo_mensaje === 'Recibo' 
                                 ? 'bg-blue-100 text-blue-600' 
                                 : msg.tipo_mensaje === 'Cobranza'
-                                ? 'bg-orange-100 text-orange-600'
+                                ? '-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)]'
                                 : 'bg-slate-100 text-slate-500'
                             }`}>
                               {getIconoTipo(msg.tipo_mensaje)}

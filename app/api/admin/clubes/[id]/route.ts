@@ -9,9 +9,9 @@ const supabaseAdmin = createClient(
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: any
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
 
   try {
     // 1. Datos básicos del club
@@ -72,9 +72,9 @@ export async function GET(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: any
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
 
   try {
     // 1. Obtener datos antes del cambio
@@ -107,5 +107,84 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Club dado de baja correctamente' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  context: any
+) {
+  const { id } = await context.params;
+  try {
+    const { 
+      nombre, 
+      correo_administrativo, 
+      telefono_contacto, 
+      direccion, 
+      nombre_legal,
+      sync_director_email,
+      director_id 
+    } = await request.json();
+
+    // 1. Actualizar datos del club
+    const { error: updateError } = await supabaseAdmin
+      .from('clubes')
+      .update({
+        nombre,
+        correo_administrativo,
+        telefono_contacto,
+        direccion,
+        nombre_legal,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
+
+    if (sync_director_email && correo_administrativo) {
+      // Buscar el ID del director si no viene (es el perfil con rol Director vinculado a este club)
+      let targetUserId = director_id;
+      if (!targetUserId) {
+        const { data: directorPerfil } = await supabaseAdmin
+          .from('perfiles')
+          .select('id')
+          .eq('club_id', id)
+          .eq('rol', 'Director')
+          .single();
+        targetUserId = directorPerfil?.id;
+      }
+
+      if (targetUserId) {
+        const updateData: any = { email: correo_administrativo };
+        if (director_password) updateData.password = director_password;
+        
+        const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
+          targetUserId,
+          updateData
+        );
+        if (authError) console.error("Error syncing director auth:", authError.message);
+      }
+    }
+
+    // 3. Registrar acción en logs_admin (Audit Trail Maestro)
+    const { data: { user } } = await supabaseAdmin.auth.getUser();
+    if (user) {
+      await supabaseAdmin.from('logs_admin').insert({
+        admin_id: user.id,
+        accion: 'EDIT_CLUB',
+        entidad_tipo: 'clubes',
+        entidad_id: id,
+        detalles: { 
+          nombre, 
+          correo: correo_administrativo, 
+          sync_email: sync_director_email 
+        }
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("CRITICAL API ERROR [PATCH CLUB]:", error);
+    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500 });
   }
 }

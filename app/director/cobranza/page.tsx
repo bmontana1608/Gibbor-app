@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw } from 'lucide-react';
@@ -10,6 +10,7 @@ import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
 export default function ModuloCobranza() {
   const router = useRouter();
+  const pathname = usePathname();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const eliminarPagoHistorial = async (id: string, consecutivo: number) => {
@@ -196,13 +197,25 @@ export default function ModuloCobranza() {
     setCargando(true);
     
     // 1. Obtener Tenant primero
-    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
-    const tenantData = await tenantRes.json();
+    let tenantData;
+    try {
+      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      if (tenantRes.ok) {
+        tenantData = await tenantRes.json();
+      } else {
+        throw new Error("No se pudo obtener el tenant");
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error("Error de conexión con el club");
+      return;
+    }
     setTenant(tenantData);
 
     const { data, error } = await supabase
       .from('perfiles')
       .select('*')
+      .eq('club_id', tenantData.id)
       .not('rol', 'in', '("Director","Entrenador")')
       .neq('estado_miembro', 'Pendiente')
       .order('nombres', { ascending: true });
@@ -214,7 +227,7 @@ export default function ModuloCobranza() {
       setJugadores(data);
     }
     
-    const { data: planesData } = await supabase.from('planes').select('*');
+    const { data: planesData } = await supabase.from('planes').select('*').eq('club_id', tenantData.id);
     if (planesData) setPlanes(planesData);
 
     const { data: histData } = await supabase
@@ -233,6 +246,7 @@ export default function ModuloCobranza() {
     const { data: msgData } = await supabase
       .from('mensajes_wa')
       .select('destinatario_numero, created_at')
+      .eq('club_id', tenantData.id)
       .eq('tipo_mensaje', 'Recibo')
       .gte('created_at', inicioMes);
 
@@ -274,7 +288,7 @@ export default function ModuloCobranza() {
 
   useEffect(() => {
     cargarDatos();
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     const diaHoy = new Date().getDate();
@@ -966,20 +980,20 @@ export default function ModuloCobranza() {
 
         {/* Banner de Asistente Inteligente */}
         {automatedTasks.length > 0 && isBannerVisible && (
-          <div className="mb-6 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-1 shadow-lg shadow-orange-100 overflow-hidden relative group">
+          <div className="mb-6 bg-gradient-to-r -[var(--brand-primary)] -[var(--brand-primary)] rounded-2xl p-1 shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)] overflow-hidden relative group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Sparkles className="w-24 h-24 text-white" />
             </div>
             <div className="bg-white/95 backdrop-blur-sm rounded-[14px] p-5 flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center animate-pulse">
+                <div className="w-12 h-12 -[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] rounded-xl flex items-center justify-center animate-pulse">
                   <Bot className="w-7 h-7" />
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                    Asistente Gibbor <span className="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
+                    Asistente Gibbor <span className="text-[10px] -[var(--brand-primary)] text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
                   </h3>
-                  <p className="text-sm text-slate-500">He detectado <span className="font-bold text-orange-600">{automatedTasks.length} cobros programados</span> para hoy que no han sido notificados.</p>
+                  <p className="text-sm text-slate-500">He detectado <span className="font-bold -[var(--brand-primary)]">{automatedTasks.length} cobros programados</span> para hoy que no han sido notificados.</p>
                 </div>
               </div>
               
@@ -993,7 +1007,7 @@ export default function ModuloCobranza() {
                 <button 
                   onClick={handleSendBatch}
                   disabled={isSendingBatch}
-                  className="flex-1 md:flex-none bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 text-white px-6 py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                  className="flex-1 md:flex-none -[var(--brand-primary)] hover:-[var(--brand-primary)] disabled:bg-slate-200 text-white px-6 py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
                 >
                   {isSendingBatch ? (
                     <>
@@ -1010,9 +1024,9 @@ export default function ModuloCobranza() {
               </div>
             </div>
             {isSendingBatch && (
-              <div className="h-1 bg-orange-200 w-full overflow-hidden">
+              <div className="h-1 -[rgba(var(--brand-primary-rgb),0.4)] w-full overflow-hidden">
                 <div 
-                  className="h-full bg-orange-500 transition-all duration-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" 
+                  className="h-full -[var(--brand-primary)] transition-all duration-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]" 
                   style={{ width: `${(batchProgress / automatedTasks.length) * 100}%` }}
                 />
               </div>
@@ -1054,15 +1068,15 @@ export default function ModuloCobranza() {
           </div>
         </div>
 
-        <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl mt-6 text-white shadow-xl border-l-4 border-orange-500 relative overflow-hidden">
+        <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl mt-6 text-white shadow-xl border-l-4 -[var(--brand-primary)] relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-5"><ShieldCheck className="w-16 h-16" /></div>
           <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-0.5">Herramientas de Control</h4>
+            <h4 className="text-[10px] font-black uppercase tracking-widest -[var(--brand-primary)] mb-0.5">Herramientas de Control</h4>
             <p className="text-[10px] text-slate-400 font-bold italic">Borrón y cuenta nueva para la deuda histórica</p>
           </div>
           <button 
             onClick={reiniciarDeudaGlobal}
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg relative z-10"
+            className="px-4 py-2 -[var(--brand-primary)] hover:-[var(--brand-primary)] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg relative z-10"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Reiniciar Deuda
           </button>
@@ -1083,7 +1097,7 @@ export default function ModuloCobranza() {
               ${utilidadNeta.toLocaleString('es-CO')}
             </h3>
           </div>
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 -[var(--brand-primary)]">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
             <h3 className="text-2xl font-black text-slate-800">${ingresosPendientes.toLocaleString('es-CO')}</h3>
           </div>
@@ -1175,7 +1189,7 @@ export default function ModuloCobranza() {
                                     </span>
                                   )}
                                   {(jugador.tipo_plan || '').toLowerCase().includes('50') && (
-                                    <span className="text-[9px] font-black text-orange-500 uppercase tracking-tighter">Beneficio Beca 50%</span>
+                                    <span className="text-[9px] font-black -[var(--brand-primary)] uppercase tracking-tighter">Beneficio Beca 50%</span>
                                   )}
                                 </div>
                               )}
@@ -1198,7 +1212,7 @@ export default function ModuloCobranza() {
                                     <button 
                                       onClick={() => cobrarManual(jugador)}
                                       disabled={loadingBot !== null}
-                                      className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold"
+                                      className="-[var(--brand-primary)] hover:-[var(--brand-primary)] disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold"
                                       title="Generar recibo y compartir manualmente por WhatsApp"
                                     >
                                       {loadingBot === `manual-${jugador.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
@@ -1226,7 +1240,7 @@ export default function ModuloCobranza() {
                                   <select 
                                     defaultValue={jugador.dia_pago || 1}
                                     onChange={(e) => actualizarDiaPago(jugador.id, parseInt(e.target.value))}
-                                    className="text-[10px] font-bold bg-slate-50 border-none rounded px-1.5 py-0.5 text-orange-600 focus:ring-0 cursor-pointer hover:bg-orange-50 transition-colors"
+                                    className="text-[10px] font-bold bg-slate-50 border-none rounded px-1.5 py-0.5 -[var(--brand-primary)] focus:ring-0 cursor-pointer hover:-[rgba(var(--brand-primary-rgb),0.1)] transition-colors"
                                   >
                                     {[...Array(30)].map((_, i) => (
                                       <option key={i+1} value={i+1}>{i+1}</option>
@@ -1433,7 +1447,7 @@ export default function ModuloCobranza() {
                 <p className="font-black text-slate-800 text-sm">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-3 text-orange-500"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
+                <div className="flex items-center gap-2 mb-3 -[var(--brand-primary)]"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
                 <p className="text-sm font-bold text-slate-800">${calcularTarifa(jugadorSeleccionado.tipo_plan).toLocaleString('es-CO')}</p>
               </div>
             </div>

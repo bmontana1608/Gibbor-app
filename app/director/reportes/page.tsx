@@ -19,6 +19,8 @@ export default function ModuloReportes() {
   const [planes, setPlanes] = useState<any[]>([]);
   const [asistencias, setAsistencias] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
+  const [tenant, setTenant] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   
   // Pestaña activa
   const [pestañaActiva, setPestañaActiva] = useState<'Resumen' | 'Asistencia' | 'Financiero' | 'Miembros'>('Resumen');
@@ -28,47 +30,90 @@ export default function ModuloReportes() {
   const [filtroGrupo, setFiltroGrupo] = useState('Todos los grupos');
   const [busquedaMiembro, setBusquedaMiembro] = useState('');
 
-  const cargarDatos = async () => {
+  useEffect(() => {
+    async function init() {
+      setCargando(true);
+      
+      // 1. Obtener Tenant
+      const resTenant = await fetch('/api/tenant');
+      const tenantData = await resTenant.json();
+      setTenant(tenantData);
+
+      // 2. Obtener Sesión y Perfil
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
+      setUserProfile(perfil);
+
+      // 3. SEGURIDAD
+      if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
+        toast.error("No tienes permiso para acceder a este club.");
+        if (perfil?.club_id) {
+          const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
+          if (c) router.push(`/${c.slug}/director`);
+        } else {
+          router.push('/login');
+        }
+        return;
+      }
+
+      // 4. Cargar datos filtrados
+      if (tenantData.id) {
+        cargarDatos(tenantData.id);
+      }
+    }
+    init();
+  }, []);
+
+  const cargarDatos = async (clubId: string) => {
     setCargando(true);
     
-    // 1. Jugadores
+    // 1. Jugadores (FILTRADO)
     const { data: jugData } = await supabase.from('perfiles')
       .select('*')
+      .eq('club_id', clubId)
       .eq('rol', 'Futbolista')
       .neq('estado_miembro', 'Pendiente')
       .order('nombres', { ascending: true });
     if (jugData) setJugadores(jugData);
 
-    // 2. Categorías
-    const { data: catData } = await supabase.from('categorias').select('*');
+    // 2. Categorías (FILTRADO)
+    const { data: catData } = await supabase.from('categorias')
+      .select('*')
+      .eq('club_id', clubId);
     if (catData) setCategorias(catData);
 
-    // 3. Planes
-    const { data: planesData } = await supabase.from('planes').select('*');
+    // 3. Planes (FILTRADO)
+    const { data: planesData } = await supabase.from('planes')
+      .select('*')
+      .eq('club_id', clubId);
     if (planesData) setPlanes(planesData);
 
-    // 4. Asistencias
-    const { data: asisData } = await supabase.from('asistencias').select('*');
+    // 4. Asistencias (FILTRADO)
+    const { data: asisData } = await supabase.from('asistencias')
+      .select('*')
+      .eq('club_id', clubId);
     if (asisData) setAsistencias(asisData);
 
-    // 5. Pagos Reales (mes actual)
+    // 5. Pagos Reales (FILTRADO)
     const primerDiaMes = new Date();
     primerDiaMes.setDate(1);
     const { data: pagosData } = await supabase.from('pagos_ingresos')
       .select('*')
+      .eq('club_id', clubId)
       .gte('fecha', primerDiaMes.toISOString());
     if (pagosData) setPagos(pagosData);
 
     setCargando(false);
   };
 
-  useEffect(() => {
-    cargarDatos();
-  }, []);
-
   const actualizarDatos = async () => {
     const toastId = toast.loading("Actualizando métricas...");
-    await cargarDatos();
+    if (tenant?.id) await cargarDatos(tenant.id);
     toast.success("Métricas actualizadas", { id: toastId });
   };
 
@@ -135,30 +180,39 @@ export default function ModuloReportes() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a'); 
     link.href = url; 
-    link.setAttribute('download', `Reporte_Gibbor_${pestañaActiva}.csv`);
+    link.setAttribute('download', `Reporte_${tenant?.config?.nombre || 'Club'}_${pestañaActiva}.csv`);
     document.body.appendChild(link); 
     link.click(); 
     document.body.removeChild(link);
     toast.success("Reporte descargado correctamente");
   };
 
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando métricas...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 relative transition-colors">
       
       {/* CABECERA */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <BarChart className="w-6 h-6 text-orange-500" /> Reportes y Análisis
+          <BarChart className="w-6 h-6 -[var(--brand-primary)]" /> Reportes y Análisis
         </h1>
         
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="flex gap-4 w-full md:w-auto">
-            <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:ring-orange-500">
+            <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:-[var(--brand-primary)]">
               <option>Últimos 7 días</option>
               <option>Últimos 30 días</option>
               <option>Este año</option>
             </select>
-            <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:ring-orange-500">
+            <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:-[var(--brand-primary)]">
               <option>Todos los grupos</option>
               {categorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
             </select>
@@ -172,16 +226,16 @@ export default function ModuloReportes() {
 
       {/* PESTAÑAS DE NAVEGACIÓN */}
       <div className="bg-white rounded-t-2xl border-b border-slate-200 flex overflow-x-auto custom-scrollbar">
-        <button onClick={() => setPestañaActiva('Resumen')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Resumen' ? 'border-orange-500 text-orange-600 bg-orange-50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Resumen')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Resumen' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <PieChart className="w-4 h-4" /> Resumen
         </button>
-        <button onClick={() => setPestañaActiva('Asistencia')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Asistencia' ? 'border-orange-500 text-orange-600 bg-orange-50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Asistencia')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Asistencia' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <ClipboardCheck className="w-4 h-4" /> Asistencia
         </button>
-        <button onClick={() => setPestañaActiva('Financiero')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Financiero' ? 'border-orange-500 text-orange-600 bg-orange-50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Financiero')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Financiero' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <DollarSign className="w-4 h-4" /> Financiero
         </button>
-        <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Miembros' ? 'border-orange-500 text-orange-600 bg-orange-50/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Miembros' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <Users className="w-4 h-4" /> Miembros
         </button>
       </div>
@@ -197,7 +251,7 @@ export default function ModuloReportes() {
             {pestañaActiva === 'Financiero' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Reporte Financiero</>}
             {pestañaActiva === 'Miembros' && <><Users className="w-5 h-5 text-blue-500" /> Reporte de Miembros</>}
           </h2>
-          <button onClick={exportarCSV} className="bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
+          <button onClick={exportarCSV} className="-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] border -[rgba(var(--brand-primary-rgb),0.4)] hover:-[rgba(var(--brand-primary-rgb),0.1)] px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
             <Download className="w-4 h-4" /> Exportar a Excel
           </button>
         </div>
@@ -249,7 +303,7 @@ export default function ModuloReportes() {
 
                 {/* Grupos con Mejor Asistencia */}
                 <div className="space-y-4 border-l border-slate-100 pl-8">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Target className="w-4 h-4 text-orange-500" /> Grupos con Mejor Asistencia</h3>
+                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Target className="w-4 h-4 -[var(--brand-primary)]" /> Grupos con Mejor Asistencia</h3>
                   <div className="space-y-3">
                     {categorias.length === 0 ? <p className="text-sm text-slate-400 italic">No hay grupos.</p> : categorias.map(cat => (
                       <div key={cat.id} className="flex justify-between items-center p-2 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
@@ -349,7 +403,7 @@ export default function ModuloReportes() {
                     placeholder="Buscar métricas de un miembro por nombre o apellido..." 
                     value={busquedaMiembro}
                     onChange={(e) => setBusquedaMiembro(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl outline-none text-sm focus:ring-2 focus:ring-orange-500 shadow-sm" 
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl outline-none text-sm focus:ring-2 focus:-[var(--brand-primary)] shadow-sm" 
                   />
                 </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   UserCheck, BarChart2, TrendingUp, Plus, RefreshCw, 
@@ -10,8 +11,11 @@ import {
 import { toast } from 'sonner';
 
 export default function ReporteAsistenciaDirector() {
+  const router = useRouter();
   const [asistencias, setAsistencias] = useState<any[]>([]);
   const [sesionesAgrupadas, setSesionesAgrupadas] = useState<any[]>([]);
+  const [tenant, setTenant] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   
   // Filtros
@@ -19,10 +23,49 @@ export default function ReporteAsistenciaDirector() {
   const [busqueda, setBusqueda] = useState('');
   const [sesionSeleccionada, setSesionSeleccionada] = useState<any | null>(null);
 
-  async function cargarDatosBD() {
+  useEffect(() => {
+    async function init() {
+      setCargando(true);
+      
+      // 1. Obtener Tenant
+      const resTenant = await fetch('/api/tenant');
+      const tenantData = await resTenant.json();
+      setTenant(tenantData);
+
+      // 2. Obtener Sesión y Perfil
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
+      setUserProfile(perfil);
+
+      // 3. SEGURIDAD
+      if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
+        toast.error("No tienes permiso para acceder a este club.");
+        if (perfil?.club_id) {
+          const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
+          if (c) router.push(`/${c.slug}/director`);
+        } else {
+          router.push('/login');
+        }
+        return;
+      }
+
+      // 4. Cargar datos filtrados
+      if (tenantData.id) {
+        cargarDatosBD(tenantData.id);
+      }
+    }
+    init();
+  }, []);
+
+  async function cargarDatosBD(clubId: string) {
     setCargando(true);
     
-    // Traer el historial real de asistencias
+    // Traer el historial real de asistencias (FILTRADO POR CLUB)
     const { data: dataAsistencias, error } = await supabase
       .from('asistencias')
       .select(`
@@ -35,6 +78,7 @@ export default function ReporteAsistenciaDirector() {
         jugador_id,
         perfiles (nombres, apellidos, foto_url)
       `)
+      .eq('club_id', clubId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -77,9 +121,9 @@ export default function ReporteAsistenciaDirector() {
     setSesionesAgrupadas(Object.values(grupos));
   };
 
-  useEffect(() => {
-    cargarDatosBD();
-  }, []);
+  const handleRefresh = () => {
+    if (tenant?.id) cargarDatosBD(tenant.id);
+  };
 
   // KPIs
   const totales = {
@@ -104,12 +148,12 @@ export default function ReporteAsistenciaDirector() {
       <div className="max-w-7xl mx-auto mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
-             <BarChart2 className="w-9 h-9 text-orange-500" /> Analítica de Asistencia
+             <BarChart2 className="w-9 h-9 -[var(--brand-primary)]" /> Analítica de Asistencia
           </h1>
           <p className="text-slate-500 text-sm font-medium mt-1">Supervisión en tiempo real del quórum de la academia.</p>
         </div>
         <div className="flex items-center gap-3">
-           <button onClick={cargarDatosBD} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl text-slate-500 hover:text-orange-500 transition-all shadow-sm">
+            <button onClick={handleRefresh} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl text-slate-500 hover:-[var(--brand-primary)] transition-all shadow-sm">
              <RefreshCw className={`w-5 h-5 ${cargando ? 'animate-spin' : ''}`} />
            </button>
         </div>
@@ -120,9 +164,9 @@ export default function ReporteAsistenciaDirector() {
         {/* DASHBOARD DE KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
-              <div className="absolute -right-4 -top-4 w-20 h-20 bg-orange-500/5 rounded-full" />
+              <div className="absolute -right-4 -top-4 w-20 h-20 -[var(--brand-primary)]/5 rounded-full" />
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tasa de Asistencia</p>
-              <h3 className="text-3xl font-black text-orange-500">{totales.tasa}%</h3>
+              <h3 className="text-3xl font-black -[var(--brand-primary)]">{totales.tasa}%</h3>
               <p className="text-[10px] text-slate-400 mt-1 font-bold">PROMEDIO GLOBAL</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -151,7 +195,7 @@ export default function ReporteAsistenciaDirector() {
                 placeholder="Buscar por grupo o entrenador..." 
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:-[var(--brand-primary)] transition-all"
               />
            </div>
            <div className="flex gap-2 w-full md:w-auto">
@@ -160,7 +204,7 @@ export default function ReporteAsistenciaDirector() {
                 <select 
                   value={grupoFiltro}
                   onChange={(e) => setGrupoFiltro(e.target.value)}
-                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:ring-orange-500 appearance-none cursor-pointer"
+                  className="w-full pl-11 pr-10 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none focus:ring-2 focus:-[var(--brand-primary)] appearance-none cursor-pointer"
                 >
                   {gruposUnicos.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
@@ -186,17 +230,17 @@ export default function ReporteAsistenciaDirector() {
                return (
                  <div 
                    key={sesion.id}
-                   className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:border-orange-500 transition-all flex flex-col group relative overflow-hidden"
+                   className="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-2xl hover:-[var(--brand-primary)] transition-all flex flex-col group relative overflow-hidden"
                  >
                     {/* Badge de Tasa de Asistencia */}
                     <div className="absolute top-6 right-6">
-                       <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-xs ${parseInt(tasa) > 80 ? 'border-emerald-500 text-emerald-500' : 'border-orange-500 text-orange-500'}`}>
+                       <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-xs ${parseInt(tasa) > 80 ? 'border-emerald-500 text-emerald-500' : '-[var(--brand-primary)] -[var(--brand-primary)]'}`}>
                           {tasa}%
                        </div>
                     </div>
 
                     <div className="mb-6">
-                       <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-1 italic">{sesion.fecha}</p>
+                       <p className="text-[10px] font-black -[var(--brand-primary)] uppercase tracking-widest mb-1 italic">{sesion.fecha}</p>
                        <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-none">{sesion.grupo}</h4>
                     </div>
 
@@ -218,7 +262,7 @@ export default function ReporteAsistenciaDirector() {
                        </div>
                        <button 
                          onClick={() => setSesionSeleccionada(sesion)}
-                         className="p-3 bg-slate-900 dark:bg-orange-600 text-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
+                         className="p-3 bg-slate-900 dark:-[var(--brand-primary)] text-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
                        >
                          <ChevronRight className="w-5 h-5" />
                        </button>
@@ -237,11 +281,11 @@ export default function ReporteAsistenciaDirector() {
               <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                  <div>
                     <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Detalle de Sesión</h3>
-                    <p className="text-orange-500 text-[10px] font-black uppercase tracking-widest mt-2">{sesionSeleccionada.grupo} • {sesionSeleccionada.fecha}</p>
+                    <p className="-[var(--brand-primary)] text-[10px] font-black uppercase tracking-widest mt-2">{sesionSeleccionada.grupo} • {sesionSeleccionada.fecha}</p>
                  </div>
                  <button 
                    onClick={() => setSesionSeleccionada(null)}
-                   className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-orange-500 transition-all"
+                   className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:-[var(--brand-primary)] transition-all"
                  >
                    <XCircle className="w-6 h-6" />
                  </button>

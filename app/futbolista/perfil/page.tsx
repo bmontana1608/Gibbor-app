@@ -32,7 +32,7 @@ export default function PerfilFutbolista() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="flex items-center gap-4 mb-2">
-        <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+        <div className="w-12 h-12 -[var(--brand-primary)] rounded-2xl flex items-center justify-center shadow-lg -[var(--brand-primary)]/20">
           <ShieldCheck className="text-white w-6 h-6" />
         </div>
         <div>
@@ -58,7 +58,7 @@ export default function PerfilFutbolista() {
                     type={showPass ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-700 transition-all"
+                    className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-slate-700 transition-all"
                     placeholder="Min. 6 caracteres"
                   />
                   <button 
@@ -79,7 +79,7 @@ export default function PerfilFutbolista() {
                     type={showPass ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-slate-700 transition-all"
+                    className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-slate-700 transition-all"
                     placeholder="Repite tu nueva clave"
                   />
                 </div>
@@ -90,7 +90,7 @@ export default function PerfilFutbolista() {
             <button 
               type="submit"
               disabled={cargando}
-              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-orange-500/20 transition-all flex items-center justify-center gap-3"
+              className="w-full -[var(--brand-primary)] hover:-[var(--brand-primary)] disabled:bg-slate-200 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl -[var(--brand-primary)]/20 transition-all flex items-center justify-center gap-3"
             >
               {cargando ? "Actualizando..." : <><Save className="w-5 h-5" /> Guardar Nueva Clave</>}
             </button>

@@ -46,8 +46,11 @@ function numeroEnLetras(num: number) {
 // ============================================
 
 export default function ModuloNomina() {
+  const router = useRouter();
   const [entrenadores, setEntrenadores] = useState<any[]>([]);
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
+  const [tenant, setTenant] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   
   // Modal de Pago
@@ -67,20 +70,61 @@ export default function ModuloNomina() {
   // Estados para Modal de Recibo (Impresión)
   const [reciboGenerado, setReciboGenerado] = useState<any>(null);
 
-  const cargarDatos = async () => {
+  useEffect(() => {
+    async function init() {
+      setCargando(true);
+      
+      // 1. Obtener Tenant
+      const resTenant = await fetch('/api/tenant');
+      const tenantData = await resTenant.json();
+      setTenant(tenantData);
+
+      // 2. Obtener Sesión y Perfil
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
+      setUserProfile(perfil);
+
+      // 3. SEGURIDAD
+      if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
+        toast.error("No tienes permiso para acceder a este club.");
+        if (perfil?.club_id) {
+          const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
+          if (c) router.push(`/${c.slug}/director`);
+        } else {
+          router.push('/login');
+        }
+        return;
+      }
+
+      // 4. Cargar datos filtrados
+      if (tenantData.id) {
+        cargarDatos(tenantData.id);
+      }
+    }
+    init();
+  }, []);
+
+  const cargarDatos = async (clubId: string) => {
     setCargando(true);
     
     // Cargar config local
-    const cLocal = localStorage.getItem('gibbor_ciudad');
+    const cLocal = localStorage.getItem(`gibbor_ciudad_${clubId}`);
     if (cLocal) setCiudadEmision(cLocal);
-    const tLocal = localStorage.getItem('gibbor_telefono');
+    const tLocal = localStorage.getItem(`gibbor_telefono_${clubId}`);
     if (tLocal) setTelefonoEmision(tLocal);
-    const fLocal = localStorage.getItem('gibbor_firma_director');
+    const fLocal = localStorage.getItem(`gibbor_firma_director_${clubId}`);
     if (fLocal) setFirmaDirector(fLocal);
-    // Traemos a los entrenadores
+
+    // Traemos a los entrenadores (FILTRADO POR CLUB)
     const { data: entData, error: entError } = await supabase
       .from('perfiles')
       .select('*')
+      .eq('club_id', clubId)
       .eq('rol', 'Entrenador')
       .order('nombres', { ascending: true });
 
@@ -90,10 +134,11 @@ export default function ModuloNomina() {
       setEntrenadores(entData);
     }
 
-    // Traemos el historial de pagos
+    // Traemos el historial de pagos (FILTRADO POR CLUB)
     const { data: pagosData } = await supabase
       .from('pagos_nomina')
       .select('*, entrenador:perfiles(*)')
+      .eq('club_id', clubId)
       .order('fecha', { ascending: false });
 
     if (pagosData) {
@@ -102,10 +147,6 @@ export default function ModuloNomina() {
 
     setCargando(false);
   };
-
-  useEffect(() => {
-    cargarDatos();
-  }, []);
 
   const abrirModalPago = (entrenador: any) => {
     setEntrenadorPago(entrenador);
@@ -124,12 +165,12 @@ export default function ModuloNomina() {
 
   const guardarConfiguracion = () => {
     if (firmaDirector !== null) {
-      localStorage.setItem('gibbor_firma_director', firmaDirector);
+      localStorage.setItem(`gibbor_firma_director_${tenant.id}`, firmaDirector);
     } else {
-      localStorage.removeItem('gibbor_firma_director');
+      localStorage.removeItem(`gibbor_firma_director_${tenant.id}`);
     }
-    localStorage.setItem('gibbor_ciudad', ciudadEmision);
-    localStorage.setItem('gibbor_telefono', telefonoEmision);
+    localStorage.setItem(`gibbor_ciudad_${tenant.id}`, ciudadEmision);
+    localStorage.setItem(`gibbor_telefono_${tenant.id}`, telefonoEmision);
     setIsConfigOpen(false);
     toast.success("Configuración actualizada para recibos");
   };
@@ -152,7 +193,7 @@ export default function ModuloNomina() {
         toast.error(`Error al eliminar: ${error.message}`, { id: toastId });
       } else {
         toast.success("Comprobante eliminado de la base de datos", { id: toastId });
-        cargarDatos();
+        cargarDatos(tenant.id);
       }
     }
   };
@@ -189,6 +230,8 @@ export default function ModuloNomina() {
       payload.entrenador_id = entrenadorPago.id;
     }
 
+    payload.club_id = tenant.id; // INYECTAR CLUB ID EN EL PAGO
+
     // Insertar en Base de Datos
     const { data, error } = await supabase
       .from('pagos_nomina')
@@ -201,7 +244,7 @@ export default function ModuloNomina() {
     } else {
       toast.success("Pago registrado exitosamente", { id: toastId });
       cerrarModalPago();
-      cargarDatos(); // Recargar historial
+      cargarDatos(tenant.id); // Recargar historial
       setReciboGenerado({
         ...data,
         entrenador: entrenadorPago,
@@ -216,8 +259,17 @@ export default function ModuloNomina() {
     window.print();
   };
 
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando nómina...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 relative transition-colors">
       
       {/* ---------------- RECIBO PARA IMPRESIÓN (Solo visible al imprimir) ---------------- */}
       {reciboGenerado && (
@@ -228,19 +280,19 @@ export default function ModuloNomina() {
             {/* Cabecera */}
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-4">
-                <img src="/logo.png" alt="Gibbor" className="w-20 h-20 object-contain rounded-full border border-slate-200 shadow-sm" />
+                <img src={tenant?.config?.logo || "/logo.png"} alt="Club Logo" className="w-20 h-20 object-contain rounded-full border border-slate-200 shadow-sm" />
                 <div>
-                  <h1 className="text-2xl font-black text-orange-600 tracking-tight uppercase">EFD GIBBOR</h1>
+                  <h1 className="text-2xl font-black -[var(--brand-primary)] tracking-tight uppercase">{tenant?.config?.nombre || "EFD GIBBOR"}</h1>
                   <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Escuela de Formación Deportiva</p>
                   <p className="text-xs text-slate-600 mt-1 font-medium">Cel: {telefonoEmision}</p>
                 </div>
               </div>
               
               <div className="flex flex-col items-end">
-                <div className="bg-orange-50 border border-orange-200 px-6 py-2 rounded-t-lg text-center min-w-[220px]">
-                  <p className="text-xs font-bold text-orange-800 uppercase tracking-widest">Comprobante de Egreso</p>
+                <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] px-6 py-2 rounded-t-lg text-center min-w-[220px]">
+                  <p className="text-xs font-bold -[var(--brand-primary)] uppercase tracking-widest">Comprobante de Egreso</p>
                 </div>
-                <div className="border border-t-0 border-orange-200 bg-white px-6 py-2 rounded-b-lg text-center w-full flex items-center justify-center gap-2 shadow-sm">
+                <div className="border border-t-0 -[rgba(var(--brand-primary-rgb),0.4)] bg-white px-6 py-2 rounded-b-lg text-center w-full flex items-center justify-center gap-2 shadow-sm">
                   <span className="text-slate-500 font-bold">Nº</span>
                   <span className="text-2xl font-black text-red-600">{String(reciboGenerado.consecutivo).padStart(4, '0')}</span>
                 </div>
@@ -323,7 +375,7 @@ export default function ModuloNomina() {
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Briefcase className="text-orange-500 w-7 h-7" /> Nómina y Egresos
+              <Briefcase className="-[var(--brand-primary)] w-7 h-7" /> Nómina y Egresos
             </h1>
             <p className="text-sm text-slate-500 mt-1">Control de pagos a personal, proveedores y descarga de comprobantes.</p>
           </div>
@@ -365,8 +417,8 @@ export default function ModuloNomina() {
             {entrenadores.map(entrenador => (
               <div key={entrenador.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between transition-all hover:shadow-md">
                 <div className="flex items-start gap-4 mb-6">
-                  <div className="bg-orange-50 w-14 h-14 rounded-full flex items-center justify-center shrink-0">
-                    <UserCircle className="w-8 h-8 text-orange-500" />
+                  <div className="-[rgba(var(--brand-primary-rgb),0.1)] w-14 h-14 rounded-full flex items-center justify-center shrink-0">
+                    <UserCircle className="w-8 h-8 -[var(--brand-primary)]" />
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-800 text-lg leading-tight">{entrenador.nombres} {entrenador.apellidos}</h3>
@@ -379,7 +431,7 @@ export default function ModuloNomina() {
                 
                 <button 
                   onClick={() => abrirModalPago(entrenador)}
-                  className="w-full bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                  className="w-full -[rgba(var(--brand-primary-rgb),0.1)] hover:-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] -[var(--brand-primary)] font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
                 >
                   <CreditCard className="w-5 h-5" /> Registrar Pago
                 </button>
@@ -428,7 +480,7 @@ export default function ModuloNomina() {
                       <td className="p-4 md:px-6 text-right font-black text-slate-800">${parseFloat(pago.monto).toLocaleString('es-CO')}</td>
                       <td className="p-4 md:px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setReciboGenerado(pago)} className="bg-white border border-slate-300 text-slate-600 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2">
+                          <button onClick={() => setReciboGenerado(pago)} className="bg-white border border-slate-300 text-slate-600 hover:-[var(--brand-primary)] hover:-[rgba(var(--brand-primary-rgb),0.4)] hover:-[rgba(var(--brand-primary-rgb),0.1)] px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2">
                             <Printer className="w-3.5 h-3.5" /> Ver / Imprimir
                           </button>
                           <button onClick={() => eliminarPago(pago.id, pago.consecutivo)} className="bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2 py-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center p-1.5" title="Eliminar registro permanentemente">
@@ -450,10 +502,10 @@ export default function ModuloNomina() {
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div className="bg-orange-600 px-6 py-5 flex justify-between items-center relative overflow-hidden">
-              <div className="absolute -right-6 -top-6 bg-orange-500 w-24 h-24 rounded-full opacity-50 blur-xl"></div>
+            <div className="-[var(--brand-primary)] px-6 py-5 flex justify-between items-center relative overflow-hidden">
+              <div className="absolute -right-6 -top-6 -[var(--brand-primary)] w-24 h-24 rounded-full opacity-50 blur-xl"></div>
               <h2 className="text-white text-xl font-bold flex items-center gap-2 relative z-10"><Briefcase className="w-6 h-6" /> Liquidar Pago</h2>
-              <button onClick={cerrarModalPago} className="text-orange-100 hover:text-white transition-colors p-1 relative z-10"><X className="w-6 h-6" /></button>
+              <button onClick={cerrarModalPago} className="-[rgba(var(--brand-primary-rgb),0.1)] hover:text-white transition-colors p-1 relative z-10"><X className="w-6 h-6" /></button>
             </div>
 
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6">
@@ -470,10 +522,10 @@ export default function ModuloNomina() {
                   />
                 </div>
               ) : (
-                <div className="bg-orange-50 border border-orange-100 p-4 rounded-xl flex items-center gap-4">
-                  <UserCircle className="w-12 h-12 text-orange-500" />
+                <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.1)] p-4 rounded-xl flex items-center gap-4">
+                  <UserCircle className="w-12 h-12 -[var(--brand-primary)]" />
                   <div>
-                    <p className="text-xs text-orange-500 font-bold uppercase tracking-wider mb-1">Entrenador</p>
+                    <p className="text-xs -[var(--brand-primary)] font-bold uppercase tracking-wider mb-1">Entrenador</p>
                     <p className="font-black text-slate-800 text-lg uppercase leading-none">{entrenadorPago.nombres} {entrenadorPago.apellidos}</p>
                   </div>
                 </div>
@@ -488,7 +540,7 @@ export default function ModuloNomina() {
                     value={monto} 
                     onChange={(e) => setMonto(e.target.value)} 
                     placeholder="Ej: 500000"
-                    className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-bold text-lg text-slate-800"
+                    className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-lg text-slate-800"
                   />
                 </div>
                 {monto && parseFloat(monto) > 0 && (
@@ -503,7 +555,7 @@ export default function ModuloNomina() {
                   value={documento} 
                   onChange={(e) => setDocumento(e.target.value)} 
                   placeholder="Ej: 1.000.000.000-0"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-medium text-slate-700"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-medium text-slate-700"
                 />
               </div>
 
@@ -514,7 +566,7 @@ export default function ModuloNomina() {
                   value={concepto} 
                   onChange={(e) => setConcepto(e.target.value)} 
                   placeholder="Mes de Abril / Transporte / Viáticos"
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 font-medium text-slate-700"
+                  className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-medium text-slate-700"
                 />
               </div>
 
@@ -545,7 +597,7 @@ export default function ModuloNomina() {
               </button>
               <button 
                 onClick={procesarPago}
-                className="flex-1 bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 shadow-md shadow-orange-200 transition-all flex items-center justify-center gap-2"
+                className="flex-1 -[var(--brand-primary)] text-white font-bold py-3.5 rounded-xl hover:-[var(--brand-primary)] shadow-md shadow-[rgba(var(--brand-primary-rgb),0.15)] transition-all flex items-center justify-center gap-2"
               >
                 <CheckCircle className="w-5 h-5" /> Guardar y Generar PDF
               </button>
@@ -566,7 +618,7 @@ export default function ModuloNomina() {
             <p className="text-slate-500 mb-8">El comprobante se generó correctamente para <strong>{reciboGenerado.beneficiario_externo || (reciboGenerado.entrenador ? reciboGenerado.entrenador.nombres : 'el proveedor')}</strong>.</p>
             
             <div className="flex flex-col gap-3">
-              <button onClick={imprimirRecibo} className="w-full bg-orange-600 text-white font-bold py-3.5 rounded-xl hover:bg-orange-700 shadow-md shadow-orange-200 transition-all flex items-center justify-center gap-2">
+              <button onClick={imprimirRecibo} className="w-full -[var(--brand-primary)] text-white font-bold py-3.5 rounded-xl hover:-[var(--brand-primary)] shadow-md shadow-[rgba(var(--brand-primary-rgb),0.15)] transition-all flex items-center justify-center gap-2">
                 <Printer className="w-5 h-5" /> Imprimir Comprobante
               </button>
               <button onClick={() => setReciboGenerado(null)} className="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors">

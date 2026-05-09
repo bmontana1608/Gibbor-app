@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function DashboardEntrenador() {
   const [perfil, setPerfil] = useState<any>(null);
+  const [tenant, setTenant] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   const [metricas, setMetricas] = useState({
     alumnosTotal: 0,
@@ -20,6 +20,15 @@ export default function DashboardEntrenador() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
+      // Cargar Tenant
+      try {
+        const resT = await fetch('/api/tenant');
+        const tenantData = await resT.json();
+        if (tenantData) setTenant(tenantData);
+      } catch (err) {
+        console.error("Error cargando tenant dashboard:", err);
+      }
+
       const { data: usuario } = await supabase
         .from('perfiles')
         .select('*')
@@ -29,9 +38,7 @@ export default function DashboardEntrenador() {
       if (usuario) {
         setPerfil(usuario);
         
-        // Métricas Reales - Soporte Multi-Categoría
         const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
-        
         const queryAlumnos = supabase.from('perfiles').select('id').eq('rol', 'Futbolista');
         
         if (categoriasAsignadas.length > 0) {
@@ -46,7 +53,7 @@ export default function DashboardEntrenador() {
         setMetricas({
           alumnosTotal: mAlumnos?.length || 0,
           asistenciaMes: mAsistencias?.length ? Math.round((mAsistencias.filter(a => a.estado === 'Presente').length / mAsistencias.length) * 100) : 0,
-          puntosGenerados: 0 // Por implementar sistema de puntos
+          puntosGenerados: 0
         });
       }
       setCargando(false);
@@ -56,30 +63,33 @@ export default function DashboardEntrenador() {
 
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando dashboard...</div>;
 
+  const brandColor = tenant?.color_primario || '#ea580c';
+  const brandName = tenant?.nombre || 'Club';
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
       
-      {/* Header de Bienvenida - Dinámico */}
+      {/* Header de Bienvenida */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p className="opacity-70 font-black text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: 'var(--brand-primary)' }}>Ecosistema Master Club Manager</p>
+          <p className="opacity-70 font-black text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: brandColor }}>Ecosistema {brandName}</p>
           <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
-            Instructor <span style={{ color: 'var(--brand-primary)' }}>
-              {perfil?.nombres?.toLowerCase().includes('nexclub') ? 'Master' : (perfil?.nombres?.split(' ')[0] || 'Staff')}
+            Instructor <span style={{ color: brandColor }}>
+              {perfil?.nombres?.split(' ')[0] || 'Staff'}
             </span>
           </h1>
           <p className="text-slate-500 text-sm mt-1 font-medium italic">Gestionando el talento en <span className="text-slate-900 font-black uppercase">{perfil?.grupos || 'Categoría No asignada'}</span>.</p>
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
-          <Calendar className="w-5 h-5" style={{ color: 'var(--brand-primary)' }} />
+          <Calendar className="w-5 h-5" style={{ color: brandColor }} />
           <span className="text-sm font-bold text-slate-700 capitalize">{new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
       </div>
 
-      {/* Grid de Accesos Rápidos - Dinámicos */}
+      {/* Grid de Accesos Rápidos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <Link href="/entrenador/asistencia" className="rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden" style={{ backgroundColor: 'var(--brand-primary)', boxShadow: `0 10px 25px -5px rgba(var(--brand-primary-rgb), 0.3)` }}>
+        <Link href="/entrenador/asistencia" className="rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden" style={{ backgroundColor: brandColor, boxShadow: `0 10px 25px -5px ${brandColor}40` }}>
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
           <div className="flex justify-between items-start relative z-10">
             <div className="bg-white/20 p-4 rounded-2xl"><ClipboardCheck className="w-7 h-7" /></div>
@@ -105,7 +115,7 @@ export default function DashboardEntrenador() {
 
         <Link href="/entrenador/estadisticas" className="bg-white rounded-[2.5rem] p-8 text-slate-800 shadow-xl shadow-slate-200/50 flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] border border-slate-100 transition-all relative overflow-hidden">
           <div className="flex justify-between items-start">
-            <div className="p-4 rounded-2xl" style={{ backgroundColor: `rgba(var(--brand-primary-rgb), 0.1)`, color: 'var(--brand-primary)' }}><Trophy className="w-7 h-7" /></div>
+            <div className="p-4 rounded-2xl" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Trophy className="w-7 h-7" /></div>
             <ArrowRight className="w-5 h-5 text-slate-300 group-hover:translate-x-2 transition-all" />
           </div>
           <div>
@@ -125,18 +135,17 @@ export default function DashboardEntrenador() {
           { label: 'Estado Sesión', value: 'Activo', icon: <Calendar className="w-4 h-4" /> },
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
-            <div className="p-2.5 rounded-[1rem] bg-slate-50 w-fit mb-4" style={{ color: 'var(--brand-primary)' }}>{item.icon}</div>
+            <div className="p-2.5 rounded-[1rem] bg-slate-50 w-fit mb-4" style={{ color: brandColor }}>{item.icon}</div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
             <p className="text-3xl font-black text-slate-900 italic tracking-tighter mt-1">{item.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Sesiones de Entrenamiento del Día */}
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
           <h3 className="font-black text-slate-800 text-xl flex items-center gap-3 uppercase italic tracking-tighter">
-            <Calendar className="w-6 h-6" style={{ color: 'var(--brand-primary)' }} /> Sesiones de Hoy
+            <Calendar className="w-6 h-6" style={{ color: brandColor }} /> Sesiones de Hoy
           </h3>
           <span className="text-[10px] font-black uppercase text-slate-400 bg-white px-4 py-2 rounded-full border border-slate-100">Tiempo Real</span>
         </div>
@@ -144,21 +153,21 @@ export default function DashboardEntrenador() {
           {perfil?.grupos ? (perfil.grupos.split(', ').filter(Boolean).map((cat: string, index: number) => (
             <div key={index} className="p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
               <div className="flex items-center gap-6">
-                <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `rgba(var(--brand-primary-rgb), 0.05)`, color: 'var(--brand-primary)', borderColor: `rgba(var(--brand-primary-rgb), 0.1)` }}>
+                <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `${brandColor}05`, color: brandColor, borderColor: `${brandColor}10` }}>
                   <span className="text-xs font-black leading-none">HOY</span>
                   <span className="text-[10px] font-bold mt-1">Sess.</span>
                 </div>
                 <div>
                   <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">Categoría {cat}</p>
                   <p className="text-xs text-slate-500 font-medium italic flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--brand-primary)' }}></span> Sede Oficial
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> Sede Oficial
                   </p>
                 </div>
               </div>
               <Link 
                 href="/entrenador/asistencia"
                 className="text-white text-[10px] font-black px-8 py-3.5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase italic tracking-widest"
-                style={{ backgroundColor: 'var(--brand-primary)', boxShadow: `0 10px 20px -5px rgba(var(--brand-primary-rgb), 0.2)` }}
+                style={{ backgroundColor: brandColor, boxShadow: `0 10px 20px -5px ${brandColor}40` }}
               >
                 Asistencias
               </Link>

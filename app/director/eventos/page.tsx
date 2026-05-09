@@ -71,11 +71,20 @@ export default function GestionEventos() {
     }
   };
 
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando agenda...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4">
+    <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-orange-500">Agenda</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="-[var(--brand-primary)]">Agenda</span></h1>
           <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
         </div>
       </div>
@@ -83,14 +92,14 @@ export default function GestionEventos() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* FORMULARIO */}
         <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit">
-          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-orange-500" /> Nuevo Evento</h2>
+          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="w-5 h-5 -[var(--brand-primary)]" /> Nuevo Evento</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Título</label>
               <input 
                 type="text" 
                 placeholder="Ej: Final de Torneo"
-                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-orange-500 outline-none transition-all"
+                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold focus:ring-2 focus:-[var(--brand-primary)] outline-none transition-all"
                 value={nuevoEvento.titulo}
                 onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})}
               />
@@ -153,7 +162,7 @@ export default function GestionEventos() {
                   onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
                   className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
                     nuevoEvento.categoria_id === '' 
-                    ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' 
+                    ? '-[var(--brand-primary)] text-white -[var(--brand-primary)] shadow-lg -[var(--brand-primary)]/20' 
                     : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                   }`}
                 >
@@ -166,7 +175,7 @@ export default function GestionEventos() {
                     onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
                     className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
                       nuevoEvento.categoria_id === cat.nombre 
-                      ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20' 
+                      ? '-[var(--brand-primary)] text-white -[var(--brand-primary)] shadow-lg -[var(--brand-primary)]/20' 
                       : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                     }`}
                   >
@@ -176,7 +185,7 @@ export default function GestionEventos() {
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-orange-500 text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
+            <button type="submit" className="w-full -[var(--brand-primary)] text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl -[var(--brand-primary)]/20 hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" /> Publicar Evento
             </button>
           </form>
@@ -193,10 +202,10 @@ export default function GestionEventos() {
           ) : eventos.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {eventos.map((evento) => (
-                <div key={evento.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-orange-200 transition-all">
+                <div key={evento.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:-[rgba(var(--brand-primary-rgb),0.4)] transition-all">
                   <div className="flex items-center gap-6">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
-                      evento.tipo === 'Partido' ? 'bg-orange-500' : 
+                      evento.tipo === 'Partido' ? '-[var(--brand-primary)]' : 
                       evento.tipo === 'Entrenamiento' ? 'bg-blue-500' : 'bg-purple-500'
                     }`}>
                       {evento.tipo === 'Partido' ? <Trophy className="w-7 h-7" /> : <Calendar className="w-7 h-7" />}
@@ -205,7 +214,7 @@ export default function GestionEventos() {
                       <h3 className="font-black text-slate-800 text-lg uppercase leading-none">{evento.titulo}</h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2">
                         <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <Clock className="w-3 h-3 text-orange-500" /> 
+                          <Clock className="w-3 h-3 -[var(--brand-primary)]" /> 
                           {evento.fecha} | {(() => {
                             const [h, m] = evento.hora.split(':');
                             let hour = parseInt(h);
@@ -214,8 +223,8 @@ export default function GestionEventos() {
                             return `${hour}:${m} ${ampm}`;
                           })()}
                         </span>
-                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-orange-500" /> {evento.lugar}</span>}
-                        {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black text-orange-500 uppercase tracking-widest bg-orange-50 p-1 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id.split(' ')[0]}</span>}
+                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 -[var(--brand-primary)]" /> {evento.lugar}</span>}
+                        {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black -[var(--brand-primary)] uppercase tracking-widest -[rgba(var(--brand-primary-rgb),0.1)] p-1 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id.split(' ')[0]}</span>}
                       </div>
                     </div>
                   </div>

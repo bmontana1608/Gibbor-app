@@ -12,101 +12,91 @@ export async function enviarMensajeWhatsApp(
   fileName: string = 'Archivo_Gibbor.pdf'
 ) {
   try {
-    // 1. Obtener configuración activa
-    const { data: config, error: configError } = await supabase
-      .from('configuracion_wa')
-      .select('*')
-      .single();
-
-    if (configError || !config || !config.api_url || !config.api_key) {
-      throw new Error('Configuración de WhatsApp no encontrada o incompleta.');
-    }
-
-    // 2. Limpieza y formateo del número (Standardized for Colombia/Global)
+    // 1. Ya no dependemos de configuracion_wa para las credenciales,
+    // llamamos directamente al endpoint interno protegido
+    
+    // 2. Limpieza y formateo del número
     let finalPhone = String(telefono).replace(/\D/g, '');
     if (finalPhone.length === 10) {
       finalPhone = `57${finalPhone}`;
     }
 
-    const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
-    const instanceName = encodeURIComponent(config.instance_name || 'Gibbor_App');
-    
-    // 3. Determinar Endpoint y Body
-    const endpoint = mediaBase64 ? 'sendMedia' : 'sendText';
-    const url = `${cleanUrl}/message/${endpoint}/${instanceName}`;
-    
-    // Body base para Texto
-    let body: any = {
-      number: finalPhone,
+    // Identificar tenant slug leyendo headers o window.location
+    let instanceName = 'gibbor';
+    if (typeof window !== 'undefined') {
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin'];
+      if (parts.length > 0 && !reservedPaths.includes(parts[0])) {
+        instanceName = parts[0];
+      }
+    }
+
+    const payload = {
+      telefono: finalPhone,
+      mensaje,
+      mediaBase64,
+      tipoMedia,
+      fileName,
+      instanceName
     };
 
-    if (mediaBase64) {
-      // Body estricto para Multimedia (Sin campos extra que causen 400 Bad Request)
-      body = {
-        ...body,
-        media: mediaBase64,
-        mediatype: tipoMedia,
-        mimetype: tipoMedia === 'document' ? 'application/pdf' : 'image/png',
-        fileName: fileName,
-        caption: mensaje
-      };
-    } else {
-      // Body para Texto con extras permitidos
-      body = {
-        ...body,
-        text: mensaje,
-        delay: 1200,
-        linkPreview: true
-      };
-    }
-
-    const response = await fetch(url, {
+    const response = await fetch('/api/whatsapp/send', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'apikey': config.api_key
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(payload)
     });
 
-    const result = await response.json();
+    let result;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const textError = await response.text();
+      throw new Error(`Error del servidor (${response.status}): ${textError.substring(0, 100)}`);
+    }
     
     if (!response.ok) {
-      let errorBody = '';
-      try { errorBody = await response.text(); } catch(_) {}
-      console.error('Evolution API error body:', errorBody);
-      throw new Error(errorBody || response.statusText || 'Error en el servidor de WhatsApp');
+      throw new Error(result.error || 'Error en el servidor de WhatsApp');
     }
 
-    // 4. PERSISTENCIA: Guardar en historial con fallback progresivo
+    // 4. PERSISTENCIA: Guardar en historial
+    // Necesitamos el club_id real para que aparezca en el historial del tenant
+    const { data: club } = await supabase
+      .from('clubes')
+      .select('id')
+      .eq('slug', instanceName)
+      .single();
+
     const logBase = {
       destinatario_numero: finalPhone,
       mensaje_texto: mensaje,
       tipo_mensaje: mediaBase64 ? 'Recibo' : (mensaje.includes('Pago') || mensaje.includes('pago') ? 'Cobranza' : 'Notificación'),
       estado: 'enviado',
+      instancia: instanceName,
+      club_id: club?.id,
       created_at: new Date().toISOString()
     };
 
-    // Intento 1: Con columna 'instancia'
-    const { error: logError1 } = await supabase.from('mensajes_wa').insert([{
-      ...logBase,
-      instancia: config.instance_name || 'Gibbor_App'
-    }]);
+    const { error: logError1 } = await supabase.from('mensajes_wa').insert([logBase]);
 
     if (logError1) {
-      console.warn('Log intento 1 falló:', logError1.message, '— reintentando sin instancia...');
-      // Intento 2: Sin columna 'instancia' (esquema mínimo)
-      const { error: logError2 } = await supabase.from('mensajes_wa').insert([logBase]);
-      if (logError2) {
-        console.error('Log intento 2 también falló:', logError2.message);
-      } else {
-        console.log('✅ Mensaje guardado en historial (esquema mínimo)');
-      }
+      console.warn('Log falló:', logError1.message);
+      // Intento sin instancia por si falla el schema
+      const { error: logError2 } = await supabase.from('mensajes_wa').insert([{
+        destinatario_numero: finalPhone,
+        mensaje_texto: mensaje,
+        tipo_mensaje: logBase.tipo_mensaje,
+        estado: 'enviado',
+        created_at: logBase.created_at
+      }]);
+      if (!logError2) console.log('✅ Mensaje guardado (esquema mínimo)');
     } else {
-      console.log('✅ Mensaje guardado en historial completo');
+      console.log('✅ Mensaje guardado en historial');
     }
 
-    return { success: true, data: result };
+    return { success: true, data: result.data };
   } catch (error: any) {
     console.error('WhatsApp Engine Error:', error.message);
     return { success: false, error: error.message };

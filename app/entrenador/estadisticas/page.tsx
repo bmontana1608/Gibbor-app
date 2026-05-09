@@ -70,21 +70,21 @@ export default function RankingGibbor() {
     setRecientes(data || []);
   };
 
-  if (cargando && ranking.length === 0) return <div className="p-20 text-center"><Loader className="animate-spin mx-auto w-10 h-10 text-orange-500" /></div>;
+  if (cargando && ranking.length === 0) return <div className="p-20 text-center"><Loader className="animate-spin mx-auto w-10 h-10 -[var(--brand-primary)]" /></div>;
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 pb-20">
       
       {/* HEADER DE IMPACTO */}
       <div className="relative bg-slate-900 rounded-[40px] p-8 md:p-12 overflow-hidden shadow-2xl">
-         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-500/20 to-transparent"></div>
+         <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l -[var(--brand-primary)]/20 to-transparent"></div>
          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                  <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Temporada 2024</span>
+                    <span className="-[var(--brand-primary)] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Temporada 2024</span>
                     <span className="bg-white/10 text-white/60 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter italic">Live Ranking</span>
                  </div>
-                 <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">CUADRO DE <span className="text-orange-500 underline decoration-orange-500/30 underline-offset-8">HONOR</span> 🏆</h1>
+                 <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">CUADRO DE <span className="-[var(--brand-primary)] underline -[var(--brand-primary)]/30 underline-offset-8">HONOR</span> 🏆</h1>
                  <p className="text-slate-400 font-medium max-w-md">Reconociendo el talento, la disciplina y el espíritu Gibbor de nuestros futbolistas.</p>
             </div>
             
@@ -92,7 +92,7 @@ export default function RankingGibbor() {
                 <div className="bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
                     <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Tu Líder de Hoy</p>
                     <p className="text-white font-black text-lg truncate uppercase">{ranking[0]?.nombres} {ranking[0]?.apellidos}</p>
-                    <p className="text-orange-500 text-xs font-black">{ranking[0]?.puntos || 0} GIBBOR POINTS</p>
+                    <p className="-[var(--brand-primary)] text-xs font-black">{ranking[0]?.puntos || 0} GIBBOR POINTS</p>
                 </div>
             </div>
          </div>
@@ -113,7 +113,7 @@ export default function RankingGibbor() {
                     <select 
                         value={catFiltro} 
                         onChange={(e) => setCatFiltro(e.target.value)}
-                        className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-black text-slate-700 outline-none focus:ring-2 focus:ring-orange-500"
+                        className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-black text-slate-700 outline-none focus:ring-2 focus:-[var(--brand-primary)]"
                     >
                         <option value="">Seleccionar Grupo...</option>
                         {categorias.map(c => <option key={c.nombre} value={c.nombre}>{c.nombre}</option>)}
@@ -136,12 +136,12 @@ export default function RankingGibbor() {
                             {ranking.map((jugador, index) => {
                                 const pos = index + 1;
                                 return (
-                                    <tr key={jugador.id} className={`group hover:bg-orange-50/30 transition-all ${pos <= 3 ? 'bg-slate-50/20' : ''}`}>
+                                    <tr key={jugador.id} className={`group hover:-[rgba(var(--brand-primary-rgb),0.1)]/30 transition-all ${pos <= 3 ? 'bg-slate-50/20' : ''}`}>
                                         <td className="p-6">
                                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm ${
-                                                pos === 1 ? 'bg-orange-500 text-white rotate-6' : 
+                                                pos === 1 ? '-[var(--brand-primary)] text-white rotate-6' : 
                                                 pos === 2 ? 'bg-slate-200 text-slate-600' : 
-                                                pos === 3 ? 'bg-orange-100 text-orange-600' : 
+                                                pos === 3 ? '-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)]' : 
                                                 'bg-white text-slate-400 border border-slate-100'
                                             }`}>
                                                 {pos === 1 ? <Medal className="w-5 h-5" /> : pos}
@@ -149,7 +149,7 @@ export default function RankingGibbor() {
                                         </td>
                                         <td className="p-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:bg-orange-200 group-hover:text-orange-600 transition-colors">
+                                                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 group-hover:-[rgba(var(--brand-primary-rgb),0.4)] group-hover:-[var(--brand-primary)] transition-colors">
                                                     {jugador.nombres.charAt(0)}
                                                 </div>
                                                 <div>
@@ -165,8 +165,8 @@ export default function RankingGibbor() {
                                         </td>
                                         <td className="p-6 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Star className={`w-4 h-4 ${pos === 1 ? 'text-orange-500 fill-orange-500' : 'text-slate-200'}`} />
-                                                <span className={`font-black text-xl ${pos === 1 ? 'text-orange-600' : 'text-slate-800'}`}>{jugador.puntos || 0}</span>
+                                                <Star className={`w-4 h-4 ${pos === 1 ? '-[var(--brand-primary)] -[var(--brand-primary)]' : 'text-slate-200'}`} />
+                                                <span className={`font-black text-xl ${pos === 1 ? '-[var(--brand-primary)]' : 'text-slate-800'}`}>{jugador.puntos || 0}</span>
                                             </div>
                                         </td>
                                     </tr>
@@ -187,18 +187,18 @@ export default function RankingGibbor() {
          {/* SIDEBAR: ÚLTIMAS ACCIONES / RECIENTES */}
          <div className="space-y-8">
             <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden group">
-                 <Zap className="absolute -top-4 -right-4 w-32 h-32 text-orange-500/10 rotate-12 transition-transform group-hover:scale-110" />
-                 <h3 className="text-lg font-black mb-6 flex items-center gap-3"><TrendingUp className="text-orange-500 w-5 h-5" /> RECIENTES</h3>
+                 <Zap className="absolute -top-4 -right-4 w-32 h-32 -[var(--brand-primary)]/10 rotate-12 transition-transform group-hover:scale-110" />
+                 <h3 className="text-lg font-black mb-6 flex items-center gap-3"><TrendingUp className="-[var(--brand-primary)] w-5 h-5" /> RECIENTES</h3>
                  
                  <div className="space-y-6">
                     {recientes.map((log) => (
-                        <div key={log.id} className="relative pl-6 border-l-2 border-orange-500/30 py-1">
-                             <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-slate-900 border-2 border-orange-500"></div>
+                        <div key={log.id} className="relative pl-6 border-l-2 -[var(--brand-primary)]/30 py-1">
+                             <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-slate-900 border-2 -[var(--brand-primary)]"></div>
                              <p className="text-xs font-black text-white/90 uppercase tracking-tight">+{log.puntos} Gibbor Points</p>
                              <p className="text-[10px] text-white/50 font-bold mt-1 uppercase truncate">
                                 {log.perfiles?.nombres} • {log.motivo}
                              </p>
-                             <p className="text-[9px] text-orange-500/80 font-black mt-1 uppercase tracking-widest italic">{log.otorgado_por || 'Coach'}</p>
+                             <p className="text-[9px] -[var(--brand-primary)]/80 font-black mt-1 uppercase tracking-widest italic">{log.otorgado_por || 'Coach'}</p>
                         </div>
                     ))}
                     {recientes.length === 0 && <p className="text-white/30 text-xs font-bold italic">No hay actividad reciente.</p>}
@@ -207,8 +207,8 @@ export default function RankingGibbor() {
                  <button className="w-full mt-8 bg-white/10 hover:bg-white/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Ver Historial Completo</button>
             </div>
 
-            <div className="bg-orange-50 border border-orange-100 rounded-[40px] p-8">
-                <Award className="w-10 h-10 text-orange-500 mb-4" />
+            <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.1)] rounded-[40px] p-8">
+                <Award className="w-10 h-10 -[var(--brand-primary)] mb-4" />
                 <h4 className="font-black text-slate-800 text-sm mb-2 uppercase">Lucha por el Top 1</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
                     Solo los atletas con mejor disciplina, asistencia y talento logran entrar en el Salón de la Fama Gibbor. ¡Motiva a tus alumnos!

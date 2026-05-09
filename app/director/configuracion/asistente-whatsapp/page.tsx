@@ -17,29 +17,30 @@ export default function AsistenteWhatsApp() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [tokenInstancia, setTokenInstancia] = useState<string | null>(null);
   const [instanciaConfigurada, setInstanciaConfigurada] = useState(false);
+  const [slug, setSlug] = useState('');
+  const basePath = slug && slug !== 'master' ? `/${slug}` : '';
 
   useEffect(() => {
     async function init() {
-      const { data } = await supabase.from('configuracion_wa').select('*').single();
-      if (data && data.api_url && data.api_key) {
-        setInstanciaConfigurada(true);
-        verificarEstadoActual(data);
+      // Obtener tenant
+      const res = await fetch('/api/tenant');
+      const tenantData = await res.json();
+      if (tenantData && tenantData.slug) {
+        setSlug(tenantData.slug);
+        verificarEstadoActual(tenantData.slug);
       }
     }
     init();
   }, []);
 
-  const verificarEstadoActual = async (configDB: any) => {
+  const verificarEstadoActual = async (slug: string) => {
     try {
-      const instanceName = configDB.instance_name || 'Gibbor_App';
-      let cleanUrl = configDB.api_url.trim();
-      if (!cleanUrl.startsWith('http')) cleanUrl = `https://${cleanUrl}`;
-      if (cleanUrl.endsWith('/')) cleanUrl = cleanUrl.slice(0, -1);
-
-      const res = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connectionState/${instanceName}`)}&apikey=${configDB.api_key}`);
+      const res = await fetch(`/api/whatsapp/instance?slug=${slug}`);
       const data = await res.json();
-      if (data.instance?.state === 'open' || data.instance?.status === 'open') {
+      if (data.status === 'connected') {
         setConectado(true);
+      } else if (data.status === 'qr') {
+        setQrCode(data.qr);
       }
     } catch (e) {
       console.error("Error al verificar estado inicial:", e);
@@ -52,108 +53,34 @@ export default function AsistenteWhatsApp() {
     setQrCode(null);
     
     try {
-      const { data: configDB, error: errDB } = await supabase.from('configuracion_wa').select('*').single();
-      if (errDB || !configDB?.api_url) {
-        toast.error("Configura primero la URL del servidor y la API Key");
-        router.push('/director/configuracion/servidor');
+      const tenantRes = await fetch('/api/tenant');
+      const tenantData = await tenantRes.json();
+      const slug = tenantData.slug;
+
+      if (!slug || slug === 'master') {
+        toast.error("No se pudo identificar el club");
         return;
       }
 
-      // 1. GENERAR NOMBRE DE INSTANCIA ÚNICO (Vital para Multiclub)
-      // Usamos el ID del club o el nombre para evitar colisiones entre escuelas
-      const clubIdHash = configDB.club_id ? configDB.club_id.substring(0, 8) : 'Global';
-      const instanceName = configDB.instance_name ? `${configDB.instance_name}_${clubIdHash}` : `Gibbor_${clubIdHash}`;
-      
-      console.log("Intentando conectar a instancia:", instanceName);
-      let cleanUrl = configDB.api_url.trim();
+      const res = await fetch(`/api/whatsapp/instance?slug=${slug}`);
+      const data = await res.json();
 
-      if (!cleanUrl.startsWith('http')) {
-        cleanUrl = `https://${cleanUrl}`;
+      if (!res.ok) {
+        const errorMsg = data.details || data.error || 'Unknown error';
+        toast.error("Error en el servidor: " + errorMsg);
+        return;
       }
 
-      if (cleanUrl.endsWith('/')) {
-        cleanUrl = cleanUrl.slice(0, -1);
-      }
-
-      // 1. Intentar conectar directamente primero (A TRAVÉS DEL PROXY)
-      let resProxy = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connect/${instanceName}`)}&apikey=${configDB.api_key}`);
-
-      // 2. Si no responde bien (probablemente no existe), intentamos crearla
-      if (!resProxy.ok) {
-        console.log("Instancia no encontrada, intentando crear vía Proxy...");
-        const resCreate = await fetch(`/api/whatsapp/proxy`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: `${cleanUrl}/instance/create`,
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'apikey': configDB.api_key 
-            },
-            data: {
-              instanceName: instanceName,
-              token: "gibbor_token_unique",
-              qrcode: true,
-              integration: "WHATSAPP-BAILEYS"
-            }
-          })
-        });
-
-        const createData = await resCreate.json();
-        console.log("Resultado creación:", createData);
-
-        if (!resCreate.ok) {
-          setRawResponse(`Error al CREAR instancia:\nURL: ${cleanUrl}/instance/create\nRespuesta: ${JSON.stringify(createData, null, 2)}`);
-          toast.error("No se pudo crear la instancia en el servidor.");
-          setCargando(false);
-          return;
-        }
-
-        // Reintentamos conectar tras crear
-        resProxy = await fetch(`/api/whatsapp/proxy?url=${encodeURIComponent(`${cleanUrl}/instance/connect/${instanceName}`)}&apikey=${configDB.api_key}`);
-      }
-
-      const dataQR = await resProxy.json();
-
-      // 4. ESCÁNER UNIVERSAL: Buscamos recursivamente cualquier campo que parezca un QR
-      const buscarQR = (obj: any): string | null => {
-        if (!obj || typeof obj !== 'object') return null;
-        
-        // Si encontramos una cadena que empieza con data:image, ese es el QR
-        for (const key in obj) {
-          const value = obj[key];
-          if (typeof value === 'string' && (value.startsWith('data:image') || value.length > 500)) return value;
-          if (typeof value === 'object') {
-            const found = buscarQR(value);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const base64QR = buscarQR(dataQR);
-
-      if (base64QR) {
-        // Asegurarse de que tenga el prefijo de imagen
-        const finalQR = base64QR.startsWith('data:image') ? base64QR : `data:image/png;base64,${base64QR}`;
-        setQrCode(finalQR);
-        toast.success("¡QR Real Detectado!");
-      } else if (dataQR.status === 'open' || dataQR.instance?.status === 'open' || dataQR.instance?.state === 'open') {
+      if (data.status === 'qr') {
+        setQrCode(data.qr);
+        toast.success("¡Código QR Generado!");
+      } else if (data.status === 'connected') {
         setConectado(true);
-        setQrCode(null);
         toast.success("¡Ya estás conectado!");
-      } else {
-        setRawResponse(`URL Intentada: ${cleanUrl}/instance/connect/${instanceName}\n\nRespuesta:\n${JSON.stringify(dataQR, null, 2)}`);
-        toast.error("QR no encontrado. Revisa el log de abajo.");
       }
 
     } catch (error: any) {
-      if (error.message === 'Failed to fetch') {
-        toast.error("Error de Conexión: El servidor de WhatsApp no responde o bloquea la petición (CORS). Verifica que sea HTTPS.");
-      } else {
-        toast.error("Error: " + error.message);
-      }
+      toast.error("Error: " + error.message);
       console.error("Detalle del error:", error);
     } finally {
       setCargando(false);
@@ -194,15 +121,9 @@ export default function AsistenteWhatsApp() {
       <div className="flex justify-between items-center mb-6">
         <button 
           onClick={() => router.back()} 
-          className="text-slate-500 hover:text-orange-600 flex items-center gap-2 transition-colors font-bold text-sm w-fit group"
+          className="text-slate-500 hover:text-brand flex items-center gap-2 transition-colors font-bold text-sm w-fit group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver al Panel
-        </button>
-        <button 
-          onClick={() => router.push('/director/configuracion/servidor')}
-          className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-2"
-        >
-          <Server className="w-4 h-4" /> Configuración de Servidor
         </button>
       </div>
 
@@ -211,7 +132,7 @@ export default function AsistenteWhatsApp() {
         {/* Banner de Presentación */}
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-8 md:p-12 text-white shadow-2xl relative overflow-hidden mb-10">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl -ml-10 -mb-10"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand/10 rounded-full blur-3xl -ml-10 -mb-10"></div>
           
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
             <div className="w-24 h-24 md:w-32 md:h-32 bg-emerald-500/20 rounded-3xl flex items-center justify-center backdrop-blur-md border border-emerald-500/30 shrink-0 shadow-inner">
@@ -236,16 +157,6 @@ export default function AsistenteWhatsApp() {
             </div>
           </div>
         </div>
-
-        {!instanciaConfigurada && (
-           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 flex gap-4 items-center animate-pulse">
-              <Zap className="w-6 h-6 text-amber-500 shrink-0" />
-              <div className="flex-1">
-                 <p className="text-amber-900 font-bold text-sm">Configuración de Servidor Requerida</p>
-                 <p className="text-amber-700 text-xs">Para activar el bot real, primero debes configurar tu URL de servidor y API Key en el botón superior derecho.</p>
-              </div>
-           </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -333,7 +244,7 @@ export default function AsistenteWhatsApp() {
                     </div>
                     <div className="flex gap-3">
                       <button 
-                        onClick={() => router.push('/director/configuracion/asistente-whatsapp/chats')}
+                        onClick={() => router.push(`${basePath}/director/whatsapp`)}
                         className="bg-white border border-emerald-500 text-emerald-600 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-50 transition-all flex items-center gap-2"
                       >
                         <MessageCircle className="w-4 h-4" /> Ver Historial de Chats
@@ -354,7 +265,7 @@ export default function AsistenteWhatsApp() {
                <div className="space-y-6">
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${config.bienvenida ? 'bg-orange-50 text-orange-600' : 'bg-slate-50 text-slate-400'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${config.bienvenida ? '-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)]' : 'bg-slate-50 text-slate-400'}`}>
                         <Users className="w-6 h-6" />
                       </div>
                       <div>
@@ -418,7 +329,7 @@ export default function AsistenteWhatsApp() {
                          <p className="text-xs text-slate-800">¡Hola Alex! ⚽️</p>
                          <p className="text-[11px] text-slate-600 mt-1">Te informamos que tu mensualidad de **Abril** ya está disponible.</p>
                          <div className="mt-3 bg-slate-50 border border-slate-100 p-2 rounded-lg flex items-center gap-2">
-                             <div className="w-8 h-8 bg-orange-100 flex items-center justify-center rounded text-orange-600 font-bold text-[10px]">PDF</div>
+                             <div className="w-8 h-8 -[rgba(var(--brand-primary-rgb),0.1)] flex items-center justify-center rounded -[var(--brand-primary)] font-bold text-[10px]">PDF</div>
                              <p className="text-[10px] font-bold text-slate-500">Recibo_458.pdf</p>
                          </div>
                       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, 
@@ -18,6 +18,7 @@ import { Loader } from 'lucide-react';
 
 export default function DashboardDirector() {
   const router = useRouter();
+  const pathname = usePathname();
   const [cargando, setCargando] = useState(true);
   const [tenant, setTenant] = useState<any>(null);
   const [stats, setStats] = useState({
@@ -193,7 +194,7 @@ export default function DashboardDirector() {
       }
     }
     cargarDatos();
-  }, [router]);
+  }, [pathname]);
 
   const [enviandoWA, setEnviandoWA] = useState<string | null>(null);
 
@@ -227,7 +228,7 @@ export default function DashboardDirector() {
         <div className="absolute top-0 left-0 w-1.5 h-full bg-brand"></div>
         <div className="relative z-10">
           <h1 className="text-xl md:text-2xl font-black text-white mb-1">¡Bienvenido a {brandName}!</h1>
-          <p className="text-sm text-slate-400">Panel de Control Multiclub Gibbor Cloud.</p>
+          <p className="text-sm text-slate-400">Panel de Control Multiclub {brandName}.</p>
         </div>
         <div className="hidden md:block w-32 h-32 bg-brand/10 rounded-full absolute -right-10 -top-10 blur-3xl"></div>
       </div>
@@ -385,9 +386,9 @@ export default function DashboardDirector() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
             <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
-              <Cake className="w-4 h-4 text-orange-500" /> Cumpleaños de Mayo
+              <Cake className="w-4 h-4 -[var(--brand-primary)]" /> Cumpleaños de Mayo
             </h3>
-            <PartyPopper className="w-5 h-5 text-orange-500/30" />
+            <PartyPopper className="w-5 h-5 -[var(--brand-primary)]/30" />
           </div>
           <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
             {cumpleañeros.length === 0 ? (
@@ -398,8 +399,8 @@ export default function DashboardDirector() {
             ) : (
               <div className="space-y-4">
                 {cumpleañeros.map((jugador) => (
-                  <div key={jugador.id} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${jugador.esHoy ? 'bg-orange-50 dark:bg-orange-500/10 border-orange-200 dark:border-orange-500/30 ring-1 ring-orange-500/20' : 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'}`}>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${jugador.esHoy ? 'bg-orange-500 text-white animate-bounce' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700'}`}>
+                  <div key={jugador.id} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${jugador.esHoy ? '-[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/10 -[rgba(var(--brand-primary-rgb),0.4)] dark:-[var(--brand-primary)]/30 ring-1 -[var(--brand-primary)]/20' : 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${jugador.esHoy ? '-[var(--brand-primary)] text-white animate-bounce' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700'}`}>
                       {jugador.diaCumple}
                     </div>
                     <div className="flex-1 min-w-0">

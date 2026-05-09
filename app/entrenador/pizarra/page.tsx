@@ -391,7 +391,7 @@ export default function PizarraTactica() {
                 onMouseDown={startDragTools}
                 onTouchStart={startDragTools}
                 onClick={(e) => { e.stopPropagation(); setShowFloatingTools(!showFloatingTools); }} 
-                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all cursor-move active:scale-110 ${showFloatingTools ? 'bg-orange-600' : 'bg-slate-800/95 backdrop-blur-md'}`}
+                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all cursor-move active:scale-110 ${showFloatingTools ? '-[var(--brand-primary)]' : 'bg-slate-800/95 backdrop-blur-md'}`}
               >
                 {showFloatingTools ? <X className="w-6 h-6" /> : <Settings className="w-6 h-6 text-emerald-400" />}
               </button>

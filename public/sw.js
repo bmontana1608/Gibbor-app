@@ -39,3 +39,10 @@ self.addEventListener('notificationclick', function(event) {
     clients.openWindow(event.notification.data.url)
   );
 });
+
+// Manejador de fetch (Obligatorio para que algunos navegadores consideren la PWA como válida/instalable)
+self.addEventListener('fetch', function(event) {
+  // Por ahora solo dejamos pasar las peticiones (passthrough)
+  // Pero la presencia de este listener es necesaria para los criterios de PWA
+  event.respondWith(fetch(event.request));
+});

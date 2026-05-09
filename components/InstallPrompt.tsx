@@ -7,7 +7,15 @@ export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  const [tenant, setTenant] = useState<any>(null);
+
   useEffect(() => {
+    // Cargar datos del club para el branding del banner
+    fetch('/api/tenant')
+      .then(res => res.json())
+      .then(data => setTenant(data))
+      .catch(err => console.error('Error fetching tenant for banner:', err));
+
     // No mostrar el prompt si el usuario viene de una invitación para no distraer en el registro
     if (typeof window !== 'undefined' && window.location.search.includes('invite=true')) {
       return;
@@ -56,18 +64,27 @@ export default function InstallPrompt() {
 
   if (!isVisible) return null;
 
+  const brandName = tenant?.config?.nombre || 'Gibbor App';
+  const brandLogo = tenant?.config?.logo || '/logo.png';
+  const brandColor = tenant?.config?.color || '#ea580c';
+
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] w-[90%] max-w-md animate-in slide-in-from-bottom-10 duration-500">
       <div className="bg-slate-900 border border-slate-700 shadow-2xl rounded-3xl p-5 backdrop-blur-xl bg-opacity-95 flex items-center gap-4 relative overflow-hidden group">
         {/* Glow effect */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-3xl rounded-full -mr-10 -mt-10 group-hover:bg-orange-500/20 transition-all"></div>
+        <div 
+          className="absolute top-0 right-0 w-32 h-32 blur-3xl rounded-full -mr-10 -mt-10 opacity-20 group-hover:opacity-40 transition-all"
+          style={{ backgroundColor: brandColor }}
+        ></div>
         
-        <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
-          <Smartphone className="text-white w-8 h-8" />
+        <div 
+          className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-black/20 overflow-hidden bg-white"
+        >
+          <img src={brandLogo} alt={brandName} className="w-10 h-10 object-contain" />
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-black text-sm tracking-tight leading-none mb-1 text-left">Instalar Gibbor App</h3>
+          <h3 className="text-white font-black text-sm tracking-tight leading-none mb-1 text-left">Instalar {brandName}</h3>
           <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest text-left">Acceso directo en tu pantalla</p>
         </div>
 
