@@ -1,48 +1,71 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Cliente con Service Role Key para saltar RLS completamente
+// El manifiesto es público — no requiere autenticación del usuario
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } }
 );
-
-// Fallback público absoluto (logo de MCM, siempre accesible)
-const DEFAULT_ICON = 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png';
 
 export async function GET(
   request: Request,
   context: any
 ) {
-  // Extraer slug del tenant desde los params del segmento dinámico
   const { tenant: slug } = await context.params;
 
-  // Esta ruta es PÚBLICA — el navegador la lee sin autenticación para mostrar el banner de instalación
-  const { data: club } = await supabaseAdmin
-    .from('clubes')
-    .select('nombre, nombre_corto, color_primario, logo_url')
-    .eq('slug', slug)
-    .single();
-
-  // Construir URL base para iconos absolutos (requisito de algunos navegadores)
+  // URL base del servidor para construir URLs absolutas de iconos locales
   const requestUrl = new URL(request.url);
   const origin = requestUrl.origin;
 
-  const clubName = club?.nombre || 'Club Deportivo';
-  const clubShortName = club?.nombre_corto || clubName.split(' ')[0] || 'Club';
-  const clubColor = club?.color_primario || '#06b6d4';
+  // Icono de respaldo local — mismo origen, Chrome confía en él
+  const LOCAL_FALLBACK_ICON = `${origin}/logo.png`;
 
-  // Garantizar que el icono sea una URL absoluta y válida
-  let clubLogo = club?.logo_url;
-  if (!clubLogo || (!clubLogo.startsWith('http://') && !clubLogo.startsWith('https://'))) {
-    // Si es ruta relativa o no existe, usar icono absoluto de fallback
-    clubLogo = clubLogo?.startsWith('/') ? `${origin}${clubLogo}` : DEFAULT_ICON;
+  let clubName = slug.toUpperCase(); // Fallback inteligente: el slug mismo
+  let clubColor = '#06b6d4';
+  let clubLogo = LOCAL_FALLBACK_ICON;
+
+  try {
+    // Traer todos los campos relevantes con supabaseAdmin (sin RLS)
+    const { data: club, error } = await supabaseAdmin
+      .from('clubes')
+      .select('nombre, color_primario, logo_url')
+      .eq('slug', slug)
+      .maybeSingle(); // maybeSingle no lanza error si no hay resultado
+
+    if (error) {
+      console.error(`[manifest.json] Supabase error para slug "${slug}":`, error.message);
+    }
+
+    if (club) {
+      clubName = club.nombre || clubName;
+      clubColor = club.color_primario || clubColor;
+
+      // Validar que logo_url sea una URL absoluta válida
+      if (club.logo_url && (club.logo_url.startsWith('http://') || club.logo_url.startsWith('https://'))) {
+        clubLogo = club.logo_url;
+      } else if (club.logo_url && club.logo_url.startsWith('/')) {
+        // Ruta relativa → convertir a absoluta
+        clubLogo = `${origin}${club.logo_url}`;
+      }
+      // Si logo_url es null/empty → ya tenemos LOCAL_FALLBACK_ICON por defecto
+    } else {
+      console.warn(`[manifest.json] Club no encontrado para slug: "${slug}". Usando fallback.`);
+    }
+  } catch (err: any) {
+    console.error(`[manifest.json] Error inesperado para slug "${slug}":`, err.message);
   }
+
+  // Nombre corto: primeras 2 palabras del nombre, máx 12 chars
+  const clubShortName = clubName.split(' ').slice(0, 2).join(' ').slice(0, 12);
 
   const manifest = {
     name: clubName,
     short_name: clubShortName,
     description: `Portal oficial de ${clubName}`,
     start_url: `/${slug}/login`,
+    id: `/${slug}/`,
     display: 'standalone',
     orientation: 'portrait',
     background_color: '#020617',
@@ -62,9 +85,9 @@ export async function GET(
         type: 'image/png',
         purpose: 'maskable',
       },
-      // Icono de respaldo garantizado
+      // Segundo icono de respaldo local garantizado (mismo origen)
       {
-        src: DEFAULT_ICON,
+        src: LOCAL_FALLBACK_ICON,
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any',
@@ -79,7 +102,6 @@ export async function GET(
       'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0',
-      // Sin autenticación requerida — acceso público explícito
       'Access-Control-Allow-Origin': '*',
     },
   });
