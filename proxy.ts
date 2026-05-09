@@ -5,12 +5,15 @@ export async function proxy(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
   const pathname = url.pathname;
 
-  // 1. IGNORAR ARCHIVOS ESTÁTICOS
+  // 1. IGNORAR ARCHIVOS ESTÁTICOS Y RUTAS PÚBLICAS CRÍTICAS
   if (
     pathname.includes('.') || 
     pathname.startsWith('/_next') || 
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/favicon.ico')
+    pathname.startsWith('/favicon.ico') ||
+    pathname.endsWith('/manifest.json') ||
+    pathname.endsWith('/manifest.webmanifest') ||
+    pathname === '/sw.js'
   ) {
     return NextResponse.next();
   }
@@ -136,6 +139,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|admin|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|admin|_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.json|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

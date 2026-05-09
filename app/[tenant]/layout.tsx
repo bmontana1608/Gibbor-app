@@ -3,10 +3,12 @@ import { getTenant } from '@/lib/tenant';
 export async function generateMetadata({ params }: any) {
   const { tenant: slug } = await params;
   const tenant = await getTenant(slug);
-  
+
   return {
     title: `${tenant.config.nombre} | MCM`,
-    manifest: `/${slug}/manifest`,
+    // Apuntamos a la API Route explícita que sirve el manifest con el MIME-type correcto
+    // y sin interferencia del middleware
+    manifest: `/${slug}/manifest.json`,
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',

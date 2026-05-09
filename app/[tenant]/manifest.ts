@@ -8,27 +8,33 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const DEFAULT_ICON = 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png';
+
 export default async function manifest({
   params,
 }: any): Promise<MetadataRoute.Manifest> {
   const { tenant: slug } = await params;
 
-  // Obtener datos del club
   const { data: club } = await supabaseAdmin
     .from('clubes')
-    .select('*')
+    .select('nombre, nombre_corto, color_primario, logo_url')
     .eq('slug', slug)
     .single();
 
-  const clubName = club?.nombre || 'Gibbor App';
-  const clubShortName = club?.nombre_corto || clubName.split(' ')[0];
-  const clubColor = club?.color_primario || '#ea580c';
-  const clubLogo = club?.logo_url || '/logo.png';
+  const clubName = club?.nombre || 'Club Deportivo';
+  const clubShortName = club?.nombre_corto || clubName.split(' ')[0] || 'Club';
+  const clubColor = club?.color_primario || '#06b6d4';
+
+  // Icono con fallback garantizado (URL absoluta o fallback público)
+  let clubLogo = club?.logo_url;
+  if (!clubLogo || (!clubLogo.startsWith('http://') && !clubLogo.startsWith('https://'))) {
+    clubLogo = DEFAULT_ICON;
+  }
 
   return {
     name: clubName,
     short_name: clubShortName,
-    description: `Plataforma oficial de ${clubName}`,
+    description: `Portal oficial de ${clubName}`,
     start_url: `/${slug}/login`,
     display: 'standalone',
     background_color: '#020617',
