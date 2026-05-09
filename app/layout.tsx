@@ -10,13 +10,22 @@ export const viewport = {
 
 export async function generateMetadata() {
   const tenant = await getTenant();
+  const tenantSlug = (tenant as any).slug;
+
+  // Inyectar manifest en TODAS las páginas (director, futbolista, entrenador, login, etc.)
+  // El [tenant]/layout.tsx solo cubre /login y /unete; el root layout cubre TODO lo demás
+  const manifestUrl = tenantSlug && tenantSlug !== 'master'
+    ? `/${tenantSlug}/manifest.json`
+    : undefined;
+
   return {
     title: `${tenant.config.nombre} | MCM`,
     description: 'Master Club Manager - El corazón de tu formación deportiva',
+    ...(manifestUrl ? { manifest: manifestUrl } : {}),
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
-      title: `${tenant.config.nombre} - Gibbor App`,
+      title: tenant.config.nombre,
     },
     icons: {
       icon: tenant.config.logo || '/logo.png',
