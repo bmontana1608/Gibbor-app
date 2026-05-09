@@ -43,8 +43,8 @@ export default async function RootLayout({
         style={{
           '--brand-primary': tenant.config.color,
           '--brand-primary-rgb': hexToRgb(tenant.config.color),
-          '--brand-secondary': tenant.config.color_secundario || '#0284c7',
-          '--brand-secondary-rgb': hexToRgb(tenant.config.color_secundario || '#0284c7')
+          '--brand-secondary': (tenant.config as any).color_secundario || '#0284c7',
+          '--brand-secondary-rgb': hexToRgb((tenant.config as any).color_secundario || '#0284c7')
         } as React.CSSProperties}
       >
         <Providers>

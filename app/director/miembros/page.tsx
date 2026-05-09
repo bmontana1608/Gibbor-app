@@ -22,6 +22,7 @@ export default function DirectorioMiembros() {
   const [isModalDetallesOpen, setIsModalDetallesOpen] = useState(false);
   const [solicitudSeleccionada, setSolicitudSeleccionada] = useState<any>(null);
   const [emailAcceso, setEmailAcceso] = useState('');
+  const [generandoAcceso, setGenerandoAcceso] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -73,12 +74,15 @@ export default function DirectorioMiembros() {
     init();
   }, []);
 
-  const cargarJugadores = async (clubId: string) => {
+  const cargarJugadores = async (clubId?: any) => {
+    const targetId = (typeof clubId === 'string' ? clubId : null) || tenant?.id;
+    if (!targetId) return;
+
     setCargando(true);
     const { data, error } = await supabase
       .from('perfiles')
       .select('*')
-      .eq('club_id', clubId) // FILTRO CRÍTICO DE AISLAMIENTO
+      .eq('club_id', targetId) // FILTRO CRÍTICO DE AISLAMIENTO
       .neq('rol', 'Director')
       .order('rol', { ascending: false })
       .order('nombres', { ascending: true });
@@ -156,7 +160,7 @@ export default function DirectorioMiembros() {
     const { error } = await supabase.from('perfiles').delete().eq('id', id);
     if (!error) {
        toast.success("Solicitud rechazada correctamente.", { id: toastId });
-       cargarJugadores();
+       cargarJugadores(tenant?.id);
     } else {
        toast.error("Error al procesar el rechazo.", { id: toastId });
     }
