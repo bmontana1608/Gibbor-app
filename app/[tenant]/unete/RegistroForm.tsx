@@ -323,7 +323,7 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
             {guardando ? <Loader2 className="w-6 h-6 animate-spin relative z-10" /> : <ArrowRight className="w-6 h-6 relative z-10 group-hover:translate-x-2 transition-transform" />}
           </button>
           <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-8 opacity-50">
-            Powered by Gibbor Stats Lab © 2026
+            Portal Oficial de Miembros © 2026
           </p>
         </div>
       </form>
