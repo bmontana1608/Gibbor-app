@@ -30,10 +30,10 @@ export default async function DirectorLayout({ children }: { children: React.Rea
   const userRole = perfil?.rol?.toLowerCase();
   const isSuperAdmin = userRole === 'superadmin';
   const isDirector = userRole === 'director';
-  const belongsToClub = perfil?.club_id === tenant?.id;
+  const belongsToClub = perfil?.club_id === (tenant as any)?.id;
 
   if (!isSuperAdmin && (!isDirector || !belongsToClub)) {
-    console.error("Acceso bloqueado en servidor: ", { userRole, clubId: perfil?.club_id, tenantId: tenant?.id });
+    console.error("Acceso bloqueado en servidor: ", { userRole, clubId: perfil?.club_id, tenantId: (tenant as any)?.id });
     return redirect('/');
   }
 

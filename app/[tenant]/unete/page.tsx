@@ -52,7 +52,7 @@ export default async function UnetePage({ params }: any) {
     .eq('estado', 'Activo');
 
   const clubData = {
-    id: tenant.id,
+    id: (tenant as any).id,
     nombre: tenant.config.nombre,
     logo_url: tenant.config.logo,
     color_primario: tenant.config.color,

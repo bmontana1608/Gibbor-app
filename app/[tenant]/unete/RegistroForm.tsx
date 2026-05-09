@@ -157,7 +157,7 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-[2.5rem] border border-slate-200/50 p-8 md:p-12 shadow-sm">
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Nombres Completos *</label>
-              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700 shadow-sm" style={{ focusRingColor: color }} required />
+              <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} placeholder="Ej: Juan Andrés" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700 shadow-sm" required />
             </div>
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Apellidos *</label>

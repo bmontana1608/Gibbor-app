@@ -156,7 +156,7 @@ export async function PATCH(
 
       if (targetUserId) {
         const updateData: any = { email: correo_administrativo };
-        if (director_password) updateData.password = director_password;
+
         
         const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(
           targetUserId,
