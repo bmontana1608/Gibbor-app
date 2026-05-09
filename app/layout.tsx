@@ -13,7 +13,6 @@ export async function generateMetadata() {
   return {
     title: `${tenant.config.nombre} | MCM`,
     description: 'Master Club Manager - El corazón de tu formación deportiva',
-    manifest: tenant.slug === 'master' ? '/manifest.webmanifest' : `/${tenant.slug}/manifest.json`,
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',

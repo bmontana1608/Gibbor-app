@@ -6,7 +6,7 @@ export async function generateMetadata({ params }: any) {
   
   return {
     title: `${tenant.config.nombre} | MCM`,
-    manifest: `/${slug}/manifest.json`,
+    manifest: `/${slug}/manifest`,
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
