@@ -207,7 +207,7 @@ export default function PaginaComunicados() {
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl shadow-black/20 animate-bounce duration-[2000ms]">
                         <div className="flex items-center gap-2 mb-2">
                            <img src="/logo.png" className="w-4 h-4 rounded-full" />
-                           <span className="text-[8px] font-bold text-slate-500">Gibbor App • Ahora</span>
+                           <span className="text-[8px] font-bold text-slate-500">Plataforma • Ahora</span>
                         </div>
                         <h4 className="text-xs font-black text-slate-800 truncate">{titulo || 'Título del Comunicado'}</h4>
                         <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">{mensaje || 'Aquí aparecerá tu mensaje de alerta como una notificación real...'}</p>

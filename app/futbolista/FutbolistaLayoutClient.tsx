@@ -45,9 +45,9 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
     { name: "Seguridad", path: `${basePath}/futbolista/perfil`, icon: <ShieldCheck className="w-5 h-5" /> },
   ];
 
-  const brandName = tenant?.nombre || 'Gibbor App';
-  const brandLogo = tenant?.logo_url || '/logo.png';
-  const brandColor = tenant?.color_primario || '#ea580c';
+  const brandName = tenant?.config?.nombre || tenant?.nombre || 'Club';
+  const brandLogo = tenant?.config?.logo || tenant?.logo_url || '/logo.png';
+  const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden">

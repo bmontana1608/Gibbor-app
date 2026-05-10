@@ -133,14 +133,14 @@ export default function DirectorioMiembros() {
           method: 'POST',
           body: JSON.stringify({ 
             email: emailParaAcceso, 
-            password: 'Gibbor2026*', 
+            password: 'Club2026*', 
             rol: miembro.rol || 'Futbolista', 
             perfilId: miembro.id 
           })
         });
         
         if (res.ok) {
-          toast.success(`${miembro.nombres} ya puede ingresar con su correo y clave: Gibbor2026*`, { id: toastId, duration: 6000 });
+          toast.success(`${miembro.nombres} ya puede ingresar con su correo y clave: Club2026*`, { id: toastId, duration: 6000 });
         } else {
           toast.warning(`${miembro.nombres} aprobado, pero el acceso debe crearse manualmente (posible correo duplicado).`, { id: toastId });
         }
@@ -365,7 +365,7 @@ export default function DirectorioMiembros() {
 
                         <button 
                           onClick={() => {
-                            const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde EFD Gibbor te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
+                            const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde el club te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
                             window.open(`https://wa.me/${jugador.telefono?.replace(/\+/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                           }}
                           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2 transition-all"
@@ -583,7 +583,7 @@ export default function DirectorioMiembros() {
               </div>
 
               <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/20 rounded-xl flex items-center justify-center"><Key className="-[var(--brand-primary)] w-5 h-5" /></div><h4 className="text-sm font-black uppercase italic tracking-widest">Accesos Gibbor App</h4></div>
+                <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/20 rounded-xl flex items-center justify-center"><Key className="-[var(--brand-primary)] w-5 h-5" /></div><h4 className="text-sm font-black uppercase italic tracking-widest">Accesos a Plataforma</h4></div>
                 <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-center">
                   <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl mb-4 font-bold outline-none focus:ring-2 focus:-[var(--brand-primary)]" />
                   <div className="flex flex-col gap-3">
@@ -594,9 +594,9 @@ export default function DirectorioMiembros() {
                         const tid = toast.loading("Reseteando clave..."); 
                         const res = await fetch('/api/admin/reset-password', { 
                           method: 'POST', 
-                          body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Gibbor2026*' }) 
+                          body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Club2026*' }) 
                         }); 
-                        if(res.ok) toast.success("Clave reseteada a Gibbor2026*", {id: tid});
+                        if(res.ok) toast.success("Clave reseteada a Club2026*", {id: tid});
                         else toast.error("Error al resetear clave", {id: tid});
                         setGenerandoAcceso(false); 
                       }} disabled={generandoAcceso} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Resetear Clave</button>
@@ -610,7 +610,7 @@ export default function DirectorioMiembros() {
                             method: 'POST', 
                             body: JSON.stringify({ 
                               email: emailAcceso, 
-                              password: 'Gibbor2026*', 
+                              password: 'Club2026*', 
                               rol: solicitudSeleccionada.rol || 'Futbolista', 
                               perfilId: solicitudSeleccionada.id 
                             }) 

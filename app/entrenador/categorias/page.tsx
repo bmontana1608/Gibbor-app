@@ -80,6 +80,8 @@ export default function GestionCategoriasEntrenador() {
   const [lastEval, setLastEval] = useState<any>(null);
   const [puntosLog, setPuntosLog] = useState<any[]>([]);
 
+  const [usuario, setUsuario] = useState<any>(null);
+
   useEffect(() => {
     cargarCategorias();
   }, []);
@@ -88,16 +90,16 @@ export default function GestionCategoriasEntrenador() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     
-    const { data: usuario } = await supabase
+    const { data: usuarioData } = await supabase
       .from('perfiles')
       .select('*')
       .eq('id', session.user.id)
       .single();
     
-    // Usar API interna para saltar RLS
-    if (usuario) {
+    if (usuarioData) {
+      setUsuario(usuarioData);
       try {
-        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+        const res = await fetch(`/api/categorias?club_id=${usuarioData.club_id}&entrenador_id=${usuarioData.id}`);
         const data = await res.json();
         if (Array.isArray(data)) setCategorias(data);
       } catch (err) {
@@ -114,6 +116,7 @@ export default function GestionCategoriasEntrenador() {
     const { data } = await supabase.from('perfiles')
         .select('*')
         .eq('rol', 'Futbolista')
+        .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD: solo jugadores del club
         .ilike('grupos', `%${cat.nombre}%`)
         .order('nombres', { ascending: true });
     setAlumnos(data || []);
@@ -154,7 +157,7 @@ export default function GestionCategoriasEntrenador() {
                 </div>
                 <div>
                     <h1 className="text-2xl font-black text-slate-800 tracking-tight">Mis Categorías</h1>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Gestión de Talento Gibbor</p>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Gestión de Talento</p>
                 </div>
             </div>
             {catSeleccionada && (
@@ -245,7 +248,7 @@ export default function GestionCategoriasEntrenador() {
                                 <div className="bg-white rounded-[50px] p-8 border border-slate-200 shadow-xl flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-4">
                                         <div className="-[var(--brand-primary)] text-white font-black italic text-2xl px-6 py-2 rounded-2xl shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)]">
-                                            {alumnoDetalle.puntos || 0} <span className="text-[10px] not-italic block uppercase -[rgba(var(--brand-primary-rgb),0.1)]">Gibbor Points</span>
+                                            {alumnoDetalle.puntos || 0} <span className="text-[10px] not-italic block uppercase -[rgba(var(--brand-primary-rgb),0.1)]">Puntos</span>
                                         </div>
                                     </div>
 

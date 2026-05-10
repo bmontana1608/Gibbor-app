@@ -132,9 +132,13 @@ export default function GestionSkillsEntrenador() {
 
   const seleccionarCat = async (cat: any) => {
     setCatSeleccionada(cat);
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session?.user?.id || '').single();
+
     const { data: jugs } = await supabase.from('perfiles')
         .select('id, nombres, apellidos')
         .eq('rol', 'Futbolista')
+        .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD
         .ilike('grupos', `%${cat.nombre}%`);
     
     setAlumnos(jugs || []);

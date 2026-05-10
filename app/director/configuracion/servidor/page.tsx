@@ -18,7 +18,7 @@ export default function ConfiguracionServidor() {
   const [config, setConfig] = useState({
     api_url: '',
     api_key: '',
-    instance_name: 'Gibbor_App',
+    instance_name: 'Club_App',
     active_webhook: true,
     direccion: 'Calle Ficticia #12-34',
     ciudad: 'Cúcuta, Norte de Santander',
@@ -32,7 +32,7 @@ export default function ConfiguracionServidor() {
         setConfig({
           api_url: data.api_url || '',
           api_key: data.api_key || '',
-          instance_name: data.instance_name || 'Gibbor_App',
+          instance_name: data.instance_name || 'Club_App',
           active_webhook: data.active_webhook ?? true,
           direccion: data.direccion || 'Calle Ficticia #12-34',
           ciudad: data.ciudad || 'Cúcuta, Norte de Santander',
@@ -90,7 +90,7 @@ export default function ConfiguracionServidor() {
                 </div>
                 <div>
                    <h1 className="text-2xl font-black tracking-tight">Configuración del Servidor</h1>
-                   <p className="text-slate-400 text-sm">Conecta Gibbor App con tu instancia de Evolution API</p>
+                   <p className="text-slate-400 text-sm">Conecta la plataforma con tu instancia de Evolution API</p>
                 </div>
              </div>
           </div>
@@ -103,7 +103,7 @@ export default function ConfiguracionServidor() {
                <div>
                   <p className="text-blue-900 font-bold text-sm mb-1">Requisito Técnico</p>
                   <p className="text-blue-700 text-xs leading-relaxed">
-                    Para enviar mensajes reales, Gibbor App requiere una instancia de <strong>Evolution API</strong>. 
+                    Para enviar mensajes reales, la plataforma requiere una instancia de <strong>Evolution API</strong>. 
                     Si instalas esto en tu propio hosting, ingresa la URL y la API Key global aquí.
                   </p>
                   <a 
@@ -240,7 +240,7 @@ export default function ConfiguracionServidor() {
 
           <div className="bg-slate-50 p-6 border-t border-slate-100 flex items-center justify-center gap-3">
              <ShieldCheck className="w-5 h-5 text-emerald-500" />
-             <p className="text-[11px] font-medium text-slate-500 italic">Tus credenciales se guardan de forma cifrada en la base de datos de Gibbor App.</p>
+             <p className="text-[11px] font-medium text-slate-500 italic">Tus credenciales se guardan de forma cifrada en la base de datos de la plataforma.</p>
           </div>
 
         </div>

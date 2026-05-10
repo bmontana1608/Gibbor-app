@@ -39,7 +39,9 @@ export default function DashboardEntrenador() {
         setPerfil(usuario);
         
         const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
-        const queryAlumnos = supabase.from('perfiles').select('id').eq('rol', 'Futbolista');
+        const queryAlumnos = supabase.from('perfiles').select('id')
+          .eq('club_id', usuario.club_id)  // FILTRO DE SEGURIDAD: solo jugadores del club
+          .eq('rol', 'Futbolista');
         
         if (categoriasAsignadas.length > 0) {
           queryAlumnos.in('grupos', categoriasAsignadas);
@@ -63,8 +65,8 @@ export default function DashboardEntrenador() {
 
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando dashboard...</div>;
 
-  const brandColor = tenant?.color_primario || '#ea580c';
-  const brandName = tenant?.nombre || 'Club';
+  const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
+  const brandName = tenant?.config?.nombre || tenant?.nombre || 'Club';
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">

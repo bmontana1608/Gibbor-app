@@ -41,32 +41,39 @@ export default function FichaDelJugador() {
       } else if (data) {
         setJugador(data);
         setFormData(data); 
+
+        const { data: categoriasBD } = await supabase.from('categorias')
+          .select('nombre')
+          .eq('club_id', data.club_id) // FILTRO DE SEGURIDAD
+          .eq('estado', 'Activo');
+        if (categoriasBD) setCategorias(categoriasBD);
+
+        const { data: planesBD } = await supabase.from('planes')
+          .select('nombre, precio_base')
+          .eq('club_id', data.club_id) // FILTRO DE SEGURIDAD
+          .order('precio_base', { ascending: true });
+        if (planesBD) setPlanes(planesBD);
+
+        // Cargar Historial de Pagos del Jugador
+        const { data: pagosBD } = await supabase
+          .from('pagos_ingresos')
+          .select('*')
+          .eq('jugador_id', params.id)
+          .order('fecha', { ascending: false });
+        
+        if (pagosBD) setPagos(pagosBD);
+
+        // Cargar TODOS los jugadores para vinculación familiar
+        const { data: todosJugadoresBD } = await supabase
+          .from('perfiles')
+          .select('id, nombres, apellidos, grupos')
+          .eq('club_id', data.club_id) // FILTRO DE SEGURIDAD
+          .eq('rol', 'Futbolista')
+          .eq('estado_miembro', 'Activo')
+          .order('nombres', { ascending: true });
+        
+        if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
       }
-      
-      const { data: categoriasBD } = await supabase.from('categorias').select('nombre').eq('estado', 'Activo');
-      if (categoriasBD) setCategorias(categoriasBD);
-
-      const { data: planesBD } = await supabase.from('planes').select('nombre, precio_base').order('precio_base', { ascending: true });
-      if (planesBD) setPlanes(planesBD);
-
-      // Cargar Historial de Pagos del Jugador
-      const { data: pagosBD } = await supabase
-        .from('pagos_ingresos')
-        .select('*')
-        .eq('jugador_id', params.id)
-        .order('fecha', { ascending: false });
-      
-      if (pagosBD) setPagos(pagosBD);
-
-      // Cargar TODOS los jugadores para vinculación familiar
-      const { data: todosJugadoresBD } = await supabase
-        .from('perfiles')
-        .select('id, nombres, apellidos, grupos')
-        .eq('rol', 'Futbolista')
-        .eq('estado_miembro', 'Activo')
-        .order('nombres', { ascending: true });
-      
-      if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
 
       setCargando(false);
     }
@@ -295,7 +302,7 @@ export default function FichaDelJugador() {
             {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
               <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] rounded-2xl p-6">
                 <h3 className="text-sm font-bold -[var(--brand-primary)] mb-4 flex items-center gap-2">
-                  <Users className="w-5 h-5" /> Vincular "Tu Familia" en Gibbor
+                  <Users className="w-5 h-5" /> Vincular "Tu Familia"
                 </h3>
                 <p className="text-[10px] -[var(--brand-primary)] mb-4 font-medium uppercase tracking-wider italic">
                   Selecciona los jugadores que verá este {formData.rol === 'Director' ? 'Director' : 'Entrenador'} en su selector de perfiles (modo familia).
@@ -482,10 +489,10 @@ export default function FichaDelJugador() {
         </div>
 
         <div className="flex items-center gap-3 relative z-10 sm:ml-auto">
-          {/* Tarjeta de Puntos Gibbor */}
+          {/* Tarjeta de Puntos */}
           <div className="-[rgba(var(--brand-primary-rgb),0.1)] border -[rgba(var(--brand-primary-rgb),0.4)] rounded-2xl p-4 flex flex-col items-center justify-center min-w-[120px] shadow-sm">
              <Trophy className="w-5 h-5 -[var(--brand-primary)] mb-1" />
-             <p className="text-[10px] font-black -[rgba(var(--brand-primary-rgb),0.4)] uppercase tracking-widest">Gibbor Points</p>
+             <p className="text-[10px] font-black -[rgba(var(--brand-primary-rgb),0.4)] uppercase tracking-widest">Puntos</p>
              <p className="text-2xl font-black -[var(--brand-primary)] leading-none mt-1">{jugador.puntos || 0} GP</p>
           </div>
           

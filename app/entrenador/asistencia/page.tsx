@@ -58,11 +58,12 @@ export default function AsistenciaEntrenador() {
     setCargando(true);
     setCategoriaSeleccionada(cat);
     
-    // Cargar eventos (hoy y futuros) para esta categoría
+    // Cargar eventos de HOY filtrados por club (aislamiento de datos)
     const hoy = new Date().toISOString().split('T')[0];
     const { data: evs } = await supabase
       .from('eventos')
       .select('*')
+      .eq('club_id', perfil.club_id)  // FILTRO DE SEGURIDAD: solo eventos del club
       .eq('fecha', hoy)
       .or(`categoria_id.eq.${cat.id},categoria_id.is.null`);
 
@@ -75,11 +76,12 @@ export default function AsistenciaEntrenador() {
     setCargando(true);
     setEventoSeleccionado(ev);
     
-    // Cargar alumnos
+    // Cargar alumnos SOLO del club del entrenador (aislamiento multi-tenant)
     const { data: jugs } = await supabase
       .from('perfiles')
       .select('id, nombres, apellidos, grupos, foto_url, tipo_plan')
       .eq('rol', 'Futbolista')
+      .eq('club_id', perfil.club_id)  // FILTRO DE SEGURIDAD: solo jugadores del club
       .eq('grupos', categoriaSeleccionada.nombre)
       .neq('estado_miembro', 'Inactivo');
     

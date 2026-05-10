@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function RankingGibbor() {
+export default function Ranking() {
   const [ranking, setRanking] = useState<any[]>([]);
   const [recientes, setRecientes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -42,10 +42,14 @@ export default function RankingGibbor() {
 
   const cargarRanking = async () => {
     setCargando(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session?.user?.id || '').single();
+
     let query = supabase
       .from('perfiles')
       .select('id, nombres, apellidos, puntos, grupos')
       .eq('rol', 'Futbolista')
+      .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD: solo jugadores del club
       .order('puntos', { ascending: false })
       .limit(20);
 
@@ -85,7 +89,7 @@ export default function RankingGibbor() {
                     <span className="bg-white/10 text-white/60 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter italic">Live Ranking</span>
                  </div>
                  <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">CUADRO DE <span className="-[var(--brand-primary)] underline -[var(--brand-primary)]/30 underline-offset-8">HONOR</span> 🏆</h1>
-                 <p className="text-slate-400 font-medium max-w-md">Reconociendo el talento, la disciplina y el espíritu Gibbor de nuestros futbolistas.</p>
+                 <p className="text-slate-400 font-medium max-w-md">Reconociendo el talento, la disciplina y el espíritu deportivo de nuestros futbolistas.</p>
             </div>
             
             <div className="flex flex-col gap-3 min-w-[200px]">
@@ -154,7 +158,7 @@ export default function RankingGibbor() {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-800 text-sm uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase">{pos === 1 ? '🥇 Campeón del Ranking' : 'Futbolista Gibbor'}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase">{pos === 1 ? '🥇 Campeón del Ranking' : 'Futbolista Destacado'}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -194,7 +198,7 @@ export default function RankingGibbor() {
                     {recientes.map((log) => (
                         <div key={log.id} className="relative pl-6 border-l-2 -[var(--brand-primary)]/30 py-1">
                              <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-slate-900 border-2 -[var(--brand-primary)]"></div>
-                             <p className="text-xs font-black text-white/90 uppercase tracking-tight">+{log.puntos} Gibbor Points</p>
+                             <p className="text-xs font-black text-white/90 uppercase tracking-tight">+{log.puntos} Puntos</p>
                              <p className="text-[10px] text-white/50 font-bold mt-1 uppercase truncate">
                                 {log.perfiles?.nombres} • {log.motivo}
                              </p>
@@ -211,7 +215,7 @@ export default function RankingGibbor() {
                 <Award className="w-10 h-10 -[var(--brand-primary)] mb-4" />
                 <h4 className="font-black text-slate-800 text-sm mb-2 uppercase">Lucha por el Top 1</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Solo los atletas con mejor disciplina, asistencia y talento logran entrar en el Salón de la Fama Gibbor. ¡Motiva a tus alumnos!
+                    Solo los atletas con mejor disciplina, asistencia y talento logran entrar en el Salón de la Fama. ¡Motiva a tus alumnos!
                 </p>
             </div>
          </div>

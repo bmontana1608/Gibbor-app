@@ -45,28 +45,39 @@ export default function HistorialChats() {
   useEffect(() => {
     async function init() {
       setCargando(true);
-      const { data: perfilesData } = await supabase
-        .from('perfiles')
-        .select('id, nombres, apellidos, telefono, grupos')
-        .eq('rol', 'Futbolista');
+      
+      try {
+        const tenantRes = await fetch('/api/tenant');
+        const tenantData = await tenantRes.json();
 
-      const profilesMap: Record<string, any> = {};
-      perfilesData?.forEach(p => { profilesMap[p.id] = p; });
-      setPerfiles(profilesMap);
+        if (!tenantData?.id) throw new Error("No tenant");
 
-      const { data } = await supabase
-        .from('mensajes_wa')
-        .select('*')
-        .order('created_at', { ascending: false });
+        const { data: perfilesData } = await supabase
+          .from('perfiles')
+          .select('id, nombres, apellidos, telefono, grupos')
+          .eq('club_id', tenantData.id) // FILTRO DE SEGURIDAD
+          .eq('rol', 'Futbolista');
 
-      if (data) {
-        setMensajes(data);
-        const convs = buildConversaciones(data, profilesMap);
-        setConversaciones(convs);
-        // En desktop seleccionamos el primero, en móvil no para mostrar la lista
-        if (convs.length > 0 && window.innerWidth >= 768) {
-          setSelectedChat(convs[0].numero);
+        const profilesMap: Record<string, any> = {};
+        perfilesData?.forEach(p => { profilesMap[p.id] = p; });
+        setPerfiles(profilesMap);
+
+        const { data } = await supabase
+          .from('mensajes_wa')
+          .select('*')
+          .eq('club_id', tenantData.id) // FILTRO DE SEGURIDAD
+          .order('created_at', { ascending: false });
+
+        if (data) {
+          setMensajes(data);
+          const convs = buildConversaciones(data, profilesMap);
+          setConversaciones(convs);
+          if (convs.length > 0 && window.innerWidth >= 768) {
+            setSelectedChat(convs[0].numero);
+          }
         }
+      } catch (e) {
+        console.error(e);
       }
       setCargando(false);
     }
@@ -130,7 +141,7 @@ export default function HistorialChats() {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#111b21]">Gibbor WA</p>
+              <p className="text-sm font-bold text-[#111b21]">WhatsApp en Vivo</p>
               <div className="flex items-center gap-1">
                 <div className={`w-1.5 h-1.5 rounded-full ${enVivo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                 <p className="text-[9px] text-[#667781] font-bold uppercase tracking-widest">

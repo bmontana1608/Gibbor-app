@@ -159,7 +159,7 @@ export default function HistorialChats() {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#111b21]">Gibbor WA</p>
+              <p className="text-sm font-bold text-[#111b21]">WhatsApp en Vivo</p>
               <div className="flex items-center gap-1">
                 <div className={`w-1.5 h-1.5 rounded-full ${enVivo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                 <p className="text-[9px] text-[#667781] font-bold uppercase tracking-widest">

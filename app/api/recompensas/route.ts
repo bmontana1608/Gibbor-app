@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', desc: 'Máximo artillero' },
       { id: 'muro', nombre: 'Muro Defensivo', icono: '🛡️', desc: 'Defensa impenetrable' },
       { id: 'cerebro', nombre: 'Cerebro del Campo', icono: '🧠', desc: 'Visión de juego superior' },
-      { id: 'fairplay', nombre: 'Espíritu Gibbor', icono: '🤝', desc: 'Compañerismo y valores' },
+      { id: 'fairplay', nombre: 'Espíritu Deportivo', icono: '🤝', desc: 'Compañerismo y valores' },
       { id: 'rayo', nombre: 'Rayo Veloz', icono: '⚡', desc: 'Velocidad explosiva' }
     ];
 

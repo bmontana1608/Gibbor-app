@@ -29,10 +29,19 @@ export default function DetalleCategoria() {
     if (catError || !catData) { setCargando(false); return; }
     setCategoria(catData);
 
-    const { data: memData } = await supabase.from('perfiles').select('*').eq('rol', 'Futbolista').eq('grupos', catData.nombre).neq('estado_miembro', 'Pendiente').order('nombres', { ascending: true });
+    const { data: memData } = await supabase.from('perfiles')
+      .select('*')
+      .eq('rol', 'Futbolista')
+      .eq('club_id', catData.club_id) // FILTRO DE SEGURIDAD
+      .eq('grupos', catData.nombre)
+      .neq('estado_miembro', 'Pendiente')
+      .order('nombres', { ascending: true });
     if (memData) setMiembros(memData);
     
-    const { data: entData } = await supabase.from('perfiles').select('id, nombres, apellidos').or('rol.eq.Entrenador,rol.eq.Director');
+    const { data: entData } = await supabase.from('perfiles')
+      .select('id, nombres, apellidos')
+      .eq('club_id', catData.club_id) // FILTRO DE SEGURIDAD
+      .or('rol.eq.Entrenador,rol.eq.Director');
     if (entData) setEntrenadoresBD(entData);
 
     setCargando(false);

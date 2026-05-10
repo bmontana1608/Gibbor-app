@@ -18,7 +18,7 @@ export default function ConfiguracionGeneral() {
   const [tenant, setTenant] = useState<any>(null);
 
   const [config, setConfig] = useState({
-    api_url: '', api_key: '', instance_name: 'Gibbor_App',
+    api_url: '', api_key: '', instance_name: 'Club_App',
     direccion: '', ciudad: '', nequi: '', daviplata: '',
     bre_b: '', banco_nombre: '', banco_numero: '',
     hijos_config: '',

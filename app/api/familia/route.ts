@@ -66,9 +66,11 @@ export async function GET(request: Request) {
   const orClause = orParts.filter(Boolean).join(',');
 
   // Buscamos todos los perfiles que coincidan con alguna condición
+  // AISLAMIENTO MULTI-TENANT: filtrar por club_id del usuario para evitar fugas de datos
   const { data: misPerfiles, error } = await supabaseAdmin
     .from("perfiles")
     .select("*")
+    .eq('club_id', miPerfil?.club_id)  // FILTRO DE SEGURIDAD
     .or(orClause);
 
   if (error) {

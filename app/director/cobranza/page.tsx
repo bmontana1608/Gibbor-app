@@ -550,7 +550,7 @@ export default function ModuloCobranza() {
       }
 
       const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
-      const instanceName = config.instance_name || 'Gibbor_App';
+      const instanceName = config.instance_name || 'Club_App';
 
       let cleanedNumber = String(alumno.telefono || '').replace(/\D/g, '');
       // Si el número empieza con el código de país pero sin +, o es local de 10 dígitos
@@ -599,7 +599,7 @@ export default function ModuloCobranza() {
 
       // Mensaje de WhatsApp
       const vencimiento = `5/${new Date().getMonth() + 1}/${anioActual}`;
-      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad por $ ${alumno.tarifa.toLocaleString()} (vence ${vencimiento}). Recuerda que si pagas antes del 5 tienes descuento de $10.000. Gracias por confiar en EFD Gibbor ✨`;
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad por $ ${alumno.tarifa.toLocaleString()} (vence ${vencimiento}). Recuerda que si pagas antes del 5 tienes descuento de $10.000. Gracias por confiar en el club ✨`;
 
       const result = await enviarMensajeWhatsApp(
         alumno.telefono,
@@ -836,8 +836,8 @@ export default function ModuloCobranza() {
   const totalMora = totalJugadoresCobrales - totalAlDia;
   
   const ingresosPendientes = jugadoresFin
-    .filter(j => !j.esAlDia && j.tarifa > 0)
-    .reduce((acc, j) => acc + j.tarifa, 0);
+    .filter(j => j.deudaTotal > 0)
+    .reduce((acc, j) => acc + j.deudaTotal, 0);
 
   const porcentajeRecaudo = totalJugadoresCobrales > 0 ? Math.round((totalAlDia / totalJugadoresCobrales) * 100) : 0;
 
@@ -859,7 +859,7 @@ export default function ModuloCobranza() {
       if (!config || !config.api_url) throw new Error("Configura el asistente de WhatsApp primero.");
 
       const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
-      const instanceName = config.instance_name || 'Gibbor_App';
+      const instanceName = config.instance_name || 'Club_App';
 
       // 1. Limpiar número
       let cleanedNumber = String(reciboGenerado.telefono || '').replace(/\D/g, '');
@@ -886,7 +886,7 @@ export default function ModuloCobranza() {
           banco_numero: config.banco_numero
         }
       });
-      const texto = `¡Hola! EFD Gibbor confirma el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
+      const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
 
       // 3. Envío vía API usando motor central
       const result = await enviarMensajeWhatsApp(
@@ -947,7 +947,7 @@ export default function ModuloCobranza() {
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         toast.dismiss(toastId);
-        await navigator.share({ files: [file], title: 'Recibo Gibbor' });
+        await navigator.share({ files: [file], title: 'Recibo de Pago' });
       } else {
         const link = document.createElement('a');
         link.href = URL.createObjectURL(pdfBlob);
@@ -991,7 +991,7 @@ export default function ModuloCobranza() {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                    Asistente Gibbor <span className="text-[10px] -[var(--brand-primary)] text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
+                    Asistente <span className="text-[10px] -[var(--brand-primary)] text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
                   </h3>
                   <p className="text-sm text-slate-500">He detectado <span className="font-bold -[var(--brand-primary)]">{automatedTasks.length} cobros programados</span> para hoy que no han sido notificados.</p>
                 </div>

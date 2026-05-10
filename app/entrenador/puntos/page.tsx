@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function AsignarPuntosGibbor() {
+export default function AsignarPuntos() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [catSeleccionada, setCatSeleccionada] = useState<any>(null);
   const [alumnos, setAlumnos] = useState<any[]>([]);
@@ -27,7 +27,7 @@ export default function AsignarPuntosGibbor() {
     { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', color: '-[rgba(var(--brand-primary-rgb),0.4)] to-red-500', desc: 'Máximo artillero' },
     { id: 'muro', nombre: 'Muro Defensivo', icono: '🛡️', color: 'from-blue-500 to-indigo-700', desc: 'Defensa impenetrable' },
     { id: 'cerebro', nombre: 'Cerebro del Campo', icono: '🧠', color: 'from-purple-500 to-pink-600', desc: 'Visión de juego superior' },
-    { id: 'fairplay', nombre: 'Espíritu Gibbor', icono: '🤝', color: 'from-green-400 to-emerald-600', desc: 'Compañerismo y valores' },
+    { id: 'fairplay', nombre: 'Espíritu Deportivo', icono: '🤝', color: 'from-green-400 to-emerald-600', desc: 'Compañerismo y valores' },
     { id: 'rayo', nombre: 'Rayo Veloz', icono: '⚡', color: 'from-yellow-400 -[var(--brand-primary)]', desc: 'Velocidad explosiva' }
   ];
 
@@ -67,10 +67,17 @@ export default function AsignarPuntosGibbor() {
   const seleccionarCategoria = async (cat: any) => {
     setCargando(true);
     setCatSeleccionada(cat);
+    const { data: usuario } = await supabase
+      .from('perfiles')
+      .select('club_id')
+      .eq('id', (await supabase.auth.getUser()).data.user?.id || '')
+      .single();
+
     const { data, error } = await supabase
       .from('perfiles')
       .select('id, nombres, apellidos, puntos, estado_miembro')
       .eq('rol', 'Futbolista')
+      .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD
       .ilike('grupos', `%${cat.nombre}%`);
     
     if (error) {

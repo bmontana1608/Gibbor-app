@@ -24,17 +24,18 @@ export default function NuevoMiembro() {
       setTenant(tenantData);
 
       // Cargar categorías activas
-      const { data: catData } = await supabase.from('categorias').select('nombre, id').eq('estado', 'Activo');
+      const { data: catData } = await supabase.from('categorias').select('nombre, id').eq('club_id', tenantData.id).eq('estado', 'Activo');
       if (catData) setCategorias(catData);
 
       // Cargar planes de pago dinámicos
-      const { data: planesData } = await supabase.from('planes').select('nombre, precio_base').order('precio_base', { ascending: true });
+      const { data: planesData } = await supabase.from('planes').select('nombre, precio_base').eq('club_id', tenantData.id).order('precio_base', { ascending: true });
       if (planesData) setPlanes(planesData);
 
       // Cargar jugadores para vinculación opcional
       const { data: todosJugadoresBD } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, grupos')
+        .eq('club_id', tenantData.id) // FILTRO DE SEGURIDAD
         .eq('rol', 'Futbolista')
         .eq('estado_miembro', 'Activo')
         .order('nombres', { ascending: true });

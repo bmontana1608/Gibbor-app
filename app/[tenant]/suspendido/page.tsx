@@ -27,7 +27,7 @@ export default function PaginaSuspendida() {
           </h1>
           
           <p className="text-slate-400 text-sm leading-relaxed mb-10">
-            Tu acceso a las funciones operativas de la academia ha sido restringido por falta de pago en la suscripción mensual de <span className="text-white font-bold italic tracking-wider">Gibbor App</span>.
+            Tu acceso a las funciones operativas de la academia ha sido restringido por falta de pago en la suscripción mensual de <span className="text-white font-bold italic tracking-wider">la plataforma</span>.
           </p>
 
           <div className="space-y-4 mb-10">

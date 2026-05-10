@@ -411,7 +411,7 @@ export default function DashboardDirector() {
                     </div>
                     <button 
                       onClick={() => {
-                        const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde EFD Gibbor te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
+                        const msg = `¡Hola ${jugador.nombres}! 🎂⚽️ Desde ${brandName} te deseamos un muy feliz cumpleaños. ¡Que sigas creciendo con nosotros y que hoy sea un gran día de celebración! 🥳🎉`;
                         window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                       }}
                       className={`p-2 rounded-xl transition-all ${jugador.esHoy ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-200/50 dark:bg-slate-700 text-slate-400 hover:text-emerald-500'}`}
@@ -506,7 +506,7 @@ export default function DashboardDirector() {
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                  <p className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest tracking-tighter">
-                    Powered by Gibbor Cloud SaaS © 2026
+                    Powered by Club Management SaaS © 2026
                  </p>
               </div>
            </div>

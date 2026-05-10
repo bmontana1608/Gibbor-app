@@ -27,6 +27,16 @@ export default async function EntrenadorLayout({ children }: { children: React.R
     return redirect(`/${tenantSlug}/login`);
   }
 
+  // VALIDACIÓN DE SEGURIDAD: El entrenador debe pertenecer al club activo
+  const isSuperAdmin = perfil?.rol?.toLowerCase() === 'superadmin';
+  const isStaff = ['director', 'entrenador'].includes(perfil?.rol?.toLowerCase());
+  const belongsToClub = perfil?.club_id === (tenant as any)?.id;
+
+  if (!isSuperAdmin && (!isStaff || !belongsToClub)) {
+    console.error('[Entrenador Layout] Acceso denegado:', { rol: perfil?.rol, clubId: perfil?.club_id, tenantId: (tenant as any)?.id });
+    return redirect(`/${tenantSlug}/login`);
+  }
+
   return (
     <EntrenadorLayoutClient initialTenant={tenant} initialProfile={perfil}>
       {children}

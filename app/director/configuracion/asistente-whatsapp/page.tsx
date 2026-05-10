@@ -239,7 +239,7 @@ export default function AsistenteWhatsApp() {
                        <CheckCircle2 className="w-10 h-10 text-emerald-500 shrink-0" />
                        <div>
                           <h4 className="font-bold text-emerald-800">¡Conexión Exitosa!</h4>
-                          <p className="text-sm text-emerald-600">Gibbor App está gestionando los mensajes a través del servidor central.</p>
+                          <p className="text-sm text-emerald-600">La plataforma está gestionando los mensajes a través del servidor central.</p>
                        </div>
                     </div>
                     <div className="flex gap-3">
@@ -319,7 +319,7 @@ export default function AsistenteWhatsApp() {
                    <div className="bg-[#075e54] p-4 pt-8 text-white flex items-center gap-3">
                       <Bot className="w-8 h-8 p-1 bg-white/20 rounded-full" />
                       <div>
-                         <p className="text-xs font-bold leading-none">Asistente Gibbor</p>
+                         <p className="text-xs font-bold leading-none">Asistente Automático</p>
                          <p className="text-[10px] text-emerald-200">En línea</p>
                       </div>
                    </div>
@@ -358,7 +358,7 @@ export default function AsistenteWhatsApp() {
                    <h3 className="font-bold text-emerald-900 leading-tight">Seguridad de Datos</h3>
                 </div>
                 <p className="text-xs text-emerald-700 leading-relaxed font-medium">
-                  Gibbor App no almacena conversaciones personales. Solo gestiona flujos automatizados de cobranza cumpliendo con la Ley de Protección de Datos.
+                  La plataforma no almacena conversaciones personales. Solo gestiona flujos automatizados de cobranza cumpliendo con la Ley de Protección de Datos.
                 </p>
              </div>
           </div>
