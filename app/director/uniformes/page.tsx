@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { 
   Shirt, Search, PlusCircle, CreditCard, ChevronRight, 
-  Trash2, X, DollarSign, TrendingUp, Scissors, CheckCircle 
+  Trash2, X, DollarSign, TrendingUp, Scissors, CheckCircle, Receipt, ExternalLink 
 } from 'lucide-react';
 
 export default function UniformesModule() {
@@ -176,7 +176,7 @@ export default function UniformesModule() {
         
         // Si el usuario registró un abono inicial mayor a 0, lo sumamos a los ingresos generales del club
         if (pAbono > 0 && data) {
-          await registrarIngresoFinanciero(jugadorId, pAbono, \`Abono inicial de uniforme\`);
+          await registrarIngresoFinanciero(jugadorId, pAbono, `Abono inicial de uniforme`);
         }
       }
       
@@ -185,6 +185,41 @@ export default function UniformesModule() {
       cargarDatos();
     } catch (err: any) {
       toast.error("Error al guardar: " + err.message, { id: toastId });
+    }
+  };
+
+  const registrarPagoProveedor = async (pedido: any) => {
+    if (pedido.costo_liquidado) return toast.info("Este costo ya fue liquidado.");
+    if (!window.confirm(`¿Deseas registrar el pago de $${Number(pedido.costo_proveedor).toLocaleString()} al proveedor como un EGRESO del club?`)) return;
+
+    const toastId = toast.loading("Registrando egreso...");
+    try {
+      // 1. Marcar como liquidado en la tabla de uniformes
+      const { error: errUpd } = await supabase
+        .from('pedidos_uniformes')
+        .update({ costo_liquidado: true })
+        .eq('id', pedido.id);
+      
+      if (errUpd) throw errUpd;
+
+      // 2. Registrar en pagos_egresos
+      const d = new Date();
+      const fechaLet = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
+
+      const { error: errEgr } = await supabase.from('pagos_egresos').insert([{
+        club_id: tenant.id,
+        descripcion: `PAGO PROVEEDOR: Uniforme de ${pedido.perfiles.nombres} ${pedido.perfiles.apellidos}`,
+        monto: Number(pedido.costo_proveedor),
+        categoria: 'Uniformes',
+        fecha: fechaLet
+      }]);
+
+      if (errEgr) throw errEgr;
+
+      toast.success("Gasto registrado en la contabilidad general del club", { id: toastId });
+      cargarDatos();
+    } catch (err: any) {
+      toast.error("Error al liquidar: " + err.message, { id: toastId });
     }
   };
 
@@ -219,7 +254,7 @@ export default function UniformesModule() {
       recargo: 0,
       total: monto,
       metodo_pago: 'Efectivo', // Por defecto, se podría mejorar pidiendo el método
-      notas: \`UNIFORMES: \${nota}\`,
+      notas: `UNIFORMES: ${nota}`,
       fecha: fechaLet,
       club_id: tenant?.id
     }]);
@@ -249,9 +284,9 @@ export default function UniformesModule() {
       if (error) throw error;
 
       // 2. Inyectar a ingresos generales
-      await registrarIngresoFinanciero(pedidoActual.jugador_id, montoSumar, \`Abono de $\${montoSumar}\`);
+      await registrarIngresoFinanciero(pedidoActual.jugador_id, montoSumar, `Abono de $${montoSumar}`);
 
-      toast.success(\`Abono registrado exitosamente. Se ha inyectado $\${montoSumar} a los ingresos del club.\`, { id: toastId });
+      toast.success(`Abono registrado exitosamente. Se ha inyectado $${montoSumar} a los ingresos del club.`, { id: toastId });
       setIsModalAbonoOpen(false);
       setNuevoAbonoMonto('');
       cargarDatos();
@@ -289,26 +324,26 @@ export default function UniformesModule() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 -[var(--brand-primary)]">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
-              <h3 className="text-3xl font-black text-slate-800 dark:text-white">\${stats.totalVenta.toLocaleString('es-CO')}</h3>
+              <h3 className="text-3xl font-black text-slate-800 dark:text-white">${stats.totalVenta.toLocaleString('es-CO')}</h3>
               <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-rose-500">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Costo Proveedor</p>
-              <h3 className="text-3xl font-black text-rose-600">\${stats.totalCosto.toLocaleString('es-CO')}</h3>
+              <h3 className="text-3xl font-black text-rose-600">${stats.totalCosto.toLocaleString('es-CO')}</h3>
               <p className="text-[10px] text-slate-400 mt-1 font-bold">Gastos de fabricación</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
               <TrendingUp className="absolute -right-4 -top-4 w-20 h-20 text-emerald-50 opacity-50" />
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ganancia Estimada</p>
-              <h3 className="text-3xl font-black text-emerald-600">\${stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
+              <h3 className="text-3xl font-black text-emerald-600">${stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
               <p className="text-[10px] text-slate-400 mt-1 font-bold">Utilidad libre del club</p>
            </div>
            <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-xl relative">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cartera Pendiente</p>
-              <h3 className="text-3xl font-black text-white">\${stats.porCobrar.toLocaleString('es-CO')}</h3>
+              <h3 className="text-3xl font-black text-white">${stats.porCobrar.toLocaleString('es-CO')}</h3>
               <div className="flex items-center gap-2 mt-2">
                  <div className="w-full bg-slate-800 rounded-full h-1.5">
-                   <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: \`\${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%\` }}></div>
+                   <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
                  </div>
                  <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
               </div>
@@ -359,13 +394,26 @@ export default function UniformesModule() {
                           </td>
                           <td className="p-4">
                              <div className="text-xs">
-                               <p className="font-black text-slate-800 dark:text-white">Venta: \${Number(p.precio_venta).toLocaleString()}</p>
-                               <p className="text-rose-500 font-bold">Costo: \${Number(p.costo_proveedor).toLocaleString()}</p>
+                               <p className="font-black text-slate-800 dark:text-white">Venta: ${Number(p.precio_venta).toLocaleString()}</p>
+                               <div className="flex items-center gap-2">
+                                 <p className="text-rose-500 font-bold">Costo: ${Number(p.costo_proveedor).toLocaleString()}</p>
+                                 {p.costo_liquidado ? (
+                                   <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">Liquidado</span>
+                                 ) : (
+                                   <button 
+                                     onClick={() => registrarPagoProveedor(p)}
+                                     className="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-black uppercase hover:bg-rose-500 hover:text-white transition-all"
+                                     title="Registrar pago al proveedor"
+                                   >
+                                     Pagar
+                                   </button>
+                                 )}
+                               </div>
                              </div>
                           </td>
                           <td className="p-4">
                              <div className="flex flex-col gap-1 items-start">
-                               <span className={\`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest \${
+                               <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                  p.estado_pago === 'Pagado' ? 'bg-emerald-100 text-emerald-700' : 
                                  p.estado_pago === 'Abonado' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
                                }\`}>
