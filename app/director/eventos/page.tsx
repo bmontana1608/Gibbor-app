@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Calendar, Clock, MapPin, Users, Tag } from "lucide-react";
+import { Plus, Trash2, Calendar, Clock, MapPin, Users, Tag, Trophy as TrophyIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -21,9 +21,12 @@ export default function GestionEventos() {
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
 
   const fetchDatos = async () => {
+    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantData = await tenantRes.json();
+
     const [resEv, resCat] = await Promise.all([
       fetch('/api/eventos').then(r => r.json()),
-      supabase.from('categorias').select('nombre').order('nombre')
+      supabase.from('categorias').select('nombre').eq('club_id', tenantData.id).order('nombre')
     ]);
     setEventos(resEv || []);
     if (resCat.data) setCategorias(resCat.data);
@@ -73,8 +76,8 @@ export default function GestionEventos() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando agenda...</p>
       </div>
     );
@@ -84,7 +87,7 @@ export default function GestionEventos() {
     <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="-[var(--brand-primary)]">Agenda</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-[var(--brand-primary)]">Agenda</span></h1>
           <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
         </div>
       </div>
@@ -92,14 +95,14 @@ export default function GestionEventos() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* FORMULARIO */}
         <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit">
-          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="w-5 h-5 -[var(--brand-primary)]" /> Nuevo Evento</h2>
+          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-[var(--brand-primary)]" /> Nuevo Evento</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Título</label>
               <input 
                 type="text" 
                 placeholder="Ej: Final de Torneo"
-                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold focus:ring-2 focus:-[var(--brand-primary)] outline-none transition-all"
+                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[var(--brand-primary)] outline-none transition-all"
                 value={nuevoEvento.titulo}
                 onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})}
               />
@@ -109,7 +112,7 @@ export default function GestionEventos() {
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Tipo</label>
                 <select 
-                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
+                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none cursor-pointer"
                   value={nuevoEvento.tipo}
                   onChange={e => setNuevoEvento({...nuevoEvento, tipo: e.target.value})}
                 >
@@ -156,13 +159,13 @@ export default function GestionEventos() {
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-2 block flex items-center gap-1.5">
                 <Tag className="w-3 h-3" /> Categoría Destino
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
                 <button
                   type="button"
                   onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
                   className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
                     nuevoEvento.categoria_id === '' 
-                    ? '-[var(--brand-primary)] text-white -[var(--brand-primary)] shadow-lg -[var(--brand-primary)]/20' 
+                    ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg' 
                     : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                   }`}
                 >
@@ -175,17 +178,17 @@ export default function GestionEventos() {
                     onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
                     className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
                       nuevoEvento.categoria_id === cat.nombre 
-                      ? '-[var(--brand-primary)] text-white -[var(--brand-primary)] shadow-lg -[var(--brand-primary)]/20' 
+                      ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg' 
                       : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                     }`}
                   >
-                    {cat.nombre.split(' ')[0]} {cat.nombre.split(' ')[1] || ''}
+                    {cat.nombre}
                   </button>
                 ))}
               </div>
             </div>
 
-            <button type="submit" className="w-full -[var(--brand-primary)] text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl -[var(--brand-primary)]/20 hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
+            <button type="submit" className="w-full bg-[var(--brand-primary)] text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" /> Publicar Evento
             </button>
           </form>
@@ -194,37 +197,32 @@ export default function GestionEventos() {
         {/* LISTADO PRÓXIMOS */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-2">Próximos en Agenda</h2>
-          {cargando ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-32 bg-slate-100 rounded-[2rem]"></div>
-              <div className="h-32 bg-slate-100 rounded-[2rem]"></div>
-            </div>
-          ) : eventos.length > 0 ? (
+          {eventos.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {eventos.map((evento) => (
-                <div key={evento.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:-[rgba(var(--brand-primary-rgb),0.4)] transition-all">
+                <div key={evento.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-[var(--brand-primary)] transition-all">
                   <div className="flex items-center gap-6">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
-                      evento.tipo === 'Partido' ? '-[var(--brand-primary)]' : 
+                      evento.tipo === 'Partido' ? 'bg-[var(--brand-primary)]' : 
                       evento.tipo === 'Entrenamiento' ? 'bg-blue-500' : 'bg-purple-500'
                     }`}>
-                      {evento.tipo === 'Partido' ? <Trophy className="w-7 h-7" /> : <Calendar className="w-7 h-7" />}
+                      {evento.tipo === 'Partido' ? <TrophyIcon className="w-7 h-7" /> : <Calendar className="w-7 h-7" />}
                     </div>
                     <div>
                       <h3 className="font-black text-slate-800 text-lg uppercase leading-none">{evento.titulo}</h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2">
                         <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <Clock className="w-3 h-3 -[var(--brand-primary)]" /> 
+                          <Clock className="w-3 h-3 text-[var(--brand-primary)]" /> 
                           {evento.fecha} | {(() => {
-                            const [h, m] = evento.hora.split(':');
+                            const [h, m] = (evento.hora || '12:00').split(':');
                             let hour = parseInt(h);
                             const ampm = hour >= 12 ? 'PM' : 'AM';
                             hour = hour % 12 || 12;
                             return `${hour}:${m} ${ampm}`;
                           })()}
                         </span>
-                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 -[var(--brand-primary)]" /> {evento.lugar}</span>}
-                        {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black -[var(--brand-primary)] uppercase tracking-widest -[rgba(var(--brand-primary-rgb),0.1)] p-1 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id.split(' ')[0]}</span>}
+                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-[var(--brand-primary)]" /> {evento.lugar}</span>}
+                        {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--brand-primary)] uppercase tracking-widest bg-[var(--brand-primary)]/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
                       </div>
                     </div>
                   </div>
@@ -241,61 +239,24 @@ export default function GestionEventos() {
         </div>
       </div>
 
-      {/* MODAL DE CONFIRMACIÓN PREMIUM */}
+      {/* MODAL DE CONFIRMACIÓN */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setShowConfirmModal(null)}
-          ></div>
-          <div className="relative bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowConfirmModal(null)}></div>
+          <div className="relative bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in duration-300 text-center">
              <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <Trash2 className="w-10 h-10 text-rose-500" />
              </div>
-             <h3 className="text-2xl font-black text-slate-900 text-center uppercase tracking-tighter leading-tight">¿Eliminar este<br/>evento?</h3>
-             <p className="text-slate-500 text-center text-sm font-medium mt-3 px-4">Esta acción no se puede deshacer y el evento desaparecerá de la agenda de los alumnos.</p>
+             <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-tight">¿Eliminar este<br/>evento?</h3>
+             <p className="text-slate-500 text-sm font-medium mt-3 px-4">Esta acción no se puede deshacer y el evento desaparecerá de la agenda de los alumnos.</p>
              
              <div className="grid grid-cols-2 gap-3 mt-8">
-                <button 
-                  onClick={() => setShowConfirmModal(null)}
-                  className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  onClick={confirmarEliminacion}
-                  className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all"
-                >
-                  Sí, Eliminar
-                </button>
+                <button onClick={() => setShowConfirmModal(null)} className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all">Cancelar</button>
+                <button onClick={confirmarEliminacion} className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all">Sí, Eliminar</button>
              </div>
           </div>
         </div>
       )}
     </div>
   );
-}
-
-function Trophy(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-      <path d="M4 22h16" />
-      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-    </svg>
-  )
 }

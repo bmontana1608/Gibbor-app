@@ -13,6 +13,7 @@ export default function PlanificadorEntrenador() {
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [guardando, setGuardando] = useState(false);
+  const [verPlan, setVerPlan] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -34,14 +35,13 @@ export default function PlanificadorEntrenador() {
       const { data: usuario } = await supabase.from('perfiles').select('nombres, apellidos, club_id').eq('id', session.user.id).single();
       const nombreCompleto = `${usuario?.nombres} ${usuario?.apellidos}`;
 
-      // Pre-cargar IDs en el form
       setFormData(prev => ({ 
         ...prev, 
         club_id: usuario?.club_id || '',
         entrenador_id: session.user.id 
       }));
 
-      const { data: cats } = await supabase.from('categorias').select('*').ilike('entrenadores', `%${nombreCompleto}%`);
+      const { data: cats } = await supabase.from('categorias').select('*').eq('club_id', usuario?.club_id).ilike('entrenadores', `%${nombreCompleto}%`);
       setCategorias(cats || []);
 
       const { data: planesBD } = await supabase.from('planificaciones').select('*').eq('club_id', usuario?.club_id).order('fecha', { ascending: false });
@@ -73,7 +73,6 @@ export default function PlanificadorEntrenador() {
         club_id: formData.club_id,
         entrenador_id: formData.entrenador_id
       });
-      // Recargar lista
       const { data } = await supabase.from('planificaciones').select('*').eq('club_id', formData.club_id).order('fecha', { ascending: false });
       setPlanes(data || []);
     }
@@ -95,20 +94,14 @@ export default function PlanificadorEntrenador() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3">
-            <Layout className="w-8 h-8 text-emerald-500" /> Planificador de Entrenos
+            <Layout className="w-8 h-8 text-[var(--brand-primary)]" /> Planificador
           </h1>
           <p className="text-slate-500 mt-1">Organiza tus sesiones y metodologías de trabajo.</p>
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => window.location.href = '/entrenador/pizarra'}
-            className="bg-white border-2 border-slate-200 text-slate-700 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
-          >
-            <PenTool className="w-5 h-5 -[var(--brand-primary)]" /> Abrir Pizarra Táctica
-          </button>
-          <button 
             onClick={() => setMostrarModal(true)}
-            className="bg-emerald-600 text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+            className="bg-[var(--brand-primary)] text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
           >
             <Plus className="w-5 h-5" /> Nueva Sesión
           </button>
@@ -117,22 +110,22 @@ export default function PlanificadorEntrenador() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cargando ? (
-          <div className="col-span-full py-20 text-center text-slate-400 italic">Cargando tus planificaciones...</div>
+          <div className="col-span-full py-20 text-center text-slate-400 italic">Cargando...</div>
         ) : planes.length === 0 ? (
           <div className="col-span-full py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl">
             <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">No has creado planes de entrenamiento aún.</p>
+            <p className="text-slate-500 font-medium">No hay planes creados aún.</p>
           </div>
         ) : (
           planes.map(plan => (
             <div key={plan.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-4">
-                  <div className="bg-emerald-50 text-emerald-600 p-3 rounded-2xl"><BookOpen className="w-5 h-5" /></div>
+                  <div className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] p-3 rounded-2xl"><BookOpen className="w-5 h-5" /></div>
                   <button onClick={() => eliminarPlan(plan.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1"><Trash2 className="w-4 h-4" /></button>
                 </div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{plan.categoria || 'Sin categoría'}</p>
-                <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-emerald-600 transition-colors">{plan.titulo}</h3>
+                <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-[var(--brand-primary)] transition-colors">{plan.titulo}</h3>
                 <p className="text-xs text-slate-500 line-clamp-2 mb-4">{plan.objetivo}</p>
               </div>
               <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
@@ -140,14 +133,51 @@ export default function PlanificadorEntrenador() {
                   <Calendar className="w-3.5 h-3.5" />
                   {new Date(plan.fecha).toLocaleDateString()}
                 </div>
-                <button className="text-emerald-600 text-xs font-black flex items-center gap-1 group-hover:gap-2 transition-all">Ver Detalle <ChevronRight className="w-4 h-4" /></button>
+                <button 
+                  onClick={() => setVerPlan(plan)}
+                  className="text-[var(--brand-primary)] text-xs font-black flex items-center gap-1 group-hover:gap-2 transition-all"
+                >
+                  Ver Detalle <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Modal para Nuevo Plan */}
+      {/* Modal Detalle */}
+      {verPlan && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className="p-8">
+              <div className="flex justify-between items-start mb-6">
+                <div className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] p-4 rounded-2xl"><BookOpen className="w-6 h-6" /></div>
+                <button onClick={() => setVerPlan(null)} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+              </div>
+              <p className="text-[10px] font-black text-[var(--brand-primary)] uppercase tracking-[0.2em] mb-2">{verPlan.categoria}</p>
+              <h2 className="text-2xl font-black text-slate-900 leading-tight mb-4 uppercase">{verPlan.titulo}</h2>
+              <div className="bg-slate-50 p-5 rounded-2xl mb-6">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Objetivo Principal</p>
+                <p className="text-slate-700 font-medium">{verPlan.objetivo}</p>
+              </div>
+              <div className="space-y-4">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Metodología de Trabajo</p>
+                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{verPlan.descripcion || 'Sin descripción detallada.'}</p>
+              </div>
+              <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-end">
+                <button 
+                  onClick={() => setVerPlan(null)}
+                  className="bg-slate-900 text-white font-black px-6 py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-slate-800 transition-all"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nuevo */}
       {mostrarModal && (
         <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -158,46 +188,41 @@ export default function PlanificadorEntrenador() {
             <form onSubmit={handleGuardar} className="p-8 overflow-y-auto space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase mb-2">Título de la Sesión</label>
-                  <input required value={formData.titulo} onChange={(e) => setFormData({...formData, titulo: e.target.value})} type="text" placeholder="Ej: Posesión en espacios reducidos" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                  <label className="block text-xs font-black text-slate-500 uppercase mb-2">Título</label>
+                  <input required value={formData.titulo} onChange={(e) => setFormData({...formData, titulo: e.target.value})} type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase mb-2">Fecha</label>
-                  <input required value={formData.fecha} onChange={(e) => setFormData({...formData, fecha: e.target.value})} type="date" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                  <input required value={formData.fecha} onChange={(e) => setFormData({...formData, fecha: e.target.value})} type="date" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none" />
                 </div>
               </div>
-
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Categoría Asignada</label>
-                <select required value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
-                  <option value="">Selecciona Categoría</option>
+                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Categoría</label>
+                <select required value={formData.categoria} onChange={(e) => setFormData({...formData, categoria: e.target.value})} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none bg-white">
+                  <option value="">Selecciona...</option>
                   {categorias.map(cat => (
                     <option key={cat.id} value={cat.nombre}>{cat.nombre}</option>
                   ))}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Objetivo Principal</label>
-                <input required value={formData.objetivo} onChange={(e) => setFormData({...formData, objetivo: e.target.value})} type="text" placeholder="¿Qué quieres lograr hoy?" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Objetivo</label>
+                <input required value={formData.objetivo} onChange={(e) => setFormData({...formData, objetivo: e.target.value})} type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none" />
               </div>
-
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Descripción del Trabajo</label>
-                <textarea rows={4} value={formData.descripcion} onChange={(e) => setFormData({...formData, descripcion: e.target.value})} placeholder="Detalla los ejercicios, tiempos y rotaciones..." className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                <label className="block text-xs font-black text-slate-500 uppercase mb-2">Descripción</label>
+                <textarea rows={4} value={formData.descripcion} onChange={(e) => setFormData({...formData, descripcion: e.target.value})} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none resize-none"></textarea>
               </div>
-
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={() => setMostrarModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-50 transition-all">Cancelar</button>
-                <button type="submit" disabled={guardando} className="flex-1 bg-emerald-600 text-white font-black py-4 rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2">
-                  {guardando ? 'Guardando...' : <><Save className="w-5 h-5" /> Guardar Plan</>}
+                <button type="submit" disabled={guardando} className="flex-1 bg-[var(--brand-primary)] text-white font-black py-4 rounded-2xl hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
+                  {guardando ? 'Guardando...' : <Save className="w-5 h-5" />} Guardar Plan
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }
