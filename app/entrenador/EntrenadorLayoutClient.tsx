@@ -27,7 +27,16 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   };
 
   const tenantSlug = tenant?.slug || '';
-  const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
+  const [isSubdomain, setIsSubdomain] = useState(false);
+
+  useEffect(() => {
+    const host = typeof window !== 'undefined' ? window.location.host : '';
+    if (host.includes(`${tenantSlug}.`)) {
+      setIsSubdomain(true);
+    }
+  }, [tenantSlug]);
+
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   const menu = [
     { name: 'Inicio', path: `${basePath}/entrenador`, icon: <Home className="w-5 h-5" /> },
@@ -98,12 +107,16 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
         <div className="flex-1 overflow-y-auto px-4 space-y-1 custom-scrollbar">
           {menu.map((item) => {
-            const activo = pathname === item.path || (item.path !== `${basePath}/entrenador` && pathname.startsWith(item.path));
+            const activo = pathname === item.path || (item.path.endsWith('/entrenador') ? pathname === item.path : pathname.startsWith(item.path));
             return (
               <Link 
                 href={item.path} 
                 key={item.name}
-                onClick={() => setIsSidebarOpen(false)}
+                prefetch={false}
+                onClick={() => {
+                  setIsSidebarOpen(false);
+                  if (pathname === item.path) router.refresh();
+                }}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                   activo
                     ? 'text-white font-bold shadow-lg'

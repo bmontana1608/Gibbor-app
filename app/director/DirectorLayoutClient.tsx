@@ -28,7 +28,18 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   };
 
   const tenantSlug = tenant?.slug || '';
-  const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
+  // MEJORA: Si estamos en un subdominio o el host ya identifica al club, el basePath debe ser vacío
+  // para evitar rutas duplicadas como /aguilas/aguilas/director
+  const [isSubdomain, setIsSubdomain] = useState(false);
+
+  useEffect(() => {
+    const host = window.location.host;
+    if (host.includes(`${tenantSlug}.`)) {
+      setIsSubdomain(true);
+    }
+  }, [tenantSlug]);
+
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   const menu = [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
@@ -112,12 +123,17 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
           {menu.map((item) => {
-            const activo = pathname === item.path || (item.path !== '/director' && pathname.startsWith(item.path));
+            const activo = pathname === item.path || (item.path.endsWith('/director') ? pathname === item.path : pathname.startsWith(item.path));
             return (
               <Link 
                 href={item.path} 
                 key={item.name}
-                onClick={() => setIsSidebarOpen(false)}
+                prefetch={false} // Evita que Next.js "congele" la UI al pre-cargar rutas dinámicas pesadas
+                onClick={() => {
+                  setIsSidebarOpen(false);
+                  // Pequeño hack para asegurar que el router se entere del cambio de forma limpia
+                  if (pathname === item.path) router.refresh();
+                }}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                   activo
                     ? 'bg-brand-muted text-brand font-bold shadow-sm border border-brand/10'
@@ -142,6 +158,8 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link
                 key={item.path}
                 href={item.path}
+                prefetch={false}
+                onClick={() => setIsSidebarOpen(false)}
                 className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color} text-white shadow-lg`}>
