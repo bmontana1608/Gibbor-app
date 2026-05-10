@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   // Paso 1: Obtener la cédula, el rol y la configuración de hijos del usuario actual
   const { data: miPerfil } = await supabaseAdmin
     .from("perfiles")
-    .select("documento_identidad, acudiente_identificacion, rol, hijos_config")
+    .select("documento_identidad, acudiente_identificacion, rol, hijos_config, club_id")
     .eq("id", uid)
     .single();
 

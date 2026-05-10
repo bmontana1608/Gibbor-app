@@ -416,19 +416,19 @@ export default function UniformesModule() {
                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                  p.estado_pago === 'Pagado' ? 'bg-emerald-100 text-emerald-700' : 
                                  p.estado_pago === 'Abonado' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                               }\`}>
+                               }`}>
                                  {p.estado_pago}
                                </span>
                                {debe > 0 && (
-                                 <span className="text-[10px] font-bold text-slate-500">Debe: \${debe.toLocaleString()}</span>
+                                 <span className="text-[10px] font-bold text-slate-500">Debe: ${debe.toLocaleString()}</span>
                                )}
                              </div>
                           </td>
                           <td className="p-4">
-                             <span className={\`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest \${
+                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                p.estado_pedido === 'Entregado' ? 'bg-blue-100 text-blue-700' : 
                                p.estado_pedido === 'En Producción' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'
-                             }\`}>
+                             }`}>
                                {p.estado_pedido}
                              </span>
                           </td>
