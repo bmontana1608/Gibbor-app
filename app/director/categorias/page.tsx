@@ -200,7 +200,7 @@ export default function GestionCategorias() {
           <button onClick={cargarDatos} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-slate-50 transition-colors">
             <RefreshCw className="w-4 h-4" /> Actualizar
           </button>
-          <button onClick={() => { cerrarModal(); setMostrarModal(true); }} className="-[var(--brand-primary)] hover:-[var(--brand-primary)] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
+          <button onClick={() => { cerrarModal(); setMostrarModal(true); }} className="bg-brand hover:bg-brand/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
             <Plus className="w-4 h-4" /> Crear Grupo
           </button>
         </div>
@@ -210,16 +210,16 @@ export default function GestionCategorias() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grupos Activos</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : gruposActivos}</p></div><ClipboardList className="text-blue-500 w-8 h-8 opacity-80" /></div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Miembros Totales</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : miembrosTotales}</p></div><Users className="text-emerald-500 w-8 h-8 opacity-80" /></div>
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Capacidad Total</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : capacidadTotal}</p></div><Shield className="text-purple-500 w-8 h-8 opacity-80" /></div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full -[var(--brand-primary)]"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ocupación Media</p><p className="text-3xl font-black -[var(--brand-primary)]">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="-[var(--brand-primary)] w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full bg-brand"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ocupación Media</p><p className="text-3xl font-black text-brand">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="text-brand w-8 h-8 opacity-80" /></div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Buscar por grupo o cuerpo técnico..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:-[var(--brand-primary)]" />
+          <input type="text" placeholder="Buscar por grupo o cuerpo técnico..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-brand" />
         </div>
         <div className="md:w-48">
-          <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:-[var(--brand-primary)] cursor-pointer">
+          <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:ring-brand cursor-pointer">
             <option value="Todos">Todos los niveles</option>
             <option value="Principiante">Principiante</option>
             <option value="Intermedio">Intermedio</option>
@@ -296,7 +296,7 @@ export default function GestionCategorias() {
                 <button onClick={() => router.push(`/director/categorias/${grupo.id}`)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Eye className="w-4 h-4" /> Ver Ficha
                 </button>
-                <button onClick={() => abrirEditarGrupo(grupo)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:-[var(--brand-primary)] transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
+                <button onClick={() => abrirEditarGrupo(grupo)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-brand transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Edit className="w-4 h-4" /> Editar
                 </button>
                 <button onClick={() => router.push('/director/asistencia')} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-colors flex items-center justify-center gap-1.5 focus:outline-none">

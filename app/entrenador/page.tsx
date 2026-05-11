@@ -50,7 +50,11 @@ export default function DashboardEntrenador() {
         }
 
         const { data: mAlumnos } = await queryAlumnos;
-        const { data: mAsistencias } = await supabase.from('asistencias').select('estado').gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
+        const { data: mAsistencias } = await supabase
+          .from('asistencias')
+          .select('estado')
+          .eq('club_id', usuario.club_id) // FIX: Aislamiento multiclub
+          .gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
         
         setMetricas({
           alumnosTotal: mAlumnos?.length || 0,

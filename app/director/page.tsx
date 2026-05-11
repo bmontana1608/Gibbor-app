@@ -384,11 +384,10 @@ export default function DashboardDirector() {
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
             <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
-              <Cake className="w-4 h-4 -[var(--brand-primary)]" /> Cumpleaños de Mayo
+              <Cake className="w-4 h-4 text-brand" /> Cumpleaños de Mayo
             </h3>
-            <PartyPopper className="w-5 h-5 -[var(--brand-primary)]/30" />
+            <PartyPopper className="w-5 h-5 text-brand/30" />
           </div>
           <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
             {cumpleañeros.length === 0 ? (
@@ -399,8 +398,8 @@ export default function DashboardDirector() {
             ) : (
               <div className="space-y-4">
                 {cumpleañeros.map((jugador) => (
-                  <div key={jugador.id} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${jugador.esHoy ? '-[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/10 -[rgba(var(--brand-primary-rgb),0.4)] dark:-[var(--brand-primary)]/30 ring-1 -[var(--brand-primary)]/20' : 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'}`}>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${jugador.esHoy ? '-[var(--brand-primary)] text-white animate-bounce' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700'}`}>
+                  <div key={jugador.id} className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${jugador.esHoy ? 'bg-brand/10 dark:bg-brand/10 border-brand/40 dark:border-brand/30 ring-1 ring-brand/20' : 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-xs ${jugador.esHoy ? 'bg-brand text-white animate-bounce' : 'bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700'}`}>
                       {jugador.diaCumple}
                     </div>
                     <div className="flex-1 min-w-0">

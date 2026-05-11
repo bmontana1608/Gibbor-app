@@ -298,7 +298,7 @@ export default function GestionSkillsEntrenador() {
                 <div className="flex-1 flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-white/5 flex items-center justify-between">
                         <button onClick={() => setCatSeleccionada(null)} className="text-slate-500 hover:text-white transition-colors"><ArrowLeft className="w-5 h-5" /></button>
-                        <span className="text-[10px] font-black -[var(--brand-primary)] uppercase">{catSeleccionada.nombre}</span>
+                        <span className="text-[10px] font-black text-brand uppercase">{catSeleccionada.nombre}</span>
                     </div>
                     <div className="p-4 relative">
                         <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
@@ -307,7 +307,7 @@ export default function GestionSkillsEntrenador() {
                             placeholder="Buscar futbolista..." 
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
-                            className="w-full bg-slate-900 border-none rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-slate-300 outline-none focus:ring-1 focus:-[var(--brand-primary)]"
+                            className="w-full bg-slate-900 border-none rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-slate-300 outline-none focus:ring-1 focus:ring-brand"
                         />
                     </div>
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -315,9 +315,9 @@ export default function GestionSkillsEntrenador() {
                             <button 
                                 key={a.id} 
                                 onClick={() => seleccionarAlumno(a)}
-                                className={`w-full p-4 rounded-2xl flex items-center gap-3 transition-all ${alumnoSeleccionado?.id === a.id ? '-[var(--brand-primary)] text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                className={`w-full p-4 rounded-2xl flex items-center gap-3 transition-all ${alumnoSeleccionado?.id === a.id ? 'bg-brand text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                             >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white -[var(--brand-primary)]' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white text-brand' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
                                 <span className="text-[10px] font-black uppercase tracking-tight truncate">{a.nombres} {a.apellidos}</span>
                             </button>
                         ))}
