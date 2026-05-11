@@ -384,6 +384,7 @@ export default function DashboardDirector() {
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
             <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
               <Cake className="w-4 h-4 text-brand" /> Cumpleaños de Mayo
             </h3>

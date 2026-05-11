@@ -273,6 +273,11 @@ export default function AsistenciaEntrenador() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {eventos.map(ev => (
+                    <button 
+                      key={ev.id}
+                      onClick={() => setEventoSeleccionado(ev)}
+                      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-3xl flex items-center gap-5 hover:border-brand transition-all hover:shadow-xl group text-left"
+                    >
                       <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${ev.tipo === 'Partido' ? 'bg-indigo-100 text-indigo-600' : 'bg-brand/10 text-brand'}`}>
                         {ev.tipo === 'Partido' ? <Trophy className="w-7 h-7" /> : <ClipboardCheck className="w-7 h-7" />}
                       </div>

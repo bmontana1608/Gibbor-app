@@ -128,7 +128,7 @@ export default function GestionDePlanes() {
             <p className="text-sm text-slate-500 mt-1">Visualiza y edita los planes existentes y los alumnos asociados a cada uno.</p>
           </div>
         </div>
-        <button className="-[var(--brand-primary)] hover:-[var(--brand-primary)] text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+        <button className="bg-brand hover:bg-brand/90 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
           <UsersIcon className="w-4 h-4" /> Crear Miembro con Acceso
         </button>
       </div>
@@ -154,7 +154,7 @@ export default function GestionDePlanes() {
             placeholder="Buscar planes..." 
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand outline-none text-sm"
           />
         </div>
 
@@ -164,7 +164,7 @@ export default function GestionDePlanes() {
               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Total de Planes</p>
               <p className="text-2xl font-black text-slate-800">{planes.length}</p>
             </div>
-            <Shield className="-[var(--brand-primary)] w-8 h-8 opacity-20" />
+            <Shield className="text-brand w-8 h-8 opacity-20" />
           </div>
           <div className="bg-white border border-slate-200 rounded-xl p-5 flex justify-between items-center shadow-sm">
             <div>
@@ -264,7 +264,7 @@ export default function GestionDePlanes() {
                       type="text" 
                       value={nombreEdit} 
                       onChange={(e) => setNombreEdit(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand font-bold"
                     />
                  </div>
                  <div>
@@ -273,7 +273,7 @@ export default function GestionDePlanes() {
                       type="number" 
                       value={montoEdit} 
                       onChange={(e) => setMontoEdit(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand font-bold"
                     />
                  </div>
                  <div>
@@ -282,7 +282,7 @@ export default function GestionDePlanes() {
                       type="number" 
                       value={descuentoEdit} 
                       onChange={(e) => setDescuentoEdit(e.target.value)}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-emerald-600"
+                      className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand font-bold text-emerald-600"
                     />
                  </div>
                  <div className="grid grid-cols-2 gap-4">
@@ -291,10 +291,10 @@ export default function GestionDePlanes() {
                         <input 
                           type="number" 
                           max="28"
-                          min="1"
+                           min="1"
                           value={diaCobroEdit} 
                           onChange={(e) => setDiaCobroEdit(e.target.value)}
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold"
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand font-bold"
                         />
                     </div>
                     <div>
@@ -302,10 +302,10 @@ export default function GestionDePlanes() {
                         <input 
                           type="number" 
                           max="28"
-                          min="0"
+                           min="0"
                           value={graciaEdit} 
                           onChange={(e) => setGraciaEdit(e.target.value)}
-                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold"
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-brand font-bold"
                         />
                     </div>
                  </div>
@@ -318,9 +318,9 @@ export default function GestionDePlanes() {
                  >
                    Cancelar
                  </button>
-                 <button 
+                  <button 
                   onClick={savePlanChanges}
-                  className="flex-1 px-4 py-3 rounded-xl font-black text-white -[var(--brand-primary)] hover:-[var(--brand-primary)] shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)] transition-all"
+                  className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-brand hover:bg-brand/90 shadow-lg shadow-brand/15 transition-all"
                  >
                    Guardar Cambios
                  </button>
