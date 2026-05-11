@@ -734,9 +734,19 @@ export default function ModuloCobranza() {
 
 
   // 📈 CÁLCULOS FINANCIEROS (Basados en el rango de fechas seleccionado)
-  const pagosFiltradosPorFecha = historialPagos.filter(p => 
-    p.fecha && p.fecha >= fechaInicio && p.fecha <= fechaFin
-  );
+  const normalizeDate = (d: string) => {
+    if (!d) return '';
+    if (d.includes('-')) return d; // ISO
+    const partes = d.split('/');
+    if (partes.length < 3) return d;
+    const [day, month, year] = partes;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  };
+
+  const pagosFiltradosPorFecha = historialPagos.filter(p => {
+    const pFecha = normalizeDate(p.fecha);
+    return pFecha && pFecha >= fechaInicio && pFecha <= fechaFin;
+  });
   
   const ingresosRecaudados = pagosFiltradosPorFecha.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
   
@@ -767,26 +777,30 @@ export default function ModuloCobranza() {
       .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
 
     // --- LÓGICA DE TARIFA INTELIGENTE ---
-    // Si ya pagó, verificamos si su pago coincide con la tarifa que le correspondía (pronto pago o regular)
     const { tarifa: tarifaActual, precioBase } = calcularTarifaPeriodo(j.tipo_plan, fechaInicio);
     
-    // Verificamos si algún pago se hizo en fecha de pronto pago
+    // Verificamos si algún pago se hizo en fecha de pronto pago (Día 1-5 usualmente)
     const limiteProntoPago = planBuscado?.dias_limite_pronto_pago || 5;
     const precioConDescuento = precioBase - (planBuscado?.descuento_pronto_pago || 0);
 
     const pagosEnPeriodo = pagosFiltradosPorFecha.filter(p => p.jugador_id === j.id);
     const algunaVezPagoPronto = pagosEnPeriodo.some(p => {
-      const diaPago = p.fecha ? parseInt(p.fecha.split('-')[2]) : 31;
-      return diaPago <= limiteProntoPago;
+      if (!p.fecha) return false;
+      // Manejar formatos YYYY-MM-DD o DD/MM/YYYY
+      const partes = p.fecha.includes('-') ? p.fecha.split('-') : p.fecha.split('/');
+      const diaStr = p.fecha.includes('-') ? partes[2] : partes[0];
+      const diaPago = parseInt(diaStr);
+      return !isNaN(diaPago) && diaPago <= limiteProntoPago;
     });
 
     // La tarifa objetivo es el descuento si pagó a tiempo, o la actual si no
     const tarifaObjetivo = algunaVezPagoPronto ? precioConDescuento : tarifaActual;
 
     const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
-    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || esBeca100; // Margen de 100 por redondeos
+    // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), está al día
+    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || esBeca100;
     const saldoPendientePeriodo = Math.max(0, tarifaObjetivo - totalRecibidoPeriodo);
-    const tarifa = tarifaObjetivo; // Para mostrar en la tabla la tarifa que aplica
+    const tarifa = tarifaObjetivo;
 
     // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
     const hoyDate = new Date();
@@ -981,6 +995,20 @@ export default function ModuloCobranza() {
       toast.error("Error al procesar", { id: toastId });
     }
   };
+
+  if (cargando && !tenant) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="w-12 h-12 animate-spin text-brand" />
+          <div className="text-center">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Sincronizando Academia</p>
+            <p className="text-[8px] text-slate-300 font-bold uppercase mt-1 tracking-tighter">Preparando Dashboard Multiclub</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">

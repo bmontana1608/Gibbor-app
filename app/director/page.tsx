@@ -85,8 +85,18 @@ export default function DashboardDirector() {
 
         if (jugadores) {
           const total = jugadores.length;
-          const mesPrefijo = `${anioActual}-${String(mesActual).padStart(2, '0')}`;
-          const pagosFiltrados = pagosMes?.filter(p => p.fecha && String(p.fecha).startsWith(mesPrefijo)) || [];
+          const normalizeDate = (d: string) => {
+            if (!d) return '';
+            if (d.includes('-')) return d;
+            const [day, month, year] = d.split('/');
+            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          };
+          const fechaInicio = `${anioActual}-${String(mesActual).padStart(2, '0')}-01`;
+          const fechaFin = `${anioActual}-${String(mesActual).padStart(2, '0')}-31`;
+          const pagosFiltrados = pagosMes?.filter(p => {
+            const pFecha = normalizeDate(String(p.fecha));
+            return pFecha >= fechaInicio && pFecha <= fechaFin;
+          }) || [];
           const idsPagados = new Set(pagosFiltrados.map((p: any) => p.jugador_id));
           const preciosMap = new Map(planesData?.map(p => [p.nombre, Number(p.precio_base)]) || []);
 
@@ -214,12 +224,21 @@ export default function DashboardDirector() {
   if (cargando && !tenant) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <Loader className="w-10 h-10 animate-spin text-brand" />
+        <div className="flex flex-col items-center gap-4">
+           <Loader className="w-10 h-10 animate-spin text-brand" />
+           <div className="text-center">
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Sincronizando Academia</p>
+             <p className="text-[8px] text-slate-300 font-bold uppercase mt-1 tracking-tighter">Preparando Dashboard Multiclub</p>
+           </div>
+        </div>
       </div>
     );
   }
 
   const brandName = tenant?.config?.nombre || 'Gibbor App';
+  const tenantSlug = tenant?.slug || '';
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${tenantSlug}.`);
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 transition-colors">
@@ -234,7 +253,7 @@ export default function DashboardDirector() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push('/director/cobranza')}>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push(`${basePath}/director/cobranza`)}>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Wallet className="w-5 h-5" />
           </div>
@@ -245,7 +264,7 @@ export default function DashboardDirector() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push('/director/categorias')}>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push(`${basePath}/director/categorias`)}>
           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Users className="w-5 h-5" />
           </div>
@@ -256,7 +275,7 @@ export default function DashboardDirector() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push('/director/asistencia')}>
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push(`${basePath}/director/miembros`)}>
           <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <ClipboardList className="w-5 h-5" />
           </div>

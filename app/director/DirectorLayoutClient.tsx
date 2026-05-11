@@ -34,20 +34,14 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   const tenantSlug = initialTenant?.slug || '';
   
-  // Determinamos si es subdominio de forma inmediata si estamos en el cliente
-  const [basePath, setBasePath] = useState(() => {
-    if (typeof window === 'undefined') return !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
-    const host = window.location.host;
-    const isSub = host.includes(`${tenantSlug}.`);
-    return isSub || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
-  });
+  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${tenantSlug}.`);
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
+  // Asegurar que el menú se cierre al cambiar de página
   useEffect(() => {
-    const host = window.location.host;
-    const isSub = host.includes(`${tenantSlug}.`);
-    const newPath = isSub || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
-    if (newPath !== basePath) setBasePath(newPath);
-  }, [tenantSlug, basePath]);
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   const menu = [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
@@ -110,9 +104,10 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
       
       <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
+
         <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
-            {tenant?.config?.logo ? (
+            {initialTenant?.config?.logo ? (
               <img src={brandLogo} alt={`${brandName} Logo`} className="w-9 h-9 object-contain rounded-full shadow-sm" />
             ) : (
               <div className="w-9 h-9 bg-brand/10 rounded-full flex items-center justify-center border border-brand/20 shadow-sm">
