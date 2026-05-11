@@ -19,15 +19,15 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const pathname = usePathname();
   const router = useRouter();
   
-   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-   const [tenant] = useState<any>(initialTenant);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [tenant] = useState<any>(initialTenant);
  
-+  // Asegurar que el menú se cierre al cambiar de página
-+  useEffect(() => {
-+    setIsSidebarOpen(false);
-+  }, [pathname]);
-+
-   const cerrarSesion = async () => {
+  // Asegurar que el menú se cierre al cambiar de página
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
+
+  const cerrarSesion = async () => {
     await supabase.auth.signOut();
     router.push(`${basePath}/login`);
   };
