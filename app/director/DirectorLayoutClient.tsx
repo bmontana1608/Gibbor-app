@@ -19,27 +19,35 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const pathname = usePathname();
   const router = useRouter();
   
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tenant] = useState<any>(initialTenant);
-
-  const cerrarSesion = async () => {
+   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const [tenant] = useState<any>(initialTenant);
+ 
++  // Asegurar que el menú se cierre al cambiar de página
++  useEffect(() => {
++    setIsSidebarOpen(false);
++  }, [pathname]);
++
+   const cerrarSesion = async () => {
     await supabase.auth.signOut();
     router.push(`${basePath}/login`);
   };
 
-  const tenantSlug = tenant?.slug || '';
-  // MEJORA: Si estamos en un subdominio o el host ya identifica al club, el basePath debe ser vacío
-  // para evitar rutas duplicadas como /aguilas/aguilas/director
-  const [isSubdomain, setIsSubdomain] = useState(false);
+  const tenantSlug = initialTenant?.slug || '';
+  
+  // Determinamos si es subdominio de forma inmediata si estamos en el cliente
+  const [basePath, setBasePath] = useState(() => {
+    if (typeof window === 'undefined') return !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+    const host = window.location.host;
+    const isSub = host.includes(`${tenantSlug}.`);
+    return isSub || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+  });
 
   useEffect(() => {
     const host = window.location.host;
-    if (host.includes(`${tenantSlug}.`)) {
-      setIsSubdomain(true);
-    }
-  }, [tenantSlug]);
-
-  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+    const isSub = host.includes(`${tenantSlug}.`);
+    const newPath = isSub || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+    if (newPath !== basePath) setBasePath(newPath);
+  }, [tenantSlug, basePath]);
 
   const menu = [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },

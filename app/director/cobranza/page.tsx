@@ -751,9 +751,9 @@ export default function ModuloCobranza() {
   const idsPagadosEsteMes = new Set(pagosFiltradosPorFecha.map(p => p.jugador_id));
 
   const jugadoresFin = jugadores.map(j => {
-    const tarifa = calcularTarifa(j.tipo_plan);
+    const planBuscado = planes.find(p => p.nombre === (j.tipo_plan || 'Regular'));
     const planLabel = (j.tipo_plan || '').toLowerCase();
-    const esBeca100 = tarifa === 0 || planLabel.includes('100');
+    const esBeca100 = (planBuscado?.precio_base === 0) || planLabel.includes('100');
 
     // ── Pagos completos este período
     const pagadoEstePeriodo = pagosFiltradosPorFecha
@@ -766,9 +766,27 @@ export default function ModuloCobranza() {
       .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(periodoCobro))
       .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
 
+    // --- LÓGICA DE TARIFA INTELIGENTE ---
+    // Si ya pagó, verificamos si su pago coincide con la tarifa que le correspondía (pronto pago o regular)
+    const { tarifa: tarifaActual, precioBase } = calcularTarifaPeriodo(j.tipo_plan, fechaInicio);
+    
+    // Verificamos si algún pago se hizo en fecha de pronto pago
+    const limiteProntoPago = planBuscado?.dias_limite_pronto_pago || 5;
+    const precioConDescuento = precioBase - (planBuscado?.descuento_pronto_pago || 0);
+
+    const pagosEnPeriodo = pagosFiltradosPorFecha.filter(p => p.jugador_id === j.id);
+    const algunaVezPagoPronto = pagosEnPeriodo.some(p => {
+      const diaPago = p.fecha ? parseInt(p.fecha.split('-')[2]) : 31;
+      return diaPago <= limiteProntoPago;
+    });
+
+    // La tarifa objetivo es el descuento si pagó a tiempo, o la actual si no
+    const tarifaObjetivo = algunaVezPagoPronto ? precioConDescuento : tarifaActual;
+
     const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
-    const esAlDia = totalRecibidoPeriodo >= tarifa || esBeca100;
-    const saldoPendientePeriodo = Math.max(0, tarifa - totalRecibidoPeriodo);
+    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || esBeca100; // Margen de 100 por redondeos
+    const saldoPendientePeriodo = Math.max(0, tarifaObjetivo - totalRecibidoPeriodo);
+    const tarifa = tarifaObjetivo; // Para mostrar en la tabla la tarifa que aplica
 
     // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
     const hoyDate = new Date();
