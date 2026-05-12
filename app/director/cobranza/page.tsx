@@ -1000,7 +1000,7 @@ export default function ModuloCobranza() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
-          <Loader className="w-12 h-12 animate-spin text-brand" />
+          <Loader2 className="w-12 h-12 animate-spin text-brand" />
           <div className="text-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Sincronizando Academia</p>
             <p className="text-[8px] text-slate-300 font-bold uppercase mt-1 tracking-tighter">Preparando Dashboard Multiclub</p>
