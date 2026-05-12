@@ -131,11 +131,9 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link 
                 href={item.path} 
                 key={item.name}
-                prefetch={false} // Evita que Next.js "congele" la UI al pre-cargar rutas dinámicas pesadas
+                prefetch={true} // Restauramos el prefetch para que Next.js prepare las páginas con antelación
                 onClick={() => {
                   setIsSidebarOpen(false);
-                  // Pequeño hack para asegurar que el router se entere del cambio de forma limpia
-                  if (pathname === item.path) router.refresh();
                 }}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                   activo
@@ -161,7 +159,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link
                 key={item.path}
                 href={item.path}
-                prefetch={false}
+                prefetch={true}
                 onClick={() => setIsSidebarOpen(false)}
                 className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
               >

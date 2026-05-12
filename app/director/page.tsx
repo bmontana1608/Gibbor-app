@@ -221,6 +221,18 @@ export default function DashboardDirector() {
     setEnviandoWA(null);
   };
 
+  const [mostrarErrorCarga, setMostrarErrorCarga] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (cargando) {
+      timer = setTimeout(() => {
+        setMostrarErrorCarga(true);
+      }, 8000);
+    }
+    return () => clearTimeout(timer);
+  }, [cargando]);
+
   if (cargando && !tenant) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -228,7 +240,16 @@ export default function DashboardDirector() {
            <Loader className="w-10 h-10 animate-spin text-brand" />
            <div className="text-center">
              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Sincronizando Academia</p>
-             <p className="text-[8px] text-slate-300 font-bold uppercase mt-1 tracking-tighter">Preparando Dashboard Multiclub</p>
+             {mostrarErrorCarga && (
+               <div className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                 <button 
+                   onClick={() => window.location.reload()}
+                   className="flex items-center gap-2 px-4 py-2 bg-brand text-white text-[10px] font-bold rounded-full shadow-lg hover:scale-105 transition-transform"
+                 >
+                   <RefreshCw className="w-3 h-3" /> Reintentar Carga
+                 </button>
+               </div>
+             )}
            </div>
         </div>
       </div>

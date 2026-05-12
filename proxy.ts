@@ -55,21 +55,8 @@ export async function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-tenant-slug', slug);
 
-  // 4. PROTECCIÓN DE RUTAS: REDIRECCIÓN INMEDIATA SI NO HAY SESIÓN
-  const protectedRoutes = ['/director', '/entrenador', '/futbolista'];
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  const isLoginPage = pathname.includes('/login');
-
-  if (isProtectedRoute && !isLoginPage) {
-    const sessionCookie = request.cookies.get('sb-access-token') || request.cookies.get('supabase-auth-token');
-    // Nota: El nombre exacto depende de la config de Supabase, 
-    // pero usualmente buscamos la presencia de cualquier cookie de sesión.
-    // Si no hay cookies de auth, redirigir al login del tenant.
-    if (!sessionCookie) {
-      const loginUrl = new URL(`/${slug}/login`, request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
+  // 4. PROTECCIÓN DE RUTAS: La verificación de sesión se delega a los layouts (Server Components)
+  // para evitar bucles de redirección por nombres de cookies cambiantes o latencia.
 
   // 5. SAAS GUARD: BLOQUEO POR MORA
   // Solo bloqueamos rutas operativas (director, entrenador)
