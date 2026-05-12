@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 );
 
 export async function GET(request: Request) {
-  const tenant = await getTenant();
+  const tenant = await getTenant() as any;
   const club_id = tenant?.id;
 
   if (!club_id) {

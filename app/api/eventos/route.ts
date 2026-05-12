@@ -6,28 +6,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// Helper para detectar club_id desde el host
+import { getTenant } from '@/lib/tenant';
+
 async function getClubIdFromHost(request: Request) {
-  // Priorizar el slug que viene de la cabecera (inyectado por el middleware/proxy)
-  const tenantSlug = request.headers.get('x-tenant-slug');
-  const host = request.headers.get('host') || '';
-  
-  let slug = tenantSlug;
-
-  if (!slug) {
-    const parts = host.split('.');
-    slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'master';
-  }
-  
-  if (!slug || slug === 'master' || slug === 'portalgibbor') return null;
-
-  const { data } = await supabaseAdmin
-    .from('clubes')
-    .select('id')
-    .eq('slug', slug)
-    .single();
-  
-  return data?.id || null;
+  const tenant = await getTenant() as any;
+  return tenant?.id || null;
 }
 
 export async function GET(request: Request) {
