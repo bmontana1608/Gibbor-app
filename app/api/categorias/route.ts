@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+  const entrenador_id = searchParams.get('entrenador_id');
 
   let query = supabaseAdmin
     .from('categorias')
