@@ -9,8 +9,11 @@ import {
   Trash2, X, DollarSign, TrendingUp, Scissors, CheckCircle, Receipt, ExternalLink 
 } from 'lucide-react';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function UniformesModule() {
   const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   const [cargando, setCargando] = useState(true);
   const [tenant, setTenant] = useState<any>(null);
   
@@ -40,6 +43,7 @@ export default function UniformesModule() {
   const [abono, setAbono] = useState('');
   const [estadoPedido, setEstadoPedido] = useState('Pendiente');
   const [notas, setNotas] = useState('');
+  const [busquedaJugador, setBusquedaJugador] = useState('');
 
   // Modal Registrar Abono (independiente)
   const [isModalAbonoOpen, setIsModalAbonoOpen] = useState(false);
@@ -52,7 +56,7 @@ export default function UniformesModule() {
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      const tenantRes = await fetch('/api/tenant');
+      const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug);
       const tenantData = await tenantRes.json();
       setTenant(tenantData);
 
@@ -483,18 +487,37 @@ export default function UniformesModule() {
             <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
               
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jugador</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Buscar Jugador</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input 
+                    type="text"
+                    placeholder="Escribe el nombre del jugador..."
+                    value={busquedaJugador}
+                    onChange={(e) => setBusquedaJugador(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+                
                 <select 
                   value={jugadorId} 
                   onChange={(e) => setJugadorId(e.target.value)}
                   disabled={!!pedidoActual}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none focus:-[var(--brand-primary)] disabled:opacity-50"
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand disabled:opacity-50 mt-2"
                 >
                   <option value="">Selecciona un alumno...</option>
-                  {jugadores.map(j => (
-                    <option key={j.id} value={j.id}>{j.nombres} {j.apellidos} ({j.grupos || 'Sin grupo'})</option>
-                  ))}
+                  {jugadores
+                    .filter(j => 
+                      `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaJugador.toLowerCase())
+                    )
+                    .map(j => (
+                      <option key={j.id} value={j.id}>{j.nombres} {j.apellidos} ({j.grupos || 'Sin grupo'})</option>
+                    ))
+                  }
                 </select>
+                {busquedaJugador && jugadores.filter(j => `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaJugador.toLowerCase())).length === 0 && (
+                  <p className="text-[10px] text-rose-500 font-bold mt-1">No se encontraron jugadores con ese nombre.</p>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
