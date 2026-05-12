@@ -6,9 +6,12 @@ import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function FichaDelJugador() {
   const params = useParams();
   const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   
   const [jugador, setJugador] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
@@ -29,7 +32,7 @@ export default function FichaDelJugador() {
         return;
       }
 
-      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
 
       const { data, error } = await supabase
@@ -105,7 +108,7 @@ export default function FichaDelJugador() {
       const file = e.target.files[0];
       setSubiendoFoto(true);
       
-      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
       
       const fileExt = file.name.split('.').pop();
@@ -139,7 +142,7 @@ export default function FichaDelJugador() {
     const { error } = await supabase.from('perfiles').delete().eq('id', jugador.id);
     if (!error) {
       toast.success("Eliminado");
-      router.push('/director/miembros');
+      router.push(route('/director/miembros'));
     }
   };
 

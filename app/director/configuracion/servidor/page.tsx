@@ -10,8 +10,11 @@ import {
   ExternalLink, Zap, MapPin, Building
 } from 'lucide-react';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function ConfiguracionServidor() {
   const router = useRouter();
+  const { route } = useTenant();
   const [cargando, setCargando] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
   
@@ -63,7 +66,7 @@ export default function ConfiguracionServidor() {
       toast.error("Error al guardar configuración: " + error.message);
     } else {
       toast.success("Configuración de servidor actualizada correctamente");
-      router.push('/director/configuracion/asistente-whatsapp');
+      router.push(route('/director/configuracion/asistente-whatsapp'));
     }
     setCargando(false);
   };

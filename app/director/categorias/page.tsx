@@ -10,8 +10,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function GestionCategorias() {
   const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   const pathname = usePathname();
   const [categorias, setCategorias] = useState<any[]>([]);
   const [jugadores, setJugadores] = useState<any[]>([]);
@@ -33,7 +36,7 @@ export default function GestionCategorias() {
 
   const cargarDatos = async () => {
     setCargando(true);
-    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
     
     const { data: catData, error: catError } = await supabase.from('categorias').select('*').eq('club_id', tenantData.id).order('created_at', { ascending: true });
@@ -111,7 +114,7 @@ export default function GestionCategorias() {
     const toastId = toast.loading(grupoEditandoId ? "Actualizando categoría..." : "Creando categoría...");
     
     // 1. Obtener Tenant para RLS
-    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
 
     const entrenadoresString = entrenadoresSeleccionados.join(', ');
@@ -293,13 +296,13 @@ export default function GestionCategorias() {
 
               {/* BOTONES FUNCIONALES */}
               <div className="grid grid-cols-3 border-t border-slate-100 bg-slate-50/50">
-                <button onClick={() => router.push(`/director/categorias/${grupo.id}`)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
+                <button onClick={() => router.push(route(`/director/categorias/${grupo.id}`))} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Eye className="w-4 h-4" /> Ver Ficha
                 </button>
                 <button onClick={() => abrirEditarGrupo(grupo)} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-brand transition-colors border-r border-slate-100 flex items-center justify-center gap-1.5 focus:outline-none">
                   <Edit className="w-4 h-4" /> Editar
                 </button>
-                <button onClick={() => router.push('/director/asistencia')} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-colors flex items-center justify-center gap-1.5 focus:outline-none">
+                <button onClick={() => router.push(route('/director/asistencia'))} className="py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-colors flex items-center justify-center gap-1.5 focus:outline-none">
                   <ClipboardCheck className="w-4 h-4" /> Asistencia
                 </button>
               </div>

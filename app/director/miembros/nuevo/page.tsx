@@ -7,8 +7,11 @@ import { supabase } from '@/lib/supabase';
 import { User, Users, Hospital, ShieldAlert, ArrowLeft, Trophy, Save, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function NuevoMiembro() {
   const router = useRouter();
+  const { route } = useTenant();
   const [guardando, setGuardando] = useState(false);
   const [isMinor, setIsMinor] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -120,7 +123,7 @@ export default function NuevoMiembro() {
       console.error(error);
     } else {
       toast.success("¡Jugador registrado exitosamente!", { id: toastId });
-      router.push('/director/miembros');
+      router.push(route('/director/miembros'));
     }
   };
 

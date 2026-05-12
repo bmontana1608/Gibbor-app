@@ -5,9 +5,12 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function DetalleCategoria() {
   const params = useParams();
   const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   
   const [categoria, setCategoria] = useState<any>(null);
   const [miembros, setMiembros] = useState<any[]>([]);
@@ -26,7 +29,7 @@ export default function DetalleCategoria() {
   const cargarDetalle = async () => {
     if (!params?.id) return;
 
-    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
 
     const { data: catData, error: catError } = await supabase.from('categorias').select('*').eq('id', params.id).eq('club_id', tenantData.id).maybeSingle();
@@ -140,7 +143,7 @@ export default function DetalleCategoria() {
             <p className="text-sm text-slate-500 mt-1">{categoria.descripcion || 'Sin descripción asignada.'}</p>
           </div>
           <div className="flex gap-3 w-full md:w-auto">
-            <button onClick={() => router.push('/director/asistencia')} className="flex-1 md:flex-none bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
+            <button onClick={() => router.push(route('/director/asistencia'))} className="flex-1 md:flex-none bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
               📋 Entrenar
             </button>
             <button onClick={abrirEditarGrupo} className="flex-1 md:flex-none bg-[var(--brand-primary)] hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
@@ -202,7 +205,7 @@ export default function DetalleCategoria() {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h3 className="font-bold text-slate-800">Jugadores ({miembros.length})</h3>
-            <button onClick={() => router.push('/director/miembros/nuevo')} className="text-sm font-bold text-[var(--brand-primary)]">+ Añadir</button>
+            <button onClick={() => router.push(route('/director/miembros/nuevo'))} className="text-sm font-bold text-[var(--brand-primary)]">+ Añadir</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">

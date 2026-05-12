@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getTenant } from '@/lib/tenant';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,13 +8,14 @@ const supabaseAdmin = createClient(
 );
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const club_id = searchParams.get('club_id');
-  const entrenador_id = searchParams.get('entrenador_id');
+  const tenant = await getTenant();
+  const club_id = tenant?.id;
 
   if (!club_id) {
-    return NextResponse.json({ error: 'Club ID requerido' }, { status: 400 });
+    return NextResponse.json({ error: 'Club ID no identificado' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
 
   let query = supabaseAdmin
     .from('categorias')

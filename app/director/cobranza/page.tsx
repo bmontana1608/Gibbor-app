@@ -8,8 +8,11 @@ import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, Use
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function ModuloCobranza() {
   const router = useRouter();
+  const { route } = useTenant();
   const pathname = usePathname();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -1022,7 +1025,7 @@ export default function ModuloCobranza() {
             <p className="text-sm text-slate-500 mt-1">Control de pagos, planes dinámicos y recordatorios.</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => router.push('/director/cobranza/planes')} className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
+            <button onClick={() => router.push(route('/director/cobranza/planes'))} className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
               <Settings className="w-4 h-4" /> Gestión de Planes
             </button>
           </div>
