@@ -8,16 +8,23 @@ const supabaseAdmin = createClient(
 
 // Helper para detectar club_id desde el host
 async function getClubIdFromHost(request: Request) {
+  // Priorizar el slug que viene de la cabecera (inyectado por el middleware/proxy)
+  const tenantSlug = request.headers.get('x-tenant-slug');
   const host = request.headers.get('host') || '';
-  const parts = host.split('.');
-  const subdomain = parts.length > 2 ? parts[0] : 'master';
   
-  if (subdomain === 'master') return null;
+  let slug = tenantSlug;
+
+  if (!slug) {
+    const parts = host.split('.');
+    slug = parts.length > 2 && parts[0] !== 'www' ? parts[0] : 'master';
+  }
+  
+  if (!slug || slug === 'master' || slug === 'portalgibbor') return null;
 
   const { data } = await supabaseAdmin
     .from('clubes')
     .select('id')
-    .eq('slug', subdomain)
+    .eq('slug', slug)
     .single();
   
   return data?.id || null;
