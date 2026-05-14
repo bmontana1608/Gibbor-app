@@ -9,6 +9,7 @@ import {
   ArrowLeft, Smartphone, ShieldCheck, Mail, Send,
   Settings, Clock, AlertCircle, Users, MessageCircle, RefreshCw, Server
 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function AsistenteWhatsApp() {
   const router = useRouter();
@@ -17,21 +18,13 @@ export default function AsistenteWhatsApp() {
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [tokenInstancia, setTokenInstancia] = useState<string | null>(null);
   const [instanciaConfigurada, setInstanciaConfigurada] = useState(false);
-  const [slug, setSlug] = useState('');
-  const basePath = slug && slug !== 'master' ? `/${slug}` : '';
+  const { slug, basePath } = useTenant();
 
   useEffect(() => {
-    async function init() {
-      // Obtener tenant
-      const res = await fetch('/api/tenant');
-      const tenantData = await res.json();
-      if (tenantData && tenantData.slug) {
-        setSlug(tenantData.slug);
-        verificarEstadoActual(tenantData.slug);
-      }
+    if (slug && slug !== 'master') {
+      verificarEstadoActual(slug);
     }
-    init();
-  }, []);
+  }, [slug]);
 
   const verificarEstadoActual = async (slug: string) => {
     try {
@@ -53,10 +46,6 @@ export default function AsistenteWhatsApp() {
     setQrCode(null);
     
     try {
-      const tenantRes = await fetch('/api/tenant');
-      const tenantData = await tenantRes.json();
-      const slug = tenantData.slug;
-
       if (!slug || slug === 'master') {
         toast.error("No se pudo identificar el club");
         return;

@@ -7,6 +7,7 @@ import {
   ArrowLeft, Search, MessageSquare, 
   Send, User, Clock, CheckCheck, Bot, FileText, Wifi, ChevronLeft
 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function HistorialChats() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function HistorialChats() {
   const [enVivo, setEnVivo] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const mensajesFinalRef = useRef<HTMLDivElement>(null);
+  const { slug: tenantSlug } = useTenant();
 
   // Función para construir la lista de conversaciones agrupadas por número
   const buildConversaciones = (data: any[], profiles: Record<string, any>) => {
@@ -48,8 +50,10 @@ export default function HistorialChats() {
       setCargando(true);
       
       try {
-        // 1. Obtener Tenant (Detección automática por URL)
-        const tenantRes = await fetch('/api/tenant');
+        if (!tenantSlug || tenantSlug === 'master') return;
+        
+        // 1. Obtener Tenant (Detección explícita)
+        const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`);
         const tenantData = await tenantRes.json();
         setTenant(tenantData);
 
@@ -92,8 +96,11 @@ export default function HistorialChats() {
         setCargando(false);
       }
     }
-    init();
-  }, []);
+    
+    if (tenantSlug) {
+      init();
+    }
+  }, [tenantSlug]);
 
   useEffect(() => {
     if (!tenant?.id) return;

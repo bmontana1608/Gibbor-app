@@ -36,7 +36,7 @@ export function useTenant(initialTenantSlug?: string) {
     // 3. Calcular basePath dinámico
     // Si estamos en un subdominio (ej: aguilas.gibbor.app), el basePath debe ser vacío.
     // Si estamos en el dominio principal con ruta (ej: gibbor.app/aguilas), el basePath debe ser /aguilas.
-    const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${slug}.`);
+    const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${slug}.`);
     const basePath = isSubdomain || slug === 'master' ? '' : `/${slug}`;
 
     return {
