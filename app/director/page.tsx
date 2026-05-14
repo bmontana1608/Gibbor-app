@@ -22,7 +22,7 @@ export default function DashboardDirector() {
   const pathname = usePathname();
   const [cargando, setCargando] = useState(true);
   const [tenant, setTenant] = useState<any>(null);
-  const { slug: tenantSlug } = useTenant();
+  const { slug: tenantSlug, basePath, isSubdomain } = useTenant();
   const [stats, setStats] = useState({
     totalMiembros: 0,
     alDia: 0,
@@ -258,9 +258,6 @@ export default function DashboardDirector() {
   }
 
   const brandName = tenant?.config?.nombre || 'Plataforma';
-  const tenantSlug = tenant?.slug || '';
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
-  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 transition-colors">

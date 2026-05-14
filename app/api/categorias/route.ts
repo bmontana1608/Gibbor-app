@@ -17,7 +17,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Club ID no identificado' }, { status: 401 });
   }
 
-  const { searchParams } = new URL(request.url);
   const entrenador_id = searchParams.get('entrenador_id');
 
   let query = supabaseAdmin
