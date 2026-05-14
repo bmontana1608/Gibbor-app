@@ -258,7 +258,7 @@ export default function DashboardDirector() {
 
   const brandName = tenant?.config?.nombre || 'Plataforma';
   const tenantSlug = tenant?.slug || '';
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${tenantSlug}.`);
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
   const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   return (

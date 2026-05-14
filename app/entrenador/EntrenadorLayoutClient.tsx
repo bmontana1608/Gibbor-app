@@ -31,7 +31,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
   useEffect(() => {
     const host = typeof window !== 'undefined' ? window.location.host : '';
-    if (host.includes(`${tenantSlug}.`)) {
+    if (host.startsWith(`${tenantSlug}.`)) {
       setIsSubdomain(true);
     }
   }, [tenantSlug]);

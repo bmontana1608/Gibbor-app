@@ -35,7 +35,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const tenantSlug = initialTenant?.slug || '';
   
   // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${tenantSlug}.`);
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
   const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   // Asegurar que el menú se cierre al cambiar de página
