@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 
 interface LoginFormProps {
   tenant: {
+    slug?: string;
+    id?: string;
     config: {
       nombre: string;
       logo: string;
