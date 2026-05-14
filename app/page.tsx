@@ -44,6 +44,10 @@ export default async function LoginPage() {
           const userRole = perfil.rol?.toLowerCase();
 
           if (userRole === 'superadmin') {
+            // Si estamos en un contexto de club (subdominio o slug detectado), vamos al dashboard de ese club
+            if (tenant && tenant.slug !== 'master') {
+              redirect(`/director`);
+            }
             redirect('/admin');
           } else if (clubSlug) {
             // Ejemplo: /gibbor/futbolista o /gibbor/director

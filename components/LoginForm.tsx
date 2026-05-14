@@ -37,7 +37,11 @@ export default function LoginForm({ tenant }: LoginFormProps) {
           const rol = perfil.rol?.toLowerCase();
           
           if (perfil.rol === 'SuperAdmin') {
-            router.push('/admin');
+            if (tenant?.slug && tenant.slug !== 'master') {
+              router.push(`/director`);
+            } else {
+              router.push('/admin');
+            }
             return; // Detener flujo
           } else if (clubSlug) {
             router.push(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
@@ -89,7 +93,11 @@ export default function LoginForm({ tenant }: LoginFormProps) {
     const rol = perfilData.rol?.toLowerCase();
 
     if (perfilData.rol === 'SuperAdmin') {
-      router.push('/admin');
+      if (tenant?.slug && tenant.slug !== 'master') {
+        router.push(`/director`);
+      } else {
+        router.push('/admin');
+      }
     } else if (clubSlug) {
       // Redirección dinámica basada en Club y Rol
       const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;

@@ -50,11 +50,13 @@ export default function DashboardDirector() {
 
         const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
         const tenantData = await tenantRes.json();
+        console.log("DEBUG MCM: Dashboard Director - Tenant detectado:", tenantData?.slug, "ID:", tenantData?.id);
         setTenant(tenantData);
 
-        // Si es el dominio maestro (sin ID de club), no hay nada que mostrar aquí
-        if (tenantData.slug === 'master' || !tenantData.id) {
-          router.push('/admin');
+        // Ya no redirigimos automáticamente a /admin para evitar bucles o cambios de contexto indeseados
+        if (!tenantData || !tenantData.id) {
+          console.warn("DEBUG MCM: No se encontró un club válido para este dashboard.");
+          setCargando(false);
           return;
         }
 
