@@ -7,6 +7,7 @@ import {
   Search, CheckCircle2, Loader, ArrowLeft, Users as UsersIcon 
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function AsignarPuntos() {
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export default function AsignarPuntos() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [busqueda, setBusqueda] = useState('');
+  const { slug: tenantSlug } = useTenant();
 
   // Estados para la asignación
   const [modo, setModo] = useState<'puntos' | 'insignias'>('puntos');
@@ -41,7 +43,10 @@ export default function AsignarPuntos() {
   ];
 
   useEffect(() => {
-    async function cargarCategorias() {
+    cargarCategorias();
+  }, [tenantSlug]);
+
+  async function cargarCategorias() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
@@ -50,7 +55,7 @@ export default function AsignarPuntos() {
       if (usuario) {
         try {
           // Forzamos el filtrado por tu ID de entrenador para evitar ver categorías ajenas
-          const url = `/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`;
+          const url = `/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`;
           const res = await fetch(url);
           const cats = await res.json();
           if (Array.isArray(cats)) setCategorias(cats);

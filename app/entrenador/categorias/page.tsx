@@ -9,6 +9,7 @@ import {
   Radar as RadarIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 // --- REUTILIZAMOS EL RADAR CHART ---
 function RadarChart({ data, size = 250 }: { data: { label: string, value: number }[], size?: number }) {
@@ -71,6 +72,7 @@ function RadarChart({ data, size = 250 }: { data: { label: string, value: number
 export default function GestionCategoriasEntrenador() {
   const [categorias, setCategorias] = useState<any[]>([]);
   const [catSeleccionada, setCatSeleccionada] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [alumnos, setAlumnos] = useState<any[]>([]);
   const [alumnoDetalle, setAlumnoDetalle] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
@@ -84,7 +86,7 @@ export default function GestionCategoriasEntrenador() {
 
   useEffect(() => {
     cargarCategorias();
-  }, []);
+  }, [tenantSlug]);
 
   const cargarCategorias = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -99,7 +101,7 @@ export default function GestionCategoriasEntrenador() {
     if (usuarioData) {
       setUsuario(usuarioData);
       try {
-        const res = await fetch(`/api/categorias?club_id=${usuarioData.club_id}&entrenador_id=${usuarioData.id}`);
+        const res = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuarioData.id}`);
         const data = await res.json();
         if (Array.isArray(data)) setCategorias(data);
       } catch (err) {

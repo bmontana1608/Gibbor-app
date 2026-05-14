@@ -11,6 +11,7 @@ import {
   Wallet, Users, ClipboardList, Calendar, TrendingUp, BarChart2, 
   Zap, AlertTriangle, ArrowUpRight, TrendingDown, ShieldCheck, MessageSquare, RefreshCw, CheckCheck, X, Cake, PartyPopper 
 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
@@ -21,6 +22,7 @@ export default function DashboardDirector() {
   const pathname = usePathname();
   const [cargando, setCargando] = useState(true);
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [stats, setStats] = useState({
     totalMiembros: 0,
     alDia: 0,
@@ -44,10 +46,9 @@ export default function DashboardDirector() {
     async function cargarDatos() {
       setCargando(true);
       try {
-        // Pequeño delay de 50ms para evitar 'AbortError: Lock broken' de Next SSR en peticiones concurrentes
-        await new Promise(r => setTimeout(r, 50));
-        
-        const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+        if (!tenantSlug) return;
+
+        const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
         const tenantData = await tenantRes.json();
         setTenant(tenantData);
 
@@ -204,7 +205,7 @@ export default function DashboardDirector() {
       }
     }
     cargarDatos();
-  }, [pathname]);
+  }, [tenantSlug, pathname]);
 
   const [enviandoWA, setEnviandoWA] = useState<string | null>(null);
 

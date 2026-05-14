@@ -12,7 +12,7 @@ import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ModuloCobranza() {
   const router = useRouter();
-  const { route } = useTenant();
+  const { route, slug: tenantSlug } = useTenant();
   const pathname = usePathname();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -200,9 +200,10 @@ export default function ModuloCobranza() {
     setCargando(true);
     
     // 1. Obtener Tenant primero
+    if (!tenantSlug) return;
     let tenantData;
     try {
-      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
       if (tenantRes.ok) {
         tenantData = await tenantRes.json();
       } else {
@@ -291,7 +292,7 @@ export default function ModuloCobranza() {
 
   useEffect(() => {
     cargarDatos();
-  }, [pathname]);
+  }, [tenantSlug, pathname]);
 
   useEffect(() => {
     const diaHoy = new Date().getDate();

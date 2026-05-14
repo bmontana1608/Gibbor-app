@@ -18,11 +18,13 @@ export default function NuevoMiembro() {
   const [planes, setPlanes] = useState<any[]>([]);
   const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
 
   useEffect(() => {
     async function cargarDatosInscripcion() {
       // 1. Cargar Tenant para RLS
-      const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+      if (!tenantSlug) return;
+      const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
       setTenant(tenantData);
 
@@ -46,7 +48,7 @@ export default function NuevoMiembro() {
       if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
     }
     cargarDatosInscripcion();
-  }, []);
+  }, [tenantSlug]);
 
   // Estado del formulario ampliado
   const [formData, setFormData] = useState({

@@ -43,16 +43,18 @@ export default function ConfiguracionGeneral() {
 
   useEffect(() => {
     async function loadConfig() {
-      if (!tenantSlug || tenantSlug === 'master') {
+      if (!tenantSlug) {
         setLoadingConfig(false);
         return;
       }
       try {
+        console.log("DEBUG MCM: Cargando config para:", tenantSlug);
         const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
         const tenantData = await tenantRes.json();
         setTenant(tenantData);
 
-        if (!tenantData.id || tenantData.slug === 'master') {
+        if (!tenantData || !tenantData.id) {
+          console.warn("DEBUG MCM: No se encontró ID para el tenant:", tenantSlug);
           setLoadingConfig(false);
           return;
         }

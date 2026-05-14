@@ -8,6 +8,7 @@ import {
   Award, Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function Ranking() {
   const [ranking, setRanking] = useState<any[]>([]);
@@ -16,12 +17,13 @@ export default function Ranking() {
   const [filtro, setFiltro] = useState<'Global' | 'Categoria'>('Global');
   const [categorias, setCategorias] = useState<any[]>([]);
   const [catFiltro, setCatFiltro] = useState('');
+  const { slug: tenantSlug } = useTenant();
 
   useEffect(() => {
     cargarRanking();
     cargarHistorial();
     cargarCategorias();
-  }, [filtro, catFiltro]);
+  }, [filtro, catFiltro, tenantSlug]);
 
   const cargarCategorias = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -31,7 +33,7 @@ export default function Ranking() {
     
     if (usuario) {
       try {
-        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}`);
+        const res = await fetch(`/api/categorias?slug=${tenantSlug}`);
         const data = await res.json();
         if (Array.isArray(data)) setCategorias(data);
       } catch (err) {

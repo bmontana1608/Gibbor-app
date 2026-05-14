@@ -13,7 +13,7 @@ export function useTenant(initialTenantSlug?: string) {
   return useMemo(() => {
     // 1. Extraer el slug de la ruta si existe (ej: /gibbor/director -> gibbor)
     const pathParts = pathname.split('/').filter(Boolean);
-    const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin'];
+    const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin', 'master'];
     
     let slug = initialTenantSlug || '';
     

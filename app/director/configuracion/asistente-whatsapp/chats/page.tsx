@@ -7,6 +7,7 @@ import {
   ArrowLeft, Search, MessageSquare, 
   Send, User, Clock, CheckCheck, Bot, FileText, Wifi, ChevronLeft
 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function HistorialChats() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function HistorialChats() {
   const [perfiles, setPerfiles] = useState<Record<string, any>>({});
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
+  const { slug: tenantSlug } = useTenant();
   const [busqueda, setBusqueda] = useState('');
   const [enVivo, setEnVivo] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
@@ -47,7 +49,8 @@ export default function HistorialChats() {
       setCargando(true);
       
       try {
-        const tenantRes = await fetch('/api/tenant');
+        if (!tenantSlug) return;
+        const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`);
         const tenantData = await tenantRes.json();
 
         if (!tenantData?.id) throw new Error("No tenant");
@@ -82,7 +85,7 @@ export default function HistorialChats() {
       setCargando(false);
     }
     init();
-  }, []);
+  }, [tenantSlug]);
 
   useEffect(() => {
     const channel = supabase

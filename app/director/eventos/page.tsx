@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, Calendar, Clock, MapPin, Users, Tag, Trophy as TrophyIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useTenant } from "@/lib/hooks/useTenant";
 
 export default function GestionEventos() {
   const [eventos, setEventos] = useState<any[]>([]);
@@ -19,13 +20,15 @@ export default function GestionEventos() {
   });
 
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+  const { slug: tenantSlug } = useTenant();
 
   const fetchDatos = async () => {
-    const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+    if (!tenantSlug) return;
+    const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
 
     const [resEv, resCat] = await Promise.all([
-      fetch('/api/eventos').then(r => r.json()),
+      fetch(`/api/eventos?slug=${tenantSlug}`).then(r => r.json()),
       supabase.from('categorias').select('nombre').eq('club_id', tenantData.id).order('nombre')
     ]);
     setEventos(resEv || []);
@@ -35,7 +38,7 @@ export default function GestionEventos() {
 
   useEffect(() => {
     fetchDatos();
-  }, []);
+  }, [tenantSlug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +48,7 @@ export default function GestionEventos() {
 
     const toastId = toast.loading("Guardando evento...");
     try {
-      const res = await fetch('/api/eventos', {
+      const res = await fetch(`/api/eventos?slug=${tenantSlug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevoEvento)
@@ -66,7 +69,7 @@ export default function GestionEventos() {
   const confirmarEliminacion = async () => {
     if (!showConfirmModal) return;
     
-    const res = await fetch(`/api/eventos?id=${showConfirmModal}`, { method: 'DELETE' });
+    const res = await fetch(`/api/eventos?id=${showConfirmModal}&slug=${tenantSlug}`, { method: 'DELETE' });
     if (res.ok) {
       toast.success("Evento eliminado");
       setShowConfirmModal(null);

@@ -35,6 +35,7 @@ export default function GestionCategorias() {
   const [horariosDinámicos, setHorariosDinámicos] = useState([{ dia: 'Lunes', inicio: '18:00', fin: '19:30' }]);
 
   const cargarDatos = async () => {
+    if (!tenantSlug) return;
     setCargando(true);
     const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
@@ -56,7 +57,7 @@ export default function GestionCategorias() {
 
   useEffect(() => {
     cargarDatos();
-  }, [pathname]);
+  }, [pathname, tenantSlug]);
 
   // --- ABRIR MODAL PARA EDITAR ---
   const abrirEditarGrupo = (grupo: any) => {

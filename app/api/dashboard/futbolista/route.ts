@@ -5,9 +5,10 @@ import { getTenant } from '@/lib/tenant';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+  const slug = searchParams.get('slug');
 
   // Obtener tenant actual
-  const tenant = await getTenant();
+  const tenant = await getTenant(slug);
 
   if (!id) {
     return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });

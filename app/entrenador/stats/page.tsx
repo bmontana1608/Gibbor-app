@@ -8,6 +8,7 @@ import {
   ArrowLeft, Radar as RadarIcon, Info, Loader, Users
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 // --- COMPONENTE RADAR SVG PERSONALIZADO ---
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
@@ -102,11 +103,12 @@ export default function GestionSkillsEntrenador() {
 
   const [promedioCategoria, setPromedioCategoria] = useState<Record<string, number> | null>(null);
   const [sidebarAbierta, setSidebarAbierta] = useState(false);
+  const { slug: tenantSlug } = useTenant();
 
   useEffect(() => {
     cargarConfig();
     cargarCategorias();
-  }, []);
+  }, [tenantSlug]);
 
   const cargarConfig = async () => {
     const { data } = await supabase.from('config_stats').select('*').order('nombre', { ascending: true });
@@ -121,7 +123,7 @@ export default function GestionSkillsEntrenador() {
     
     if (usuario) {
       try {
-        const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+        const res = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
         const data = await res.json();
         if (Array.isArray(data)) setCategorias(data);
       } catch (err) {

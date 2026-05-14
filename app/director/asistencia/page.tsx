@@ -31,6 +31,7 @@ export default function ReporteAsistenciaDirector() {
       setCargando(true);
       
       // 1. Obtener Tenant
+      if (!tenantSlug) return;
       const resTenant = await fetch('/api/tenant?slug=' + tenantSlug);
       const tenantData = await resTenant.json();
       setTenant(tenantData);
@@ -63,7 +64,7 @@ export default function ReporteAsistenciaDirector() {
       }
     }
     init();
-  }, []);
+  }, [tenantSlug]);
 
   async function cargarDatosBD(clubId: string) {
     setCargando(true);

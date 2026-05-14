@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity, FileText, Cake, PartyPopper } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function DirectorioMiembros() {
   const router = useRouter();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [busqueda, setBusqueda] = useState('');
   const [filtroGrupo, setFiltroGrupo] = useState('Todos');
   const [filtroEdad, setFiltroEdad] = useState('Todas');
@@ -29,11 +31,9 @@ export default function DirectorioMiembros() {
       setCargando(true);
       
       // 1. Obtener Tenant del URL context (vía API)
-      const pathParts = window.location.pathname.split('/').filter(Boolean);
-      const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin'];
-      const potentialSlug = (!reservedPaths.includes(pathParts[0])) ? pathParts[0] : null;
+      if (!tenantSlug) return;
       
-      const resTenant = await fetch(`/api/tenant${potentialSlug ? `?slug=${potentialSlug}` : ''}`);
+      const resTenant = await fetch(`/api/tenant?slug=${tenantSlug}`);
       const tenantData = await resTenant.json();
       console.log("DEBUG MCM: Tenant detectado:", tenantData?.config?.nombre, "ID:", tenantData?.id);
       setTenant(tenantData);
@@ -72,7 +72,7 @@ export default function DirectorioMiembros() {
       }
     }
     init();
-  }, []);
+  }, [tenantSlug]);
 
   const cargarJugadores = async (clubId?: any) => {
     const targetId = (typeof clubId === 'string' ? clubId : null) || tenant?.id;

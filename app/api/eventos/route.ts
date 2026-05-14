@@ -9,7 +9,9 @@ const supabaseAdmin = createClient(
 import { getTenant } from '@/lib/tenant';
 
 async function getClubIdFromHost(request: Request) {
-  const tenant = await getTenant() as any;
+  const { searchParams } = new URL(request.url);
+  const slug = searchParams.get('slug');
+  const tenant = await getTenant(slug) as any;
   return tenant?.id || null;
 }
 

@@ -57,7 +57,7 @@ export default function AsistenciaEntrenador() {
       setCargando(false);
     }
     inicializar();
-  }, []);
+  }, [tenantSlug]);
 
   const seleccionarCategoria = async (cat: any) => {
     setCargando(true);

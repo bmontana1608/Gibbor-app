@@ -47,7 +47,8 @@ export default function AsistenteWhatsApp() {
     
     try {
       if (!slug || slug === 'master') {
-        toast.error("No se pudo identificar el club");
+        console.error("DEBUG MCM: Slug no válido para WhatsApp:", slug);
+        toast.error("No se pudo identificar el club. Asegúrate de estar en la URL correcta (ej: /tu-club/director)");
         return;
       }
 
