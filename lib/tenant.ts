@@ -1,4 +1,6 @@
 import { headers } from 'next/headers';
+// Multi-tenant configuration and tenant resolution logic for Gibbor App
+// Updated: 2024-05-14 to stabilize routing
 import { createClient } from '@supabase/supabase-js';
 
 // Cliente Admin para bypass de RLS en la detección de Tenant
