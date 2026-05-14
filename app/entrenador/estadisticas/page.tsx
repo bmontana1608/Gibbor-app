@@ -63,12 +63,16 @@ export default function Ranking() {
   };
 
   const cargarHistorial = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session?.user?.id || '').single();
+
     const { data } = await supabase
       .from('puntos_log')
       .select(`
         *,
-        perfiles:jugador_id (nombres, apellidos)
+        perfiles!inner(nombres, apellidos, club_id)
       `)
+      .eq('perfiles.club_id', usuario?.club_id)
       .order('fecha', { ascending: false })
       .limit(5);
     setRecientes(data || []);
