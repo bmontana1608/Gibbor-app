@@ -9,10 +9,12 @@ import {
 import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useTenant } from "@/lib/hooks/useTenant";
 
 export default function CarnetFutbolista() {
   const router = useRouter();
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [perfil, setPerfil] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
 
@@ -23,7 +25,8 @@ export default function CarnetFutbolista() {
       if (session) {
         // 1. Obtener Tenant (vía API para asegurar que es el correcto)
         try {
-          const resT = await fetch('/api/tenant');
+          if (!tenantSlug) return;
+          const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
           const tenantData = await resT.json();
           if (tenantData) setTenant(tenantData);
         } catch (err) {
@@ -54,7 +57,7 @@ export default function CarnetFutbolista() {
       setCargando(false);
     };
     fetchDatos();
-  }, []);
+  }, [tenantSlug]);
 
   const handleDownload = async () => {
     const node = document.getElementById('carnet-id-card');

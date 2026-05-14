@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Briefcase, CreditCard, X, Printer, UserCircle, CheckCircle, Smartphone, Trash2 } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Settings } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 // === LÓGICA CONVERSOR DE NÚMEROS A LETRAS ===
 function Unidades(num: number) { switch (num) { case 1: return "UN"; case 2: return "DOS"; case 3: return "TRES"; case 4: return "CUATRO"; case 5: return "CINCO"; case 6: return "SEIS"; case 7: return "SIETE"; case 8: return "OCHO"; case 9: return "NUEVE"; } return ""; }
@@ -51,6 +52,7 @@ export default function ModuloNomina() {
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [cargando, setCargando] = useState(true);
   
   // Modal de Pago
@@ -75,7 +77,8 @@ export default function ModuloNomina() {
       setCargando(true);
       
       // 1. Obtener Tenant
-      const resTenant = await fetch('/api/tenant');
+      if (!tenantSlug) return;
+      const resTenant = await fetch(`/api/tenant?slug=${tenantSlug}`);
       const tenantData = await resTenant.json();
       setTenant(tenantData);
 
@@ -107,7 +110,7 @@ export default function ModuloNomina() {
       }
     }
     init();
-  }, []);
+  }, [tenantSlug]);
 
   const cargarDatos = async (clubId: string) => {
     setCargando(true);

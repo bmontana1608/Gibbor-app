@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
+import { useTenant } from "@/lib/hooks/useTenant";
 
 function RadarChart({ data, size = 300, color = '#f97316' }: { data: { label: string, value: number }[], size?: number, color?: string }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -138,6 +139,7 @@ export default function DashboardFutbolista() {
   const router = useRouter();
   const [perfil, setPerfil] = useState<any>(null);
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [hijos, setHijos] = useState<any[]>([]);
   const [selectedHijoId, setSelectedHijoId] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -163,8 +165,9 @@ export default function DashboardFutbolista() {
       if (!session) return setCargando(false);
 
       try {
+        if (!tenantSlug) return;
         // Cargar Tenant
-        const resT = await fetch('/api/tenant');
+        const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
         const tenantData = await resT.json();
         if (tenantData) setTenant(tenantData);
 
@@ -210,7 +213,7 @@ export default function DashboardFutbolista() {
       }
     };
     fetchDatos();
-  }, [selectedHijoId]);
+  }, [selectedHijoId, tenantSlug]);
   
   const handleExportCard = async () => {
     const node = document.getElementById('pro-card-capture');

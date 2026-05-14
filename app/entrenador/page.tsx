@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function DashboardEntrenador() {
   const [perfil, setPerfil] = useState<any>(null);
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   const [cargando, setCargando] = useState(true);
   const [metricas, setMetricas] = useState({
     alumnosTotal: 0,
@@ -22,7 +24,8 @@ export default function DashboardEntrenador() {
 
       // Cargar Tenant
       try {
-        const resT = await fetch('/api/tenant');
+        if (!tenantSlug) return;
+        const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
         const tenantData = await resT.json();
         if (tenantData) setTenant(tenantData);
       } catch (err) {
@@ -65,7 +68,7 @@ export default function DashboardEntrenador() {
       setCargando(false);
     }
     cargarDatos();
-  }, []);
+  }, [tenantSlug]);
 
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando dashboard...</div>;
 

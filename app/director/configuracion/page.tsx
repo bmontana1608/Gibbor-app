@@ -6,6 +6,7 @@ import {
   Settings, Save, MapPin, CreditCard, Bot, 
   Smartphone, Building, Globe, Key, ShieldCheck, Zap, Wallet, X, Search, PlusCircle, Palette, Upload, Loader2, Image as ImageIcon
 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ConfiguracionGeneral() {
   const [cargando, setCargando] = useState(false);
@@ -16,6 +17,7 @@ export default function ConfiguracionGeneral() {
   const [hijosIds, setHijosIds] = useState<string[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
 
   const [config, setConfig] = useState({
     api_url: '', api_key: '', instance_name: 'Club_App',
@@ -41,8 +43,12 @@ export default function ConfiguracionGeneral() {
 
   useEffect(() => {
     async function loadConfig() {
+      if (!tenantSlug || tenantSlug === 'master') {
+        setLoadingConfig(false);
+        return;
+      }
       try {
-        const tenantRes = await fetch('/api/tenant', { cache: 'no-store' });
+        const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
         const tenantData = await tenantRes.json();
         setTenant(tenantData);
 
@@ -116,7 +122,7 @@ export default function ConfiguracionGeneral() {
     }
 
     loadConfig();
-  }, []);
+  }, [tenantSlug]);
 
   const fetchWaStatusRef = async () => {
     if (!tenant?.slug) return;

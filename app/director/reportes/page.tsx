@@ -10,6 +10,7 @@ import {
   ArrowUpRight, ArrowDownRight, CreditCard, UserPlus, UserMinus
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ModuloReportes() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function ModuloReportes() {
   const [pagos, setPagos] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
   
   // Pestaña activa
   const [pestañaActiva, setPestañaActiva] = useState<'Resumen' | 'Asistencia' | 'Financiero' | 'Miembros'>('Resumen');
@@ -35,7 +37,8 @@ export default function ModuloReportes() {
       setCargando(true);
       
       // 1. Obtener Tenant
-      const resTenant = await fetch('/api/tenant');
+      if (!tenantSlug) return;
+      const resTenant = await fetch(`/api/tenant?slug=${tenantSlug}`);
       const tenantData = await resTenant.json();
       setTenant(tenantData);
 
@@ -67,7 +70,7 @@ export default function ModuloReportes() {
       }
     }
     init();
-  }, []);
+  }, [tenantSlug]);
 
   const cargarDatos = async (clubId: string) => {
     setCargando(true);
