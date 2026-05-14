@@ -70,7 +70,7 @@ export default function AsistenciaEntrenador() {
       .select('*')
       .eq('club_id', perfil.club_id)  // FILTRO DE SEGURIDAD: solo eventos del club
       .eq('fecha', hoy)
-      .or(`categoria_id.eq.${cat.id},categoria_id.is.null`);
+      .or(`categoria_id.eq."${cat.nombre}",categoria_id.is.null,categoria_id.eq.""`);
 
     setEventos(evs || []);
     setPaso('eventos');
@@ -108,7 +108,7 @@ export default function AsistenciaEntrenador() {
       tipo: 'Entrenamiento',
       fecha: hoy,
       hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-      categoria_id: categoriaSeleccionada.id,
+      categoria_id: categoriaSeleccionada.nombre,
       club_id: perfil?.club_id
     };
 

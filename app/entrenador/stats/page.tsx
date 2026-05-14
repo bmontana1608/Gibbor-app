@@ -136,7 +136,7 @@ export default function GestionSkillsEntrenador() {
     const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session?.user?.id || '').single();
 
     const { data: jugs } = await supabase.from('perfiles')
-        .select('id, nombres, apellidos')
+        .select('id, nombres, apellidos, club_id')
         .eq('rol', 'Futbolista')
         .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD
         .ilike('grupos', `%${cat.nombre}%`);
@@ -232,6 +232,7 @@ export default function GestionSkillsEntrenador() {
     
     const { error } = await supabase.from('evaluaciones_tecnicas').insert([{
         jugador_id: alumnoSeleccionado.id,
+        club_id: alumnoSeleccionado.club_id,
         evaluador_id: user?.id,
         stats: ratings,
         comentarios,

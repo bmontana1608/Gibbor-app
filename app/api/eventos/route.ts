@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     .order('hora', { ascending: true });
 
   if (categoria) {
-    query = query.or(`categoria_id.eq.${categoria},categoria_id.is.null`);
+    query = query.or(`categoria_id.eq."${categoria}",categoria_id.is.null,categoria_id.eq.""`);
   }
 
   const { data, error } = await query;
