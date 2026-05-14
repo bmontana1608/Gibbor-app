@@ -66,7 +66,6 @@ export default function AsignarPuntos() {
       }
       setCargando(false);
     }
-  }
 
   const seleccionarCategoria = async (cat: any) => {
     setCargando(true);
