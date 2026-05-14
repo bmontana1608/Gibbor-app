@@ -22,7 +22,7 @@ export default function ConfiguracionGeneral() {
     direccion: '', ciudad: '', nequi: '', daviplata: '',
     bre_b: '', banco_nombre: '', banco_numero: '',
     hijos_config: '',
-    nombre_club: 'EFD GIBBOR',
+    nombre_club: 'TU CLUB',
     temporada_actual: 'TEMPORADA 2024'
   });
 

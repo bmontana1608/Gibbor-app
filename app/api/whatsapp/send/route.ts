@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     const cleanUrl = EVOLUTION_API_URL.endsWith('/') ? EVOLUTION_API_URL.slice(0, -1) : EVOLUTION_API_URL;
-    const instance = encodeURIComponent(instanceName || 'gibbor');
+    const instance = encodeURIComponent(instanceName || 'default');
 
     // 1. VERIFICACIÓN DE ESTADO DE LA INSTANCIA (Zero-Trust)
     try {

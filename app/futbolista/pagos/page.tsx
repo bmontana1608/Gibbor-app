@@ -30,7 +30,7 @@ export default function PagosFutbolista() {
         const { data: pagosData } = await supabase
           .from("pagos_ingresos")
           .select("*")
-          .eq("perfil_id", session.user.id)
+          .eq("jugador_id", session.user.id)
           .order("fecha", { ascending: false });
         
         if (pagosData) setPagos(pagosData);

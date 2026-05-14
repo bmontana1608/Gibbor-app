@@ -643,7 +643,7 @@ export default function ModuloCobranza() {
       const mesActual = meses[fechaPeriodo.getMonth()];
       const anioActual = fechaPeriodo.getFullYear();
       const diaVence = 5;
-      const nombreClub = config?.nombre_club || 'EFD GIBBOR';
+      const nombreClub = config?.nombre_club || 'TU CLUB';
 
       // Calcular tarifa correcta según período y tipo de plan
       const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);

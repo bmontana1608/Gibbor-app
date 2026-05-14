@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 export default function RegistroPublicoPorClub() {
   // Al ser una ruta estática en /registro/gibbor, forzamos el slug
-  const slug = 'gibbor';
+  const slug = 'default';
 
   const [club, setClub] = useState<any>(null);
   const [cargandoClub, setCargandoClub] = useState(true);

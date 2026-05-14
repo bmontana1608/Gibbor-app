@@ -23,7 +23,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
-    router.push(`/${tenant?.slug || 'gibbor'}/login`);
+    router.push(`/${tenant?.slug || 'default'}/login`);
   };
 
   const tenantSlug = tenant?.slug || '';

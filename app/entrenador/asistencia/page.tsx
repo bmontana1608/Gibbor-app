@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   ClipboardCheck, UserCheck, ChevronRight, Save, Loader, 
@@ -11,7 +12,11 @@ import { toast } from 'sonner';
 
 type Paso = 'categorias' | 'eventos' | 'asistencia';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function AsistenciaEntrenador() {
+  const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   const [paso, setPaso] = useState<Paso>('categorias');
   const [perfil, setPerfil] = useState<any>(null);
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -37,7 +42,7 @@ export default function AsistenciaEntrenador() {
         
         // Usar API interna para saltar RLS
         try {
-          const res = await fetch(`/api/categorias?club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+          const res = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
           const cats = await res.json();
           if (Array.isArray(cats)) setCategorias(cats);
         } catch (err) {

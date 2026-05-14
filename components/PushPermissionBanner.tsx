@@ -88,7 +88,7 @@ export default function PushPermissionBanner() {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
               <h4 className="text-white text-xs font-black uppercase tracking-widest italic flex items-center gap-2">
-                <Zap className="w-3 h-3 text-amber-400" /> Alertas Gibbor
+                <Zap className="w-3 h-3 text-amber-400" /> Alertas del Club
               </h4>
               <button 
                 onClick={() => setIsVisible(false)}

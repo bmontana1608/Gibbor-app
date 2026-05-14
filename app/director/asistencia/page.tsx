@@ -10,8 +10,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTenant } from '@/lib/hooks/useTenant';
+
 export default function ReporteAsistenciaDirector() {
   const router = useRouter();
+  const { route, slug: tenantSlug } = useTenant();
   const [asistencias, setAsistencias] = useState<any[]>([]);
   const [sesionesAgrupadas, setSesionesAgrupadas] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
@@ -28,7 +31,7 @@ export default function ReporteAsistenciaDirector() {
       setCargando(true);
       
       // 1. Obtener Tenant
-      const resTenant = await fetch('/api/tenant');
+      const resTenant = await fetch('/api/tenant?slug=' + tenantSlug);
       const tenantData = await resTenant.json();
       setTenant(tenantData);
 
@@ -49,7 +52,7 @@ export default function ReporteAsistenciaDirector() {
           const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
           if (c) router.push(`/${c.slug}/director`);
         } else {
-          router.push('/login');
+          router.push(route('/login'));
         }
         return;
       }

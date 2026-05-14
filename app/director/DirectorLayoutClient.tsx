@@ -76,7 +76,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     },
   ];
 
-  const brandName = tenant?.config?.nombre || 'Gibbor App';
+  const brandName = tenant?.config?.nombre || 'Plataforma';
   const brandLogo = tenant?.config?.logo || '/logo.png';
   const brandColor = tenant?.config?.color || '#ea580c';
 

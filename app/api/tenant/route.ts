@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const headersList = await headers();
     
     // Prioridad: 1. Param ?slug, 2. Cabecera x-tenant-slug, 3. Default gibbor
-    const slug = searchParams.get('slug') || headersList.get('x-tenant-slug') || 'gibbor';
+    const slug = searchParams.get('slug') || headersList.get('x-tenant-slug') || 'default';
     
     const tenant = await getTenant(slug);
     return NextResponse.json(tenant);

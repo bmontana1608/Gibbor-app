@@ -211,7 +211,7 @@ export default function DashboardDirector() {
   const handleNotificarWhatsApp = async (alerta: any) => {
     if (!alerta.telefono) { toast.error("Sin teléfono."); return; }
     setEnviandoWA(alerta.id);
-    const clubName = tenant?.config?.nombre || 'Gibbor App';
+    const clubName = tenant?.config?.nombre || 'Plataforma';
     const mensaje = `⚽ *${clubName.toUpperCase()}* \n\nHola *${alerta.nombres}*, te recordamos tu compromiso con la academia. ¡Nos vemos en el campo! 🏟️`;
     const result = await enviarMensajeWhatsApp(alerta.telefono, mensaje);
     if (result.success) {
@@ -256,7 +256,7 @@ export default function DashboardDirector() {
     );
   }
 
-  const brandName = tenant?.config?.nombre || 'Gibbor App';
+  const brandName = tenant?.config?.nombre || 'Plataforma';
   const tenantSlug = tenant?.slug || '';
   const isSubdomain = typeof window !== 'undefined' && window.location.host.includes(`${tenantSlug}.`);
   const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;

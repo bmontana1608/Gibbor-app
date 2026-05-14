@@ -303,7 +303,7 @@ export default function PizarraTactica() {
     
     const dataURL = finalCanvas.toDataURL("image/png");
     const link = document.createElement("a");
-    link.download = `estrategia-gibbor-${new Date().getTime()}.png`;
+    link.download = `estrategia-club-${new Date().getTime()}.png`;
     link.href = dataURL;
     link.click();
     

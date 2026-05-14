@@ -96,7 +96,7 @@ export default function Ranking() {
                 <div className="bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
                     <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Tu Líder de Hoy</p>
                     <p className="text-white font-black text-lg truncate uppercase">{ranking[0]?.nombres} {ranking[0]?.apellidos}</p>
-                    <p className="-[var(--brand-primary)] text-xs font-black">{ranking[0]?.puntos || 0} GIBBOR POINTS</p>
+                    <p className="-[var(--brand-primary)] text-xs font-black">{ranking[0]?.puntos || 0} PUNTOS</p>
                 </div>
             </div>
          </div>

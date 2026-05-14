@@ -113,11 +113,11 @@ export default function ModuloNomina() {
     setCargando(true);
     
     // Cargar config local
-    const cLocal = localStorage.getItem(`gibbor_ciudad_${clubId}`);
+    const cLocal = localStorage.getItem(`club_ciudad_${clubId}`);
     if (cLocal) setCiudadEmision(cLocal);
-    const tLocal = localStorage.getItem(`gibbor_telefono_${clubId}`);
+    const tLocal = localStorage.getItem(`club_telefono_${clubId}`);
     if (tLocal) setTelefonoEmision(tLocal);
-    const fLocal = localStorage.getItem(`gibbor_firma_director_${clubId}`);
+    const fLocal = localStorage.getItem(`club_firma_director_${clubId}`);
     if (fLocal) setFirmaDirector(fLocal);
 
     // Traemos a los entrenadores (FILTRADO POR CLUB)
@@ -165,12 +165,12 @@ export default function ModuloNomina() {
 
   const guardarConfiguracion = () => {
     if (firmaDirector !== null) {
-      localStorage.setItem(`gibbor_firma_director_${tenant.id}`, firmaDirector);
+      localStorage.setItem(`club_firma_director_${tenant.id}`, firmaDirector);
     } else {
-      localStorage.removeItem(`gibbor_firma_director_${tenant.id}`);
+      localStorage.removeItem(`club_firma_director_${tenant.id}`);
     }
-    localStorage.setItem(`gibbor_ciudad_${tenant.id}`, ciudadEmision);
-    localStorage.setItem(`gibbor_telefono_${tenant.id}`, telefonoEmision);
+    localStorage.setItem(`club_ciudad_${tenant.id}`, ciudadEmision);
+    localStorage.setItem(`club_telefono_${tenant.id}`, telefonoEmision);
     setIsConfigOpen(false);
     toast.success("Configuración actualizada para recibos");
   };
@@ -282,7 +282,7 @@ export default function ModuloNomina() {
               <div className="flex items-center gap-4">
                 <img src={tenant?.config?.logo || "/logo.png"} alt="Club Logo" className="w-20 h-20 object-contain rounded-full border border-slate-200 shadow-sm" />
                 <div>
-                  <h1 className="text-2xl font-black -[var(--brand-primary)] tracking-tight uppercase">{tenant?.config?.nombre || "EFD GIBBOR"}</h1>
+                  <h1 className="text-2xl font-black -[var(--brand-primary)] tracking-tight uppercase">{tenant?.config?.nombre || "TU CLUB"}</h1>
                   <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Escuela de Formación Deportiva</p>
                   <p className="text-xs text-slate-600 mt-1 font-medium">Cel: {telefonoEmision}</p>
                 </div>

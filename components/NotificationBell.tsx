@@ -118,7 +118,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-bold text-slate-800 dark:text-white truncate uppercase italic tracking-tighter">
-                          {notif.titulo || 'Aviso Gibbor'}
+                          {notif.titulo || 'Nuevo Aviso'}
                         </p>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
                           {notif.mensaje}

@@ -296,7 +296,7 @@ export default function GestionCategoriasEntrenador() {
                                                     <div className="w-px h-8 bg-slate-100"></div>
                                                     <div className="text-center">
                                                         <p className="text-[8px] font-black text-slate-400 uppercase">Evaluador</p>
-                                                        <p className="text-[10px] font-black -[var(--brand-primary)] uppercase mt-1">PROFE GIBBOR</p>
+                                                        <p className="text-[10px] font-black -[var(--brand-primary)] uppercase mt-1">ENTRENADOR</p>
                                                     </div>
                                                 </div>
                                             </div>

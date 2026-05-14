@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const command = message.toLowerCase().split(' ')[0];
 
     if (command === '!ayuda') {
-      const menu = `🤖 *ASISTENTE GIBBOR APP* \n\n` +
+      const menu = `🤖 *ASISTENTE VIRTUAL* \n\n` +
                    `Puedes usar estos comandos desde aquí:\n\n` +
                    `• *!pago [nombre] [monto]* \nRegistra un pago y genera recibo PDF.\n` +
                    `• *!info [nombre]* \nVer estado, deuda y contacto del alumno.\n` +
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
-          nombre_club: config?.nombre_club || 'EFD GIBBOR',
+          nombre_club: config?.nombre_club || 'TU CLUB',
           direccion: config?.direccion || 'Sede Deportiva', 
           ciudad: config?.ciudad || 'Cúcuta',
           nequi: config?.nequi, 

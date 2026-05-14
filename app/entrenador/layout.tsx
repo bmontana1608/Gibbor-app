@@ -6,7 +6,7 @@ import EntrenadorLayoutClient from './EntrenadorLayoutClient';
 export default async function EntrenadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
-  const tenantSlug = headersList.get('x-tenant-slug') || 'gibbor';
+  const tenantSlug = headersList.get('x-tenant-slug') || 'default';
 
   const { data: { user } } = await supabase.auth.getUser();
 
