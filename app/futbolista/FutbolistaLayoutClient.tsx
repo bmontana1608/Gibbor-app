@@ -207,7 +207,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
               <NotificationBell />
            </div>
         </div>
-        <div className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">
+        <div key={`${tenantSlug}-${pathname}`} className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">
           {children}
         </div>
       </main>

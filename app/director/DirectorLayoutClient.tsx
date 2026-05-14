@@ -232,7 +232,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           />
         )}
 
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
+        <main key={`${tenantSlug}-${pathname}`} className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
           {children}
         </main>
       </div>

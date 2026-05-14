@@ -172,7 +172,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+      <main key={`${tenantSlug}-${pathname}`} className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
         <div className="p-4 md:p-8">
             {children}
         </div>
