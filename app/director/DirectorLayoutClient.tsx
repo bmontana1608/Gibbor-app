@@ -92,12 +92,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
-      <style dangerouslySetInnerHTML={{ __html: `
-        html, :root {
-          --brand-primary: ${brandColor} !important;
-          --brand-primary-rgb: ${hexToRgb(brandColor)} !important;
-        }
-      `}} />
       <PushPermissionBanner />
       
       {/* Overlay para móvil */}
@@ -136,9 +130,8 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link 
                 href={item.path} 
                 key={item.name}
-                prefetch={true} // Restauramos el prefetch para que Next.js prepare las páginas con antelación
                 onClick={() => {
-                  setIsSidebarOpen(false);
+                  setTimeout(() => setIsSidebarOpen(false), 150);
                 }}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                   activo
@@ -164,8 +157,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link
                 key={item.path}
                 href={item.path}
-                prefetch={true}
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={() => setTimeout(() => setIsSidebarOpen(false), 150)}
                 className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color} text-white shadow-lg`}>
@@ -230,13 +222,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             </button>
           </div>
         </header>
-
-        {isSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-slate-900/40 z-40 md:hidden backdrop-blur-sm"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-        )}
 
         <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
           {children}
