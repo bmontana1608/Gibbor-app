@@ -82,8 +82,11 @@ export default function InstallPrompt() {
     sessionStorage.setItem('pwa_prompt_dismissed', 'true');
   };
 
-  // No mostrar si: no hay prompt, no es visible, o no tenemos aún los datos del club correcto
-  if (!isVisible || !deferredPrompt) return null;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  // No mostrar si: no hay prompt, no es visible, o no tenemos aún los datos del club correcto o no estamos en el cliente
+  if (!mounted || !isVisible || !deferredPrompt) return null;
 
   const brandName = clubData?.nombre || tenantSlug?.toUpperCase() || 'Tu Club';
   const brandLogo = clubData?.logo_url || '/logo.png';
