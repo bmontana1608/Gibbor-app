@@ -1253,10 +1253,22 @@ export default function ModuloCobranza() {
                     ) : (
                       jugadoresFiltrados.map((jugador) => {
                         const esAlDia = jugador.esAlDia;
+                        const cleanTel = String(jugador.telefono || '').replace(/\D/g, '');
+                        // Buscamos si existe una notificación en el mes para este número
+                        const yaNotificado = notificacionesMes.some(n => 
+                          String(n.destinatario_numero || '').replace(/\D/g, '').includes(cleanTel) && cleanTel.length > 5
+                        );
                         return (
                           <tr key={jugador.id} className="hover:bg-slate-50/50 transition-colors group">
                             <td className="p-4 md:px-6">
-                              <p className="font-bold text-slate-800 uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-slate-800 uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
+                                {yaNotificado && (
+                                  <span className="bg-blue-50 text-blue-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-blue-100 flex items-center gap-1 uppercase tracking-tighter" title="Ya se le envió cobro/recibo este mes">
+                                    <CheckCircle className="w-2.5 h-2.5" /> Notificado
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-[10px] text-slate-400 font-medium">{jugador.email_contacto || 'Sin correo'}</p>
                             </td>
                             <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || 'Ninguna'}</td>
