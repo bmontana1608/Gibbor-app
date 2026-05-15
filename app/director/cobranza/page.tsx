@@ -770,13 +770,23 @@ export default function ModuloCobranza() {
   const idsPagadosEsteMes = new Set(pagosFiltradosPorFecha.map(p => p.jugador_id));
 
   const jugadoresFin = jugadores.map(j => {
-    const planBuscado = planes.find(p => p.nombre === (j.tipo_plan || 'Regular'));
-    const planLabel = (j.tipo_plan || '').toLowerCase();
-    const esBeca100 = (planBuscado?.precio_base === 0) || planLabel.includes('100');
+    const currentPlanName = (j.tipo_plan || 'Regular').toLowerCase();
+    const planBuscado = planes.find(p => p.nombre.toLowerCase() === currentPlanName);
+    const esBeca100 = (planBuscado?.precio_base === 0) || currentPlanName.includes('100');
 
     // ── Pagos completos este período
     const pagadoEstePeriodo = pagosFiltradosPorFecha
-      .filter(p => p.jugador_id === j.id)
+      .filter(p => {
+        // Coincidencia por ID (Prioritario)
+        if (p.jugador_id === j.id) return true;
+        // Fallback por nombre exacto si no hay ID
+        if (!p.jugador_id) {
+          const nameA = `${j.nombres} ${j.apellidos}`.toLowerCase().trim();
+          const nameB = `${p.nombres} ${p.apellidos}`.toLowerCase().trim();
+          return nameA === nameB;
+        }
+        return false;
+      })
       .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
 
     // ── Abonos del mes de cobro seleccionado
