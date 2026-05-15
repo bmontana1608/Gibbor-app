@@ -825,7 +825,8 @@ export default function ModuloCobranza() {
                     totalRecibidoPeriodo >= (precioConDescuento - 100) ||
                     esBeca100;
 
-    const saldoPendientePeriodo = Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
+    // Si está al día, el saldo pendiente es 0 (para que coincida con los totales de la plataforma)
+    const saldoPendientePeriodo = esAlDia ? 0 : Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
     const tarifa = tarifaObjetivo;
 
     // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
