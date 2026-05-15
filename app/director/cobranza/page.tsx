@@ -241,7 +241,7 @@ export default function ModuloCobranza() {
       .select('*')
       .eq('club_id', tenantData.id)
       .not('rol', 'in', '("Director","Entrenador")')
-      .neq('estado_miembro', 'Pendiente')
+      .eq('estado_miembro', 'Activo')
       .order('nombres', { ascending: true });
 
     if (error) {
