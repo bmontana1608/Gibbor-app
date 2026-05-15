@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log('📩 Webhook recibido:', body);
 
+    const instance = body.instance;
     const message = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '';
     const remoteJid = body.data?.key?.remoteJid;
     const fromMe = body.data?.key?.fromMe;
@@ -41,14 +42,14 @@ export async function POST(req: NextRequest) {
                    `• *!info [nombre]* \nVer estado, deuda y contacto del alumno.\n` +
                    `• *!asistencia [nombre]* \nMarca asistencia de hoy como *Presente*.\n\n` +
                    `_Ejemplo: !pago Milan 60000_`;
-      await enviarMensajeWhatsApp(remoteJid, menu);
+      await enviarMensajeWhatsApp(remoteJid, menu, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
       return NextResponse.json({ ok: true });
     }
 
     if (command === '!pago') {
       const parts = message.split(' ');
       if (parts.length < 3) {
-        await enviarMensajeWhatsApp(remoteJid, '❌ Formato incorrecto. Usa: !pago [Nombre] [Monto]');
+        await enviarMensajeWhatsApp(remoteJid, '❌ Formato incorrecto. Usa: !pago [Nombre] [Monto]', undefined, 'document', 'Archivo_Gibbor.pdf', instance);
         return NextResponse.json({ ok: true });
       }
 
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
         recibo_url: reciboUrl // Guardamos el link oficial
       }]);
 
-      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*\n\n_El recibo ya está disponible en tu Dashboard._`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`);
+      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*\n\n_El recibo ya está disponible en tu Dashboard._`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`, instance);
     }
 
     // ----- COMANDO: !INFO -----
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
 
       const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
       if (!alumnos || alumnos.length === 0) {
-        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
+        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
         return NextResponse.json({ ok: true });
       }
 
@@ -137,7 +138,7 @@ export async function POST(req: NextRequest) {
                    `• *Tel. Acudiente:* ${alumno.telefono || 'No registrado'}\n\n` +
                    `_Para registrar pago usa !pago ${alumno.nombres.split(' ')[0]} ${precio}_`;
       
-      await enviarMensajeWhatsApp(remoteJid, info);
+      await enviarMensajeWhatsApp(remoteJid, info, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
     }
 
     // ----- COMANDO: !ASISTENCIA -----
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
       }]);
 
       if (!error) {
-        await enviarMensajeWhatsApp(remoteJid, `⚽ *ASISTENCIA REGISTRADA* \n*${alumno.nombres}* ha sido marcado como *Presente* el día de hoy.`);
+        await enviarMensajeWhatsApp(remoteJid, `⚽ *ASISTENCIA REGISTRADA* \n*${alumno.nombres}* ha sido marcado como *Presente* el día de hoy.`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
       }
     }
 

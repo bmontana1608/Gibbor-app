@@ -9,25 +9,33 @@ export async function enviarMensajeWhatsApp(
   mensaje: string, 
   mediaBase64?: string, 
   tipoMedia: 'document' | 'image' = 'document',
-  fileName: string = 'Archivo_Gibbor.pdf'
+  fileName: string = 'Archivo_Gibbor.pdf',
+  tenantSlug?: string
 ) {
   try {
-    // 1. Ya no dependemos de configuracion_wa para las credenciales,
-    // llamamos directamente al endpoint interno protegido
-    
     // 2. Limpieza y formateo del número
     let finalPhone = String(telefono).replace(/\D/g, '');
     if (finalPhone.length === 10) {
       finalPhone = `57${finalPhone}`;
     }
 
-    // Identificar tenant slug leyendo headers o window.location
-    let instanceName = 'gibbor';
-    if (typeof window !== 'undefined') {
-      const parts = window.location.pathname.split('/').filter(Boolean);
-      const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin'];
-      if (parts.length > 0 && !reservedPaths.includes(parts[0])) {
-        instanceName = parts[0];
+    // Identificar tenant slug
+    let instanceName = tenantSlug || 'gibbor';
+    
+    if (!tenantSlug && typeof window !== 'undefined') {
+      const host = window.location.host;
+      const parts = host.split('.');
+      
+      // Detección por subdominio
+      if (parts.length > 2 && parts[0] !== 'www') {
+        instanceName = parts[0] === 'portalgibbor' ? 'gibbor' : parts[0];
+      } else {
+        // Detección por ruta
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin', 'master'];
+        if (pathParts.length > 0 && !reservedPaths.includes(pathParts[0])) {
+          instanceName = pathParts[0];
+        }
       }
     }
 

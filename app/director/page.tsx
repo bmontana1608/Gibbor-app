@@ -216,7 +216,7 @@ export default function DashboardDirector() {
     setEnviandoWA(alerta.id);
     const clubName = tenant?.config?.nombre || 'Plataforma';
     const mensaje = `⚽ *${clubName.toUpperCase()}* \n\nHola *${alerta.nombres}*, te recordamos tu compromiso con la academia. ¡Nos vemos en el campo! 🏟️`;
-    const result = await enviarMensajeWhatsApp(alerta.telefono, mensaje);
+    const result = await enviarMensajeWhatsApp(alerta.telefono, mensaje, undefined, 'document', 'Archivo_Gibbor.pdf', tenantSlug);
     if (result.success) {
       toast.success(`Enviado a ${alerta.nombres}`);
       setAlertas(prev => prev.map(a => a.id === alerta.id ? { ...a, yaNotificado: true } : a));

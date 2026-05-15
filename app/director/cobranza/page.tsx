@@ -610,7 +610,8 @@ export default function ModuloCobranza() {
         texto,
         pdfBase64,
         'document',
-        `Recibo_${mesNombre}_${alumno.nombres.replace(/\s/g, '_')}.pdf`
+        `Recibo_${mesNombre}_${alumno.nombres.replace(/\s/g, '_')}.pdf`,
+        tenantSlug
       );
 
       if (!result.success) throw new Error(result.error);
@@ -934,7 +935,8 @@ export default function ModuloCobranza() {
         texto,
         pdfBase64,
         'document',
-        `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`
+        `Recibo_${reciboGenerado.nombres.replace(/\s/g, '_')}_${reciboGenerado.consecutivo}.pdf`,
+        tenantSlug
       );
 
       if (!result.success) throw new Error(result.error);
