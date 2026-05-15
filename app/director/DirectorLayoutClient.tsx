@@ -20,8 +20,9 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tenant] = useState<any>(initialTenant);
- 
+  
+  const tenant = initialTenant;
+  const profile = initialProfile;
   // Asegurar que el menú se cierre al cambiar de página
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -93,7 +94,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+    <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       <style dangerouslySetInnerHTML={{ __html: `
         html, :root {
           --brand-primary: ${brandColor} !important;
@@ -232,7 +233,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           />
         )}
 
-        <main key={`${tenantSlug}-${pathname}`} className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
           {children}
         </main>
       </div>

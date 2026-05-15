@@ -18,8 +18,8 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tenant] = useState<any>(initialTenant);
-  const [usuario] = useState<any>(initialProfile);
+  const tenant = initialTenant;
+  const usuario = initialProfile;
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -53,7 +53,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+    <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 font-sans overflow-hidden">
       <PushPermissionBanner />
       
       {/* HEADER MÓVIL */}
@@ -172,7 +172,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
         </div>
       </aside>
 
-      <main key={`${tenantSlug}-${pathname}`} className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+      <main className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
         <div className="p-4 md:p-8">
             {children}
         </div>

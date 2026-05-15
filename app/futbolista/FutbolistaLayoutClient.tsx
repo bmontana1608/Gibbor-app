@@ -26,9 +26,9 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [tenant] = useState<any>(initialTenant);
-  const [usuario, setUsuario] = useState<any>(initialProfile);
-  const [hijos] = useState<any[]>(initialFamily);
+  const tenant = initialTenant;
+  const usuario = initialProfile;
+  const hijos = initialFamily;
 
   const tenantSlug = tenant?.slug || '';
   const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
@@ -50,7 +50,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden">
+    <div key={`${tenantSlug}-${pathname}`} className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --brand-primary: ${brandColor};
@@ -207,7 +207,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
               <NotificationBell />
            </div>
         </div>
-        <div key={`${tenantSlug}-${pathname}`} className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">
+        <div className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">
           {children}
         </div>
       </main>
