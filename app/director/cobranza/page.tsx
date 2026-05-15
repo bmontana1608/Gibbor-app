@@ -1538,29 +1538,7 @@ export default function ModuloCobranza() {
                                         </td>
                                         <td className="p-4 md:px-6 text-slate-50">{eg.fecha ? eg.fecha.split('-').reverse().join('/') : '---'}</td>
                                         <td className="p-4 md:px-6 text-right font-black text-rose-600">${parseFloat(eg.monto).toLocaleString('es-CO')}</td>
-                                        <td className="p-4 md:px-6">
-                               <div className="flex flex-col gap-1">
-                                 {jugador.aportesExtras > 0 ? (
-                                   <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-1 rounded-lg border border-amber-100 w-fit flex items-center gap-1">
-                                     <Star className="w-3 h-3 fill-amber-500" /> ${jugador.aportesExtras.toLocaleString('es-CO')} recibidos
-                                   </span>
-                                 ) : (
-                                   <span className="text-[10px] text-slate-300 font-bold italic">Sin aportes extras</span>
-                                 )}
-                               </div>
-                             </td>
-                             <td className="p-4 md:px-6">
-                               <div className="flex flex-col gap-1">
-                                 {jugador.aportesExtras > 0 ? (
-                                   <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-1 rounded-lg border border-amber-100 w-fit flex items-center gap-1">
-                                     <Star className="w-3 h-3 fill-amber-500" /> ${jugador.aportesExtras.toLocaleString('es-CO')} recibidos
-                                   </span>
-                                 ) : (
-                                   <span className="text-[10px] text-slate-300 font-bold italic">Sin aportes extras</span>
-                                 )}
-                               </div>
-                             </td>
-                             <td className="p-4 md:px-6 text-right">
+                                        <td className="p-4 md:px-6 text-right">
                                             <button onClick={() => eliminarEgreso(eg.id)} className="text-slate-300 hover:text-rose-500 p-2 transition-colors">
                                                 <X className="w-5 h-5" />
                                             </button>
