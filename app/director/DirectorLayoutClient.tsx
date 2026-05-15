@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -26,17 +26,22 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const tenant = initialTenant;
   const profile = initialProfile;
 
-  // Sincronizar basePath y cerrar menú al navegar
+  // Cerrar menú al navegar
   useEffect(() => {
     setIsSidebarOpen(false);
-    
+  }, [pathname]);
+
+  // Sincronizar basePath solo cuando cambia el club
+  useEffect(() => {
     const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
     const computedBasePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
-    setBasePath(computedBasePath);
-  }, [pathname, tenantSlug]);
+    if (computedBasePath !== basePath) {
+      setBasePath(computedBasePath);
+    }
+  }, [tenantSlug]);
 
 
-  const menu = [
+  const menu = useMemo(() => [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
     { name: 'Miembros', path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
     { name: 'Agenda', path: `${basePath}/director/eventos`, icon: <Calendar className="w-5 h-5" /> },
@@ -50,9 +55,9 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     { name: 'Asistente WA', path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <Bot className="w-5 h-5" /> },
     { name: 'Uniformes', path: `${basePath}/director/uniformes`, icon: <Shirt className="w-5 h-5" /> },
     { name: 'Ajustes del Club', path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
-  ];
+  ], [basePath]);
 
-  const accesosRapidos = [
+  const accesosRapidos = useMemo(() => [
     { 
       name: 'Espacio Técnico', 
       desc: 'Panel de Entrenador',
@@ -67,7 +72,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
       icon: <Trophy className="w-5 h-5" />,
       color: 'bg-brand'
     },
-  ];
+  ], [basePath]);
 
   const brandName = tenant?.config?.nombre || 'Plataforma';
   const brandLogo = tenant?.config?.logo || '/logo.png';
