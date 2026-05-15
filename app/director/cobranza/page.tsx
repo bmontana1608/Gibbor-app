@@ -156,6 +156,17 @@ export default function ModuloCobranza() {
   const hoy = new Date();
   const diaActual = hoy.getDate();
 
+  const normalizeDate = (d: string) => {
+    if (!d) return '';
+    if (d.includes('-')) return d; // Ya es YYYY-MM-DD
+    const parts = d.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return d;
+  };
+
   const calcularTarifa = (tipoPlan: string) => {
     const planBuscado = planes.find(p => p.nombre === (tipoPlan || 'Regular'));
     if (!planBuscado) return 0;
@@ -731,14 +742,6 @@ export default function ModuloCobranza() {
 
 
   // 📈 CÁLCULOS FINANCIEROS (Basados en el rango de fechas seleccionado)
-  const normalizeDate = (d: string) => {
-    if (!d) return '';
-    if (d.includes('-')) return d; // ISO
-    const partes = d.split('/');
-    if (partes.length < 3) return d;
-    const [day, month, year] = partes;
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-  };
 
   const pagosFiltradosPorFecha = historialPagos.filter(p => {
     const pFecha = normalizeDate(p.fecha);
@@ -794,9 +797,14 @@ export default function ModuloCobranza() {
     const tarifaObjetivo = algunaVezPagoPronto ? precioConDescuento : tarifaActual;
 
     const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
+    
     // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), está al día
-    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || esBeca100;
-    const saldoPendientePeriodo = Math.max(0, tarifaObjetivo - totalRecibidoPeriodo);
+    // OJO: Si el pago coincide con el precio con descuento, también lo marcamos como AL DÍA (Lenience)
+    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
+                    totalRecibidoPeriodo >= (precioConDescuento - 100) ||
+                    esBeca100;
+
+    const saldoPendientePeriodo = Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
     const tarifa = tarifaObjetivo;
 
     // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
@@ -826,7 +834,11 @@ export default function ModuloCobranza() {
         if (mesAnterior < primerMesValido) break; // No calcular antes del registro del club
 
         const pagosDelMes = historialPagos
-          .filter(p => p.jugador_id === j.id && p.fecha && String(p.fecha).startsWith(mesStr))
+          .filter(p => {
+            if (!p.jugador_id || p.jugador_id !== j.id || !p.fecha) return false;
+            const pFecha = normalizeDate(p.fecha);
+            return pFecha.startsWith(mesStr);
+          })
           .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
 
         const abonosMes = abonos
@@ -837,11 +849,11 @@ export default function ModuloCobranza() {
         
         // --- LÓGICA DE REINICIO DE DEUDA ---
         // Si encontramos un registro que diga 'REINICIO DE DEUDA', dejamos de buscar hacia atrás
-        const hayReinicio = historialPagos.some(p => 
-          p.jugador_id === j.id && 
-          p.fecha && String(p.fecha).startsWith(mesStr) && 
-          String(p.notas || '').includes('REINICIO DE DEUDA')
-        );
+        const hayReinicio = historialPagos.some(p => {
+          if (p.jugador_id !== j.id || !p.fecha) return false;
+          const pFecha = normalizeDate(p.fecha);
+          return pFecha.startsWith(mesStr) && String(p.notas || '').includes('REINICIO DE DEUDA');
+        });
 
         if (hayReinicio) break;
 
