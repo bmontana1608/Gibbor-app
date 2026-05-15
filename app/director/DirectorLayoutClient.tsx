@@ -20,20 +20,21 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const tenantSlug = initialTenant?.slug || '';
+  const [basePath, setBasePath] = useState(tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '');
   
   const tenant = initialTenant;
   const profile = initialProfile;
 
-  // Asegurar que el menú se cierre al cambiar de página
+  // Sincronizar basePath y cerrar menú al navegar
   useEffect(() => {
     setIsSidebarOpen(false);
-  }, [pathname]);
+    
+    const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
+    const computedBasePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+    setBasePath(computedBasePath);
+  }, [pathname, tenantSlug]);
 
-  const tenantSlug = initialTenant?.slug || '';
-  
-  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
-  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   const menu = [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
@@ -130,9 +131,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link 
                 href={item.path} 
                 key={item.name}
-                onClick={() => {
-                  setTimeout(() => setIsSidebarOpen(false), 150);
-                }}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                   activo
                     ? 'bg-brand-muted text-brand font-bold shadow-sm border border-brand/10'
@@ -157,7 +155,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <Link
                 key={item.path}
                 href={item.path}
-                onClick={() => setTimeout(() => setIsSidebarOpen(false), 150)}
                 className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color} text-white shadow-lg`}>
