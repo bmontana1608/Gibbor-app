@@ -779,6 +779,12 @@ export default function ModuloCobranza() {
     const planBuscado = planes.find(p => p.nombre.toLowerCase() === currentPlanName);
     const esBeca100 = (planBuscado?.precio_base === 0) || currentPlanName.includes('100');
 
+    // Notificación previa
+    const cleanTel = String(j.telefono || '').replace(/\D/g, '');
+    const yaNotificado = notificacionesMes.some(n => 
+      String(n.destinatario_numero || '').replace(/\D/g, '').includes(cleanTel) && cleanTel.length > 5
+    );
+
     // ── Pagos completos este período
     const pagadoEstePeriodo = pagosFiltradosPorFecha
       .filter(p => {
@@ -1299,11 +1305,7 @@ export default function ModuloCobranza() {
                     ) : (
                       jugadoresFiltrados.map((jugador) => {
                         const esAlDia = jugador.esAlDia;
-                        const cleanTel = String(jugador.telefono || '').replace(/\D/g, '');
-                        // Buscamos si existe una notificación en el mes para este número
-                        const yaNotificado = notificacionesMes.some(n => 
-                          String(n.destinatario_numero || '').replace(/\D/g, '').includes(cleanTel) && cleanTel.length > 5
-                        );
+                        const yaNotificado = jugador.yaNotificado;
                         return (
                           <tr key={jugador.id} className="hover:bg-slate-50/50 transition-colors group">
                             <td className="p-4 md:px-6">

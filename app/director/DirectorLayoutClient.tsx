@@ -23,21 +23,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   
   const tenant = initialTenant;
   const profile = initialProfile;
-  // Asegurar que el menú se cierre al cambiar de página
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [pathname]);
-
-  const cerrarSesion = async () => {
-    await supabase.auth.signOut();
-    router.push(`${basePath}/login`);
-  };
-
-  const tenantSlug = initialTenant?.slug || '';
-  
-  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
-  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   // Asegurar que el menú se cierre al cambiar de página
   useEffect(() => {
@@ -93,8 +78,19 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     }
   };
 
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+    router.push(`${basePath}/login`);
+  };
+
+  const tenantSlug = initialTenant?.slug || '';
+  
+  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+
   return (
-    <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       <style dangerouslySetInnerHTML={{ __html: `
         html, :root {
           --brand-primary: ${brandColor} !important;
@@ -103,8 +99,15 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
       `}} />
       <PushPermissionBanner />
       
+      {/* Overlay para móvil */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden transition-opacity" 
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        
 
         <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -184,7 +187,9 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" /> Salir
           </button>
         </div>
+        </div>
       </aside>
+
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         
