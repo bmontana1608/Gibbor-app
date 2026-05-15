@@ -757,7 +757,9 @@ export default function ModuloCobranza() {
     return pFecha && pFecha >= fechaInicio && pFecha <= fechaFin;
   });
   
-  const ingresosRecaudados = pagosFiltradosPorFecha.reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
+  const ingresosRecaudados = pagosFiltradosPorFecha
+    .filter(p => p.metodo_pago !== 'Ajuste (Manual)') // Excluimos ajustes de la caja real
+    .reduce((acc, pago) => acc + parseFloat(pago.total || 0), 0);
   
   const egresosFiltradosPorFecha = egresos.filter(e => 
     e.fecha && e.fecha >= fechaInicio && e.fecha <= fechaFin
@@ -966,6 +968,34 @@ export default function ModuloCobranza() {
       toast.error("Error al enviar: " + err.message, { id: toastId });
     } finally {
       setLoadingBot(null);
+    }
+  };
+
+  const forzarAlDia = async (jugador: any) => {
+    if (!window.confirm(`¿Estás seguro de marcar a ${jugador.nombres} como Al día manualmente? Esto eliminará el saldo pendiente sin sumar dinero a los ingresos de caja.`)) return;
+    
+    const toastId = toast.loading("Aplicando ajuste manual...");
+    try {
+      const payload = {
+        jugador_id: jugador.id,
+        nombres: jugador.nombres,
+        apellidos: jugador.apellidos,
+        grupo: jugador.grupos || 'Sin grupo',
+        monto_base: jugador.tarifa,
+        total: jugador.tarifa,
+        metodo_pago: 'Ajuste (Manual)',
+        notas: 'CONCILIACIÓN MANUAL: Marcar como Al día sin ingreso de caja.',
+        fecha: new Date().toISOString().split('T')[0],
+        club_id: tenant?.id
+      };
+
+      const { error } = await supabase.from('pagos_ingresos').insert([payload]);
+      if (error) throw error;
+
+      toast.success(`${jugador.nombres} marcado como Al día correctamente`, { id: toastId });
+      cargarDatos();
+    } catch (err: any) {
+      toast.error("Error: " + err.message, { id: toastId });
     }
   };
 
@@ -1300,6 +1330,13 @@ export default function ModuloCobranza() {
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
+                                    </button>
+                                    <button 
+                                      onClick={() => forzarAlDia(jugador)} 
+                                      className="text-slate-400 hover:text-slate-600 p-1.5 transition-colors"
+                                      title="Marcar como Al día (Sin registro de caja)"
+                                    >
+                                      <ShieldCheck className="w-4 h-4" />
                                     </button>
                                   </>
                                 ) : (
