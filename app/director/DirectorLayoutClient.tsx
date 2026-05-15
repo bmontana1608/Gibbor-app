@@ -29,6 +29,12 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     setIsSidebarOpen(false);
   }, [pathname]);
 
+  const tenantSlug = initialTenant?.slug || '';
+  
+  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
+  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
+
   const menu = [
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
     { name: 'Miembros', path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
@@ -83,11 +89,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     router.push(`${basePath}/login`);
   };
 
-  const tenantSlug = initialTenant?.slug || '';
-  
-  // Determinamos el basePath de forma estable (sin estado que provoque re-renders infinitos)
-  const isSubdomain = typeof window !== 'undefined' && window.location.host.startsWith(`${tenantSlug}.`);
-  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
