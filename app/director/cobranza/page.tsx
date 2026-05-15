@@ -548,20 +548,12 @@ export default function ModuloCobranza() {
     
     try {
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
-      if (!config || !config.api_url || !config.api_key) {
-        toast.error("Configura el asistente primero.");
-        return;
-      }
-
-      const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
-      const instanceName = config.instance_name || 'Club_App';
-
+      const clubConfig = config || {};
+      
       let cleanedNumber = String(alumno.telefono || '').replace(/\D/g, '');
       // Si el número empieza con el código de país pero sin +, o es local de 10 dígitos
       if (cleanedNumber.length === 10) {
         cleanedNumber = `57${cleanedNumber}`;
-      } else if (cleanedNumber.length === 12 && cleanedNumber.startsWith('57')) {
-        // Ya tiene el código de país, lo dejamos así
       }
 
       // --- DATOS DINÁMICOS ---
@@ -590,14 +582,14 @@ export default function ModuloCobranza() {
         tarifa: alumno.tarifa,
         consecutivo: nuevoConsecutivo,
         empresa: {
-          nombre_club: config.nombre_club,
-          direccion: config.direccion || 'Sede Deportiva',
-          ciudad: config.ciudad || 'Colombia',
-          nequi: config.nequi,
-          daviplata: config.daviplata,
-          bre_b: config.bre_b,
-          banco_nombre: config.banco_nombre,
-          banco_numero: config.banco_numero
+          nombre_club: clubConfig.nombre_club,
+          direccion: clubConfig.direccion || 'Sede Deportiva',
+          ciudad: clubConfig.ciudad || 'Colombia',
+          nequi: clubConfig.nequi,
+          daviplata: clubConfig.daviplata,
+          bre_b: clubConfig.bre_b,
+          banco_nombre: clubConfig.banco_nombre,
+          banco_numero: clubConfig.banco_numero
         }
       });
 
@@ -897,16 +889,12 @@ export default function ModuloCobranza() {
 
     try {
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
-      if (!config || !config.api_url) throw new Error("Configura el asistente de WhatsApp primero.");
-
-      const cleanUrl = config.api_url.endsWith('/') ? config.api_url.slice(0, -1) : config.api_url;
-      const instanceName = config.instance_name || 'Club_App';
+      const clubConfig = config || {};
 
       // 1. Limpiar número
       let cleanedNumber = String(reciboGenerado.telefono || '').replace(/\D/g, '');
       if (cleanedNumber.length === 10) cleanedNumber = `57${cleanedNumber}`;
 
-      // 2. Generar PDF Profesional con los datos del recibo manual
       // 2. Generar PDF Profesional usando la librería central
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: reciboGenerado.nombres,
@@ -917,14 +905,14 @@ export default function ModuloCobranza() {
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
         empresa: {
-          nombre_club: config.nombre_club,
-          direccion: config.direccion || 'Sede Deportiva',
-          ciudad: config.ciudad || 'Colombia',
-          nequi: config.nequi,
-          daviplata: config.daviplata,
-          bre_b: config.bre_b,
-          banco_nombre: config.banco_nombre,
-          banco_numero: config.banco_numero
+          nombre_club: clubConfig.nombre_club,
+          direccion: clubConfig.direccion || 'Sede Deportiva',
+          ciudad: clubConfig.ciudad || 'Colombia',
+          nequi: clubConfig.nequi,
+          daviplata: clubConfig.daviplata,
+          bre_b: clubConfig.bre_b,
+          banco_nombre: clubConfig.banco_nombre,
+          banco_numero: clubConfig.banco_numero
         }
       });
       const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
