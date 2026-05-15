@@ -187,7 +187,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" /> Salir
           </button>
         </div>
-        </div>
       </aside>
 
 
