@@ -158,13 +158,22 @@ export default function ModuloCobranza() {
 
   const normalizeDate = (d: string) => {
     if (!d) return '';
-    if (d.includes('-')) return d; // Ya es YYYY-MM-DD
-    const parts = d.split('/');
+    // Si viene con hora, cortamos para tener solo la fecha
+    const base = d.split(' ')[0];
+    const separator = base.includes('-') ? '-' : '/';
+    const parts = base.split(separator);
+
     if (parts.length === 3) {
-      const [day, month, year] = parts;
-      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      // Caso YYYY-MM-DD
+      if (parts[0].length === 4) {
+        return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      }
+      // Caso DD-MM-YYYY o MM-DD-YYYY (asumimos DD-MM-YYYY por convención local)
+      if (parts[2].length === 4) {
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
     }
-    return d;
+    return base;
   };
 
   const calcularTarifa = (tipoPlan: string) => {
