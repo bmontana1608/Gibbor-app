@@ -142,6 +142,9 @@ export default function ModuloCobranza() {
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [notificacionesMes, setNotificacionesMes] = useState<any[]>([]);
+  const [isModalAporteOpen, setIsModalAporteOpen] = useState(false);
+  const [montoAporte, setMontoAporte] = useState(3000);
+  const [conceptoAporte, setConceptoAporte] = useState('Arbitraje');
 
   // Filtros de fecha dinámicos
   const [fechaInicio, setFechaInicio] = useState(() => {
@@ -797,6 +800,12 @@ export default function ModuloCobranza() {
       .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(periodoCobro))
       .reduce((acc: number, a: any) => acc + parseFloat(a.monto || 0), 0);
 
+    // ── Aportes Extras (Arbitraje, Canchas, etc.) 
+    // Son pagos en el mes cuyo concepto NO es la mensualidad principal
+    const aportesExtras = pagosFiltradosPorFecha
+      .filter(p => p.jugador_id === j.id && !String(p.concepto || '').toLowerCase().includes('mensualidad'))
+      .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
+
     // --- LÓGICA DE TARIFA INTELIGENTE ---
     const { tarifa: tarifaActual, precioBase } = calcularTarifaPeriodo(j.tipo_plan, fechaInicio);
     
@@ -891,7 +900,7 @@ export default function ModuloCobranza() {
 
     const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
 
-    return { ...j, esAlDia, tarifa, esBeca100, saldoPendientePeriodo, deudaAcumulada, deudaTotal, mesesEnMora, abonosDelPeriodo, totalRecibidoPeriodo };
+    return { ...j, esAlDia, tarifa, esBeca100, saldoPendientePeriodo, deudaAcumulada, deudaTotal, mesesEnMora, abonosDelPeriodo, totalRecibidoPeriodo, aportesExtras, yaNotificado };
   });
 
   const totalJugadoresCobrales = jugadoresFin.filter(j => j.tarifa > 0).length;
@@ -994,6 +1003,42 @@ export default function ModuloCobranza() {
       if (error) throw error;
 
       toast.success(`${jugador.nombres} marcado como Al día correctamente`, { id: toastId });
+      cargarDatos();
+    } catch (err: any) {
+      toast.error("Error: " + err.message, { id: toastId });
+    }
+  };
+
+  const abrirModalAporte = (jugador: any) => {
+    setJugadorSeleccionado(jugador);
+    setMontoAporte(3000);
+    setConceptoAporte('Arbitraje');
+    setIsModalAporteOpen(true);
+  };
+
+  const confirmarAporte = async () => {
+    if (!jugadorSeleccionado) return;
+    const toastId = toast.loading("Registrando aporte extra...");
+    try {
+      const payload = {
+        jugador_id: jugadorSeleccionado.id,
+        nombres: jugadorSeleccionado.nombres,
+        apellidos: jugadorSeleccionado.apellidos,
+        grupo: jugadorSeleccionado.grupos || 'Sin grupo',
+        monto_base: montoAporte,
+        total: montoAporte,
+        metodo_pago: 'Efectivo',
+        concepto: `Aporte: ${conceptoAporte}`,
+        notas: `Aporte extra para ${conceptoAporte}`,
+        fecha: new Date().toISOString().split('T')[0],
+        club_id: tenant?.id
+      };
+
+      const { error } = await supabase.from('pagos_ingresos').insert([payload]);
+      if (error) throw error;
+
+      toast.success("Aporte registrado correctamente", { id: toastId });
+      setIsModalAporteOpen(false);
       cargarDatos();
     } catch (err: any) {
       toast.error("Error: " + err.message, { id: toastId });
@@ -1242,6 +1287,7 @@ export default function ModuloCobranza() {
                       <th className="p-4 md:px-6">Plan</th>
                       <th className="p-4 md:px-6">Valor</th>
                       <th className="p-4 md:px-6">Estado</th>
+                      <th className="p-4 md:px-6">Aportes / Extras</th>
                       <th className="p-4 md:px-6 text-right">Acciones</th>
                     </tr>
                   </thead>
@@ -1343,6 +1389,9 @@ export default function ModuloCobranza() {
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
+                                    </button>
+                                    <button onClick={() => abrirModalAporte(jugador)} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar arbitraje/cancha">
+                                      <Star className="w-3.5 h-3.5" /> Aporte
                                     </button>
                                     <button 
                                       onClick={() => forzarAlDia(jugador)} 
@@ -1487,7 +1536,29 @@ export default function ModuloCobranza() {
                                         </td>
                                         <td className="p-4 md:px-6 text-slate-50">{eg.fecha ? eg.fecha.split('-').reverse().join('/') : '---'}</td>
                                         <td className="p-4 md:px-6 text-right font-black text-rose-600">${parseFloat(eg.monto).toLocaleString('es-CO')}</td>
-                                        <td className="p-4 md:px-6 text-right">
+                                        <td className="p-4 md:px-6">
+                               <div className="flex flex-col gap-1">
+                                 {jugador.aportesExtras > 0 ? (
+                                   <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-1 rounded-lg border border-amber-100 w-fit flex items-center gap-1">
+                                     <Star className="w-3 h-3 fill-amber-500" /> ${jugador.aportesExtras.toLocaleString('es-CO')} recibidos
+                                   </span>
+                                 ) : (
+                                   <span className="text-[10px] text-slate-300 font-bold italic">Sin aportes extras</span>
+                                 )}
+                               </div>
+                             </td>
+                             <td className="p-4 md:px-6">
+                               <div className="flex flex-col gap-1">
+                                 {jugador.aportesExtras > 0 ? (
+                                   <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-1 rounded-lg border border-amber-100 w-fit flex items-center gap-1">
+                                     <Star className="w-3 h-3 fill-amber-500" /> ${jugador.aportesExtras.toLocaleString('es-CO')} recibidos
+                                   </span>
+                                 ) : (
+                                   <span className="text-[10px] text-slate-300 font-bold italic">Sin aportes extras</span>
+                                 )}
+                               </div>
+                             </td>
+                             <td className="p-4 md:px-6 text-right">
                                             <button onClick={() => eliminarEgreso(eg.id)} className="text-slate-300 hover:text-rose-500 p-2 transition-colors">
                                                 <X className="w-5 h-5" />
                                             </button>
@@ -1744,6 +1815,76 @@ export default function ModuloCobranza() {
                 <button onClick={() => setIsModalEditarOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
                 <button onClick={guardarEdicionPago} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all">Guardar Cambios</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL APORTE EXTRA (Arbitraje / Canchas) */}
+      {isModalAporteOpen && jugadorSeleccionado && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="bg-amber-500 p-6 text-white flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-black uppercase tracking-tight">Registrar Aporte Extra</h3>
+                <p className="text-xs font-bold opacity-80 uppercase tracking-widest">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
+              </div>
+              <button onClick={() => setIsModalAporteOpen(false)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Concepto del Aporte</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Arbitraje', 'Canchas', 'Torneo', 'Otro'].map(opt => (
+                    <button 
+                      key={opt}
+                      onClick={() => setConceptoAporte(opt)}
+                      className={`py-3 rounded-xl text-xs font-bold transition-all border-2 ${conceptoAporte === opt ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {conceptoAporte === 'Otro' && (
+                  <input 
+                    type="text" 
+                    placeholder="Escribe el concepto..." 
+                    className="mt-3 w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold outline-none ring-2 ring-transparent focus:ring-amber-200 transition-all"
+                    onChange={(e) => setConceptoAporte(e.target.value)}
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Monto a Recibir</label>
+                <div className="flex gap-2">
+                  {[3000, 5000, 7000, 10000].map(val => (
+                    <button 
+                      key={val}
+                      onClick={() => setMontoAporte(val)}
+                      className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${montoAporte === val ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                    >
+                      ${val.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+                <input 
+                  type="number" 
+                  value={montoAporte} 
+                  onChange={(e) => setMontoAporte(parseInt(e.target.value) || 0)}
+                  className="mt-3 w-full p-4 bg-slate-50 rounded-2xl border-none text-xl font-black text-slate-800 outline-none ring-2 ring-transparent focus:ring-amber-200 transition-all text-center"
+                />
+              </div>
+
+              <button 
+                onClick={confirmarAporte}
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-amber-100 transition-all flex items-center justify-center gap-2 transform active:scale-95"
+              >
+                <Star className="w-5 h-5" /> Registrar Aporte de ${montoAporte.toLocaleString()}
+              </button>
             </div>
           </div>
         </div>
