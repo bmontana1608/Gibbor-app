@@ -133,7 +133,10 @@ export default function DashboardDirector() {
             crecimientoMap[key] = 0;
           }
           jugadores.forEach(p => {
-            const d = new Date(p.created_at);
+            const dateStr = p.fecha_registro || p.created_at;
+            if (!dateStr) return;
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return;
             const key = `${mesesNombre[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
             if (crecimientoMap.hasOwnProperty(key)) crecimientoMap[key]++;
           });

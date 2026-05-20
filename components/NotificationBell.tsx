@@ -14,7 +14,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
   const [cargando, setCargando] = useState(true);
   const router = useRouter();
 
-  const cargarNotificaciones = async (rol: string) => {
+  const cargarNotificaciones = async (rol: string, activeUserId: string) => {
     try {
       // Si no hay clubId y no es un usuario maestro, no podemos cargar nada relevante del club
       if (!clubId && rol !== 'SuperAdmin') {
@@ -24,15 +24,13 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
 
       let todas: any[] = [];
 
-      // 1. Cargar Comunicados (Filtrados por club o globales)
-      // Usamos una consulta base y aplicamos filtros condicionales
+      // 1. Cargar Comunicados (Filtrados por usuario o globales)
       let queryComunicados = supabase
         .from('notificaciones_app')
         .select('*');
       
-      if (clubId) {
-        // Postgrest OR syntax: (col1.eq.val,col2.is.null)
-        queryComunicados = queryComunicados.or(`club_id.eq.${clubId},club_id.is.null`);
+      if (activeUserId) {
+        queryComunicados = queryComunicados.or(`user_id.eq.${activeUserId},user_id.is.null`);
       }
 
       const { data: comunicados, error: errC } = await queryComunicados
@@ -42,20 +40,34 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
       if (errC) console.error("Error comunicados:", errC);
       if (comunicados) todas = [...todas, ...comunicados.map(c => ({ ...c, origen: 'comunicado' }))];
 
-      // 2. Si es Director, cargar solicitudes pendientes DE SU CLUB
+      // 2. Si es Director, cargar solicitudes pendientes DE SU CLUB (usando fecha_registro en lugar de created_at)
       if (rol === 'Director' && clubId) {
         const { data: pendientes, error: errP } = await supabase
           .from('perfiles')
-          .select('id, nombres, apellidos, created_at, rol')
+          .select('id, nombres, apellidos, fecha_registro, rol')
           .eq('club_id', clubId)
           .eq('estado_miembro', 'Pendiente')
-          .order('created_at', { ascending: false });
+          .order('fecha_registro', { ascending: false });
         
         if (errP) console.error("Error pendientes:", errP);
-        if (pendientes) todas = [...todas, ...pendientes.map(p => ({ ...p, origen: 'registro', titulo: 'Nueva Solicitud', mensaje: `${p.nombres} ${p.apellidos} quiere unirse.` }))];
+        if (pendientes) {
+          todas = [
+            ...todas, 
+            ...pendientes.map(p => ({ 
+              ...p, 
+              origen: 'registro', 
+              titulo: 'Nueva Solicitud', 
+              mensaje: `${p.nombres} ${p.apellidos} quiere unirse.` 
+            }))
+          ];
+        }
       }
 
-      todas.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      todas.sort((a, b) => {
+        const dateB = new Date(b.created_at || b.fecha_registro).getTime();
+        const dateA = new Date(a.created_at || a.fecha_registro).getTime();
+        return dateB - dateA;
+      });
       setNotificaciones(todas);
     } catch (error) {
       console.error("Error cargando notificaciones:", error);
@@ -72,7 +84,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
       const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
       const rol = perfil?.rol || 'Atleta';
       setRolUsuario(rol);
-      await cargarNotificaciones(rol);
+      await cargarNotificaciones(rol, user.id);
     }
     iniciar();
   }, [clubId]); // Recargar si el club cambia
