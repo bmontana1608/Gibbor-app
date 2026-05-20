@@ -14,26 +14,86 @@ export async function POST(request: Request) {
     const cleanUrl = EVOLUTION_API_URL.endsWith('/') ? EVOLUTION_API_URL.slice(0, -1) : EVOLUTION_API_URL;
     let instance = encodeURIComponent(instanceName || 'gibbor');
 
-    // 1. VERIFICACIÓN DE ESTADO DE LA INSTANCIA (Zero-Trust con Fallback inteligente)
+    // 1. VERIFICACIÓN DE ESTADO DE LA INSTANCIA (Zero-Trust con Fallback inteligente de Doble Chequeo)
     let instanceReady = false;
     try {
       const statusRes = await fetch(`${cleanUrl}/instance/connectionState/${instance}`, {
         headers: { 'apikey': EVOLUTION_API_KEY }
       });
       const statusData = await statusRes.json();
-      
-      if (statusData.instance?.state === 'open') {
+      const rawState = statusData?.instance?.state || statusData?.state || 'disconnected';
+      let isActuallyConnected = rawState === 'open';
+
+      // Doble chequeo para evitar el bug de caché de Evolution API
+      if (isActuallyConnected) {
+        try {
+          const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
+            headers: { 'apikey': EVOLUTION_API_KEY }
+          });
+          if (listRes.ok) {
+            const listData = await listRes.ok ? await listRes.json() : [];
+            const thisInst = Array.isArray(listData) ? listData.find((i: any) => i.name === instance || i.instanceName === instance) : null;
+            if (thisInst) {
+              if (thisInst.disconnectionReasonCode || thisInst.disconnectionAt || thisInst.connectionStatus !== 'open') {
+                console.log(`[EVO-SEND-CHECK] ⚠️ Instancia '${instance}' detectada como desvinculada físicamente (${thisInst.disconnectionReasonCode}).`);
+                isActuallyConnected = false;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn('[EVO-SEND-CHECK] Error re-verificando con fetchInstances:', err);
+        }
+      }
+
+      if (isActuallyConnected) {
         instanceReady = true;
       }
     } catch (e) {
       console.warn(`No se pudo verificar el estado de la instancia '${instance}', procediendo con precaución...`, e);
     }
 
-    // Si la instancia específica del club no está lista, hacemos fallback a 'gibbor' (instancia maestra activa)
+    // Si la instancia específica del club no está lista, hacemos fallback a 'gibbor'
     if (!instanceReady && instance !== 'gibbor') {
-      console.log(`⚠️ Instancia '${instance}' no conectada o inexistente. Aplicando fallback a 'gibbor'...`);
+      console.log(`⚠️ Instancia '${instance}' no conectada o desvinculada. Aplicando fallback a 'gibbor'...`);
       instance = 'gibbor';
-      instanceReady = true; // Forzamos true ya que verificamos anteriormente que 'gibbor' está activa
+      
+      // Chequear el estado de la instancia maestra 'gibbor' también con doble chequeo
+      try {
+        const statusRes = await fetch(`${cleanUrl}/instance/connectionState/gibbor`, {
+          headers: { 'apikey': EVOLUTION_API_KEY }
+        });
+        const statusData = await statusRes.json();
+        const rawState = statusData?.instance?.state || statusData?.state || 'disconnected';
+        let gibborConnected = rawState === 'open';
+
+        if (gibborConnected) {
+          const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
+            headers: { 'apikey': EVOLUTION_API_KEY }
+          });
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            const gibborInst = listData.find((i: any) => i.name === 'gibbor' || i.instanceName === 'gibbor');
+            if (gibborInst) {
+              if (gibborInst.disconnectionReasonCode || gibborInst.disconnectionAt || gibborInst.connectionStatus !== 'open') {
+                gibborConnected = false;
+              }
+            }
+          }
+        }
+        
+        if (gibborConnected) {
+          instanceReady = true;
+        }
+      } catch (e) {
+        console.warn("Error verificando fallback 'gibbor':", e);
+      }
+    }
+
+    if (!instanceReady) {
+      return NextResponse.json({
+        error: 'WhatsApp Desconectado',
+        details: 'El canal de WhatsApp (la sesión) ha sido desvinculada desde el teléfono o está desconectada. Por favor, ve a Configuración > Asistente de WhatsApp y escanea el código QR nuevamente para restablecer el servicio.'
+      }, { status: 503 });
     }
 
     const endpoint = mediaBase64 ? 'sendMedia' : 'sendText';
