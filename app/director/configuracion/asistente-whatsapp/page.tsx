@@ -77,6 +77,29 @@ export default function AsistenteWhatsApp() {
     }
   };
 
+  const handleDesvincular = async () => {
+    if (!window.confirm("¿Estás seguro de que deseas desvincular este dispositivo de WhatsApp? Se detendrán los flujos de mensajería automática.")) return;
+    
+    setCargando(true);
+    try {
+      const res = await fetch(`/api/whatsapp/instance?slug=${slug}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setConectado(false);
+        setQrCode(null);
+        toast.success("Dispositivo desvinculado con éxito");
+      } else {
+        toast.error("Error al desvincular: " + (data.error || "Error desconocido"));
+      }
+    } catch (error: any) {
+      toast.error("Error al desvincular: " + error.message);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const [rawResponse, setRawResponse] = useState<string | null>(null);
 
   // Efecto para verificar si el usuario ya escaneó (Polling)
@@ -239,7 +262,13 @@ export default function AsistenteWhatsApp() {
                       >
                         <MessageCircle className="w-4 h-4" /> Ver Historial de Chats
                       </button>
-                      <button onClick={() => setConectado(false)} className="text-xs font-bold text-red-600 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors border border-red-100">Desvincular</button>
+                      <button 
+                        onClick={handleDesvincular} 
+                        disabled={cargando}
+                        className="text-xs font-bold text-red-600 hover:bg-red-50 disabled:bg-slate-100 px-4 py-2 rounded-lg transition-colors border border-red-100"
+                      >
+                        {cargando ? 'Cargando...' : 'Desvincular'}
+                      </button>
                     </div>
                   </div>
                 </div>

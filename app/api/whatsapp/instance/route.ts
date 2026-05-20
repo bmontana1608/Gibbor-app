@@ -48,24 +48,24 @@ export async function GET(request: Request) {
 
     if (stateResponse.status === 404) {
       // Instance doesn't exist, create it
-    const createBody = {
-      instanceName: slug,
-      token: slug,
-      qrcode: true,
-      integration: "WHATSAPP-BAILEYS"
-    };
+      const createBody = {
+        instanceName: slug,
+        token: slug,
+        qrcode: true,
+        integration: "WHATSAPP-BAILEYS"
+      };
 
-    console.log(`[EVO-CREATE] Intentando crear instancia en: ${cleanUrl}/instance/create`);
-    console.log(`[EVO-CREATE] Body:`, createBody);
+      console.log(`[EVO-CREATE] Intentando crear instancia en: ${cleanUrl}/instance/create`);
+      console.log(`[EVO-CREATE] Body:`, createBody);
 
-    const createResponse = await fetch(`${cleanUrl}/instance/create`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'apikey': EVOLUTION_API_KEY 
-      },
-      body: JSON.stringify(createBody)
-    });
+      const createResponse = await fetch(`${cleanUrl}/instance/create`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'apikey': EVOLUTION_API_KEY 
+        },
+        body: JSON.stringify(createBody)
+      });
       
       if (!createResponse.ok) {
         const errorText = await createResponse.text();
@@ -84,14 +84,38 @@ export async function GET(request: Request) {
       });
     }
 
+    // Si la respuesta es 200, verificamos detalladamente
     const stateData = await stateResponse.json();
-    const state = stateData?.instance?.state || stateData?.state || 'disconnected';
+    const rawState = stateData?.instance?.state || stateData?.state || 'disconnected';
+    let isActuallyConnected = rawState === 'open';
 
-    if (state === 'open') {
+    // Evitar bug de caché de la API de Evolution (cuando marca open pero el socket está cerrado)
+    if (isActuallyConnected) {
+      try {
+        const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
+          headers: { 'apikey': EVOLUTION_API_KEY }
+        });
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          const thisInst = listData.find((i: any) => i.name === slug || i.instanceName === slug);
+          if (thisInst) {
+            if (thisInst.disconnectionReasonCode || thisInst.disconnectionAt || thisInst.connectionStatus !== 'open') {
+              console.log(`[EVO-CHECK] ⚠️ Instancia '${slug}' detectada como desvinculada físicamente (${thisInst.disconnectionReasonCode}). Forzando reconexión.`);
+              isActuallyConnected = false;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[EVO-CHECK] Error al re-verificar con fetchInstances:', err);
+      }
+    }
+
+    if (isActuallyConnected) {
       return NextResponse.json({ status: 'connected', stateData });
     }
 
     // Si está creada pero desconectada (ej. sesión cerrada o no escaneado), pedimos el QR de nuevo
+    console.log(`[EVO-CHECK] Solicitando nuevo código QR de conexión para la instancia '${instanceName}'`);
     const qrResponse = await fetch(`${cleanUrl}/instance/connect/${instanceName}`, {
       headers: { 'apikey': EVOLUTION_API_KEY }
     });
