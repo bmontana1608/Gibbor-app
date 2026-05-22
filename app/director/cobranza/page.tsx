@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw, Star } from 'lucide-react';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
@@ -142,9 +142,7 @@ export default function ModuloCobranza() {
   const [isSendingBatch, setIsSendingBatch] = useState(false);
   const [batchProgress, setBatchProgress] = useState(0);
   const [notificacionesMes, setNotificacionesMes] = useState<any[]>([]);
-  const [isModalAporteOpen, setIsModalAporteOpen] = useState(false);
-  const [montoAporte, setMontoAporte] = useState(3000);
-  const [conceptoAporte, setConceptoAporte] = useState('Arbitraje');
+  // Aportes movidos al módulo /director/aportes
 
   // Filtros de fecha dinámicos
   const [fechaInicio, setFechaInicio] = useState(() => {
@@ -785,9 +783,16 @@ export default function ModuloCobranza() {
       String(n.destinatario_numero || '').replace(/\D/g, '').includes(cleanTel) && cleanTel.length > 5
     );
 
-    // ── Pagos completos este período
+    // ── Pagos completos este período (EXCLUYE aportes de canchas/arbitraje)
+    // Los aportes tienen concepto que empieza con 'Aporte:' y se gestionan en /director/aportes
     const pagadoEstePeriodo = pagosFiltradosPorFecha
       .filter(p => {
+        // Excluir aportes para que NO afecten el estado de mensualidad
+        const concepto = String(p.concepto || '').toLowerCase();
+        if (concepto.startsWith('aporte:') || concepto.includes('aporte extra')) return false;
+        // Excluir notas de aporte también
+        const notas = String(p.notas || '').toLowerCase();
+        if (notas.startsWith('aporte extra')) return false;
         // Coincidencia por ID (Prioritario)
         if (p.jugador_id === j.id) return true;
         // Fallback por nombre exacto si no hay ID
@@ -853,15 +858,19 @@ export default function ModuloCobranza() {
     // Solo calcular mora histórica si no es beca 100%
     if (!esBeca100 && tarifa > 0) {
       // Límite = el MÁS RECIENTE entre: registro del club y registro del jugador.
-      // → Jugadores de Abril: límite = Abril (fecha del club)
-      // → Jugadores nuevos de Mayo: límite = Mayo (su propia fecha), nunca acumulan deuda de Abril
+      // Usamos 'fecha_ingreso_club' si existe (campo dedicado), si no, usamos created_at.
+      // Esto evita que jugadores recién ingresados acumulen deuda de meses anteriores.
       const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
-      const jugadorCreatedAt = j.created_at ? new Date(j.created_at) : null;
+      
+      // Preferir fecha_ingreso_club (campo explícito) sobre created_at (fecha de registro en sistema)
+      const fechaIngresoRaw = j.fecha_ingreso_club || j.fecha_ingreso || j.created_at;
+      const jugadorCreatedAt = fechaIngresoRaw ? new Date(fechaIngresoRaw) : null;
 
       const inicioClub   = tenantCreatedAt  ? new Date(tenantCreatedAt.getFullYear(),  tenantCreatedAt.getMonth(),  1) : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
       const inicioJugador = jugadorCreatedAt ? new Date(jugadorCreatedAt.getFullYear(), jugadorCreatedAt.getMonth(), 1) : inicioClub;
 
       // El límite real es el más reciente de los dos
+      // Si el jugador se unió ESTE mes, primerMesValido = este mes → nunca acumula deuda histórica
       const primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
 
       for (let i = 1; i <= 6; i++) {
@@ -1015,41 +1024,7 @@ export default function ModuloCobranza() {
     }
   };
 
-  const abrirModalAporte = (jugador: any) => {
-    setJugadorSeleccionado(jugador);
-    setMontoAporte(3000);
-    setConceptoAporte('Arbitraje');
-    setIsModalAporteOpen(true);
-  };
-
-  const confirmarAporte = async () => {
-    if (!jugadorSeleccionado) return;
-    const toastId = toast.loading("Registrando aporte extra...");
-    try {
-      const payload = {
-        jugador_id: jugadorSeleccionado.id,
-        nombres: jugadorSeleccionado.nombres,
-        apellidos: jugadorSeleccionado.apellidos,
-        grupo: jugadorSeleccionado.grupos || 'Sin grupo',
-        monto_base: montoAporte,
-        total: montoAporte,
-        metodo_pago: 'Efectivo',
-        concepto: `Aporte: ${conceptoAporte}`,
-        notas: `Aporte extra para ${conceptoAporte}`,
-        fecha: new Date().toISOString().split('T')[0],
-        club_id: tenant?.id
-      };
-
-      const { error } = await supabase.from('pagos_ingresos').insert([payload]);
-      if (error) throw error;
-
-      toast.success("Aporte registrado correctamente", { id: toastId });
-      setIsModalAporteOpen(false);
-      cargarDatos();
-    } catch (err: any) {
-      toast.error("Error: " + err.message, { id: toastId });
-    }
-  };
+  // Aportes (canchas, arbitraje) → ahora gestionados en /director/aportes
 
   const generarYCompartirPDF = async () => {
     if (!reciboGenerado) return;
@@ -1293,15 +1268,14 @@ export default function ModuloCobranza() {
                       <th className="p-4 md:px-6">Plan</th>
                       <th className="p-4 md:px-6">Valor</th>
                       <th className="p-4 md:px-6">Estado</th>
-                      <th className="p-4 md:px-6">Aportes / Extras</th>
                       <th className="p-4 md:px-6 text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {cargando ? (
-                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">Cargando futbolistas...</td></tr>
+                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">Cargando futbolistas...</td></tr>
                     ) : jugadoresFiltrados.length === 0 ? (
-                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
+                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
                     ) : (
                       jugadoresFiltrados.map((jugador) => {
                         const esAlDia = jugador.esAlDia;
@@ -1391,9 +1365,6 @@ export default function ModuloCobranza() {
                                     </button>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                       Pagar
-                                    </button>
-                                    <button onClick={() => abrirModalAporte(jugador)} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar arbitraje/cancha">
-                                      <Star className="w-3.5 h-3.5" /> Aporte
                                     </button>
                                     <button 
                                       onClick={() => forzarAlDia(jugador)} 
@@ -1800,75 +1771,7 @@ export default function ModuloCobranza() {
         </div>
       )}
 
-      {/* MODAL APORTE EXTRA (Arbitraje / Canchas) */}
-      {isModalAporteOpen && jugadorSeleccionado && (
-        <div className="fixed inset-0 bg-slate-900/60 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="bg-amber-500 p-6 text-white flex justify-between items-center">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-tight">Registrar Aporte Extra</h3>
-                <p className="text-xs font-bold opacity-80 uppercase tracking-widest">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
-              </div>
-              <button onClick={() => setIsModalAporteOpen(false)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-8 space-y-6">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Concepto del Aporte</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Arbitraje', 'Canchas', 'Torneo', 'Otro'].map(opt => (
-                    <button 
-                      key={opt}
-                      onClick={() => setConceptoAporte(opt)}
-                      className={`py-3 rounded-xl text-xs font-bold transition-all border-2 ${conceptoAporte === opt ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-slate-100 text-slate-400 hover:border-slate-200'}`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-                {conceptoAporte === 'Otro' && (
-                  <input 
-                    type="text" 
-                    placeholder="Escribe el concepto..." 
-                    className="mt-3 w-full p-4 bg-slate-50 rounded-2xl border-none text-sm font-bold outline-none ring-2 ring-transparent focus:ring-amber-200 transition-all"
-                    onChange={(e) => setConceptoAporte(e.target.value)}
-                  />
-                )}
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Monto a Recibir</label>
-                <div className="flex gap-2">
-                  {[3000, 5000, 7000, 10000].map(val => (
-                    <button 
-                      key={val}
-                      onClick={() => setMontoAporte(val)}
-                      className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${montoAporte === val ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                    >
-                      ${val.toLocaleString()}
-                    </button>
-                  ))}
-                </div>
-                <input 
-                  type="number" 
-                  value={montoAporte} 
-                  onChange={(e) => setMontoAporte(parseInt(e.target.value) || 0)}
-                  className="mt-3 w-full p-4 bg-slate-50 rounded-2xl border-none text-xl font-black text-slate-800 outline-none ring-2 ring-transparent focus:ring-amber-200 transition-all text-center"
-                />
-              </div>
-
-              <button 
-                onClick={confirmarAporte}
-                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-amber-100 transition-all flex items-center justify-center gap-2 transform active:scale-95"
-              >
-                <Star className="w-5 h-5" /> Registrar Aporte de ${montoAporte.toLocaleString()}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Aportes (canchas, arbitraje, torneos) → módulo independiente en /director/aportes */}
     </div>
   );
 }
