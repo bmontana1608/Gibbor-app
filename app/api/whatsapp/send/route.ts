@@ -28,7 +28,8 @@ export async function POST(request: Request) {
       if (isActuallyConnected) {
         try {
           const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-            headers: { 'apikey': EVOLUTION_API_KEY }
+            headers: { 'apikey': EVOLUTION_API_KEY },
+            signal: AbortSignal.timeout(5000)
           });
           if (listRes.ok) {
             const listData = await listRes.ok ? await listRes.json() : [];
@@ -68,7 +69,8 @@ export async function POST(request: Request) {
 
         if (gibborConnected) {
           const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-            headers: { 'apikey': EVOLUTION_API_KEY }
+            headers: { 'apikey': EVOLUTION_API_KEY },
+            signal: AbortSignal.timeout(5000)
           });
           if (listRes.ok) {
             const listData = await listRes.json();

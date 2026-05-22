@@ -93,7 +93,8 @@ export async function GET(request: Request) {
     if (isActuallyConnected) {
       try {
         const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-          headers: { 'apikey': EVOLUTION_API_KEY }
+          headers: { 'apikey': EVOLUTION_API_KEY },
+          signal: AbortSignal.timeout(5000) // Timeout de 5s para evitar que cuelgue
         });
         if (listRes.ok) {
           const listData = await listRes.json();
@@ -105,8 +106,9 @@ export async function GET(request: Request) {
             }
           }
         }
-      } catch (err) {
-        console.warn('[EVO-CHECK] Error al re-verificar con fetchInstances:', err);
+      } catch (err: any) {
+        // Si el timeout expira o hay error, asumimos que la conexión inicial es correcta
+        console.warn('[EVO-CHECK] Error/timeout al re-verificar con fetchInstances:', err.message || err);
       }
     }
 

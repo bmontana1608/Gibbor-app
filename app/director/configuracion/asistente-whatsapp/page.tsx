@@ -105,15 +105,27 @@ export default function AsistenteWhatsApp() {
   // Efecto para verificar si el usuario ya escaneó (Polling)
   useEffect(() => {
     let interval: any;
-    if (qrCode && !conectado) {
+    if (qrCode && !conectado && slug) {
       interval = setInterval(async () => {
-        // Aquí verificaríamos el estado en el API Real
-        // if (status === 'connected') { setConectado(true); clearInterval(interval); }
-        console.log("Verificando vinculación...");
-      }, 5000);
+        try {
+          const res = await fetch(`/api/whatsapp/instance?slug=${slug}`);
+          const data = await res.json();
+          if (data.status === 'connected') {
+            setConectado(true);
+            setQrCode(null);
+            toast.success('¡WhatsApp conectado exitosamente!');
+            clearInterval(interval);
+          } else if (data.status === 'qr' && data.qr) {
+            // Actualizar el QR por si expiró y se generó uno nuevo
+            setQrCode(data.qr);
+          }
+        } catch (e) {
+          console.warn('Error en polling de vinculación:', e);
+        }
+      }, 8000);
     }
     return () => clearInterval(interval);
-  }, [qrCode, conectado]);
+  }, [qrCode, conectado, slug]);
 
   // Simulación de estados de automatización
   const [config, setConfig] = useState({
@@ -199,7 +211,7 @@ export default function AsistenteWhatsApp() {
                   <div className="bg-slate-50 p-6 rounded-2xl border-2 border-dashed border-slate-200 mb-6 group hover:border-emerald-300 transition-colors cursor-pointer">
                     <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center shadow-md relative group-hover:scale-105 transition-transform overflow-hidden">
                        {qrCode ? (
-                         <img src={qrCode} alt="WhatsApp QR" className="w-full h-full object-cover" />
+                         <img src={qrCode.includes('base64') ? qrCode : `data:image/png;base64,${qrCode}`} alt="WhatsApp QR" className="w-full h-full object-cover" />
                        ) : (
                          <>
                           <div className="grid grid-cols-5 gap-2 opacity-20">
