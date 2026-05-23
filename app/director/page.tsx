@@ -74,7 +74,7 @@ export default function DashboardDirector() {
           { data: asistData },
           { data: msgRes }
         ] = await Promise.all([
-          supabase.from('perfiles').select('*').eq('club_id', tenantData.id).eq('rol', 'Futbolista').neq('estado_miembro', 'Pendiente'),
+          supabase.from('perfiles').select('*').eq('club_id', tenantData.id).eq('rol', 'Futbolista').eq('estado_miembro', 'Activo'),
           supabase.from('planes').select('*').eq('club_id', tenantData.id),
           supabase.from('pagos_ingresos').select('*').eq('club_id', tenantData.id),
           supabase.from('asistencias').select('jugador_id, estado').eq('club_id', tenantData.id),
