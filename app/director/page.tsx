@@ -88,11 +88,15 @@ export default function DashboardDirector() {
 
         if (jugadores) {
           const total = jugadores.length;
-          const normalizeDate = (d: string) => {
-            if (!d) return '';
-            if (d.includes('-')) return d;
-            const [day, month, year] = d.split('/');
-            return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          const normalizeDate = (d: string | null | undefined) => {
+            if (!d || d === 'null' || d === 'undefined') return '';
+            if (d.includes('-')) return d.split('T')[0];
+            const parts = d.split('/');
+            if (parts.length === 3) {
+              const [day, month, year] = parts;
+              return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            return d;
           };
           const fechaInicio = `${anioActual}-${String(mesActual).padStart(2, '0')}-01`;
           const fechaFin = `${anioActual}-${String(mesActual).padStart(2, '0')}-31`;
@@ -124,23 +128,35 @@ export default function DashboardDirector() {
             }
           });
 
-          const mesesNombre = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-          const crecimientoMap: any = {};
+          const mesesNombre = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct-Nov', 'Dic']; // We keep mesesNombre standard
+          const mesesNombreCorrecto = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+          const dataGrafico = [];
+
           for(let i = 5; i >= 0; i--) {
             const d = new Date();
+            // Ir al primer día del mes correspondiente para evitar problemas de desbordamiento (ej: 31 de mayo - 3 meses -> febrero no tiene 31)
+            d.setDate(1);
             d.setMonth(d.getMonth() - i);
-            const key = `${mesesNombre[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
-            crecimientoMap[key] = 0;
+            
+            // Nombre del mes para el gráfico (ej: "May 26")
+            const label = `${mesesNombreCorrecto[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
+            
+            // Fin de ese mes (23:59:59 del último día del mes)
+            const finDeMes = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+            
+            // Contar cuántos jugadores se registraron antes o durante este mes
+            const totalActivosEnMes = jugadores.filter(p => {
+              const dateStr = normalizeDate(p.fecha_registro);
+              if (!dateStr) return true; // Si no tiene fecha, asumimos que es antiguo y ya estaba
+              const regDate = new Date(dateStr + 'T00:00:00');
+              return regDate <= finDeMes;
+            }).length;
+
+            dataGrafico.push({
+              name: label,
+              total: totalActivosEnMes
+            });
           }
-          jugadores.forEach(p => {
-            const dateStr = p.fecha_registro || p.created_at;
-            if (!dateStr) return;
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return;
-            const key = `${mesesNombre[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
-            if (crecimientoMap.hasOwnProperty(key)) crecimientoMap[key]++;
-          });
-          const dataGrafico = Object.entries(crecimientoMap).map(([name, total]) => ({ name, total }));
 
           const alertasBajaAsistencia = jugadores.filter(j => {
             const misAsis = asistData?.filter(a => a.jugador_id === j.id) || [];
