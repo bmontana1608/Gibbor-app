@@ -161,30 +161,155 @@ export default function FichaDelJugador() {
       <div className="min-h-screen bg-slate-50 p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Edit className="w-6 h-6" /> Editando a {jugador.nombres}</h1>
-            <button onClick={() => setEdicion(false)} className="text-slate-500 font-bold">✕ Cancelar</button>
+            <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2"><Edit className="w-6 h-6" /> Editando Perfil de {jugador.nombres}</h1>
+            <button onClick={() => setEdicion(false)} className="text-slate-500 font-bold hover:text-slate-700 transition-colors">✕ Cancelar</button>
           </div>
-          <form onSubmit={handleGuardarEdicion} className="bg-white rounded-2xl p-6 md:p-8 space-y-8 border shadow-sm">
-            <div>
-              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b pb-2">Datos Básicos</h3>
+          <form onSubmit={handleGuardarEdicion} className="space-y-6">
+            {/* CARD 1: ESTADO Y ROL EN ACADEMIA */}
+            <div className="bg-white rounded-3xl p-6 border shadow-sm space-y-4">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Estado y Academia</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Estado de Miembro</label>
+                  <select name="estado_miembro" value={formData.estado_miembro || 'Activo'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white font-bold">
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Rol</label>
+                  <select name="rol" value={formData.rol || 'Futbolista'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
+                    <option value="Futbolista">Futbolista</option>
+                    <option value="Entrenador">Entrenador</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Categoría</label>
+                  <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
+                    <option value="">Sin Asignar</option>
+                    {categorias.map(c => (
+                      <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Plan de Pago</label>
+                  <select name="tipo_plan" value={formData.tipo_plan || 'Regular'} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
+                    {planes.map(p => (
+                      <option key={p.nombre} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Puntos GP</label>
+                  <input type="number" name="puntos" value={formData.puntos ?? 0} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 2: DATOS BÁSICOS Y PERSONALES */}
+            <div className="bg-white rounded-3xl p-6 border shadow-sm space-y-4">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest border-b pb-2">Datos Personales</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Nombres</label><input type="text" name="nombres" value={formData.nombres || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" required/></div>
-                <div><label className="block text-xs font-bold text-slate-500 mb-1">Apellidos</label><input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" required/></div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Nombres *</label>
+                  <input type="text" name="nombres" value={formData.nombres || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" required/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Apellidos *</label>
+                  <input type="text" name="apellidos" value={formData.apellidos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" required/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Documento de Identidad</label>
+                  <input type="text" name="documento_identidad" value={formData.documento_identidad || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Fecha de Nacimiento</label>
+                  <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Teléfono</label>
+                  <input type="text" name="telefono" value={formData.telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Email de Contacto</label>
+                  <input type="email" name="email_contacto" value={formData.email_contacto || formData.email || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm"/>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Dirección de Residencia</label>
+                  <input type="text" name="direccion" value={formData.direccion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm"/>
+                </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-500 mb-1">Foto de Perfil</label>
                   <div className="flex gap-4 items-center">
-                    <label className="cursor-pointer bg-slate-100 border p-2 rounded-lg text-xs font-bold flex items-center gap-2">
-                      <Upload className="w-4 h-4" /> {subiendoFoto ? "Subiendo..." : "Subir Foto"}
-                      <input type="file" accept="image/*" onChange={handleSubirFoto} className="hidden" disabled={subiendoFoto} />
+                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 border p-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all">
+                       <Upload className="w-4 h-4" /> {subiendoFoto ? "Subiendo..." : "Subir Foto"}
+                       <input type="file" accept="image/*" onChange={handleSubirFoto} className="hidden" disabled={subiendoFoto} />
                     </label>
-                    <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="URL de la foto..." className="flex-1 px-3 py-2 border rounded-lg text-sm"/>
+                    <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="URL de la foto..." className="flex-1 px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2"/>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <button type="button" onClick={() => setEdicion(false)} className="px-6 py-2 border rounded-xl text-sm font-bold">Cancelar</button>
-              <button type="submit" disabled={guardando} className="bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-bold shadow-sm">{guardando ? 'Guardando...' : 'Guardar'}</button>
+
+            {/* CARD 3: FICHA MÉDICA Y DEPORTIVA */}
+            <div className="bg-white rounded-3xl p-6 border shadow-sm space-y-4">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 border-b pb-2">Ficha Médica y Deportiva</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Tipo de Sangre</label>
+                  <input type="text" name="tipo_sangre" value={formData.tipo_sangre || ''} onChange={handleChange} placeholder="Ej: O+" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">EPS</label>
+                  <input type="text" name="eps" value={formData.eps || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Talla Uniforme</label>
+                  <input type="text" name="talla_uniforme" value={formData.talla_uniforme || ''} onChange={handleChange} placeholder="Ej: M" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Posición de Juego</label>
+                  <input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} placeholder="Ej: Delantero" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Dorsal / Número</label>
+                  <input type="text" name="dorsal" value={formData.dorsal || ''} onChange={handleChange} placeholder="Ej: 10" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div className="md:col-span-3">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Observaciones Médicas / Alergias / Patologías</label>
+                  <textarea name="patologias" value={formData.patologias || ''} onChange={handleChange} rows={3} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" placeholder="Indica alergias, medicamentos o condiciones especiales..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 4: DATOS DE ACUDIENTE Y EMERGENCIA */}
+            <div className="bg-white rounded-3xl p-6 border shadow-sm space-y-4">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 border-b pb-2">Acudiente y Emergencia</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Nombre del Acudiente</label>
+                  <input type="text" name="acudiente_nombre" value={formData.acudiente_nombre || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Identificación del Acudiente</label>
+                  <input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Contacto de Emergencia</label>
+                  <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre || ''} onChange={handleChange} placeholder="Nombre completo" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Teléfono de Emergencia</label>
+                  <input type="text" name="emergencia_telefono" value={formData.emergencia_telefono || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* BOTONES DE ACCIÓN */}
+            <div className="flex justify-end gap-3 pt-4 bg-white rounded-2xl p-4 border shadow-sm">
+              <button type="button" onClick={() => setEdicion(false)} className="px-6 py-2.5 border rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors">Cancelar</button>
+              <button type="submit" disabled={guardando} className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-emerald-700 transition-all">{guardando ? 'Guardando...' : 'Guardar Perfil'}</button>
             </div>
           </form>
         </div>
