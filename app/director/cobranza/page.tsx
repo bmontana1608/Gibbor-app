@@ -403,13 +403,17 @@ export default function ModuloCobranza() {
     setRecargo(0);
     setMetodoPago('Efectivo');
     setNotas('');
+    // Inicializamos la fecha del pago a la fecha de inicio del período seleccionado
+    // para que el pago se registre dentro del mes correcto y afecte la mora de ese mes.
+    setFechaPago(fechaInicio);
     setIsModalPagoOpen(true);
   };
 
   const confirmarPago = async () => {
     if (!jugadorSeleccionado) return;
     
-    const tarifaBase = calcularTarifa(jugadorSeleccionado.tipo_plan);
+    // Usar la tarifa inteligente precalculada para el período seleccionado
+    const tarifaBase = jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan);
     const total = tarifaBase - descuento + recargo;
 
     const toastId = toast.loading(`Confirmando pago de ${jugadorSeleccionado.nombres}...`);
@@ -560,10 +564,11 @@ export default function ModuloCobranza() {
   const [loadingBot, setLoadingBot] = useState<string | null>(null);
 
   const handleNotificar = async (alumno: any) => {
-    // Seguridad: Si no trae la tarifa calculada, la calculamos aquí
-    if (!alumno.tarifa) {
-      alumno.tarifa = calcularTarifa(alumno.tipo_plan);
-    }
+    // Calcular tarifa correcta según período y tipo de plan
+    const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
+    
+    // Si la tarifa del alumno no está pre-calculada, usar la inteligente
+    const tarifaFinal = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
     
     setLoadingBot(alumno.id);
     
@@ -577,31 +582,35 @@ export default function ModuloCobranza() {
         cleanedNumber = `57${cleanedNumber}`;
       }
 
-      // --- DATOS DINÁMICOS ---
+      // --- DATOS DINÁMICOS (Basados en el período seleccionado en el calendario) ---
       const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      const fechaActual = new Date();
-      const mesNombre = meses[fechaActual.getMonth()];
-      const anioActual = fechaActual.getFullYear();
+      const fechaPeriodo = new Date(fechaInicio + 'T12:00:00'); // Evitar desfases
+      const mesNombre = meses[fechaPeriodo.getMonth()];
+      const anioActual = fechaPeriodo.getFullYear();
       
       const direccionClub = config.direccion || 'Calle Ficticia #12-34';
       const ciudadClub = config.ciudad || 'Cúcuta, Norte de Santander';
       const nuevoConsecutivo = (config.ultimo_consecutivo_recibo || 0) + 1;
 
-      // --- LÓGICA DE ESTADO INTELIGENTE (1-5 día) ---
-      const diaActual = fechaActual.getDate();
-      const esVencido = diaActual > 5;
+      // --- LÓGICA DE ESTADO INTELIGENTE (1-5 día del mes actual, o VENCIDO si es mes pasado) ---
+      const hoy = new Date();
+      const esMesPasado = hoy.getFullYear() > anioActual || 
+                          (hoy.getFullYear() === anioActual && hoy.getMonth() > fechaPeriodo.getMonth());
+      const esVencido = esMesPasado || hoy.getDate() > 5;
       const statusLabel = esVencido ? 'VENCIDO' : 'PENDIENTE PAGO';
       const statusColor = esVencido ? [220, 38, 38] : [255, 120, 0]; // Rojo : Naranja
 
       // --- GENERACIÓN DE PDF PROFESIONAL ---
-      // --- GENERACIÓN DE PDF PROFESIONAL USANDO LA LIBRERÍA CENTRAL ---
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres,
         apellidos: alumno.apellidos,
         documento: alumno.documento,
         grupo: alumno.grupos || 'GENERAL',
-        tarifa: alumno.tarifa,
+        tarifa: tarifaFinal,
+        precioBase: precioBaseCalculado,
+        descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
+        fecha: fechaInicio,
         empresa: {
           nombre_club: clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
@@ -615,8 +624,11 @@ export default function ModuloCobranza() {
       });
 
       // Mensaje de WhatsApp
-      const vencimiento = `5/${new Date().getMonth() + 1}/${anioActual}`;
-      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad por $ ${alumno.tarifa.toLocaleString()} (vence ${vencimiento}). Recuerda que si pagas antes del 5 tienes descuento de $10.000. Gracias por confiar en el club ✨`;
+      const vencimiento = `5/${fechaPeriodo.getMonth() + 1}/${anioActual}`;
+      const textoDescuento = descuentoCalculado > 0 
+        ? ` Recuerda que si pagas antes del 5 tienes descuento de $${descuentoCalculado.toLocaleString('es-CO')}.`
+        : '';
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en el club ✨`;
 
       const result = await enviarMensajeWhatsApp(
         alumno.telefono,
@@ -1597,7 +1609,7 @@ export default function ModuloCobranza() {
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-2 mb-3 -[var(--brand-primary)]"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
-                <p className="text-sm font-bold text-slate-800">${calcularTarifa(jugadorSeleccionado.tipo_plan).toLocaleString('es-CO')}</p>
+                <p className="text-sm font-bold text-slate-800">${(jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)).toLocaleString('es-CO')}</p>
               </div>
             </div>
             <div className="flex-1 p-6 md:p-8 overflow-y-auto">
@@ -1628,7 +1640,7 @@ export default function ModuloCobranza() {
               </div>
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-8 flex justify-between items-center">
                  <p className="text-emerald-800 font-black text-lg">Total a Cobrar:</p>
-                 <p className="text-3xl font-black text-emerald-600">${(calcularTarifa(jugadorSeleccionado.tipo_plan) - descuento + recargo).toLocaleString('es-CO')}</p>
+                 <p className="text-3xl font-black text-emerald-600">${((jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) - descuento + recargo).toLocaleString('es-CO')}</p>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={() => setIsModalPagoOpen(false)} className="px-8 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">Cancelar</button>
