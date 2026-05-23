@@ -77,9 +77,25 @@ export async function GET(request: Request) {
       }
       
       const createData = await createResponse.json();
+      let qr = null;
+      if (createData.qrcode?.base64) {
+        qr = createData.qrcode.base64;
+      } else if (createData.hash?.qrcode) {
+        qr = createData.hash.qrcode;
+      } else if (createData.qrcode) {
+        qr = typeof createData.qrcode === 'string' ? createData.qrcode : createData.qrcode.base64 || createData.qrcode.code;
+      }
+
+      if (!qr) {
+        return NextResponse.json({
+          status: 'disconnected',
+          message: 'Instancia creada pero no se recibió un código QR. Por favor reintenta.'
+        });
+      }
+
       return NextResponse.json({ 
         status: 'qr', 
-        qr: createData.qrcode?.base64 || createData.hash?.qrcode, 
+        qr: qr, 
         message: 'Instancia creada, escanea el QR' 
       });
     }
@@ -100,8 +116,10 @@ export async function GET(request: Request) {
           const listData = await listRes.json();
           const thisInst = listData.find((i: any) => i.name === slug || i.instanceName === slug);
           if (thisInst) {
-            if (thisInst.disconnectionReasonCode || thisInst.disconnectionAt || thisInst.connectionStatus !== 'open') {
-              console.log(`[EVO-CHECK] ⚠️ Instancia '${slug}' detectada como desvinculada físicamente (${thisInst.disconnectionReasonCode}). Forzando reconexión.`);
+            // Se elimina el chequeo de disconnectionReasonCode y disconnectionAt ya que son persistentes e históricos
+            // y causaban falsos positivos de desconexión. Solo confiamos en connectionStatus.
+            if (thisInst.connectionStatus !== 'open') {
+              console.log(`[EVO-CHECK] ⚠️ Instancia '${slug}' detectada como desvinculada físicamente (status: ${thisInst.connectionStatus}). Forzando reconexión.`);
               isActuallyConnected = false;
             }
           }
@@ -124,9 +142,40 @@ export async function GET(request: Request) {
     
     if (qrResponse.ok) {
       const qrData = await qrResponse.json();
+      
+      // Extracción robusta de QR en diferentes formatos de Evolution API v2
+      let qr = null;
+      if (qrData.base64) {
+        qr = qrData.base64;
+      } else if (typeof qrData.qrcode === 'string') {
+        qr = qrData.qrcode;
+      } else if (qrData.qrcode && typeof qrData.qrcode === 'object') {
+        qr = qrData.qrcode.base64 || qrData.qrcode.code;
+      } else if (qrData.code) {
+        qr = qrData.code;
+      }
+
+      if (!qr) {
+        const state = qrData.instance?.state || qrData.state || '';
+        if (state === 'open') {
+          console.log(`[EVO-CHECK] Instancia '${slug}' conectada automáticamente en connect.`);
+          return NextResponse.json({ 
+            status: 'connected', 
+            stateData: qrData,
+            message: 'Instancia conectada automáticamente' 
+          });
+        }
+        
+        console.warn(`[EVO-CHECK] La llamada connect para '${slug}' no retornó QR válido ni estado open:`, qrData);
+        return NextResponse.json({ 
+          status: 'disconnected', 
+          message: 'No se pudo generar el código QR. Intenta desconectar y volver a conectar.' 
+        });
+      }
+
       return NextResponse.json({ 
         status: 'qr', 
-        qr: qrData.base64 || qrData.qrcode, 
+        qr: qr, 
         message: 'Escanea el código QR para conectar' 
       });
     } else {

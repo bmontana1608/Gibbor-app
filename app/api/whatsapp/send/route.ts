@@ -35,8 +35,10 @@ export async function POST(request: Request) {
             const listData = await listRes.ok ? await listRes.json() : [];
             const thisInst = Array.isArray(listData) ? listData.find((i: any) => i.name === instance || i.instanceName === instance) : null;
             if (thisInst) {
-              if (thisInst.disconnectionReasonCode || thisInst.disconnectionAt || thisInst.connectionStatus !== 'open') {
-                console.log(`[EVO-SEND-CHECK] ⚠️ Instancia '${instance}' detectada como desvinculada físicamente (${thisInst.disconnectionReasonCode}).`);
+              // Se elimina el chequeo de disconnectionReasonCode y disconnectionAt ya que son persistentes e históricos
+              // y causaban falsos positivos de desconexión. Solo confiamos en connectionStatus.
+              if (thisInst.connectionStatus !== 'open') {
+                console.log(`[EVO-SEND-CHECK] ⚠️ Instancia '${instance}' detectada como desvinculada físicamente (status: ${thisInst.connectionStatus}).`);
                 isActuallyConnected = false;
               }
             }
@@ -76,7 +78,9 @@ export async function POST(request: Request) {
             const listData = await listRes.json();
             const gibborInst = listData.find((i: any) => i.name === 'gibbor' || i.instanceName === 'gibbor');
             if (gibborInst) {
-              if (gibborInst.disconnectionReasonCode || gibborInst.disconnectionAt || gibborInst.connectionStatus !== 'open') {
+              // Se elimina el chequeo de disconnectionReasonCode y disconnectionAt ya que son persistentes e históricos
+              // y causaban falsos positivos de desconexión. Solo confiamos en connectionStatus.
+              if (gibborInst.connectionStatus !== 'open') {
                 gibborConnected = false;
               }
             }
