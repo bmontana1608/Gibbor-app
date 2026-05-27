@@ -144,6 +144,17 @@ export default function DashboardFutbolista() {
   const [selectedHijoId, setSelectedHijoId] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
 
+  const normalizeDate = (d: string | null | undefined) => {
+    if (!d || d === 'null' || d === 'undefined') return '';
+    if (d.includes('-')) return d.split('T')[0];
+    const parts = d.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return d;
+  };
+
   const [pagos, setPagos] = useState<any[]>([]);
   const [radarData, setRadarData] = useState<any[]>([
     { label: 'Ritmo', value: 50 },
@@ -281,7 +292,12 @@ export default function DashboardFutbolista() {
       doc.setTextColor(30, 41, 59);
       doc.setFont("helvetica", "bold");
       doc.text(`${perfil.nombres} ${perfil.apellidos}`.toUpperCase(), 40, 60);
-      doc.text(new Date(pago.fecha).toLocaleDateString(), 40, 70);
+      
+      const normalized = normalizeDate(pago.fecha);
+      const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
+      const dateStr = dateObj && !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 's/f';
+      doc.text(dateStr, 40, 70);
+      
       doc.text(pago.metodo_pago || 'Electrónico', 40, 80);
       doc.text(pago.concepto || 'Mensualidad', 125, 70);
 
@@ -509,7 +525,19 @@ export default function DashboardFutbolista() {
                    <div key={pago.id} className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
                      <div className="flex items-center gap-4">
                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm" style={{ color: brandColor }}><DollarSign className="w-6 h-6" /></div>
-                       <div><p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad'}</p><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(pago.fecha).toLocaleDateString()}</p></div>
+                       <div>
+                          <p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad'}</p>
+                          {(() => {
+                            const normalized = normalizeDate(pago.fecha);
+                            const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
+                            const dateStr = dateObj && !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 's/f';
+                            return (
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                {dateStr}
+                              </p>
+                            );
+                          })()}
+                        </div>
                      </div>
                      <div className="text-right">
                         <p className="text-lg font-black text-slate-800">$ {(pago.monto || pago.total || 0).toLocaleString()}</p>

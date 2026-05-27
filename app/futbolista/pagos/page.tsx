@@ -40,6 +40,17 @@ export default function PagosFutbolista() {
     fetchPagos();
   }, []);
 
+  const normalizeDate = (d: string | null | undefined) => {
+    if (!d || d === 'null' || d === 'undefined') return '';
+    if (d.includes('-')) return d.split('T')[0];
+    const parts = d.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return d;
+  };
+
   if (cargando) return <div className="animate-pulse space-y-6">
     <div className="h-32 bg-slate-200 rounded-3xl w-full"></div>
     <div className="h-64 bg-slate-200 rounded-3xl w-full"></div>
@@ -117,9 +128,20 @@ export default function PagosFutbolista() {
                          <Calendar className="w-6 h-6" />
                       </div>
                       <div>
-                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{pago.fecha ? new Date(pago.fecha).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) : 'Pago s/f'}</p>
+                         {(() => {
+                           const normalized = normalizeDate(pago.fecha);
+                           const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
+                           const dateStr = dateObj && !isNaN(dateObj.getTime())
+                             ? dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
+                             : 'Pago s/f';
+                           return (
+                             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                               {dateStr}
+                             </p>
+                           );
+                         })()}
                          <h4 className="font-black text-slate-800 text-lg leading-none mt-1">
-                            ${(pago.monto_recibido || pago.monto || 0).toLocaleString('es-ES')} <span className="text-[10px] font-bold text-slate-400">COP</span>
+                            ${(pago.total || pago.monto_recibido || pago.monto || 0).toLocaleString('es-ES')} <span className="text-[10px] font-bold text-slate-400">COP</span>
                          </h4>
                          <p className="text-xs text-slate-500 mt-1 font-medium italic">Vía {pago.metodo_pago || 'Efectivo'}</p>
                       </div>

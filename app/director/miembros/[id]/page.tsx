@@ -146,6 +146,17 @@ export default function FichaDelJugador() {
     }
   };
 
+  const normalizeDate = (d: string | null | undefined) => {
+    if (!d || d === 'null' || d === 'undefined') return '';
+    if (d.includes('-')) return d.split('T')[0];
+    const parts = d.split('/');
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+    return d;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -360,6 +371,48 @@ export default function FichaDelJugador() {
              <div className="flex justify-between"><span className="text-slate-500 text-sm">Puntos</span><span className="text-slate-800 font-bold">{jugador.puntos || 0} GP</span></div>
           </div>
         </div>
+      </div>
+
+      {/* SECCIÓN DE HISTORIAL DE PAGOS */}
+      <div className="mt-8 bg-white border rounded-2xl p-6 shadow-sm">
+        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
+          <Wallet className="w-4 h-4 text-emerald-500" /> Historial de Pagos Recientes
+        </h3>
+        {pagos.length === 0 ? (
+          <p className="text-xs font-bold text-slate-400 text-center py-6">No hay pagos registrados para este jugador.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b text-slate-400 font-bold uppercase tracking-wider">
+                  <th className="pb-3">Consecutivo</th>
+                  <th className="pb-3">Fecha</th>
+                  <th className="pb-3">Concepto</th>
+                  <th className="pb-3">Método</th>
+                  <th className="pb-3 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {pagos.map((pago: any) => {
+                  const normalizedFecha = normalizeDate(pago.fecha);
+                  const dateObj = normalizedFecha ? new Date(normalizedFecha + 'T00:00:00') : null;
+                  const dateStr = dateObj && !isNaN(dateObj.getTime())
+                    ? dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : 's/f';
+                  return (
+                    <tr key={pago.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3.5 font-bold text-slate-700">#{String(pago.consecutivo || '').padStart(4, '0')}</td>
+                      <td className="py-3.5 text-slate-500">{dateStr}</td>
+                      <td className="py-3.5 font-bold text-slate-800">{pago.concepto || 'Mensualidad'}</td>
+                      <td className="py-3.5 text-slate-500">{pago.metodo_pago}</td>
+                      <td className="py-3.5 font-black text-emerald-600 text-right">${(pago.total || 0).toLocaleString('es-CO')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
