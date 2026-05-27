@@ -28,7 +28,8 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   // Cerrar menú al navegar
   useEffect(() => {
-    setIsSidebarOpen(false);
+    // Solo cerrar si el sidebar está abierto para no forzar re-renders innecesarios
+    if (isSidebarOpen) setIsSidebarOpen(false);
   }, [pathname]);
 
   // Sincronizar basePath solo cuando cambia el club
@@ -101,15 +102,17 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       <PushPermissionBanner />
       
-      {/* Overlay para móvil */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden transition-opacity" 
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+      {/* Overlay para móvil - renderiza siempre pero con pointer-events controlados */}
+      <div 
+        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden transition-opacity duration-300 ${
+          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
       
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+        isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'
+      }`}>
 
         <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3">
@@ -218,8 +221,10 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               </div>
             </div>
             <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="md:hidden p-2 text-slate-600 dark:text-slate-400 hover:text-brand"
+              onClick={() => setIsSidebarOpen(prev => !prev)}
+              aria-label="Abrir menú"
+              style={{ touchAction: 'manipulation' }}
+              className="md:hidden p-2 text-slate-600 dark:text-slate-400 hover:text-brand active:scale-95 transition-transform"
             >
               <Menu className="w-6 h-6" />
             </button>

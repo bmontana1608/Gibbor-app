@@ -62,20 +62,28 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
           <img src={brandLogo} alt="Logo" className="w-8 h-8 object-contain rounded-full" />
           <span className="text-white font-black tracking-tighter uppercase italic text-sm">{brandName} Staff</span>
         </div>
-        <button onClick={() => setIsSidebarOpen(true)} className="text-white p-1">
+        <button 
+          onClick={() => setIsSidebarOpen(prev => !prev)}
+          aria-label="Abrir menú"
+          style={{ touchAction: 'manipulation' }}
+          className="text-white p-2 active:scale-95 transition-transform"
+        >
           <Menu className="w-7 h-7" />
         </button>
       </div>
 
-      {/* OVERLAY MÓVIL */}
-      {isSidebarOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm" onClick={() => setIsSidebarOpen(false)} />
-      )}
+      {/* OVERLAY MÓVIL - siempre renderizado, controlado con opacity y pointer-events */}
+      <div 
+        className={`fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm transition-opacity duration-300 ${
+          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsSidebarOpen(false)} 
+      />
 
       {/* ASIDE / SIDEBAR */}
       <aside 
         className={`fixed inset-y-0 left-0 bg-white border-r border-slate-200 flex flex-col z-50 transform transition-all duration-300 md:sticky md:top-0 md:h-screen md:translate-x-0 w-64
-          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
         `}
       >
         <div className="p-6">

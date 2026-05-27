@@ -64,15 +64,28 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
           <img src={brandLogo} alt="Logo" className="w-8 h-8 object-contain" />
           <span className="text-white font-black tracking-tighter uppercase italic text-sm">{brandName}</span>
         </div>
-        <button onClick={() => setIsSidebarOpen(true)} className="text-white p-2">
+        <button 
+          onClick={() => setIsSidebarOpen(prev => !prev)}
+          aria-label="Abrir menú"
+          style={{ touchAction: 'manipulation' }}
+          className="text-white p-2 active:scale-95 transition-transform"
+        >
           <Menu className="w-6 h-6" />
         </button>
       </div>
 
+      {/* OVERLAY MÓVIL - siempre renderizado, controlado con opacity/pointer-events */}
+      <div
+        className={`fixed inset-0 bg-slate-900/70 z-[90] md:hidden transition-opacity duration-300 ${
+          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
       {/* ASIDE / SIDEBAR */}
       <aside className={`
         fixed inset-y-0 left-0 w-72 bg-slate-900 z-[100] transform transition-transform duration-300 ease-in-out
-        md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
       `}>
         <div className="p-8 flex flex-col h-full">
           <div className="flex items-center justify-between mb-12">
