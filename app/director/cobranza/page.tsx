@@ -430,6 +430,7 @@ export default function ModuloCobranza() {
         jugador_id: jugadorSeleccionado.id,
         nombres: jugadorSeleccionado.nombres,
         apellidos: jugadorSeleccionado.apellidos,
+        documento_identidad: jugadorSeleccionado.documento_identidad || null,
         grupo: jugadorSeleccionado.grupos || 'Sin grupo',
         monto_base: tarifaBase,
         descuento,
@@ -452,6 +453,7 @@ export default function ModuloCobranza() {
       setReciboGenerado({
         nombres: jugadorSeleccionado.nombres,
         apellidos: jugadorSeleccionado.apellidos,
+        documento: jugadorSeleccionado.documento_identidad || null,
         telefono: jugadorSeleccionado.telefono,
         grupo: jugadorSeleccionado.grupos || 'Sin grupo',
         fecha: fechaPago,
@@ -604,7 +606,7 @@ export default function ModuloCobranza() {
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres,
         apellidos: alumno.apellidos,
-        documento: alumno.documento,
+        documento: alumno.documento_identidad,
         grupo: alumno.grupos || 'GENERAL',
         tarifa: tarifaFinal,
         precioBase: precioBaseCalculado,
@@ -682,7 +684,7 @@ export default function ModuloCobranza() {
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres,
         apellidos: alumno.apellidos,
-        documento: alumno.documento,
+        documento: alumno.documento_identidad,
         grupo: alumno.grupos || 'GENERAL',
         tarifa: tarifaFinal,
         precioBase: precioBaseCalculado,
@@ -971,6 +973,7 @@ export default function ModuloCobranza() {
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: reciboGenerado.nombres,
         apellidos: reciboGenerado.apellidos,
+        documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
         grupo: reciboGenerado.grupo,
         tarifa: reciboGenerado.total,
         consecutivo: reciboGenerado.consecutivo,
@@ -1049,6 +1052,7 @@ export default function ModuloCobranza() {
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: reciboGenerado.nombres,
         apellidos: reciboGenerado.apellidos,
+        documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
         grupo: reciboGenerado.grupo,
         tarifa: reciboGenerado.total,
         consecutivo: reciboGenerado.consecutivo,
@@ -1567,6 +1571,7 @@ export default function ModuloCobranza() {
                 const pdfBase64 = await generarReciboPDFBase64({
                   nombres: reciboGenerado.nombres,
                   apellidos: reciboGenerado.apellidos,
+                  documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
                   grupo: reciboGenerado.grupo,
                   tarifa: reciboGenerado.total,
                   consecutivo: reciboGenerado.consecutivo,
