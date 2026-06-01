@@ -5,14 +5,14 @@ import { supabase } from '@/lib/supabase';
 import { 
   BarChart3, Settings, UserCheck, TrendingUp, 
   Plus, Trash2, Save, ChevronRight, Search,
-  ArrowLeft, Radar as RadarIcon, Info, Loader, Users
+  ArrowLeft, Radar as RadarIcon, Info, Loader, Users, Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 // --- COMPONENTE RADAR SVG PERSONALIZADO ---
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
-  if (data.length < 3) return <div className="text-[10px] text-slate-400">Se requieren 3+ habilidades</div>;
+  if (data.length < 3) return <div className="text-[10px] text-slate-400 text-center flex-1 flex items-center justify-center min-h-[200px]">Se requieren 3+ habilidades para generar el radar</div>;
   
   const center = size / 2;
   const radius = (size / 2) * 0.8;
@@ -94,6 +94,7 @@ export default function GestionSkillsEntrenador() {
 
   // Estados de Configuración
   const [nuevaHabilidad, setNuevaHabilidad] = useState('');
+  const [nuevoTipoHabilidad, setNuevoTipoHabilidad] = useState('General'); // General, Portero, Campo
   
   // Estados de Evaluación
   const [ratings, setRatings] = useState<Record<string, number>>({});
@@ -112,7 +113,26 @@ export default function GestionSkillsEntrenador() {
 
   const cargarConfig = async () => {
     const { data } = await supabase.from('config_stats').select('*').order('nombre', { ascending: true });
-    setHabilidades(data || []);
+    
+    if (data) {
+      const procesadas = data.map(h => {
+        let tipo = h.tipo_jugador || 'General';
+        let nombre = h.nombre;
+        // Parsear el prefijo fallback si existe
+        if (nombre.startsWith('[PORTERO] ')) { tipo = 'Portero'; nombre = nombre.replace('[PORTERO] ', ''); }
+        else if (nombre.startsWith('[CAMPO] ')) { tipo = 'Campo'; nombre = nombre.replace('[CAMPO] ', ''); }
+        
+        return {
+          id: h.id,
+          nombreLimpio: nombre,
+          tipo_jugador_real: tipo,
+          nombreOriginal: h.nombre
+        };
+      });
+      setHabilidades(procesadas);
+    } else {
+      setHabilidades([]);
+    }
   };
 
   const cargarCategorias = async () => {
@@ -137,8 +157,9 @@ export default function GestionSkillsEntrenador() {
     const { data: { session } } = await supabase.auth.getSession();
     const { data: usuario } = await supabase.from('perfiles').select('club_id').eq('id', session?.user?.id || '').single();
 
+    // Añadido 'posicion' al select
     const { data: jugs } = await supabase.from('perfiles')
-        .select('id, nombres, apellidos, club_id')
+        .select('id, nombres, apellidos, club_id, posicion')
         .eq('rol', 'Futbolista')
         .eq('club_id', usuario?.club_id)  // FILTRO DE SEGURIDAD
         .ilike('grupos', `%${cat.nombre}%`);
@@ -203,22 +224,50 @@ export default function GestionSkillsEntrenador() {
         setComentarios(evals[0].comentarios || '');
     } else {
         const init: Record<string, number> = {};
-        habilidades.forEach(h => init[h.nombre] = 50);
+        // Inicializar todas las habilidades en 50, aunque no todas se muestren
+        habilidades.forEach(h => init[h.nombreOriginal] = 50);
         setRatings(init);
         setComentarios('');
     }
     setSidebarAbierta(false);
   };
 
+  const cambiarPosicionAlumno = async (nuevaPos: string) => {
+    // Update local state
+    setAlumnoSeleccionado({ ...alumnoSeleccionado, posicion: nuevaPos });
+    setAlumnos(alumnos.map(a => a.id === alumnoSeleccionado.id ? { ...a, posicion: nuevaPos } : a));
+
+    // Update remote DB
+    const toastId = toast.loading("Actualizando posición...");
+    const { error } = await supabase.from('perfiles').update({ posicion: nuevaPos }).eq('id', alumnoSeleccionado.id);
+    if (error) {
+        toast.error("Error al actualizar: " + error.message, { id: toastId });
+    } else {
+        toast.success("Posición actualizada", { id: toastId });
+    }
+  };
+
   const agregarHabilidad = async () => {
     if (!nuevaHabilidad) return;
-    const { error } = await supabase.from('config_stats').insert([{ nombre: nuevaHabilidad }]);
+    
+    let payload = { nombre: nuevaHabilidad, tipo_jugador: nuevoTipoHabilidad };
+    let { error } = await supabase.from('config_stats').insert([payload]);
+
+    // Fallback strategy si la base de datos no tiene la columna tipo_jugador
+    if (error && (error.message.includes('tipo_jugador') || error.message.includes('column'))) {
+        const prefix = nuevoTipoHabilidad === 'Portero' ? '[PORTERO] ' : nuevoTipoHabilidad === 'Campo' ? '[CAMPO] ' : '';
+        const fallbackPayload = { nombre: prefix + nuevaHabilidad };
+        const res = await supabase.from('config_stats').insert([fallbackPayload]);
+        error = res.error;
+    }
+
     if (!error) {
         setNuevaHabilidad('');
+        setNuevoTipoHabilidad('General');
         cargarConfig();
         toast.success("Habilidad añadida");
     } else {
-        toast.error("Error al añadir habilidad");
+        toast.error("Error al añadir habilidad: " + error.message);
     }
   };
 
@@ -232,11 +281,19 @@ export default function GestionSkillsEntrenador() {
     setGuardando(true);
     const { data: { user } } = await supabase.auth.getUser();
     
+    // Solo guardamos los stats relevantes para la posición actual
+    const habilidadesFiltradas = getHabilidadesFiltradas();
+    const statsA_Guardar: Record<string, number> = {};
+    
+    habilidadesFiltradas.forEach(h => {
+        statsA_Guardar[h.nombreOriginal] = ratings[h.nombreOriginal] || 50;
+    });
+
     const { error } = await supabase.from('evaluaciones_tecnicas').insert([{
         jugador_id: alumnoSeleccionado.id,
         club_id: alumnoSeleccionado.club_id,
         evaluador_id: user?.id,
-        stats: ratings,
+        stats: statsA_Guardar,
         comentarios,
         fecha: new Date().toISOString().split('T')[0]
     }]);
@@ -250,6 +307,16 @@ export default function GestionSkillsEntrenador() {
     setGuardando(false);
   };
 
+  const getHabilidadesFiltradas = () => {
+     const isPortero = alumnoSeleccionado?.posicion === 'Portero';
+     return habilidades.filter(h => {
+         if (h.tipo_jugador_real === 'General') return true;
+         if (isPortero && h.tipo_jugador_real === 'Portero') return true;
+         if (!isPortero && h.tipo_jugador_real === 'Campo') return true;
+         return false;
+     });
+  };
+
   return (
     <div className="h-screen bg-slate-900 text-white font-sans overflow-hidden flex flex-col">
       
@@ -257,11 +324,11 @@ export default function GestionSkillsEntrenador() {
       <div className="bg-slate-800 border-b border-white/5 p-4 lg:p-6 flex flex-col md:flex-row items-center justify-between shadow-xl z-20 gap-4">
          <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <div className="flex items-center gap-4">
-                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? '-[var(--brand-primary)]' : 'bg-slate-700'}`}>
-                    <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'text-[var(--brand-primary)]' : 'bg-slate-700'}`}>
+                    <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-current" />
                 </div>
                 <div>
-                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic -[rgba(var(--brand-primary-rgb),0.4)]">Soccer Stats Lab</h1>
+                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic text-[rgba(var(--brand-primary-rgb),0.4)]">Soccer Stats Lab</h1>
                     <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Evolution & Performance Tracking</p>
                 </div>
             </div>
@@ -275,8 +342,8 @@ export default function GestionSkillsEntrenador() {
          </div>
 
          <div className="flex w-full md:w-auto gap-1 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
-             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? '-[var(--brand-primary)] text-white shadow-lg -[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
-             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? '-[var(--brand-primary)] text-white shadow-lg -[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
+             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
+             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
          </div>
       </div>
 
@@ -318,10 +385,17 @@ export default function GestionSkillsEntrenador() {
                             <button 
                                 key={a.id} 
                                 onClick={() => seleccionarAlumno(a)}
-                                className={`w-full p-4 rounded-2xl flex items-center gap-3 transition-all ${alumnoSeleccionado?.id === a.id ? 'bg-brand text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${alumnoSeleccionado?.id === a.id ? 'bg-[var(--brand-primary)] text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                             >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white text-brand' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
-                                <span className="text-[10px] font-black uppercase tracking-tight truncate">{a.nombres} {a.apellidos}</span>
+                                <div className="flex items-center gap-3 truncate">
+                                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white text-[var(--brand-primary)]' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
+                                    <span className="text-[10px] font-black uppercase tracking-tight truncate">{a.nombres} {a.apellidos}</span>
+                                </div>
+                                {a.posicion && (
+                                    <span className={`text-[8px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider flex-shrink-0 ${alumnoSeleccionado?.id === a.id ? 'bg-white/20' : 'bg-slate-900/50 text-slate-500'}`}>
+                                        {a.posicion === 'Portero' ? 'POR' : a.posicion === 'Defensa' ? 'DEF' : a.posicion === 'Mediocampista' ? 'MED' : a.posicion === 'Delantero' ? 'DEL' : 'VAR'}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -337,24 +411,42 @@ export default function GestionSkillsEntrenador() {
                      <div className="text-center">
                         <Settings className="w-12 h-12 text-slate-700 mx-auto mb-4" />
                         <h2 className="text-2xl font-black italic tracking-tighter">CONFIGURADOR TÉCNICO</h2>
-                        <p className="text-slate-500 text-xs mt-1">Define qué habilidades quieres medir en tus entrenamientos.</p>
+                        <p className="text-slate-500 text-xs mt-1">Define las habilidades que evaluarás. Puedes crear stats exclusivos para porteros.</p>
                      </div>
 
-                     <div className="flex gap-2">
+                     <div className="flex flex-col md:flex-row gap-2">
                          <input 
                             type="text" 
-                            placeholder="Nombre de habilidad (ej: Visión)" 
+                            placeholder="Ej: Reflejos" 
                             value={nuevaHabilidad}
                             onChange={(e) => setNuevaHabilidad(e.target.value)}
-                            className="flex-1 bg-slate-900 border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:ring-2 focus:-[var(--brand-primary)]"
+                            className="flex-1 bg-slate-900 border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
                          />
-                         <button onClick={agregarHabilidad} className="-[var(--brand-primary)] p-4 rounded-2xl hover:-[var(--brand-primary)] transition-colors shadow-lg"><Plus className="w-6 h-6" /></button>
+                         <select
+                            value={nuevoTipoHabilidad}
+                            onChange={(e) => setNuevoTipoHabilidad(e.target.value)}
+                            className="bg-slate-900 border border-white/5 rounded-2xl px-4 text-xs font-bold text-slate-300 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                         >
+                            <option value="General">General (Todos)</option>
+                            <option value="Campo">Solo Jugadores de Campo</option>
+                            <option value="Portero">Solo Porteros</option>
+                         </select>
+                         <button onClick={agregarHabilidad} className="bg-[var(--brand-primary)] p-4 rounded-2xl hover:opacity-80 transition-colors shadow-lg flex justify-center"><Plus className="w-6 h-6" /></button>
                      </div>
 
                      <div className="grid grid-cols-1 gap-2">
                          {habilidades.map(h => (
                              <div key={h.id} className="bg-slate-900 p-4 rounded-2xl border border-white/5 flex items-center justify-between group">
-                                 <span className="font-bold text-sm tracking-tight text-slate-300">{h.nombre}</span>
+                                 <div className="flex items-center gap-3">
+                                    <span className="font-bold text-sm tracking-tight text-slate-300">{h.nombreLimpio}</span>
+                                    <span className={`text-[8px] px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${
+                                        h.tipo_jugador_real === 'Portero' ? 'bg-indigo-500/10 text-indigo-400' :
+                                        h.tipo_jugador_real === 'Campo' ? 'bg-emerald-500/10 text-emerald-400' :
+                                        'bg-slate-700 text-slate-400'
+                                    }`}>
+                                        {h.tipo_jugador_real}
+                                    </span>
+                                 </div>
                                  <button onClick={() => borrarHabilidad(h.id)} className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                              </div>
                          ))}
@@ -365,26 +457,50 @@ export default function GestionSkillsEntrenador() {
                     
                     {/* COLUMNA 1: SLIDERS DE EVALUACIÓN */}
                     <div className="space-y-6 lg:space-y-8">
-                        <div>
-                             <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter -[rgba(var(--brand-primary-rgb),0.4)]">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
-                             <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                            <div>
+                                 <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-[var(--brand-primary)]">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
+                                 <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
+                            </div>
+                            
+                            {/* EDICIÓN DE POSICIÓN */}
+                            <div className="w-full md:w-48 relative shrink-0">
+                                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                                <select 
+                                    value={alumnoSeleccionado.posicion || ''}
+                                    onChange={(e) => cambiarPosicionAlumno(e.target.value)}
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:border-[var(--brand-primary)] cursor-pointer appearance-none shadow-sm"
+                                >
+                                    <option value="">Asignar Posición...</option>
+                                    <option value="Portero">Portero</option>
+                                    <option value="Defensa">Defensa</option>
+                                    <option value="Lateral">Lateral</option>
+                                    <option value="Mediocampista">Mediocampista</option>
+                                    <option value="Extremo">Extremo</option>
+                                    <option value="Delantero">Delantero</option>
+                                </select>
+                                <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none rotate-90" />
+                            </div>
                         </div>
 
                         <div className="space-y-6">
-                            {habilidades.map(h => (
+                            {getHabilidadesFiltradas().length === 0 && (
+                                <p className="text-slate-500 text-xs italic py-4">No hay habilidades configuradas para esta posición. Ve a "Configuración" para añadir.</p>
+                            )}
+                            {getHabilidadesFiltradas().map(h => (
                                 <div key={h.id} className="space-y-2">
                                     <div className="flex justify-between items-end px-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h.nombre}</label>
-                                        <span className={`text-xl font-black italic ${ratings[h.nombre] > 80 ? '-[rgba(var(--brand-primary-rgb),0.4)]' : ratings[h.nombre] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombre] || 50}</span>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h.nombreLimpio}</label>
+                                        <span className={`text-xl font-black italic ${ratings[h.nombreOriginal] > 80 ? 'text-[var(--brand-primary)]' : ratings[h.nombreOriginal] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombreOriginal] || 50}</span>
                                     </div>
                                     <input 
                                         type="range" 
                                         min="0" 
                                         max="99" 
                                         step="1"
-                                        value={ratings[h.nombre] || 50}
-                                        onChange={(e) => setRatings({...ratings, [h.nombre]: parseInt(e.target.value)})}
-                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer -[var(--brand-primary)]"
+                                        value={ratings[h.nombreOriginal] || 50}
+                                        onChange={(e) => setRatings({...ratings, [h.nombreOriginal]: parseInt(e.target.value)})}
+                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[var(--brand-primary)]"
                                     />
                                 </div>
                             ))}
@@ -396,14 +512,14 @@ export default function GestionSkillsEntrenador() {
                                 value={comentarios}
                                 onChange={(e) => setComentarios(e.target.value)}
                                 placeholder="Escribe detalles sobre su evolución..."
-                                className="w-full bg-slate-900 border border-white/5 rounded-3xl p-5 text-xs font-medium text-slate-300 min-h-[100px] outline-none focus:ring-2 focus:-[var(--brand-primary)]"
+                                className="w-full bg-slate-900 border border-white/5 rounded-3xl p-5 text-xs font-medium text-slate-300 min-h-[100px] outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
                             />
                         </div>
 
                         <button 
                             onClick={guardarEvaluacion}
-                            disabled={guardando}
-                            className="w-full -[var(--brand-primary)] hover:-[var(--brand-primary)] p-5 rounded-3xl font-black italic tracking-tighter uppercase shadow-2xl shadow-[rgba(var(--brand-primary-rgb),0.15)]/40 transition-all active:scale-95 disabled:opacity-50"
+                            disabled={guardando || getHabilidadesFiltradas().length === 0}
+                            className="w-full bg-[var(--brand-primary)] hover:opacity-90 p-5 rounded-3xl font-black italic tracking-tighter uppercase shadow-2xl shadow-[var(--brand-primary)]/30 transition-all active:scale-95 disabled:opacity-50"
                         >
                             {guardando ? 'ACTUALIZANDO CLOUD...' : 'GUARDAR EVALUACIÓN FIFA STYLE ⚡'}
                         </button>
@@ -412,11 +528,11 @@ export default function GestionSkillsEntrenador() {
                     {/* COLUMNA 2: VISUALIZACIÓN RADAR Y CURVA */}
                     <div className="space-y-6 lg:space-y-8 pb-10 lg:pb-0">
                         <div className="bg-slate-900/50 rounded-[40px] lg:rounded-[60px] p-6 lg:p-8 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group shadow-2xl min-h-[350px] lg:min-h-[450px]">
-                             <div className="absolute inset-0 -[var(--brand-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             <div className="absolute inset-0 bg-[var(--brand-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-8">Skill Polígon</h3>
                              
                              <RadarChart 
-                                 data={habilidades.map(h => ({ label: h.nombre, value: ratings[h.nombre] || 50 }))}
+                                 data={getHabilidadesFiltradas().map(h => ({ label: h.nombreLimpio, value: ratings[h.nombreOriginal] || 50 }))}
                                  size={350}
                              />
 
@@ -424,13 +540,18 @@ export default function GestionSkillsEntrenador() {
                                  <div className="text-center">
                                       <p className="text-[8px] font-black text-slate-500 uppercase">Promedio</p>
                                       <p className="text-2xl font-black text-white italic">
-                                        {Math.round(Object.values(ratings).reduce((a,b) => a+b, 0) / (habilidades.length || 1))}
+                                        {(() => {
+                                            const fil = getHabilidadesFiltradas();
+                                            if (fil.length === 0) return 0;
+                                            const sum = fil.reduce((a, b) => a + (ratings[b.nombreOriginal] || 50), 0);
+                                            return Math.round(sum / fil.length);
+                                        })()}
                                       </p>
                                  </div>
                                  <div className="w-px h-8 bg-white/10"></div>
                                  <div className="text-center">
                                       <p className="text-[8px] font-black text-slate-500 uppercase">Potencial</p>
-                                      <p className="text-2xl font-black -[rgba(var(--brand-primary-rgb),0.4)] italic">99</p>
+                                      <p className="text-2xl font-black text-[var(--brand-primary)] italic">99</p>
                                  </div>
                              </div>
                         </div>
@@ -438,8 +559,8 @@ export default function GestionSkillsEntrenador() {
                         {/* CURVA DE APRENDIZAJE SIMPLIFICADA */}
                         <div className="bg-slate-900 p-8 rounded-[40px] border border-white/5">
                              <div className="flex justify-between items-center mb-6">
-                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><TrendingUp className="w-4 h-4 -[var(--brand-primary)]" /> Curva de Aprendizaje</h3>
-                                 <span className="-[var(--brand-primary)]/10 -[var(--brand-primary)] text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
+                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><TrendingUp className="w-4 h-4 text-[var(--brand-primary)]" /> Curva de Aprendizaje</h3>
+                                 <span className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
                              </div>
                              
                              <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
@@ -450,15 +571,15 @@ export default function GestionSkillsEntrenador() {
                                              <p className="text-[8px] text-slate-500 uppercase font-bold italic">{ev.comentarios || 'Sin notas'}</p>
                                          </div>
                                          <div className="flex items-center gap-2">
-                                             <div className="w-8 h-8 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center font-black -[rgba(var(--brand-primary-rgb),0.4)] italic text-xs">
+                                             <div className="w-8 h-8 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center font-black text-[var(--brand-primary)] italic text-xs">
                                                 {(() => {
-  const data = ev as any;
-  if (!data || !data.stats) return 0;
-  const values = Object.values(data.stats) as number[];
-  if (values.length === 0) return 0;
-  const total = values.reduce((a, b) => a + b, 0);
-  return Math.round(total / values.length);
-})()}
+                                                    const data = ev as any;
+                                                    if (!data || !data.stats) return 0;
+                                                    const values = Object.values(data.stats) as number[];
+                                                    if (values.length === 0) return 0;
+                                                    const total = values.reduce((a, b) => a + b, 0);
+                                                    return Math.round(total / values.length);
+                                                })()}
                                              </div>
                                          </div>
                                      </div>
@@ -471,18 +592,18 @@ export default function GestionSkillsEntrenador() {
             ) : catSeleccionada ? (
                 <div className="flex flex-col items-center justify-center min-h-full p-8 text-center space-y-8 animate-in fade-in duration-700">
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black italic tracking-tighter uppercase -[var(--brand-primary)]">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
+                        <h2 className="text-3xl font-black italic tracking-tighter uppercase text-[var(--brand-primary)]">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
                         <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Análisis Estadístico de la Categoría</p>
                     </div>
 
                     <div className="bg-slate-900 shadow-2xl rounded-[60px] p-12 border border-white/5 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent -[var(--brand-primary)] to-transparent opacity-50"></div>
-                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-10">Radar de Rendimiento Colectivo</h3>
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--brand-primary)] to-transparent opacity-50"></div>
+                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-10">Radar de Rendimiento Colectivo (Solo Generales)</h3>
                         
                         {promedioCategoria ? (
-                            <div className="space-y-8 w-full max-w-md">
+                            <div className="space-y-8 w-full max-w-md mx-auto">
                                 <RadarChart 
-                                    data={habilidades.map(h => ({ label: h.nombre, value: promedioCategoria[h.nombre] || 0 }))}
+                                    data={habilidades.filter(h => h.tipo_jugador_real === 'General').map(h => ({ label: h.nombreLimpio, value: promedioCategoria[h.nombreOriginal] || 0 }))}
                                     size={400}
                                 />
                                 <div className="grid grid-cols-3 gap-8">
@@ -492,12 +613,12 @@ export default function GestionSkillsEntrenador() {
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Evaluados</p>
-                                        <p className="text-2xl font-black -[var(--brand-primary)] italic">{alumnos.length}</p>
+                                        <p className="text-2xl font-black text-[var(--brand-primary)] italic">{alumnos.length}</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Debilidad</p>
                                         <p className="text-2xl font-black text-rose-500 italic">
-                                            {Object.entries(promedioCategoria).sort((a:any, b:any) => a[1] - b[1])[0]?.[0].substring(0,3).toUpperCase()}
+                                            {Object.entries(promedioCategoria).sort((a:any, b:any) => a[1] - b[1])[0]?.[0].replace(/\[PORTERO\] |\[CAMPO\] /, '').substring(0,3).toUpperCase() || 'N/A'}
                                         </p>
                                     </div>
                                 </div>
