@@ -403,9 +403,9 @@ export default function ModuloCobranza() {
     setRecargo(0);
     setMetodoPago('Efectivo');
     setNotas('');
-    // Inicializamos la fecha del pago a la fecha de inicio del período seleccionado
-    // para que el pago se registre dentro del mes correcto y afecte la mora de ese mes.
-    setFechaPago(fechaInicio);
+    // La fecha del recibo siempre default a HOY (fecha real del pago).
+    // El período del filtro (fechaInicio) es solo para consulta, no para el recibo.
+    setFechaPago(new Date().toISOString().split('T')[0]);
     setIsModalPagoOpen(true);
   };
 
@@ -610,7 +610,8 @@ export default function ModuloCobranza() {
         precioBase: precioBaseCalculado,
         descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
-        fecha: fechaInicio,
+        fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
+        fechaPeriodo: fechaInicio,                           // MES que se está cobrando
         empresa: {
           nombre_club: clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
@@ -687,7 +688,8 @@ export default function ModuloCobranza() {
         precioBase: precioBaseCalculado,
         descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
-        fecha: fechaInicio,
+        fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
+        fechaPeriodo: fechaInicio,                           // MES que se está cobrando
         empresa: {
           nombre_club: config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',

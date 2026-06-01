@@ -9,12 +9,13 @@ export async function generarReciboPDFBase64(datos: {
   documento?: string;
   grupo?: string;
   tarifa: number;
-  precioBase?: number;   // Precio antes del descuento (para mostrar desglose)
-  descuentoProntoPago?: number;  // Descuento aplicado (0 si no aplica)
+  precioBase?: number;
+  descuentoProntoPago?: number;
   consecutivo: string | number;
   metodo?: string;
   notas?: string;
-  fecha?: string;
+  fecha?: string;        // Fecha de EMISIÓN del recibo (hoy)
+  fechaPeriodo?: string; // Fecha del MES que se está cobrando (para el concepto)
   empresa: {
     nombre_club?: string;
     direccion: string;
@@ -27,10 +28,17 @@ export async function generarReciboPDFBase64(datos: {
   }
 }) {
   const doc = new jsPDF();
-  const fechaActual = datos.fecha ? new Date(datos.fecha) : new Date();
+  // Fecha de emisión: siempre el día real de hoy (con T12:00:00 para evitar desfase UTC)
+  const fechaEmision = datos.fecha
+    ? new Date(datos.fecha.split('T')[0] + 'T12:00:00')
+    : new Date();
+  // Fecha del período cobrado: determina qué mes aparece en el CONCEPTO del recibo
+  const fechaPeriodoObj = datos.fechaPeriodo
+    ? new Date(datos.fechaPeriodo.split('T')[0] + 'T12:00:00')
+    : fechaEmision;
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-  const mesNombre = meses[fechaActual.getMonth()];
-  const anioActual = fechaActual.getFullYear();
+  const mesNombre = meses[fechaPeriodoObj.getMonth()];
+  const anioActual = fechaPeriodoObj.getFullYear();
   
   // Colores de Marca
   const naranjaGibbor = [249, 115, 22]; // #f97316
@@ -38,10 +46,10 @@ export async function generarReciboPDFBase64(datos: {
   const slate500 = [100, 116, 139];
   const slate100 = [241, 245, 249];
 
-  // LÓGICA DE ESTADO DINÁMICO
+  // LÓGICA DE ESTADO DINÁMICO (basada en fecha de emisión, no del período)
   const esPago = !!datos.metodo;
   const diaVence = 5;
-  const esVencido = !esPago && fechaActual.getDate() > diaVence;
+  const esVencido = !esPago && fechaEmision.getDate() > diaVence;
   
   const statusLabel = esPago ? 'PAGO CONFIRMADO' : (esVencido ? 'RECIBO VENCIDO' : 'PENDIENTE DE PAGO');
   const statusColor = esPago ? [34, 197, 94] : (esVencido ? [220, 38, 38] : [255, 120, 0]); // Verde : Rojo : Naranja
@@ -126,7 +134,8 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
   doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
-  doc.text(fechaActual.toLocaleDateString('es-CO'), 115, 87);
+  // Mostrar la fecha REAL de emisión (hoy), no el período cobrado
+  doc.text(fechaEmision.toLocaleDateString('es-CO'), 115, 87);
 
 
   // 4. TABLA DE CONCEPTOS (PROFESIONAL)
