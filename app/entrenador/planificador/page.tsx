@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   Plus, Calendar, List, BookOpen, Save, Trash2, 
-  ChevronRight, ClipboardList, PenTool, Layout, Video
+  ChevronRight, ClipboardList, PenTool, Layout, Video, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,20 +21,21 @@ function getEmbedUrl(url: string) {
   if (driveMatch && driveMatch[1]) {
     return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
   }
-  return url; // fallback (puede ser un video de otra plataforma o inválido, pero intentaremos cargarlo igual)
+  return url; // fallback
 }
 
-function extractVideoFromDescription(desc: string) {
-  if (!desc) return { description: '', videoUrl: null };
-  const regex = /\[VIDEO\](.*?)\[\/VIDEO\]/;
-  const match = desc.match(regex);
-  if (match) {
-    return {
-      description: desc.replace(regex, '').trim(),
-      videoUrl: match[1]
-    };
+function extractVideosFromDescription(desc: string) {
+  if (!desc) return { description: '', videoUrls: [] };
+  const regex = /\[VIDEO\](.*?)\[\/VIDEO\]/g;
+  const videoUrls: string[] = [];
+  let match;
+  while ((match = regex.exec(desc)) !== null) {
+    videoUrls.push(match[1]);
   }
-  return { description: desc, videoUrl: null };
+  return {
+    description: desc.replace(regex, '').trim(),
+    videoUrls
+  };
 }
 
 export default function PlanificadorEntrenador() {
@@ -52,7 +53,7 @@ export default function PlanificadorEntrenador() {
     fecha: new Date().toISOString().split('T')[0],
     club_id: '',
     entrenador_id: '',
-    video_url: '' // Nuevo campo
+    videos: [''] // Soporte para múltiples videos
   });
 
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -87,17 +88,22 @@ export default function PlanificadorEntrenador() {
     setGuardando(true);
     const toastId = toast.loading("Guardando plan de sesión...");
 
-    let payload = { ...formData };
+    // Limpiar videos vacíos y unirlos separados por comas
+    const videosLimpios = formData.videos.filter(v => v.trim() !== '');
+    const videoUrlString = videosLimpios.join(',');
+
+    const { videos, ...restoFormData } = formData;
+    let payload = { ...restoFormData, video_url: videoUrlString };
     
     // Intentar guardar con la columna video_url
     let { error } = await supabase.from('planificaciones').insert([payload]);
 
     // Fallback: Si la base de datos no tiene la columna video_url, lo agregamos a la descripción
     if (error && (error.message.includes('video_url') || error.message.includes('column'))) {
-      const { video_url, ...resto } = formData;
+      const { video_url, ...resto } = payload;
       const fallbackPayload = { ...resto } as any;
-      if (video_url) {
-        fallbackPayload.descripcion = `${fallbackPayload.descripcion}\n\n[VIDEO]${video_url}[/VIDEO]`;
+      if (videosLimpios.length > 0) {
+        fallbackPayload.descripcion = fallbackPayload.descripcion + '\n\n' + videosLimpios.map(v => `[VIDEO]${v}[/VIDEO]`).join('\n');
       }
       const res = await supabase.from('planificaciones').insert([fallbackPayload]);
       error = res.error;
@@ -116,7 +122,7 @@ export default function PlanificadorEntrenador() {
         fecha: new Date().toISOString().split('T')[0],
         club_id: formData.club_id,
         entrenador_id: formData.entrenador_id,
-        video_url: ''
+        videos: ['']
       });
       const { data } = await supabase.from('planificaciones').select('*').eq('club_id', formData.club_id).order('fecha', { ascending: false });
       setPlanes(data || []);
@@ -131,6 +137,21 @@ export default function PlanificadorEntrenador() {
       setPlanes(planes.filter(p => p.id !== id));
       toast.success("Plan eliminado");
     }
+  };
+
+  const agregarVideoInput = () => {
+    setFormData({ ...formData, videos: [...formData.videos, ''] });
+  };
+
+  const eliminarVideoInput = (index: number) => {
+    const nuevosVideos = formData.videos.filter((_, i) => i !== index);
+    setFormData({ ...formData, videos: nuevosVideos });
+  };
+
+  const actualizarVideo = (index: number, valor: string) => {
+    const nuevosVideos = [...formData.videos];
+    nuevosVideos[index] = valor;
+    setFormData({ ...formData, videos: nuevosVideos });
   };
 
   return (
@@ -163,8 +184,8 @@ export default function PlanificadorEntrenador() {
           </div>
         ) : (
           planes.map(plan => {
-            // Chequear si el plan tiene un video oculto para mostrar el icono en la tarjeta
-            const tieneVideo = plan.video_url || extractVideoFromDescription(plan.descripcion).videoUrl;
+            const urlsEstraidas = extractVideosFromDescription(plan.descripcion).videoUrls;
+            const tieneVideo = plan.video_url || urlsEstraidas.length > 0;
 
             return (
               <div key={plan.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
@@ -172,13 +193,13 @@ export default function PlanificadorEntrenador() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] p-3 rounded-2xl flex items-center gap-2">
                       <BookOpen className="w-5 h-5" />
-                      {tieneVideo && <Video className="w-4 h-4 text-[var(--brand-primary)] animate-pulse" title="Contiene material audiovisual" />}
+                      {tieneVideo && <span title="Contiene material audiovisual" className="flex"><Video className="w-4 h-4 text-[var(--brand-primary)] animate-pulse" /></span>}
                     </div>
                     <button onClick={() => eliminarPlan(plan.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1"><Trash2 className="w-4 h-4" /></button>
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{plan.categoria || 'Sin categoría'}</p>
                   <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-[var(--brand-primary)] transition-colors">{plan.titulo}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-4">{extractVideoFromDescription(plan.descripcion).description}</p>
+                  <p className="text-xs text-slate-500 line-clamp-2 mb-4">{extractVideosFromDescription(plan.descripcion).description}</p>
                 </div>
                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase">
@@ -214,11 +235,18 @@ export default function PlanificadorEntrenador() {
                 <p className="text-slate-700 font-medium">{verPlan.objetivo}</p>
               </div>
               
-              {/* Lógica de Video */}
+              {/* Lógica de Multi Videos */}
               {(() => {
-                const { description, videoUrl } = extractVideoFromDescription(verPlan.descripcion);
-                const finalVideoUrl = verPlan.video_url || videoUrl;
-                const embedUrl = getEmbedUrl(finalVideoUrl);
+                const { description, videoUrls } = extractVideosFromDescription(verPlan.descripcion);
+                
+                let urlsLista: string[] = [];
+                if (verPlan.video_url) {
+                  urlsLista = verPlan.video_url.split(',').map((u: string) => u.trim()).filter(Boolean);
+                } else {
+                  urlsLista = videoUrls;
+                }
+
+                const embedUrls = urlsLista.map(getEmbedUrl).filter(Boolean);
 
                 return (
                   <>
@@ -227,18 +255,22 @@ export default function PlanificadorEntrenador() {
                       <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{description || 'Sin descripción detallada.'}</p>
                     </div>
 
-                    {embedUrl && (
-                      <div className="mt-8">
+                    {embedUrls.length > 0 && (
+                      <div className="mt-8 space-y-6">
                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                          <Video className="w-4 h-4 text-brand" /> Material Audiovisual
+                          <Video className="w-4 h-4 text-brand" /> Material Audiovisual ({embedUrls.length})
                         </p>
-                        <div className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
-                          <iframe 
-                            src={embedUrl} 
-                            className="w-full h-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          ></iframe>
+                        <div className="grid grid-cols-1 gap-6">
+                          {embedUrls.map((embedUrl, idx) => (
+                            <div key={idx} className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
+                              <iframe 
+                                src={embedUrl!} 
+                                className="w-full h-full border-0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              ></iframe>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -292,19 +324,40 @@ export default function PlanificadorEntrenador() {
                 <input required value={formData.objetivo} onChange={(e) => setFormData({...formData, objetivo: e.target.value})} type="text" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none" />
               </div>
               
-              {/* Campo para Video */}
+              {/* Campo para Múltiples Videos */}
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase mb-2 flex items-center gap-2">
-                  <Video className="w-4 h-4" /> Video de Apoyo (Opcional)
+                  <Video className="w-4 h-4" /> Videos de Apoyo (YouTube o Drive)
                 </label>
-                <input 
-                  value={formData.video_url} 
-                  onChange={(e) => setFormData({...formData, video_url: e.target.value})} 
-                  type="url" 
-                  placeholder="Enlace de YouTube o Google Drive..." 
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none text-sm placeholder:text-slate-300" 
-                />
-                <p className="text-[10px] text-slate-400 mt-1 font-medium">Puedes pegar el link de un circuito en YouTube o Drive para verlo aquí mismo.</p>
+                <div className="space-y-3">
+                  {formData.videos.map((url, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input 
+                        value={url} 
+                        onChange={(e) => actualizarVideo(idx, e.target.value)} 
+                        type="url" 
+                        placeholder="Enlace de YouTube o Google Drive..." 
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none text-sm placeholder:text-slate-300" 
+                      />
+                      {formData.videos.length > 1 && (
+                        <button 
+                          type="button" 
+                          onClick={() => eliminarVideoInput(idx)}
+                          className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button 
+                  type="button" 
+                  onClick={agregarVideoInput}
+                  className="mt-3 text-[10px] font-black text-[var(--brand-primary)] uppercase tracking-widest flex items-center gap-1 hover:opacity-70 transition-all"
+                >
+                  <Plus className="w-3 h-3" /> Agregar otro video
+                </button>
               </div>
 
               <div>
