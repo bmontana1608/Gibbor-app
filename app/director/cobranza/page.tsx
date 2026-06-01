@@ -1460,10 +1460,10 @@ export default function ModuloCobranza() {
                           <td className="p-4 md:px-6 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button onClick={async () => { 
-                                // Buscar el teléfono del alumno en su perfil (no está en el registro de pago)
+                                // Buscar teléfono Y documento del alumno en su perfil
                                 const { data: perfil } = await supabase
                                   .from('perfiles')
-                                  .select('telefono, grupos')
+                                  .select('telefono, grupos, documento_identidad')
                                   .eq('id', pago.jugador_id)
                                   .single();
                                 setReciboGenerado({ 
@@ -1471,7 +1471,9 @@ export default function ModuloCobranza() {
                                   montoBase: pago.monto_base, 
                                   metodo: pago.metodo_pago,
                                   telefono: perfil?.telefono || '',
-                                  grupo: pago.grupo || perfil?.grupos || 'Sin grupo'
+                                  grupo: pago.grupo || perfil?.grupos || 'Sin grupo',
+                                  // Prioridad: campo nuevo en pagos_ingresos → fallback al perfil actual
+                                  documento: pago.documento_identidad || perfil?.documento_identidad || undefined,
                                 }); 
                               }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
                                 <Printer className="w-3.5 h-3.5" /> Reimprimir
