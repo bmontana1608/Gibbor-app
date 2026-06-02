@@ -3,7 +3,6 @@ import Providers from "@/components/Providers";
 import "./globals.css";
 import { getTenant } from '@/lib/tenant';
 import InstallPrompt from "@/components/InstallPrompt";
-import ManifestInjector from "@/components/ManifestInjector";
 
 export const viewport = {
   themeColor: '#ea580c',
@@ -58,7 +57,6 @@ export default async function RootLayout({
       >
         <Providers>
           {children}
-          <ManifestInjector />
           <InstallPrompt />
           <SWRegistration />
         </Providers>
