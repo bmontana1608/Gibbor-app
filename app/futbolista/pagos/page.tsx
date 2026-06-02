@@ -67,6 +67,20 @@ export default function PagosFutbolista() {
     <div className="h-64 bg-slate-200 rounded-3xl w-full"></div>
   </div>;
 
+  const handleOpenApp = (numero: string, uriScheme: string, appName: string) => {
+     // 1. Copiar número al portapapeles
+     navigator.clipboard.writeText(numero).then(() => {
+        toast.success(`Número de ${appName} copiado al portapapeles`);
+     }).catch(() => {
+        toast.info(`Número: ${numero}`);
+     });
+
+     // 2. Intentar abrir la aplicación nativa después de un breve tiempo
+     setTimeout(() => {
+        window.location.href = uriScheme;
+     }, 800);
+  };
+
   const now = new Date();
   let targetMonth = now.getMonth();
   let targetYear = now.getFullYear();
@@ -145,55 +159,82 @@ export default function PagosFutbolista() {
       {/* CANALES DE PAGO CONFIGURADOS */}
       {configPago && (configPago.nequi || configPago.daviplata || configPago.bre_b || configPago.banco_numero) && (
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
-           <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2 mb-6">
-              <Landmark className="w-5 h-5 text-[var(--brand-primary)]" /> Canales de Pago Disponibles
-           </h3>
+           <div className="flex items-center justify-between mb-6">
+             <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-[var(--brand-primary)]" /> Canales de Pago
+             </h3>
+             <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded-lg uppercase tracking-widest">Toca para copiar y abrir</span>
+           </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {configPago.nequi && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-[#39154E]/10 text-[#39154E] rounded-xl flex items-center justify-center">
-                     <Smartphone className="w-5 h-5" />
+                <button 
+                  onClick={() => handleOpenApp(configPago.nequi, 'nequi://', 'Nequi')}
+                  className="bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 transition-all group text-left w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-[#39154E]/10 text-[#39154E] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nequi</p>
+                      <p className="font-bold text-slate-800">{configPago.nequi}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nequi</p>
-                    <p className="font-bold text-slate-800">{configPago.nequi}</p>
-                  </div>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#39154E] transition-colors" />
+                </button>
               )}
               {configPago.daviplata && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center">
-                     <Smartphone className="w-5 h-5" />
+                <button 
+                  onClick={() => handleOpenApp(configPago.daviplata, 'daviplata://', 'Daviplata')}
+                  className="bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 transition-all group text-left w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daviplata</p>
+                      <p className="font-bold text-slate-800">{configPago.daviplata}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daviplata</p>
-                    <p className="font-bold text-slate-800">{configPago.daviplata}</p>
-                  </div>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-red-600 transition-colors" />
+                </button>
               )}
               {configPago.bre_b && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center">
-                     <Smartphone className="w-5 h-5" />
+                <button 
+                  onClick={() => handleOpenApp(configPago.bre_b, 'bancolombiapersonas://', 'Bre-B')}
+                  className="bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 transition-all group text-left w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <Smartphone className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bre-B</p>
+                      <p className="font-bold text-slate-800">{configPago.bre_b}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bre-B</p>
-                    <p className="font-bold text-slate-800">{configPago.bre_b}</p>
-                  </div>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-600 transition-colors" />
+                </button>
               )}
               {configPago.banco_numero && (
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 md:col-span-2 lg:col-span-3">
-                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
-                     <Building2 className="w-5 h-5" />
+                <button 
+                  onClick={() => handleOpenApp(configPago.banco_numero, 'bancolombiapersonas://', configPago.banco_nombre || 'Banco')}
+                  className="bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 md:col-span-2 lg:col-span-3 transition-all group text-left w-full"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                       <Building2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        {configPago.banco_nombre || 'Cuenta Bancaria'}
+                      </p>
+                      <p className="font-bold text-slate-800">{configPago.banco_numero}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {configPago.banco_nombre || 'Cuenta Bancaria'}
-                    </p>
-                    <p className="font-bold text-slate-800">{configPago.banco_numero}</p>
-                  </div>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-600 transition-colors" />
+                </button>
               )}
            </div>
         </div>
