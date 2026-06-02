@@ -341,10 +341,10 @@ export default function NuevoMiembro() {
                 {formData.rol === 'Futbolista' && (
                   <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
                     <label className="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 flex items-center gap-2">
-                      📅 Fecha de Inicio de Cobro *
+                      📅 Fecha de Inscripción al Club
                     </label>
                     <p className="text-[10px] text-amber-600 font-medium mb-3">
-                      Desde este mes se calculará la mensualidad. Si el jugador lleva tiempo en el club, ajusta esta fecha para que la deuda histórica sea correcta. Por defecto: mes actual.
+                      Fecha en la que el deportista se vincula oficialmente al club. Por defecto: hoy.
                     </p>
                     <input
                       type="date"
