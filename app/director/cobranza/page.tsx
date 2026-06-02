@@ -769,9 +769,16 @@ export default function ModuloCobranza() {
 
   // 📈 CÁLCULOS FINANCIEROS (Basados en el rango de fechas seleccionado)
 
+  // Filtramos pagos por fecha, EXCLUYENDO uniformes (tienen su propio módulo/bolsillo)
+  const esUniforme = (p: any) => {
+    const notas = String(p.notas || '').toUpperCase();
+    const concepto = String(p.concepto || '').toUpperCase();
+    return notas.startsWith('UNIFORMES:') || concepto.startsWith('UNIFORME');
+  };
+
   const pagosFiltradosPorFecha = historialPagos.filter(p => {
     const pFecha = normalizeDate(p.fecha);
-    return pFecha && pFecha >= fechaInicio && pFecha <= fechaFin;
+    return pFecha && pFecha >= fechaInicio && pFecha <= fechaFin && !esUniforme(p);
   });
   
   const ingresosRecaudados = pagosFiltradosPorFecha

@@ -240,28 +240,11 @@ export default function UniformesModule() {
     }
   };
 
-  // Función para inyectar el dinero cobrado a la caja general (pagos_ingresos)
-  const registrarIngresoFinanciero = async (jId: string, monto: number, nota: string) => {
-    const jugador = jugadores.find(j => j.id === jId);
-    if(!jugador) return;
-
-    const d = new Date();
-    const fechaLet = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join('-');
-
-    await supabase.from('pagos_ingresos').insert([{
-      jugador_id: jId,
-      nombres: jugador.nombres,
-      apellidos: jugador.apellidos,
-      grupo: jugador.grupos || 'Sin grupo',
-      monto_base: monto,
-      descuento: 0,
-      recargo: 0,
-      total: monto,
-      metodo_pago: 'Efectivo', // Por defecto, se podría mejorar pidiendo el método
-      notas: `UNIFORMES: ${nota}`,
-      fecha: fechaLet,
-      club_id: tenant?.id
-    }]);
+  // NOTA DE DISEÑO: Los uniformes tienen su propio "bolsillo" financiero (pedidos_uniformes).
+  // NO se inyectan en pagos_ingresos para mantener el historial de mensualidades limpio.
+  // El dashboard de uniformes ya muestra cartera, abonos y ganancias de forma independiente.
+  const registrarIngresoFinanciero = async (_jId: string, _monto: number, _nota: string) => {
+    // Intencionalmente desactivado: ver comentario arriba.
   };
 
   const registrarNuevoAbono = async () => {
