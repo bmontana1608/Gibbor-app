@@ -79,7 +79,8 @@ export default function NuevoMiembro() {
     estado_pago: 'Pendiente',
     estado_miembro: 'Activo',
     hijos_config: '',
-    override_categoria: false
+    override_categoria: false,
+    fecha_ingreso: new Date().toISOString().split('T')[0], // Por defecto: hoy
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -323,7 +324,6 @@ export default function NuevoMiembro() {
                   </div>
                 )}
                 <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Los entrenadores pueden tener varias categorías asignadas.</p>
-              </div>
                 {formData.rol === 'Futbolista' && (
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan Financiero Asignado</label>
@@ -337,6 +337,25 @@ export default function NuevoMiembro() {
                     </select>
                   </div>
                 )}
+
+                {formData.rol === 'Futbolista' && (
+                  <div className="md:col-span-2 bg-amber-50 border border-amber-200 rounded-xl p-4 mt-4">
+                    <label className="block text-xs font-bold text-amber-700 uppercase tracking-wider mb-1 flex items-center gap-2">
+                      📅 Fecha de Inicio de Cobro *
+                    </label>
+                    <p className="text-[10px] text-amber-600 font-medium mb-3">
+                      Desde este mes se calculará la mensualidad. Si el jugador lleva tiempo en el club, ajusta esta fecha para que la deuda histórica sea correcta. Por defecto: mes actual.
+                    </p>
+                    <input
+                      type="date"
+                      name="fecha_ingreso"
+                      value={formData.fecha_ingreso}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-400 outline-none text-sm bg-white cursor-pointer font-bold text-slate-700"
+                    />
+                  </div>
+                )}
+              </div>
 
               {/* Vincular Familia (Solo Entrenador/Director) */}
               {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (

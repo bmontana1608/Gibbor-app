@@ -880,21 +880,27 @@ export default function ModuloCobranza() {
 
     // Solo calcular mora histórica si no es beca 100%
     if (!esBeca100 && tarifa > 0) {
-      // Límite = el MÁS RECIENTE entre: registro del club y registro del jugador.
-      // Usamos 'fecha_ingreso_club' si existe (campo dedicado), si no, usamos created_at.
-      // Esto evita que jugadores recién ingresados acumulen deuda de meses anteriores.
-      const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
+      // Lógica de fecha de inicio de cobro:
+      // 1. Si el jugador tiene fecha_ingreso_club o fecha_ingreso (campo explícito) → usar ese
+      // 2. Si NO tiene fecha explícita → asumir que empezó el mes actual (NO usar created_at
+      //    porque ese es el momento de creación en el sistema, no el inicio real del cobro)
+      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
       
-      // Preferir fecha_ingreso_club (campo explícito) sobre created_at (fecha de registro en sistema)
-      const fechaIngresoRaw = j.fecha_ingreso_club || j.fecha_ingreso || j.created_at;
-      const jugadorCreatedAt = fechaIngresoRaw ? new Date(fechaIngresoRaw) : null;
-
-      const inicioClub   = tenantCreatedAt  ? new Date(tenantCreatedAt.getFullYear(),  tenantCreatedAt.getMonth(),  1) : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
-      const inicioJugador = jugadorCreatedAt ? new Date(jugadorCreatedAt.getFullYear(), jugadorCreatedAt.getMonth(), 1) : inicioClub;
-
-      // El límite real es el más reciente de los dos
-      // Si el jugador se unió ESTE mes, primerMesValido = este mes → nunca acumula deuda histórica
-      const primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
+      let primerMesValido: Date;
+      if (fechaIngresoExplicita) {
+        // Tiene fecha de ingreso real → calcular desde ese mes
+        const fechaIngreso = new Date(fechaIngresoExplicita);
+        const inicioJugador = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), 1);
+        const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
+        const inicioClub = tenantCreatedAt
+          ? new Date(tenantCreatedAt.getFullYear(), tenantCreatedAt.getMonth(), 1)
+          : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
+        primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
+      } else {
+        // Sin fecha de ingreso explícita → no acumula deuda histórica
+        // Empieza a cobrar desde el período actual seleccionado
+        primerMesValido = new Date(periodoDate.getFullYear(), periodoDate.getMonth(), 1);
+      }
 
       for (let i = 1; i <= 6; i++) {
         const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
