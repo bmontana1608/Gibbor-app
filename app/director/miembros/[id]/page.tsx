@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { removeBackground } from '@imgly/background-removal';
 
 import { useTenant } from '@/lib/hooks/useTenant';
 
@@ -124,35 +123,34 @@ export default function FichaDelJugador() {
       if (!e.target.files || e.target.files.length === 0) return;
       const file = e.target.files[0];
       setSubiendoFoto(true);
-      
-      const toastId = toast.loading('Procesando foto...');
-      
+
+      const toastId = toast.loading('Subiendo imagen al servidor...');
+
       const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
-      
-      toast.loading('Eliminando fondo con IA (puede tardar unos segundos)...', { id: toastId });
-      
-      // Configuración para que descargue el modelo de forma segura
-      const config = {
-        publicPath: 'https://static.imgly.com/@imgly/background-removal-data/1.4.5/dist/'
-      };
-      
-      const imageBlob = await removeBackground(file, config);
-      
-      const fileName = `${Math.random()}.png`;
-      const filePath = `${tenantData.id}/avatares/${fileName}`;
-      
-      toast.loading('Subiendo imagen final...', { id: toastId });
-      const { error: uploadError } = await supabase.storage.from('fotos').upload(filePath, imageBlob, {
-         contentType: 'image/png'
+
+      // Enviar la imagen al API del servidor para quitar el fondo (funciona en iOS y Android)
+      const formDataApi = new FormData();
+      formDataApi.append('image', file);
+      formDataApi.append('club_id', tenantData.id);
+
+      toast.loading('Eliminando fondo con IA en el servidor...', { id: toastId });
+
+      const apiRes = await fetch('/api/remove-background', {
+        method: 'POST',
+        body: formDataApi,
       });
-      if (uploadError) throw uploadError;
-      
-      const { data } = supabase.storage.from('fotos').getPublicUrl(filePath);
-      setFormData({ ...formData, foto_url: data.publicUrl });
-      toast.success('Foto subida sin fondo. No olvides guardar el perfil.', { id: toastId });
+
+      if (!apiRes.ok) {
+        const errData = await apiRes.json();
+        throw new Error(errData.error || 'Error al procesar la imagen');
+      }
+
+      const { publicUrl } = await apiRes.json();
+      setFormData({ ...formData, foto_url: publicUrl });
+      toast.success('¡Foto sin fondo lista! No olvides guardar el perfil.', { id: toastId });
     } catch (err: any) {
-      toast.error('Error al subir o procesar: ' + err.message);
+      toast.error('Error: ' + err.message);
     } finally {
       setSubiendoFoto(false);
     }
