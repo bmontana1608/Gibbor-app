@@ -8,20 +8,24 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-// --- UTILIDADES PARA VIDEOS ---
 function getEmbedUrl(url: string) {
   if (!url) return null;
-  // YouTube
-  const ytMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+  // Limpiar URL
+  const cleanUrl = url.trim();
+  
+  // YouTube (maneja youtu.be, watch?v=, embed/, v/, shorts/)
+  const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
   if (ytMatch && ytMatch[1]) {
     return `https://www.youtube.com/embed/${ytMatch[1]}`;
   }
+  
   // Google Drive
-  const driveMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  const driveMatch = cleanUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
   if (driveMatch && driveMatch[1]) {
     return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
   }
-  return url; // fallback
+  
+  return cleanUrl; // fallback
 }
 
 function extractVideosFromDescription(desc: string) {
