@@ -23,8 +23,13 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
-    router.push(`/${tenant?.slug || 'default'}/login`);
+    window.location.href = `/${tenant?.slug || 'default'}/login`;
   };
+
+  // Cerrar menú al navegar
+  useEffect(() => {
+    if (isSidebarOpen) setIsSidebarOpen(false);
+  }, [pathname]);
 
   const tenantSlug = tenant?.slug || '';
   const [isSubdomain, setIsSubdomain] = useState(false);
@@ -72,13 +77,13 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
         </button>
       </div>
 
-      {/* OVERLAY MÓVIL - siempre renderizado, controlado con opacity y pointer-events */}
-      <div 
-        className={`fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm transition-opacity duration-300 ${
-          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsSidebarOpen(false)} 
-      />
+      {/* OVERLAY MÓVIL - condicional para evitar bloqueos */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm animate-in fade-in duration-300"
+          onClick={() => setIsSidebarOpen(false)} 
+        />
+      )}
 
       {/* ASIDE / SIDEBAR */}
       <aside 

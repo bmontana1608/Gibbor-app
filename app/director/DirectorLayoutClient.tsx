@@ -94,7 +94,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
-    router.push(`${basePath}/login`);
+    window.location.href = `${basePath}/login`;
   };
 
 
@@ -102,13 +102,13 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       <PushPermissionBanner />
       
-      {/* Overlay para móvil - renderiza siempre pero con pointer-events controlados */}
-      <div 
-        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden transition-opacity duration-300 ${
-          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
+      {/* Overlay para móvil - condicional para evitar bloqueos fantasma */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden animate-in fade-in duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
       
       <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
         isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'

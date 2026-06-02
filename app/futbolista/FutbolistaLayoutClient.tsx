@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -35,8 +35,13 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
-    router.push(`${basePath}/login`);
+    window.location.href = `${basePath}/login`;
   };
+
+  // Cerrar menú al navegar
+  useEffect(() => {
+    if (isSidebarOpen) setIsSidebarOpen(false);
+  }, [pathname]);
 
   const menu = [
     { name: "Mi Panel", path: `${basePath}/futbolista`, icon: <Home className="w-5 h-5" /> },
@@ -74,13 +79,13 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
         </button>
       </div>
 
-      {/* OVERLAY MÓVIL - siempre renderizado, controlado con opacity/pointer-events */}
-      <div
-        className={`fixed inset-0 bg-slate-900/70 z-[90] md:hidden transition-opacity duration-300 ${
-          isSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
+      {/* OVERLAY MÓVIL - condicional para evitar bloqueos fantasma */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/70 z-[90] md:hidden animate-in fade-in duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
       {/* ASIDE / SIDEBAR */}
       <aside className={`
