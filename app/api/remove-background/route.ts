@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const REMOVEBG_API_KEY = process.env.REMOVEBG_API_KEY;
+    console.log('[remove-background] API key present:', !!REMOVEBG_API_KEY);
 
     if (!REMOVEBG_API_KEY) {
       // Si no hay API key, subir la foto original sin quitar el fondo (modo fallback)
@@ -47,8 +48,19 @@ export async function POST(request: NextRequest) {
 
     if (!rbRes.ok) {
       const errText = await rbRes.text();
-      console.error('[remove-background] Remove.bg error:', errText);
-      throw new Error(`Remove.bg respondió con error ${rbRes.status}`);
+      console.error('[remove-background] Remove.bg error', rbRes.status, errText);
+      // Fallback: subir la foto original sin quitar el fondo
+      const arrayBuffer = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const ext = imageFile.name.split('.').pop() || 'jpg';
+      const fileNameFallback = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const filePathFallback = `${club_id}/avatares/${fileNameFallback}`;
+      const { error: uploadErrorFallback } = await supabaseAdmin.storage.from('fotos').upload(filePathFallback, buffer, {
+        contentType: imageFile.type,
+      });
+      if (uploadErrorFallback) throw uploadErrorFallback;
+      const { data: dataFallback } = supabaseAdmin.storage.from('fotos').getPublicUrl(filePathFallback);
+      return NextResponse.json({ publicUrl: dataFallback.publicUrl, fallback: true, removeBgError: errText });
     }
 
     // Remove.bg devuelve directamente el PNG sin fondo

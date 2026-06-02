@@ -131,7 +131,7 @@ export default function FichaDelJugador() {
 
       // Enviar la imagen al API del servidor para quitar el fondo (funciona en iOS y Android)
       const formDataApi = new FormData();
-      formDataApi.append('image', file);
+      formDataApi.append('image_file', file);
       formDataApi.append('club_id', tenantData.id);
 
       toast.loading('Eliminando fondo con IA en el servidor...', { id: toastId });
