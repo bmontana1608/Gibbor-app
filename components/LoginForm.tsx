@@ -26,35 +26,45 @@ export default function LoginForm({ tenant }: LoginFormProps) {
   // EFECTO DE PERSISTENCIA: Si ya hay sesión en el navegador, brincar el login
   useEffect(() => {
     async function chequearSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('rol, club_id, clubes(slug)')
-          .eq('id', session.user.id)
-          .single();
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error obtaining session:", sessionError);
+        }
 
-        if (perfil) {
-          const clubSlug = (perfil.clubes as any)?.slug;
-          const rol = perfil.rol?.toLowerCase();
-          
-          if (perfil.rol === 'SuperAdmin') {
-            if (tenant?.slug && tenant.slug !== 'master') {
-              router.push(`/director`);
-            } else {
-              router.push('/admin');
+        if (session?.user) {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('rol, club_id, clubes(slug)')
+            .eq('id', session.user.id)
+            .single();
+
+          if (perfil) {
+            const clubSlug = (perfil.clubes as any)?.slug;
+            const rol = perfil.rol?.toLowerCase();
+            
+            if (perfil.rol === 'SuperAdmin') {
+              if (tenant?.slug && tenant.slug !== 'master') {
+                router.push(`/director`);
+              } else {
+                router.push('/admin');
+              }
+              return; // Detener flujo
+            } else if (clubSlug) {
+              router.push(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
+              return; // Detener flujo
             }
-            return; // Detener flujo
-          } else if (clubSlug) {
-            router.push(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
-            return; // Detener flujo
           }
         }
+      } catch (error) {
+        console.error("Error fatal en chequearSession:", error);
+      } finally {
+        setSessionCargada(true);
       }
-      setSessionCargada(true);
     }
     chequearSession();
-  }, []);
+  }, [router, tenant?.slug]);
 
   if (!sessionCargada) {
     return (
