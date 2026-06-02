@@ -48,6 +48,7 @@ export default function PlanificadorEntrenador() {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [verPlan, setVerPlan] = useState<any>(null);
+  const [planEditando, setPlanEditando] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -100,7 +101,14 @@ export default function PlanificadorEntrenador() {
     let payload = { ...restoFormData, video_url: videoUrlString };
     
     // Intentar guardar con la columna video_url
-    let { error } = await supabase.from('planificaciones').insert([payload]);
+    let error;
+    if (planEditando) {
+      const { error: errUpd } = await supabase.from('planificaciones').update(payload).eq('id', planEditando);
+      error = errUpd;
+    } else {
+      const { error: errIns } = await supabase.from('planificaciones').insert([payload]);
+      error = errIns;
+    }
 
     // Fallback: Si la base de datos no tiene la columna video_url, lo agregamos a la descripción
     if (error && (error.message.includes('video_url') || error.message.includes('column'))) {
@@ -109,29 +117,65 @@ export default function PlanificadorEntrenador() {
       if (videosLimpios.length > 0) {
         fallbackPayload.descripcion = fallbackPayload.descripcion + '\n\n' + videosLimpios.map(v => `[VIDEO]${v}[/VIDEO]`).join('\n');
       }
-      const res = await supabase.from('planificaciones').insert([fallbackPayload]);
-      error = res.error;
+      
+      if (planEditando) {
+        const res = await supabase.from('planificaciones').update(fallbackPayload).eq('id', planEditando);
+        error = res.error;
+      } else {
+        const res = await supabase.from('planificaciones').insert([fallbackPayload]);
+        error = res.error;
+      }
     }
 
     if (error) {
       toast.error("Error al guardar: " + error.message, { id: toastId });
     } else {
-      toast.success("¡Plan guardado con éxito!", { id: toastId });
-      setMostrarModal(false);
-      setFormData({ 
-        titulo: '', 
-        objetivo: '', 
-        descripcion: '', 
-        categoria: '', 
-        fecha: new Date().toISOString().split('T')[0],
-        club_id: formData.club_id,
-        entrenador_id: formData.entrenador_id,
-        videos: ['']
-      });
+      toast.success(planEditando ? "¡Plan actualizado con éxito!" : "¡Plan guardado con éxito!", { id: toastId });
+      cerrarModal();
       const { data } = await supabase.from('planificaciones').select('*').eq('club_id', formData.club_id).order('fecha', { ascending: false });
       setPlanes(data || []);
     }
     setGuardando(false);
+  };
+
+  const cerrarModal = () => {
+    setMostrarModal(false);
+    setPlanEditando(null);
+    setFormData(prev => ({ 
+      ...prev,
+      titulo: '', 
+      objetivo: '', 
+      descripcion: '', 
+      categoria: '', 
+      fecha: new Date().toISOString().split('T')[0],
+      videos: ['']
+    }));
+  };
+
+  const abrirEditarPlan = (plan: any) => {
+    let videos = [''];
+    if (plan.video_url) {
+      videos = plan.video_url.split(',').map((u: string) => u.trim()).filter(Boolean);
+      if (videos.length === 0) videos = [''];
+    } else {
+      const urlsEstraidas = extractVideosFromDescription(plan.descripcion).videoUrls;
+      if (urlsEstraidas.length > 0) {
+        videos = urlsEstraidas;
+      }
+    }
+
+    setFormData({
+      titulo: plan.titulo,
+      objetivo: plan.objetivo,
+      descripcion: extractVideosFromDescription(plan.descripcion).description,
+      categoria: plan.categoria || '',
+      fecha: plan.fecha,
+      club_id: plan.club_id,
+      entrenador_id: plan.entrenador_id,
+      videos
+    });
+    setPlanEditando(plan.id);
+    setMostrarModal(true);
   };
 
   const eliminarPlan = async (id: string) => {
@@ -199,7 +243,10 @@ export default function PlanificadorEntrenador() {
                       <BookOpen className="w-5 h-5" />
                       {tieneVideo && <span title="Contiene material audiovisual" className="flex"><Video className="w-4 h-4 text-[var(--brand-primary)] animate-pulse" /></span>}
                     </div>
-                    <button onClick={() => eliminarPlan(plan.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1"><Trash2 className="w-4 h-4" /></button>
+                    <div className="flex gap-2">
+                      <button onClick={() => abrirEditarPlan(plan)} className="text-slate-300 hover:text-blue-500 transition-colors p-1"><PenTool className="w-4 h-4" /></button>
+                      <button onClick={() => eliminarPlan(plan.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1"><Trash2 className="w-4 h-4" /></button>
+                    </div>
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{plan.categoria || 'Sin categoría'}</p>
                   <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-[var(--brand-primary)] transition-colors">{plan.titulo}</h3>
@@ -300,8 +347,8 @@ export default function PlanificadorEntrenador() {
         <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 bg-slate-50 border-b flex justify-between items-center">
-              <h2 className="text-xl font-black text-slate-800">Planificar Sesión</h2>
-              <button onClick={() => setMostrarModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+              <h2 className="text-xl font-black text-slate-800">{planEditando ? 'Editar Sesión' : 'Planificar Sesión'}</h2>
+              <button onClick={cerrarModal} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
             </div>
             <form onSubmit={handleGuardar} className="p-8 overflow-y-auto space-y-6 custom-scrollbar">
               <div className="grid grid-cols-2 gap-4">
@@ -370,9 +417,9 @@ export default function PlanificadorEntrenador() {
               </div>
 
               <div className="pt-4 flex gap-3">
-                <button type="button" onClick={() => setMostrarModal(false)} className="flex-1 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-50 transition-all">Cancelar</button>
+                <button type="button" onClick={cerrarModal} className="flex-1 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-50 transition-all">Cancelar</button>
                 <button type="submit" disabled={guardando} className="flex-1 bg-[var(--brand-primary)] text-white font-black py-4 rounded-2xl hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
-                  {guardando ? 'Guardando...' : <Save className="w-5 h-5" />} Guardar Plan
+                  {guardando ? 'Guardando...' : <Save className="w-5 h-5" />} {planEditando ? 'Guardar Cambios' : 'Guardar Plan'}
                 </button>
               </div>
             </form>
