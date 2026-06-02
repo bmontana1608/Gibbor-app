@@ -251,6 +251,59 @@ export default function PizarraTactica() {
     };
   };
 
+  const aplicarFormacion = (team: 'red' | 'blue', formacion: string) => {
+    if (!formacion) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const w = canvas.width;
+    const h = canvas.height;
+    
+    const isRed = team === 'red';
+    
+    // Función helper para posiciones relativas
+    const pos = (xPerc: number, yPerc: number) => ({
+      x: isRed ? w * xPerc : w * (1 - xPerc),
+      y: h * yPerc
+    });
+
+    let layout = [];
+    if (formacion === '4-4-2') {
+      layout = [
+        pos(0.08, 0.50), // GK
+        pos(0.25, 0.20), pos(0.22, 0.40), pos(0.22, 0.60), pos(0.25, 0.80), // DEF
+        pos(0.45, 0.20), pos(0.40, 0.40), pos(0.40, 0.60), pos(0.45, 0.80), // MID
+        pos(0.65, 0.40), pos(0.65, 0.60) // FWD
+      ];
+    } else if (formacion === '4-3-3') {
+      layout = [
+        pos(0.08, 0.50), // GK
+        pos(0.25, 0.20), pos(0.22, 0.40), pos(0.22, 0.60), pos(0.25, 0.80), // DEF
+        pos(0.42, 0.50), pos(0.48, 0.25), pos(0.48, 0.75), // MID
+        pos(0.65, 0.50), pos(0.60, 0.25), pos(0.60, 0.75) // FWD
+      ];
+    } else if (formacion === '3-5-2') {
+      layout = [
+        pos(0.08, 0.50), // GK
+        pos(0.22, 0.25), pos(0.20, 0.50), pos(0.22, 0.75), // DEF
+        pos(0.40, 0.15), pos(0.45, 0.35), pos(0.40, 0.50), pos(0.45, 0.65), pos(0.40, 0.85), // MID
+        pos(0.65, 0.40), pos(0.65, 0.60) // FWD
+      ];
+    }
+
+    if (layout.length > 0) {
+      setJugadores(prev => prev.map(p => {
+        if (p.id.startsWith(team)) {
+          const num = parseInt(p.id.split('-')[1]);
+          if (num <= 11 && layout[num - 1]) {
+            return { ...p, x: layout[num - 1].x, y: layout[num - 1].y };
+          }
+        }
+        return p;
+      }));
+      toast.success(`Formación ${formacion} aplicada al equipo ${isRed ? 'Rojo' : 'Azul'}`);
+    }
+  };
+
   const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
   const startDragging = (id: string) => () => setDraggedPlayerId(id);
 
@@ -358,6 +411,7 @@ export default function PizarraTactica() {
                 <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
              </button>
              <button onClick={clearCanvas} title="Limpiar dibujos" className="p-2 lg:p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" /></button>
+             <button onClick={() => { aplicarFormacion('red', '4-4-2'); aplicarFormacion('blue', '4-4-2'); }} title="Alinear 4-4-2 rápido" className="p-2 lg:p-3 text-slate-500 hover:text-emerald-400 rounded-xl transition-colors lg:hidden"><UsersIcon className="w-4 h-4 lg:w-5 lg:h-5" /></button>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
@@ -416,11 +470,35 @@ export default function PizarraTactica() {
           </div>
         )}
         
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-4 shadow-2xl z-30">
-           <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest mb-1">Equipos</div>
-           <div className="flex flex-col gap-3">
-              <div className="w-10 h-10 rounded-full bg-red-600 border-2 border-white/20 shadow-lg shadow-red-900/20"></div>
-              <div className="w-10 h-10 rounded-full bg-blue-600 border-2 border-white/20 shadow-lg shadow-blue-900/20"></div>
+        <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-6 shadow-2xl z-30">
+           <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest">Formaciones</div>
+           
+           {/* Equipo Rojo */}
+           <div className="flex flex-col gap-2 items-center">
+              <div className="w-8 h-8 rounded-full bg-red-600 border-2 border-white/20 shadow-lg flex items-center justify-center font-bold text-[10px]">R</div>
+              <select 
+                onChange={(e) => aplicarFormacion('red', e.target.value)}
+                className="bg-slate-900 border border-white/10 text-white text-[10px] rounded p-1.5 outline-none cursor-pointer hover:bg-slate-700"
+              >
+                <option value="">Alinear...</option>
+                <option value="4-4-2">4-4-2</option>
+                <option value="4-3-3">4-3-3</option>
+                <option value="3-5-2">3-5-2</option>
+              </select>
+           </div>
+
+           {/* Equipo Azul */}
+           <div className="flex flex-col gap-2 items-center">
+              <div className="w-8 h-8 rounded-full bg-blue-600 border-2 border-white/20 shadow-lg flex items-center justify-center font-bold text-[10px]">A</div>
+              <select 
+                onChange={(e) => aplicarFormacion('blue', e.target.value)}
+                className="bg-slate-900 border border-white/10 text-white text-[10px] rounded p-1.5 outline-none cursor-pointer hover:bg-slate-700"
+              >
+                <option value="">Alinear...</option>
+                <option value="4-4-2">4-4-2</option>
+                <option value="4-3-3">4-3-3</option>
+                <option value="3-5-2">3-5-2</option>
+              </select>
            </div>
         </div>
 
