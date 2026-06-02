@@ -6,11 +6,17 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const imageFile = formData.get('image') as File | null;
+    // Debug: list received keys
+    console.log('[remove-background] Received FormData keys:', [...formData.keys()]);
+    // Accept both 'image_file' (official) and legacy 'image' field
+    const imageFile = (formData.get('image_file') ?? formData.get('image')) as File | null;
     const club_id = formData.get('club_id') as string | null;
 
-    if (!imageFile || !club_id) {
-      return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 });
+    if (!imageFile) {
+      return NextResponse.json({ error: 'Falta la imagen (image_file)', missing: 'image_file' }, { status: 400 });
+    }
+    if (!club_id) {
+      return NextResponse.json({ error: 'Falta club_id', missing: 'club_id' }, { status: 400 });
     }
 
     const REMOVEBG_API_KEY = process.env.REMOVEBG_API_KEY;

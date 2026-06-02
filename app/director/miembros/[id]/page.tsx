@@ -48,6 +48,9 @@ export default function FichaDelJugador() {
         setJugador({ ...data, grupos: data.grupos?.replace('|MANUAL', '') });
         
         const formDataInit = { ...data };
+if (data.fecha_nacimiento) {
+  formDataInit.fecha_nacimiento = normalizeDate(data.fecha_nacimiento);
+}
         if (data.grupos && data.grupos.includes('|MANUAL')) {
           formDataInit.override_categoria = true;
           formDataInit.grupos = data.grupos.replace('|MANUAL', '');
