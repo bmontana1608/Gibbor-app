@@ -214,6 +214,12 @@ export default function PlanificadorEntrenador() {
         </div>
         <div className="flex gap-3">
           <button 
+            onClick={() => window.location.href = '/entrenador/pizarra'}
+            className="bg-white border-2 border-slate-200 text-slate-700 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
+          >
+            <PenTool className="w-5 h-5 text-[var(--brand-primary)]" /> Pizarra Táctica
+          </button>
+          <button 
             onClick={() => setMostrarModal(true)}
             className="bg-[var(--brand-primary)] text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
           >
