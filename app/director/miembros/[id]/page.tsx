@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload } from 'lucide-react';
+import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload, Wand2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { removeBackground } from '@imgly/background-removal';
 
 import { useTenant } from '@/lib/hooks/useTenant';
 
@@ -124,21 +125,34 @@ export default function FichaDelJugador() {
       const file = e.target.files[0];
       setSubiendoFoto(true);
       
+      const toastId = toast.loading('Procesando foto...');
+      
       const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
       
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      toast.loading('Eliminando fondo con IA (puede tardar unos segundos)...', { id: toastId });
+      
+      // Configuración para que descargue el modelo de forma segura
+      const config = {
+        publicPath: 'https://static.imgly.com/@imgly/background-removal-data/1.4.5/dist/'
+      };
+      
+      const imageBlob = await removeBackground(file, config);
+      
+      const fileName = `${Math.random()}.png`;
       const filePath = `${tenantData.id}/avatares/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage.from('fotos').upload(filePath, file);
+      toast.loading('Subiendo imagen final...', { id: toastId });
+      const { error: uploadError } = await supabase.storage.from('fotos').upload(filePath, imageBlob, {
+         contentType: 'image/png'
+      });
       if (uploadError) throw uploadError;
       
       const { data } = supabase.storage.from('fotos').getPublicUrl(filePath);
       setFormData({ ...formData, foto_url: data.publicUrl });
-      toast.success('Foto subida. No olvides guardar.');
+      toast.success('Foto subida sin fondo. No olvides guardar el perfil.', { id: toastId });
     } catch (err: any) {
-      toast.error('Error al subir: ' + err.message);
+      toast.error('Error al subir o procesar: ' + err.message);
     } finally {
       setSubiendoFoto(false);
     }
@@ -282,8 +296,9 @@ export default function FichaDelJugador() {
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-slate-500 mb-1">Foto de Perfil</label>
                   <div className="flex gap-4 items-center">
-                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 border p-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all">
-                       <Upload className="w-4 h-4" /> {subiendoFoto ? "Subiendo..." : "Subir Foto"}
+                    <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 border p-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-all group">
+                       {subiendoFoto ? <Loader className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4 text-emerald-500 group-hover:rotate-12 transition-transform" />} 
+                       {subiendoFoto ? "Procesando IA..." : "Foto con IA"}
                        <input type="file" accept="image/*" onChange={handleSubirFoto} className="hidden" disabled={subiendoFoto} />
                     </label>
                     <input type="text" name="foto_url" value={formData.foto_url || ''} onChange={handleChange} placeholder="URL de la foto..." className="flex-1 px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2"/>
