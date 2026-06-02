@@ -23,47 +23,46 @@ export default function LoginForm({ tenant }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [sessionCargada, setSessionCargada] = useState(false);
 
-  // EFECTO DE PERSISTENCIA: Si ya hay sesión en el navegador, brincar el login
+  // EFECTO DE PERSISTENCIA: Si ya hay sesión VÁLIDA en el navegador, brincar el login
   useEffect(() => {
     let mounted = true;
     async function chequearSession() {
       let debeRedirigir = false;
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // getUser() valida contra el servidor (no usa caché local)
+        // Evita loops infinitos con tokens expirados
+        const { data: { user }, error } = await supabase.auth.getUser();
         
-        if (sessionError) {
-          console.warn("Error al obtener sesión, mostrando formulario:", sessionError.message);
-          return; // Mostrar formulario
+        if (error || !user) {
+          // No hay sesión válida → mostrar formulario
+          return;
         }
 
-        if (session?.user) {
-          const { data: perfil } = await supabase
-            .from('perfiles')
-            .select('rol, club_id, clubes(slug)')
-            .eq('id', session.user.id)
-            .single();
+        const { data: perfil } = await supabase
+          .from('perfiles')
+          .select('rol, club_id, clubes(slug)')
+          .eq('id', user.id)
+          .single();
 
-          if (perfil) {
-            const clubSlug = (perfil.clubes as any)?.slug;
-            const rol = perfil.rol?.toLowerCase();
-            
-            if (perfil.rol === 'SuperAdmin') {
-              debeRedirigir = true;
-              window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
-              return;
-            } else if (clubSlug) {
-              debeRedirigir = true;
-              const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
-              window.location.href = destino;
-              return;
-            }
+        if (perfil) {
+          const clubSlug = (perfil.clubes as any)?.slug;
+          const rol = perfil.rol?.toLowerCase();
+          
+          if (perfil.rol === 'SuperAdmin') {
+            debeRedirigir = true;
+            window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
+            return;
+          } else if (clubSlug) {
+            debeRedirigir = true;
+            const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+            window.location.href = destino;
+            return;
           }
         }
       } catch (error) {
         console.warn("Error en chequearSession, mostrando formulario:", error);
       }
 
-      // Solo mostrar el formulario si no vamos a redirigir y el componente sigue montado
       if (!debeRedirigir && mounted) {
         setSessionCargada(true);
       }
