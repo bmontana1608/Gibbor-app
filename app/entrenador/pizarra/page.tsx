@@ -266,7 +266,7 @@ export default function PizarraTactica() {
       y: h * yPerc
     });
 
-    let layout = [];
+    let layout: {x: number, y: number}[] = [];
     if (formacion === '4-4-2') {
       layout = [
         pos(0.08, 0.50), // GK
