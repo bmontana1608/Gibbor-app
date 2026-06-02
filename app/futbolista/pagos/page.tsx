@@ -60,10 +60,18 @@ export default function PagosFutbolista() {
   let targetMonth = now.getMonth();
   let targetYear = now.getFullYear();
   
+  // Calcular estado real basándose en los pagos del mes actual
+  const currentMonthStr = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}`;
+  const haPagadoEsteMes = pagos.some(p => p.fecha && String(p.fecha).startsWith(currentMonthStr) && !String(p.concepto || '').toLowerCase().includes('aporte'));
+  
+  // Si tiene beca del 100%, siempre está al día
+  const esBeca = (perfil?.tipo_plan || '').toLowerCase().includes('beca 100');
+  const estadoPagoReal = (haPagadoEsteMes || esBeca) ? 'Al día' : 'Pendiente';
+  
   // Si está al día y ya pasó el día 10, el próximo pago es el mes siguiente
   // Si está al día y NO ha pasado el día 10, el próximo pago es este mes.
   // Si está pendiente, siempre debe el mes actual o anterior, dejamos el mes actual.
-  if (perfil?.estado_pago === 'Al día') {
+  if (estadoPagoReal === 'Al día') {
      targetMonth += 1;
      if (targetMonth > 11) {
        targetMonth = 0;
@@ -86,12 +94,14 @@ export default function PagosFutbolista() {
         </div>
         
         <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${perfil?.estado_pago === 'Al día' ? 'bg-emerald-100 text-emerald-600' : '-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)]'}`}>
+           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${estadoPagoReal === 'Al día' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
               <CheckCircle2 className="w-6 h-6" />
            </div>
            <div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado Actual</p>
-              <p className="font-black text-slate-800 uppercase">{perfil?.estado_pago || 'Pendiente'}</p>
+              <p className={`font-black uppercase ${estadoPagoReal === 'Al día' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {estadoPagoReal}
+              </p>
            </div>
         </div>
       </div>
