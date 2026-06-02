@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -20,15 +20,19 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const tenant = initialTenant;
   const usuario = initialProfile;
+  const mainRef = useRef<HTMLElement>(null);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
     window.location.href = `/${tenant?.slug || 'default'}/login`;
   };
 
-  // Cerrar menú al navegar
+  // Cerrar menú y resetear scroll al navegar
   useEffect(() => {
     if (isSidebarOpen) setIsSidebarOpen(false);
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, [pathname]);
 
   const tenantSlug = tenant?.slug || '';
@@ -185,7 +189,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+      <main ref={mainRef} className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
         <div className="p-4 md:p-8">
             {children}
         </div>

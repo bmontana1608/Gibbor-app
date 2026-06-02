@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -29,6 +29,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
   const tenant = initialTenant;
   const usuario = initialProfile;
   const hijos = initialFamily;
+  const mainRef = useRef<HTMLElement>(null);
 
   const tenantSlug = tenant?.slug || '';
   const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
@@ -38,9 +39,12 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
     window.location.href = `${basePath}/login`;
   };
 
-  // Cerrar menú al navegar
+  // Cerrar menú y resetear scroll al navegar
   useEffect(() => {
     if (isSidebarOpen) setIsSidebarOpen(false);
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, [pathname]);
 
   const menu = [
@@ -214,7 +218,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 overflow-y-auto bg-[#F8FAFC] md:ml-72">
+      <main ref={mainRef} className="flex-1 overflow-y-auto bg-[#F8FAFC] md:ml-72">
         <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 py-4 flex items-center justify-between z-40">
            <div className="flex flex-col">
               <h2 className="text-sm font-black text-slate-800 uppercase tracking-tighter italic">Centro de Control</h2>

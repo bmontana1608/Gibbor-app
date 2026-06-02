@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -22,14 +22,18 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const tenantSlug = initialTenant?.slug || '';
   const [basePath, setBasePath] = useState(tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '');
+  const mainRef = useRef<HTMLElement>(null);
   
   const tenant = initialTenant;
   const profile = initialProfile;
 
-  // Cerrar menú al navegar
+  // Cerrar menú y resetear scroll al navegar
   useEffect(() => {
-    // Solo cerrar si el sidebar está abierto para no forzar re-renders innecesarios
     if (isSidebarOpen) setIsSidebarOpen(false);
+    // Volver al inicio del contenido al cambiar de página
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
   }, [pathname]);
 
   // Sincronizar basePath solo cuando cambia el club
@@ -231,7 +235,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
+        <main ref={mainRef} className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
           {children}
         </main>
       </div>
