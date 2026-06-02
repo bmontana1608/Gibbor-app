@@ -56,6 +56,24 @@ export default function PagosFutbolista() {
     <div className="h-64 bg-slate-200 rounded-3xl w-full"></div>
   </div>;
 
+  const now = new Date();
+  let targetMonth = now.getMonth();
+  let targetYear = now.getFullYear();
+  
+  // Si está al día y ya pasó el día 10, el próximo pago es el mes siguiente
+  // Si está al día y NO ha pasado el día 10, el próximo pago es este mes.
+  // Si está pendiente, siempre debe el mes actual o anterior, dejamos el mes actual.
+  if (perfil?.estado_pago === 'Al día') {
+     targetMonth += 1;
+     if (targetMonth > 11) {
+       targetMonth = 0;
+       targetYear += 1;
+     }
+  }
+
+  const nextDateObj = new Date(targetYear, targetMonth, 10);
+  const monthName = nextDateObj.toLocaleDateString('es-ES', { month: 'long' }).toUpperCase();
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* TÍTULO Y RESUMEN */}
@@ -83,8 +101,8 @@ export default function PagosFutbolista() {
          <div className="relative z-10 space-y-4">
             <p className="-[var(--brand-primary)] text-xs font-black uppercase tracking-[0.2em]">Próximo Vencimiento</p>
             <div className="flex items-end gap-2">
-               <h2 className="text-4xl md:text-5xl font-black">10 ABRIL</h2>
-               <span className="text-slate-500 font-bold mb-1">2024</span>
+               <h2 className="text-4xl md:text-5xl font-black">10 {monthName}</h2>
+               <span className="text-slate-500 font-bold mb-1">{targetYear}</span>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
