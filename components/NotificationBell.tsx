@@ -12,6 +12,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
   const [userId, setUserId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [selectedNotif, setSelectedNotif] = useState<any>(null);
   const router = useRouter();
 
   const cargarNotificaciones = async (rol: string, activeUserId: string) => {
@@ -132,7 +133,14 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                   {notificaciones.map((notif, index) => (
                     <div
                       key={notif.id || index}
-                      onClick={() => { if(notif.origen === 'registro') router.push('/director/miembros'); setIsOpen(false); }}
+                      onClick={() => { 
+                        if(notif.origen === 'registro') {
+                          router.push('/director/miembros'); 
+                        } else {
+                          setSelectedNotif(notif);
+                        }
+                        setIsOpen(false); 
+                      }}
                       className="w-full p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group relative cursor-pointer"
                     >
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${notif.origen === 'registro' ? 'bg-orange-100 dark:bg-orange-500/10 text-orange-600' : 'bg-blue-100 dark:bg-blue-500/10 text-blue-600'}`}>
@@ -142,11 +150,11 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                         <p className="text-sm font-bold text-slate-800 dark:text-white truncate uppercase italic tracking-tighter">
                           {notif.titulo || 'Nuevo Aviso'}
                         </p>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5">
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5 line-clamp-2">
                           {notif.mensaje}
                         </p>
                         <p className="text-[9px] text-slate-400 font-bold mt-2 uppercase">
-                          {new Date(notif.created_at).toLocaleDateString()}
+                          {new Date(notif.created_at || notif.fecha_registro || Date.now()).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -165,6 +173,39 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
             )}
           </div>
         </>
+      )}
+
+      {selectedNotif && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-2xl relative animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800">
+            <div className="flex items-start gap-4 mb-4">
+               <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center flex-shrink-0">
+                 <Megaphone className="w-6 h-6" />
+               </div>
+               <div>
+                 <h2 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{selectedNotif.titulo || 'Comunicado'}</h2>
+                 <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
+                   {new Date(selectedNotif.created_at || selectedNotif.fecha_registro || Date.now()).toLocaleDateString()}
+                 </p>
+               </div>
+            </div>
+            
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl mb-6">
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                {selectedNotif.mensaje}
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <button 
+                onClick={() => setSelectedNotif(null)}
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 transition-opacity"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
