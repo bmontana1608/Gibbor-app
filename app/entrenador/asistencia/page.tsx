@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { syncCategoriasInteligentes } from '@/lib/syncCategorias';
 
 type Vista = 'categorias' | 'asistencia' | 'historial';
 
@@ -101,6 +102,12 @@ export default function AsistenciaEntrenador() {
       const { data: usuario } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
       if (usuario) {
         setPerfil(usuario);
+        
+        // Sincronización transparente de edades y categorías en segundo plano
+        if (usuario.club_id) {
+          syncCategoriasInteligentes(usuario.club_id).catch(console.error);
+        }
+
         try {
           const res = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
           const cats = await res.json();
@@ -142,12 +149,13 @@ export default function AsistenciaEntrenador() {
     setSesionId(eventoId);
 
     // Cargar alumnos activos de la categoría
+    // Usamos .like para poder atrapar aquellos que tienen el sufijo |MANUAL (ej. Alpha|MANUAL)
     const { data: jugs } = await supabase
       .from('perfiles')
       .select('id, nombres, apellidos, grupos, foto_url, tipo_plan')
       .eq('rol', 'Futbolista')
       .eq('club_id', perfil.club_id)
-      .eq('grupos', cat.nombre)
+      .like('grupos', `${cat.nombre}%`)
       .neq('estado_miembro', 'Inactivo');
 
     if (jugs) {
@@ -268,7 +276,7 @@ export default function AsistenciaEntrenador() {
       .from('asistencias')
       .select('fecha, estado, jugador_id, nota_rendimiento, grupo')
       .eq('club_id', perfil.club_id)
-      .eq('grupo', grupoBuscar)
+      .like('grupo', `${grupoBuscar}%`)
       .order('fecha', { ascending: false });
 
     if (!data) { setHistorialSesiones([]); setCargandoHistorial(false); return; }

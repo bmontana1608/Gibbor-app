@@ -45,8 +45,16 @@ export default function FichaDelJugador() {
       if (error) {
         toast.error('Error al cargar datos: ' + error.message);
       } else if (data) {
-        setJugador(data);
-        setFormData(data); 
+        setJugador({ ...data, grupos: data.grupos?.replace('|MANUAL', '') });
+        
+        const formDataInit = { ...data };
+        if (data.grupos && data.grupos.includes('|MANUAL')) {
+          formDataInit.override_categoria = true;
+          formDataInit.grupos = data.grupos.replace('|MANUAL', '');
+        } else {
+          formDataInit.override_categoria = false;
+        }
+        setFormData(formDataInit); 
 
         const { data: categoriasBD } = await supabase.from('categorias')
           .select('nombre')
@@ -87,15 +95,23 @@ export default function FichaDelJugador() {
     setGuardando(true);
     const toastId = toast.loading("Guardando...");
 
+    const payload = { ...formData };
+    if (payload.override_categoria && payload.grupos && payload.rol === 'Futbolista') {
+      payload.grupos = `${payload.grupos}|MANUAL`;
+    } else if (payload.grupos) {
+      payload.grupos = payload.grupos.replace('|MANUAL', '');
+    }
+    delete payload.override_categoria;
+
     const { error } = await supabase
       .from('perfiles')
-      .update(formData)
+      .update(payload)
       .eq('id', jugador.id);
 
     if (error) {
       toast.error("Error al actualizar: " + error.message, { id: toastId });
     } else {
-      setJugador(formData); 
+      setJugador({ ...payload, grupos: payload.grupos?.replace('|MANUAL', '') }); 
       setEdicion(false);    
       toast.success("Datos actualizados.", { id: toastId });
     }
@@ -196,12 +212,25 @@ export default function FichaDelJugador() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Categoría</label>
-                  <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
-                    <option value="">Sin Asignar</option>
-                    {categorias.map(c => (
-                      <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
-                    ))}
-                  </select>
+                  <div className="space-y-2">
+                    <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
+                      <option value="">Sin Asignar</option>
+                      {categorias.map(c => (
+                        <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                      ))}
+                    </select>
+                    {formData.rol === 'Futbolista' && formData.grupos && (
+                      <label className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                        <input 
+                          type="checkbox"
+                          checked={formData.override_categoria}
+                          onChange={(e) => setFormData((prev: any) => ({ ...prev, override_categoria: e.target.checked }))}
+                          className="w-3 h-3 rounded border-slate-300"
+                        />
+                        Fijar categoría manualmente
+                      </label>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Plan de Pago</label>

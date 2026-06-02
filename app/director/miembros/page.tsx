@@ -90,7 +90,12 @@ export default function DirectorioMiembros() {
     if (error) {
        toast.error(`Error de conexión: ${error.message}`);
     } else {
-       setJugadores(data || []);
+       const cleanData = (data || []).map(j => ({
+         ...j,
+         grupos_originales: j.grupos,
+         grupos: j.grupos?.replace('|MANUAL', '')
+       }));
+       setJugadores(cleanData);
     }
     setCargando(false);
   };

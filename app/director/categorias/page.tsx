@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner';
 
 import { useTenant } from '@/lib/hooks/useTenant';
+import { syncCategoriasInteligentes } from '@/lib/syncCategorias';
 
 export default function GestionCategorias() {
   const router = useRouter();
@@ -39,6 +40,11 @@ export default function GestionCategorias() {
     setCargando(true);
     const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
     const tenantData = await tenantRes.json();
+    
+    // Sincronización transparente de edades y categorías
+    if (tenantData?.id) {
+      syncCategoriasInteligentes(tenantData.id).catch(console.error);
+    }
     
     const { data: catData, error: catError } = await supabase.from('categorias').select('*').eq('club_id', tenantData.id).order('created_at', { ascending: true });
     

@@ -74,11 +74,11 @@ export default function NuevoMiembro() {
 
     // Club
     grupos: '',
-    tipo_plan: 'Regular',
     rol: 'Futbolista',
     estado_pago: 'Pendiente',
     estado_miembro: 'Activo',
-    hijos_config: ''
+    hijos_config: '',
+    override_categoria: false
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -111,8 +111,12 @@ export default function NuevoMiembro() {
 
     const payload = {
       ...formData,
+      grupos: formData.override_categoria && formData.grupos ? `${formData.grupos}|MANUAL` : formData.grupos,
       club_id: tenant?.id
     };
+    
+    // Remove the override_categoria field as it doesn't exist in DB
+    delete (payload as any).override_categoria;
 
     const { error } = await supabase
       .from('perfiles')
@@ -296,12 +300,26 @@ export default function NuevoMiembro() {
                     {categorias.length === 0 && <p className="text-[10px] text-slate-400 italic col-span-full">No hay categorías activas creadas.</p>}
                   </div>
                 ) : (
-                  <select name="grupos" value={formData.grupos} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer font-bold">
-                    <option value="">Sin categoría / Sin asignar</option>
-                    {categorias.map(cat => (
-                      <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
-                    ))}
-                  </select>
+                  <div className="space-y-3">
+                    <select name="grupos" value={formData.grupos} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer font-bold">
+                      <option value="">Sin categoría / Sin asignar</option>
+                      {categorias.map(cat => (
+                        <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
+                      ))}
+                    </select>
+                    
+                    {formData.grupos && (
+                      <label className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 cursor-pointer">
+                        <input 
+                          type="checkbox"
+                          checked={formData.override_categoria}
+                          onChange={(e) => setFormData(prev => ({ ...prev, override_categoria: e.target.checked }))}
+                          className="w-4 h-4 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
+                        />
+                        <span>Fijar manualmente (Ignorar auto-asignación por edad)</span>
+                      </label>
+                    )}
+                  </div>
                 )}
                 <p className="text-[10px] text-slate-400 mt-1 font-medium italic">Los entrenadores pueden tener varias categorías asignadas.</p>
               </div>
