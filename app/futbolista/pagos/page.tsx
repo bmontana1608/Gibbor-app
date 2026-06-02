@@ -5,13 +5,14 @@ import { supabase } from "@/lib/supabase";
 import { 
   CreditCard, Download, Search, 
   Calendar, CheckCircle2, ArrowRight,
-  Wallet, FileText
+  Wallet, FileText, Landmark, Smartphone, Building2
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PagosFutbolista() {
   const [pagos, setPagos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<any>(null);
+  const [configPago, setConfigPago] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
@@ -25,6 +26,16 @@ export default function PagosFutbolista() {
           .eq("id", session.user.id)
           .single();
         setPerfil(userData);
+
+        if (userData?.club_id) {
+          // Obtenemos los canales de pago
+          const { data: configData } = await supabase
+            .from("configuracion_wa")
+            .select("nequi, daviplata, bre_b, banco_nombre, banco_numero")
+            .eq("club_id", userData.club_id)
+            .single();
+          if (configData) setConfigPago(configData);
+        }
 
         // Obtenemos el historial de pagos
         const { data: pagosData } = await supabase
@@ -130,6 +141,63 @@ export default function PagosFutbolista() {
             <CreditCard className="w-48 h-48 -rotate-12" />
          </div>
       </div>
+
+      {/* CANALES DE PAGO CONFIGURADOS */}
+      {configPago && (configPago.nequi || configPago.daviplata || configPago.bre_b || configPago.banco_numero) && (
+        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
+           <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2 mb-6">
+              <Landmark className="w-5 h-5 text-[var(--brand-primary)]" /> Canales de Pago Disponibles
+           </h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {configPago.nequi && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-[#39154E]/10 text-[#39154E] rounded-xl flex items-center justify-center">
+                     <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nequi</p>
+                    <p className="font-bold text-slate-800">{configPago.nequi}</p>
+                  </div>
+                </div>
+              )}
+              {configPago.daviplata && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-red-500/10 text-red-600 rounded-xl flex items-center justify-center">
+                     <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daviplata</p>
+                    <p className="font-bold text-slate-800">{configPago.daviplata}</p>
+                  </div>
+                </div>
+              )}
+              {configPago.bre_b && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
+                  <div className="w-10 h-10 bg-blue-500/10 text-blue-600 rounded-xl flex items-center justify-center">
+                     <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bre-B</p>
+                    <p className="font-bold text-slate-800">{configPago.bre_b}</p>
+                  </div>
+                </div>
+              )}
+              {configPago.banco_numero && (
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 md:col-span-2 lg:col-span-3">
+                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-xl flex items-center justify-center">
+                     <Building2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      {configPago.banco_nombre || 'Cuenta Bancaria'}
+                    </p>
+                    <p className="font-bold text-slate-800">{configPago.banco_numero}</p>
+                  </div>
+                </div>
+              )}
+           </div>
+        </div>
+      )}
 
       {/* LISTA DE PAGOS */}
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
