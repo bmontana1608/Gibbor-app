@@ -25,12 +25,15 @@ export default function LoginForm({ tenant }: LoginFormProps) {
 
   // EFECTO DE PERSISTENCIA: Si ya hay sesión en el navegador, brincar el login
   useEffect(() => {
+    let mounted = true;
     async function chequearSession() {
+      let debeRedirigir = false;
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Error obtaining session:", sessionError);
+          console.warn("Error al obtener sesión, mostrando formulario:", sessionError.message);
+          return; // Mostrar formulario
         }
 
         if (session?.user) {
@@ -45,26 +48,29 @@ export default function LoginForm({ tenant }: LoginFormProps) {
             const rol = perfil.rol?.toLowerCase();
             
             if (perfil.rol === 'SuperAdmin') {
-              if (tenant?.slug && tenant.slug !== 'master') {
-                router.push(`/director`);
-              } else {
-                router.push('/admin');
-              }
-              return; // Detener flujo
+              debeRedirigir = true;
+              window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
+              return;
             } else if (clubSlug) {
-              router.push(`/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`);
-              return; // Detener flujo
+              debeRedirigir = true;
+              const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+              window.location.href = destino;
+              return;
             }
           }
         }
       } catch (error) {
-        console.error("Error fatal en chequearSession:", error);
-      } finally {
+        console.warn("Error en chequearSession, mostrando formulario:", error);
+      }
+
+      // Solo mostrar el formulario si no vamos a redirigir y el componente sigue montado
+      if (!debeRedirigir && mounted) {
         setSessionCargada(true);
       }
     }
     chequearSession();
-  }, [router, tenant?.slug]);
+    return () => { mounted = false; };
+  }, []);
 
   if (!sessionCargada) {
     return (
