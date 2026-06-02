@@ -74,6 +74,7 @@ export default function NuevoMiembro() {
 
     // Club
     grupos: '',
+    tipo_plan: 'Regular',
     rol: 'Futbolista',
     estado_pago: 'Pendiente',
     estado_miembro: 'Activo',
