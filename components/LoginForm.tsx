@@ -32,37 +32,33 @@ export default function LoginForm({ tenant }: LoginFormProps) {
         // getUser() valida contra el servidor (no usa caché local)
         // Evita loops infinitos con tokens expirados
         const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          // No hay sesión válida → mostrar formulario
-          return;
-        }
 
-        const { data: perfil } = await supabase
-          .from('perfiles')
-          .select('rol, club_id, clubes(slug)')
-          .eq('id', user.id)
-          .single();
+        if (!error && user) {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('rol, club_id, clubes(slug)')
+            .eq('id', user.id)
+            .single();
 
-        if (perfil) {
-          const clubSlug = (perfil.clubes as any)?.slug;
-          const rol = perfil.rol?.toLowerCase();
-          
-          if (perfil.rol === 'SuperAdmin') {
-            debeRedirigir = true;
-            window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
-            return;
-          } else if (clubSlug) {
-            debeRedirigir = true;
-            const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
-            window.location.href = destino;
-            return;
+          if (perfil) {
+            const clubSlug = (perfil.clubes as any)?.slug;
+            const rol = perfil.rol?.toLowerCase();
+
+            if (perfil.rol === 'SuperAdmin') {
+              debeRedirigir = true;
+              window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
+            } else if (clubSlug) {
+              debeRedirigir = true;
+              const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+              window.location.href = destino;
+            }
           }
         }
-      } catch (error) {
-        console.warn("Error en chequearSession, mostrando formulario:", error);
+      } catch (err) {
+        console.warn("Error en chequearSession, mostrando formulario:", err);
       }
 
+      // Siempre mostrar el formulario si no hay redirección pendiente
       if (!debeRedirigir && mounted) {
         setSessionCargada(true);
       }
