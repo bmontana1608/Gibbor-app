@@ -9,7 +9,8 @@ import { getYouTubeId, isDriveUrl } from '@/lib/utils/videos';
 import { useRouter } from 'next/navigation';
 
 export default function BibliotecaEntrenador() {
-  const { tenant, basePath } = useTenant();
+  const { slug, basePath } = useTenant();
+  const [clubId, setClubId] = useState<string | null>(null);
   const router = useRouter();
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,11 +30,14 @@ export default function BibliotecaEntrenador() {
   });
 
   const cargarEjercicios = async () => {
-    if (!tenant?.id) return;
     setLoading(true);
     
     const userResp = await supabase.auth.getUser();
     setUserProfile(userResp.data.user);
+    if (userResp.data.user) {
+      const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', userResp.data.user.id).single();
+      if (perfil) setClubId(perfil.club_id);
+    }
     
     // RLS ensures they see Global + Club. 
     // We also want to fetch their own Personal drills. 
@@ -53,11 +57,15 @@ export default function BibliotecaEntrenador() {
 
   useEffect(() => {
     cargarEjercicios();
-  }, [tenant?.id]);
+  }, [slug]);
 
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userProfile) return;
+    if (!clubId) {
+      toast.error('No se pudo identificar tu club.');
+      return;
+    }
     
     setSaving(true);
     const { data, error } = await supabase
@@ -65,7 +73,7 @@ export default function BibliotecaEntrenador() {
       .insert({
         ...formData,
         scope: 'Personal',
-        club_id: tenant.id,
+        club_id: clubId,
         autor_id: userProfile.id
       })
       .select();

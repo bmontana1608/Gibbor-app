@@ -8,7 +8,8 @@ import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck } from 'lucide-re
 import { getYouTubeId, isDriveUrl } from '@/lib/utils/videos';
 
 export default function BibliotecaDirector() {
-  const { tenant } = useTenant();
+  const { slug } = useTenant();
+  const [clubId, setClubId] = useState<string | null>(null);
   const [ejercicios, setEjercicios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -26,14 +27,18 @@ export default function BibliotecaDirector() {
   });
 
   const cargarEjercicios = async () => {
-    if (!tenant?.id) return;
     setLoading(true);
     
-    // RLS will automatically restrict to Global + own Club, but we explicitly query it for clarity
+    const userResp = await supabase.auth.getUser();
+    if (userResp.data.user) {
+      const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', userResp.data.user.id).single();
+      if (perfil) setClubId(perfil.club_id);
+    }
+    
+    // RLS will automatically restrict to Global + own Club
     const { data, error } = await supabase
       .from('biblioteca_ejercicios')
       .select('*')
-      .or(`scope.eq.Global,club_id.eq.${tenant.id}`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -46,10 +51,14 @@ export default function BibliotecaDirector() {
 
   useEffect(() => {
     cargarEjercicios();
-  }, [tenant?.id]);
+  }, [slug]);
 
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!clubId) {
+      toast.error('No se pudo identificar tu club.');
+      return;
+    }
     setSaving(true);
     
     const userResp = await supabase.auth.getUser();
@@ -59,7 +68,7 @@ export default function BibliotecaDirector() {
       .insert({
         ...formData,
         scope: 'Club',
-        club_id: tenant.id,
+        club_id: clubId,
         autor_id: userResp.data.user?.id
       })
       .select();
