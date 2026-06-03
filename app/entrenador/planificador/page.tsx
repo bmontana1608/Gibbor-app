@@ -8,40 +8,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { getEmbedUrl, extractVideosFromDescription } from '@/lib/utils/videos';
 
-function getEmbedUrl(url: string) {
-  if (!url) return null;
-  // Limpiar URL
-  const cleanUrl = url.trim();
-  
-  // YouTube (maneja youtu.be, watch?v=, embed/, v/, shorts/)
-  const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  }
-  
-  // Google Drive
-  const driveMatch = cleanUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (driveMatch && driveMatch[1]) {
-    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
-  }
-  
-  return cleanUrl; // fallback
-}
-
-function extractVideosFromDescription(desc: string) {
-  if (!desc) return { description: '', videoUrls: [] };
-  const regex = /\[VIDEO\](.*?)\[\/VIDEO\]/g;
-  const videoUrls: string[] = [];
-  let match;
-  while ((match = regex.exec(desc)) !== null) {
-    videoUrls.push(match[1]);
-  }
-  return {
-    description: desc.replace(regex, '').trim(),
-    videoUrls
-  };
-}
 
 export default function PlanificadorEntrenador() {
   const router = useRouter();

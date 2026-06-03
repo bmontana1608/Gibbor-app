@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck } from 'lucide-react';
-import { getYouTubeId, isDriveUrl } from '@/lib/utils/videos';
+import { getYouTubeId, isDriveUrl, getEmbedUrl } from '@/lib/utils/videos';
 
 export default function BibliotecaDirector() {
   const { slug } = useTenant();
@@ -16,6 +16,7 @@ export default function BibliotecaDirector() {
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filtroVista, setFiltroVista] = useState<'Todos' | 'Global' | 'Club'>('Todos');
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -86,11 +87,31 @@ export default function BibliotecaDirector() {
     setSaving(false);
   };
 
-  const renderVideoThumbnail = (url: string) => {
+  const renderVideoThumbnail = (ejercicio: any) => {
+    const url = ejercicio.video_url;
+    if (playingVideoId === ejercicio.id) {
+      const embedUrl = getEmbedUrl(url);
+      if (embedUrl) {
+        return (
+          <div className="relative w-full h-40 bg-black rounded-t-2xl overflow-hidden">
+            <iframe 
+              src={embedUrl} 
+              className="w-full h-full border-none"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        );
+      }
+    }
+
     const ytId = getYouTubeId(url);
     if (ytId) {
       return (
-        <div className="relative w-full h-40 bg-slate-900 rounded-t-2xl overflow-hidden group">
+        <div 
+          className="relative w-full h-40 bg-slate-900 rounded-t-2xl overflow-hidden group cursor-pointer"
+          onClick={() => setPlayingVideoId(ejercicio.id)}
+        >
           <img src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Thumbnail" />
           <div className="absolute inset-0 flex items-center justify-center">
              <div className="w-12 h-12 bg-brand/90 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
@@ -102,7 +123,10 @@ export default function BibliotecaDirector() {
     }
     if (isDriveUrl(url)) {
       return (
-        <div className="w-full h-40 bg-blue-50 dark:bg-blue-900/20 rounded-t-2xl flex items-center justify-center border-b border-slate-100 dark:border-slate-800 group">
+        <div 
+          className="w-full h-40 bg-blue-50 dark:bg-blue-900/20 rounded-t-2xl flex items-center justify-center border-b border-slate-100 dark:border-slate-800 group cursor-pointer"
+          onClick={() => setPlayingVideoId(ejercicio.id)}
+        >
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
              <Video className="text-blue-500 w-8 h-8" />
           </div>
@@ -184,7 +208,7 @@ export default function BibliotecaDirector() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
              {filtrados.map(ejercicio => (
                 <div key={ejercicio.id} className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl hover:border-brand/30 transition-all flex flex-col group">
-                   {renderVideoThumbnail(ejercicio.video_url)}
+                   {renderVideoThumbnail(ejercicio)}
                    <div className="p-4 flex-1 flex flex-col">
                       <div className="flex items-center gap-2 mb-3">
                          <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-brand-muted text-brand rounded-md">

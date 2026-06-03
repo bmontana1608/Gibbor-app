@@ -32,3 +32,17 @@ export function getEmbedUrl(url: string): string | null {
   
   return cleanUrl; // fallback
 }
+
+export function extractVideosFromDescription(desc: string) {
+  if (!desc) return { description: '', videoUrls: [] };
+  const regex = /\[VIDEO\](.*?)\[\/VIDEO\]/g;
+  const videoUrls: string[] = [];
+  let match;
+  while ((match = regex.exec(desc)) !== null) {
+    videoUrls.push(match[1]);
+  }
+  return {
+    description: desc.replace(regex, '').trim(),
+    videoUrls
+  };
+}
