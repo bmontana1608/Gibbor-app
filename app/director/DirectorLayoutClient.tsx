@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library } from 'lucide-react';
 
 interface DirectorLayoutClientProps {
   children: React.ReactNode;
@@ -55,6 +55,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     { name: 'Nómina', path: `${basePath}/director/nomina`, icon: <Briefcase className="w-5 h-5" /> },
     { name: 'Asistencia', path: `${basePath}/director/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
     { name: 'Categorías', path: `${basePath}/director/categorias`, icon: <Tags className="w-5 h-5" /> },
+    { name: 'Biblioteca', path: `${basePath}/director/biblioteca`, icon: <Library className="w-5 h-5" /> },
     { name: 'Reportes', path: `${basePath}/director/reportes`, icon: <BarChart className="w-5 h-5" /> },
     { name: 'Comunicados', path: `${basePath}/director/comunicados`, icon: <Megaphone className="w-5 h-5" /> },
     { name: 'Historial WA', path: `${basePath}/director/whatsapp`, icon: <MessageSquare className="w-5 h-5" /> },

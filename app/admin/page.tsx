@@ -6,16 +6,17 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import LoginForm from '@/components/LoginForm';
 import SaaSManagementView from '@/components/admin/SaaSManagementView';
+import BibliotecaAdminView from '@/components/admin/BibliotecaAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -329,6 +330,7 @@ export default function SuperAdminDashboard() {
           <NavItem icon={<Users size={18} />} label="Usuarios Globales" active={vista === 'usuarios'} onClick={() => setVista('usuarios')} />
           <NavItem icon={<CreditCard size={18} />} label="Suscripciones" active={vista === 'saas-billing'} onClick={() => setVista('saas-billing')} />
           <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" active={vista === 'metricas'} onClick={() => setVista('metricas')} />
+          <NavItem icon={<Library size={18} />} label="Biblioteca MCM" active={vista === 'biblioteca'} onClick={() => setVista('biblioteca')} />
         </nav>
 
         <div className="pt-6 border-t border-white/5 space-y-2">
@@ -639,6 +641,10 @@ export default function SuperAdminDashboard() {
 
         {vista === 'saas-billing' && (
           <SaaSManagementView />
+        )}
+
+        {vista === 'biblioteca' && (
+          <BibliotecaAdminView />
         )}
 
         {vista === 'configuracion' && (

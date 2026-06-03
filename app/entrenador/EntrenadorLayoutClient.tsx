@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield, Layout, Trophy, Radar, ArrowRightLeft, Zap } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield, Layout, Trophy, Radar, ArrowRightLeft, Zap, Library } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 
 interface EntrenadorLayoutClientProps {
@@ -51,6 +51,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
     { name: 'Inicio', path: `${basePath}/entrenador`, icon: <Home className="w-5 h-5" /> },
     { name: 'Pasar Asistencia', path: `${basePath}/entrenador/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
     { name: 'Planificador', path: `${basePath}/entrenador/planificador`, icon: <Layout className="w-5 h-5" /> },
+    { name: 'Biblioteca', path: `${basePath}/entrenador/biblioteca`, icon: <Library className="w-5 h-5" /> },
     { name: 'Puntos de Honor', path: `${basePath}/entrenador/puntos`, icon: <Trophy className="w-5 h-5" /> },
     { name: 'Stats Lab', path: `${basePath}/entrenador/stats`, icon: <Radar className="w-5 h-5" /> },
     { name: 'Mis Categorías', path: `${basePath}/entrenador/categorias`, icon: <Users className="w-5 h-5" /> },

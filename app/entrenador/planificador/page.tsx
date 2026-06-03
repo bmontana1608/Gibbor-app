@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   Plus, Calendar, List, BookOpen, Save, Trash2, 
-  ChevronRight, ClipboardList, PenTool, Layout, Video, X
+  ChevronRight, ClipboardList, PenTool, Layout, Video, X, Library
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 function getEmbedUrl(url: string) {
   if (!url) return null;
@@ -43,6 +44,7 @@ function extractVideosFromDescription(desc: string) {
 }
 
 export default function PlanificadorEntrenador() {
+  const router = useRouter();
   const [planes, setPlanes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -83,6 +85,24 @@ export default function PlanificadorEntrenador() {
       const { data: planesBD } = await supabase.from('planificaciones').select('*').eq('club_id', usuario?.club_id).order('fecha', { ascending: false });
       setPlanes(planesBD || []);
       
+      // Check for imported drill from library
+      const importedDrillStr = sessionStorage.getItem('import_drill');
+      if (importedDrillStr) {
+        try {
+          const drill = JSON.parse(importedDrillStr);
+          setFormData(prev => ({
+            ...prev,
+            titulo: drill.titulo || '',
+            descripcion: drill.descripcion || '',
+            videos: [drill.video_url || '']
+          }));
+          setMostrarModal(true);
+          sessionStorage.removeItem('import_drill');
+        } catch (e) {
+          console.error("Error parsing import_drill", e);
+        }
+      }
+
       setCargando(false);
     }
     cargarDatos();
@@ -383,9 +403,18 @@ export default function PlanificadorEntrenador() {
               
               {/* Campo para Múltiples Videos */}
               <div>
-                <label className="block text-xs font-black text-slate-500 uppercase mb-2 flex items-center gap-2">
-                  <Video className="w-4 h-4" /> Videos de Apoyo (YouTube o Drive)
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-black text-slate-500 uppercase flex items-center gap-2">
+                    <Video className="w-4 h-4" /> Videos de Apoyo (YouTube o Drive)
+                  </label>
+                  <button 
+                    type="button" 
+                    onClick={() => router.push('/entrenador/biblioteca')}
+                    className="text-[10px] font-black uppercase tracking-widest text-[var(--brand-primary)] hover:text-brand-light flex items-center gap-1 bg-[var(--brand-primary)]/10 px-2 py-1 rounded-md transition-colors"
+                  >
+                    <Library className="w-3 h-3" /> Explorar Biblioteca
+                  </button>
+                </div>
                 <div className="space-y-3">
                   {formData.videos.map((url, idx) => (
                     <div key={idx} className="flex items-center gap-2">
