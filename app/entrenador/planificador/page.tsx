@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { getEmbedUrl, extractVideosFromDescription } from '@/lib/utils/videos';
+import { getEmbedUrl, extractVideosFromDescription, resolveShortUrl } from '@/lib/utils/videos';
 
 
 export default function PlanificadorEntrenador() {
@@ -81,9 +81,10 @@ export default function PlanificadorEntrenador() {
     setGuardando(true);
     const toastId = toast.loading("Guardando plan de sesión...");
 
-    // Limpiar videos vacíos y unirlos separados por comas
+    // Limpiar videos vacíos y resolver URLs cortas (ej. TikTok)
     const videosLimpios = formData.videos.filter(v => v.trim() !== '');
-    const videoUrlString = videosLimpios.join(',');
+    const resolvedVideos = await Promise.all(videosLimpios.map(v => resolveShortUrl(v)));
+    const videoUrlString = resolvedVideos.join(',');
 
     const { videos, ...restoFormData } = formData;
     let payload = { ...restoFormData, video_url: videoUrlString };
@@ -102,8 +103,8 @@ export default function PlanificadorEntrenador() {
     if (error && (error.message.includes('video_url') || error.message.includes('column'))) {
       const { video_url, ...resto } = payload;
       const fallbackPayload = { ...resto } as any;
-      if (videosLimpios.length > 0) {
-        fallbackPayload.descripcion = fallbackPayload.descripcion + '\n\n' + videosLimpios.map(v => `[VIDEO]${v}[/VIDEO]`).join('\n');
+      if (resolvedVideos.length > 0) {
+        fallbackPayload.descripcion = fallbackPayload.descripcion + '\n\n' + resolvedVideos.map(v => `[VIDEO]${v}[/VIDEO]`).join('\n');
       }
       
       if (planEditando) {

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, ArrowRight, User, Smartphone } from 'lucide-react';
-import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId } from '@/lib/utils/videos';
+import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 import { useRouter } from 'next/navigation';
 
 export default function BibliotecaEntrenador() {
@@ -69,10 +69,13 @@ export default function BibliotecaEntrenador() {
     }
     
     setSaving(true);
+    const finalUrl = await resolveShortUrl(formData.video_url);
+
     const { data, error } = await supabase
       .from('biblioteca_ejercicios')
       .insert({
         ...formData,
+        video_url: finalUrl,
         scope: 'Personal',
         club_id: clubId,
         autor_id: userProfile.id

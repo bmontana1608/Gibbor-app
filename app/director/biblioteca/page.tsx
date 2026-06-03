@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, Smartphone } from 'lucide-react';
-import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId } from '@/lib/utils/videos';
+import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 
 export default function BibliotecaDirector() {
   const { slug } = useTenant();
@@ -62,12 +62,15 @@ export default function BibliotecaDirector() {
     }
     setSaving(true);
     
+    const finalUrl = await resolveShortUrl(formData.video_url);
+
     const userResp = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from('biblioteca_ejercicios')
       .insert({
         ...formData,
+        video_url: finalUrl,
         scope: 'Club',
         club_id: clubId,
         autor_id: userResp.data.user?.id

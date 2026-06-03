@@ -58,3 +58,22 @@ export function extractVideosFromDescription(desc: string) {
     videoUrls
   };
 }
+
+export async function resolveShortUrl(url: string): Promise<string> {
+  if (!url) return url;
+  const isShortTikTok = url.includes('vt.tiktok.com') || url.includes('vm.tiktok.com');
+  const isShortYoutube = url.includes('youtu.be');
+  
+  if (isShortTikTok || isShortYoutube) {
+    try {
+      const res = await fetch(`/api/resolve-url?url=${encodeURIComponent(url)}`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.finalUrl || url;
+      }
+    } catch (e) {
+      console.error('Failed to resolve URL', e);
+    }
+  }
+  return url;
+}

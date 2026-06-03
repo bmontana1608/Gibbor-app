@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Trash2, Search, Edit, Smartphone } from 'lucide-react';
-import { getYouTubeId, isDriveUrl, getDriveId, getEmbedUrl, getTikTokId } from '@/lib/utils/videos';
+import { getYouTubeId, isDriveUrl, getDriveId, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 
 export default function BibliotecaAdminView() {
   const [ejercicios, setEjercicios] = useState<any[]>([]);
@@ -47,12 +47,16 @@ export default function BibliotecaAdminView() {
     e.preventDefault();
     setSaving(true);
     
+    // Resolve short URL (like TikTok vt.tiktok.com) before saving
+    const finalUrl = await resolveShortUrl(formData.video_url);
+
     const userResp = await supabase.auth.getUser();
     
     const { data, error } = await supabase
       .from('biblioteca_ejercicios')
       .insert({
         ...formData,
+        video_url: finalUrl,
         scope: 'Global',
         autor_id: userResp.data.user?.id
       })
