@@ -39,7 +39,7 @@ export function getEmbedUrl(url: string): string | null {
   
   const tiktokId = getTikTokId(cleanUrl);
   if (tiktokId) {
-    return `https://www.tiktok.com/embed/v2/${tiktokId}`;
+    return `https://www.tikwm.com/video/media/play/${tiktokId}.mp4`;
   }
   
   return cleanUrl; // fallback

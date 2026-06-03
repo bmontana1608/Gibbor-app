@@ -95,14 +95,24 @@ export default function BibliotecaDirector() {
     if (playingVideoId === ejercicio.id) {
       const embedUrl = getEmbedUrl(url);
       if (embedUrl) {
+        const isMp4 = embedUrl.endsWith('.mp4');
         return (
           <div className="relative w-full h-40 bg-black rounded-t-2xl overflow-hidden">
-            <iframe 
-              src={embedUrl} 
-              className="w-full h-full border-none"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+            {isMp4 ? (
+              <video 
+                src={embedUrl}
+                controls
+                autoPlay
+                className="w-full h-full object-contain"
+              ></video>
+            ) : (
+              <iframe 
+                src={embedUrl} 
+                className="w-full h-full border-none"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            )}
           </div>
         );
       }

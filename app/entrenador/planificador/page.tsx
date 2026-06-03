@@ -307,16 +307,27 @@ export default function PlanificadorEntrenador() {
                           <Video className="w-4 h-4 text-brand" /> Material Audiovisual ({embedUrls.length})
                         </p>
                         <div className="grid grid-cols-1 gap-6">
-                          {embedUrls.map((embedUrl, idx) => (
-                            <div key={idx} className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
-                              <iframe 
-                                src={embedUrl!} 
-                                className="w-full h-full border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              ></iframe>
-                            </div>
-                          ))}
+                          {embedUrls.map((embedUrl, idx) => {
+                            const isMp4 = embedUrl?.endsWith('.mp4');
+                            return (
+                              <div key={idx} className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
+                                {isMp4 ? (
+                                  <video 
+                                    src={embedUrl!}
+                                    controls
+                                    className="w-full h-full object-contain"
+                                  ></video>
+                                ) : (
+                                  <iframe 
+                                    src={embedUrl!} 
+                                    className="w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  ></iframe>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
