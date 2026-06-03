@@ -16,6 +16,13 @@ export function getDriveId(url: string): string | null {
   return match ? match[1] : null;
 }
 
+export function getTikTokId(url: string): string | null {
+  if (!url) return null;
+  // Matches tiktok.com/@username/video/1234567890 or tiktok.com/v/1234567890
+  const match = url.match(/tiktok\.com\/(?:@[\w.-]+\/video\/|v\/)(\d+)/);
+  return match ? match[1] : null;
+}
+
 export function getEmbedUrl(url: string): string | null {
   if (!url) return null;
   const cleanUrl = url.trim();
@@ -28,6 +35,11 @@ export function getEmbedUrl(url: string): string | null {
   const driveId = getDriveId(cleanUrl);
   if (driveId) {
     return `https://drive.google.com/file/d/${driveId}/preview`;
+  }
+  
+  const tiktokId = getTikTokId(cleanUrl);
+  if (tiktokId) {
+    return `https://www.tiktok.com/embed/v2/${tiktokId}`;
   }
   
   return cleanUrl; // fallback

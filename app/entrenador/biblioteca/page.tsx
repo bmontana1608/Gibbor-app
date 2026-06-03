@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
-import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, ArrowRight, User } from 'lucide-react';
-import { getYouTubeId, isDriveUrl, getEmbedUrl } from '@/lib/utils/videos';
+import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, ArrowRight, User, Smartphone } from 'lucide-react';
+import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId } from '@/lib/utils/videos';
 import { useRouter } from 'next/navigation';
 
 export default function BibliotecaEntrenador() {
@@ -146,6 +146,20 @@ export default function BibliotecaEntrenador() {
         >
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
              <Video className="text-blue-500 w-8 h-8" />
+          </div>
+        </div>
+      );
+    }
+    const tiktokId = getTikTokId(url);
+    if (tiktokId) {
+      return (
+        <div 
+          className="w-full h-40 bg-black rounded-t-2xl flex items-center justify-center border-b border-zinc-800 group cursor-pointer relative overflow-hidden"
+          onClick={() => setPlayingVideoId(ejercicio.id)}
+        >
+          <div className="absolute inset-0 opacity-20 bg-gradient-to-tr from-[#00f2fe] to-[#4facfe]"></div>
+          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform relative z-10 shadow-[0_0_15px_rgba(255,0,80,0.5)] border border-[#00f2fe]/30">
+             <Smartphone className="text-white w-8 h-8" />
           </div>
         </div>
       );
