@@ -430,7 +430,6 @@ export default function ModuloCobranza() {
         jugador_id: jugadorSeleccionado.id,
         nombres: jugadorSeleccionado.nombres,
         apellidos: jugadorSeleccionado.apellidos,
-        documento_identidad: jugadorSeleccionado.documento_identidad || null,
         grupo: jugadorSeleccionado.grupos || 'Sin grupo',
         monto_base: tarifaBase,
         descuento,
