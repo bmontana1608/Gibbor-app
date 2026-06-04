@@ -442,11 +442,16 @@ export default function ModuloCobranza() {
         club_id: tenant?.id
       };
 
-      const { data: dataHist } = await supabase
+      const { data: dataHist, error: errorHist } = await supabase
         .from('pagos_ingresos')
         .insert([payloadHistorial])
         .select()
         .single();
+
+      if (errorHist) {
+        toast.error('Error al guardar en el historial: ' + errorHist.message, { id: toastId });
+        return;
+      }
 
       toast.success('¡Pago registrado con éxito!', { id: toastId });
       
@@ -1386,16 +1391,16 @@ export default function ModuloCobranza() {
                                       onClick={() => cobrarManual(jugador)}
                                       disabled={loadingBot !== null}
                                       className="bg-brand hover:bg-brand/90 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold"
-                                      title="Generar recibo y compartir manualmente por WhatsApp"
+                                      title="Generar recibo de cobro y enviarlo para pedir el pago"
                                     >
                                       {loadingBot === `manual-${jugador.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
-                                      {loadingBot === `manual-${jugador.id}` ? 'Generando...' : 'Cobrar'}
+                                      {loadingBot === `manual-${jugador.id}` ? 'Generando...' : 'Recordatorio'}
                                     </button>
                                     <button onClick={() => abrirModalAbono(jugador)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar abono parcial">
                                       <CreditCard className="w-3.5 h-3.5" /> Abonar
                                     </button>
-                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
-                                      Pagar
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar el pago una vez recibido">
+                                      <CheckCircle className="w-3.5 h-3.5" /> Registrar Pago
                                     </button>
                                     <button 
                                       onClick={() => forzarAlDia(jugador)} 

@@ -398,14 +398,24 @@ export default function PlanificadorEntrenador() {
                 <div className="space-y-3">
                   {formData.videos.map((url, idx) => (
                     <div key={idx} className="flex items-center gap-2">
-                      <input 
-                        value={url} 
-                        onChange={(e) => actualizarVideo(idx, e.target.value)} 
-                        type="url" 
-                        placeholder="Enlace de YouTube o Google Drive..." 
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none text-sm placeholder:text-slate-300" 
-                      />
-                      {formData.videos.length > 1 && (
+                      {url && url.startsWith('http') ? (
+                        <div className="w-full px-4 py-3 border border-emerald-100 bg-emerald-50 rounded-xl flex items-center justify-between text-sm shadow-sm transition-all">
+                          <span className="flex items-center gap-2 text-emerald-800 font-black tracking-tight">
+                            <Video className="w-4 h-4 text-emerald-500" /> Video Integrado a la Plataforma
+                          </span>
+                          <button type="button" onClick={() => actualizarVideo(idx, '')} className="text-xs text-rose-500 font-bold uppercase tracking-widest hover:text-rose-600 transition-colors">Quitar</button>
+                        </div>
+                      ) : (
+                        <input 
+                          value={url} 
+                          onChange={(e) => actualizarVideo(idx, e.target.value)} 
+                          type="url" 
+                          placeholder="Enlace de YouTube, TikTok o Google Drive..." 
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[var(--brand-primary)] outline-none text-sm placeholder:text-slate-300 transition-all" 
+                        />
+                      )}
+                      
+                      {formData.videos.length > 1 && (!url || !url.startsWith('http')) && (
                         <button 
                           type="button" 
                           onClick={() => eliminarVideoInput(idx)}
