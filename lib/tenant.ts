@@ -69,8 +69,7 @@ export async function getTenant(overrideSlug?: string | null) {
     }
   }
 
-  // Fallback final de seguridad
-  if (!slug) slug = 'gibbor';
+  // Quitamos el fallback forzado a 'gibbor' para permitir que el dominio raíz use 'master'
 
   // Branding Neutro y Profesional del SaaS Matriz (Master Club Manager)
   const saasMaster = {
