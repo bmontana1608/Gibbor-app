@@ -1,5 +1,6 @@
 import { getTenant } from '@/lib/tenant';
 import LoginForm from '@/components/LoginForm';
+import LandingPage from '@/components/LandingPage';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -58,6 +59,10 @@ export default async function LoginPage() {
     } catch (e) {
       console.log("No active session found or invalid token");
     }
+  }
+
+  if (tenant?.isMaster) {
+    return <LandingPage />;
   }
 
   return <LoginForm tenant={tenant} />;

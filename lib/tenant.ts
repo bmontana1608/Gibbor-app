@@ -82,54 +82,31 @@ export async function getTenant(overrideSlug?: string | null) {
     }
   };
 
-  // Si estamos en la raíz o localhost sin slug, devolver GIBBOR por defecto
+  // Si estamos en la raíz o localhost sin slug, devolver MASTER por defecto en lugar de un club específico
   if (!slug || slug === 'localhost') {
-    const { data: defaultClub } = await supabaseAdmin
-      .from('clubes')
-      .select('*')
-      .eq('slug', 'gibbor')
-      .single();
-
-    if (defaultClub) {
-      return {
-        id: defaultClub.id,
-        slug: defaultClub.slug,
-        isMaster: false,
-        config: {
-          nombre: defaultClub.nombre,
-          color: defaultClub.color_primario || '#06b6d4',
-          color_secundario: defaultClub.color_secundario || '#0284c7',
-          logo: defaultClub.logo_url || null
-        }
-      };
-    }
+    return { ...saasMaster, isMaster: true };
   }
 
-  // Si el slug es explícitamente 'master', mostrar NexClub
-  if (slug === 'master') {
-    return saasMaster;
-  }
-
-  // Buscar el Club real por subdominio
-  const { data: club, error } = await supabaseAdmin
+  // De lo contrario, buscar el club por slug
+  const { data: currentClub } = await supabaseAdmin
     .from('clubes')
     .select('*')
     .eq('slug', slug)
     .single();
 
-  if (error || !club) {
-    return saasMaster; // Subdominio fantasma, regresamos branding genérico
+  if (!currentClub) {
+    // Si el slug no existe, por seguridad mostramos Master
+    return { ...saasMaster, isMaster: true };
   }
-  
+
   return {
-    id: club.id,
-    slug: club.slug,
+    id: currentClub.id,
+    slug: currentClub.slug,
     isMaster: false,
     config: {
-      nombre: club.nombre,
-      color: club.color_primario || '#06b6d4',
-      color_secundario: club.color_secundario || '#0284c7',
-      logo: club.logo_url || null
+      nombre: currentClub.nombre,
+      color: currentClub.color_primario || '#06b6d4',
+      logo: currentClub.logo_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
     }
   };
 }
