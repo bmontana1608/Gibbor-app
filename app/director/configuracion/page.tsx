@@ -209,12 +209,22 @@ export default function ConfiguracionGeneral() {
 
     const { error } = await supabase.from('configuracion_wa').upsert(payload);
 
-    const { error: errorClub } = await supabase.from('clubes').update({
-      nombre: config.nombre_club,
-      logo_url: identidad.logo_url,
-      color_primario: identidad.color_primario,
-      color_secundario: identidad.color_secundario
-    }).eq('id', tenant.id);
+    const resClub = await fetch('/api/tenant/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: tenant.id,
+        payload: {
+          nombre: config.nombre_club,
+          logo_url: identidad.logo_url,
+          color_primario: identidad.color_primario,
+          color_secundario: identidad.color_secundario
+        }
+      })
+    });
+    
+    const clubResult = await resClub.json();
+    const errorClub = clubResult.error ? { message: clubResult.error } : null;
 
     if (errorClub) {
       toast.error("Error al guardar identidad visual: " + errorClub.message);

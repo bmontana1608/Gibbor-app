@@ -25,6 +25,7 @@ export async function generarReciboPDFBase64(datos: {
     bre_b?: string;
     banco_nombre?: string;
     banco_numero?: string;
+    logo_url?: string;
   }
 }) {
   const doc = new jsPDF();
@@ -73,11 +74,15 @@ export async function generarReciboPDFBase64(datos: {
 
   // Logo e Identidad
   try {
-    doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+    if (datos.empresa.logo_url) {
+      doc.addImage(datos.empresa.logo_url, 'PNG', 15, 8, 24, 24);
+    } else {
+      doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+    }
   } catch (e) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
-    doc.text('G', 20, 25);
+    doc.text(datos.empresa.nombre_club ? datos.empresa.nombre_club.charAt(0) : 'C', 20, 25);
   }
 
   doc.setTextColor(255, 255, 255);
@@ -244,11 +249,12 @@ export async function generarReciboPDFBase64(datos: {
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
   doc.text('FIRMA AUTORIZADA', 155, footerY + 5, { align: 'center' });
-  doc.text('ADMINISTRACIÓN EFD GIBBOR', 155, footerY + 9, { align: 'center' });
+  const nombreClubUpper = (datos.empresa.nombre_club || 'EL CLUB').toUpperCase();
+  doc.text(`ADMINISTRACIÓN ${nombreClubUpper}`, 155, footerY + 9, { align: 'center' });
 
   doc.setFontSize(6);
-  doc.text('Este recibo es un comprobante oficial de pago generado digitalmente por Gibbor App.', 105, 280, { align: 'center' });
-  doc.text('EFD GIBBOR - Formando Campeones para la Vida.', 105, 284, { align: 'center' });
+  doc.text(`Este recibo es un comprobante oficial de pago generado digitalmente.`, 105, 280, { align: 'center' });
+  doc.text(`${nombreClubUpper} - Plataforma Oficial`, 105, 284, { align: 'center' });
 
   return doc.output('datauristring').split(',')[1];
 }
@@ -269,6 +275,7 @@ export async function generarReciboNominaPDFBase64(datos: {
     nombre_club?: string;
     direccion: string;
     ciudad: string;
+    logo_url?: string;
   }
 }) {
   const doc = new jsPDF();
@@ -299,7 +306,11 @@ export async function generarReciboNominaPDFBase64(datos: {
 
   // Logo e identidad
   try {
-    doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+    if (datos.empresa.logo_url) {
+      doc.addImage(datos.empresa.logo_url, 'PNG', 15, 8, 24, 24);
+    } else {
+      doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+    }
   } catch (e) { /* sin logo */ }
 
   doc.setTextColor(255, 255, 255);
@@ -385,7 +396,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
   doc.setFont("helvetica", "normal");
   doc.text('Este comprobante certifica el pago de honorarios al colaborador indicado por los servicios', 20, tableY + 53);
-  doc.text(`prestados en el período ${datos.periodo}. Documento generado digitalmente por Gibbor App.`, 20, tableY + 58);
+  doc.text(`prestados en el período ${datos.periodo}. Documento generado digitalmente.`, 20, tableY + 58);
 
   // 5. FIRMA
   const footerY = 210;
@@ -402,7 +413,8 @@ export async function generarReciboNominaPDFBase64(datos: {
 
   // Pie
   doc.setFontSize(6);
-  doc.text('EFD GIBBOR — Comprobante oficial de pago de nómina. Conserve este documento.', 105, 280, { align: 'center' });
+  const nombreClubUpper = (datos.empresa.nombre_club || 'EL CLUB').toUpperCase();
+  doc.text(`${nombreClubUpper} — Comprobante oficial de pago de nómina. Conserve este documento.`, 105, 280, { align: 'center' });
 
   return doc.output('datauristring').split(',')[1];
 }
