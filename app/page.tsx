@@ -61,9 +61,5 @@ export default async function LoginPage() {
     }
   }
 
-  if (tenant?.isMaster) {
-    return <LandingPage />;
-  }
-
-  return <LoginForm tenant={tenant} />;
+  return <LandingPage />;
 }
