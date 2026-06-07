@@ -105,6 +105,12 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   return (
     <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --brand-primary: ${brandColor};
+          --brand-primary-rgb: ${hexToRgb(brandColor)};
+        }
+      `}} />
       <PushPermissionBanner />
       
       {/* Overlay para móvil - condicional para evitar bloqueos fantasma */}

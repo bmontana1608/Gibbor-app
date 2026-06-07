@@ -64,6 +64,12 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
   return (
     <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --brand-primary: ${brandColor};
+          --brand-primary-rgb: ${hexToRgb(brandColor)};
+        }
+      `}} />
       <PushPermissionBanner />
       
       {/* HEADER MÓVIL */}
