@@ -233,7 +233,7 @@ export default function DashboardFutbolista() {
     try {
       const dataUrl = await toPng(node, { quality: 1, pixelRatio: 2, backgroundColor: '#09090b' });
       const link = document.createElement('a');
-      link.download = `${tenant?.nombre || 'Club'}_PRO_${perfil?.nombres?.split(' ')[0]}.png`;
+      link.download = `${tenant?.config?.nombre || 'Club'}_PRO_${perfil?.nombres?.split(' ')[0]}.png`;
       link.href = dataUrl;
       link.click();
       toast.success("¡Carta descargada con éxito!", { id: toastId });
@@ -246,9 +246,9 @@ export default function DashboardFutbolista() {
     const toastId = toast.loading("Generando tu recibo oficial...");
     try {
       const doc = new jsPDF();
-      const clubName = tenant?.nombre || 'MCM CLUB';
-      const clubLogo = tenant?.logo_url || '/logo.png';
-      const brandColor = tenant?.color_primario || '#06b6d4';
+      const clubName = tenant?.config?.nombre || 'MCM CLUB';
+      const clubLogo = tenant?.config?.logo || '/logo.png';
+      const brandColor = tenant?.config?.color || '#06b6d4';
       
       try {
         doc.addImage(clubLogo, 'PNG', 15, 10, 20, 20);
@@ -334,8 +334,8 @@ export default function DashboardFutbolista() {
     </div>
   );
 
-  const brandColor = tenant?.color_primario || '#06b6d4';
-  const brandName = tenant?.nombre || 'Club';
+  const brandColor = tenant?.config?.color || '#06b6d4';
+  const brandName = tenant?.config?.nombre || 'Club';
 
   return (
     <div className="space-y-10 max-w-6xl mx-auto pb-20">
@@ -442,7 +442,7 @@ export default function DashboardFutbolista() {
                 {radarData.length > 0 ? (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center justify-items-center">
                     <div className="flex flex-col items-center justify-center gap-8 w-full">
-                      <FifaCard perfil={perfil} stats={radarData} clubName={brandName} clubLogo={tenant?.logo_url} color={brandColor} />
+                      <FifaCard perfil={perfil} stats={radarData} clubName={brandName} clubLogo={tenant?.config?.logo} color={brandColor} />
                       <button onClick={handleExportCard} className="group relative text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center gap-3 overflow-hidden" style={{ backgroundColor: brandColor }}>
                         <Download className="w-4 h-4" /> <span>Descargar Carta</span>
                       </button>
