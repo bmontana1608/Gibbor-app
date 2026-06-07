@@ -62,6 +62,18 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   const brandLogo = tenant?.config?.logo || tenant?.logo_url || '/logo.png';
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
 
+  const hexToRgb = (hex: string) => {
+    try {
+      const h = hex.startsWith('#') ? hex : `#${hex}`;
+      const r = parseInt(h.slice(1, 3), 16);
+      const g = parseInt(h.slice(3, 5), 16);
+      const b = parseInt(h.slice(5, 7), 16);
+      return isNaN(r) || isNaN(g) || isNaN(b) ? '234, 88, 12' : `${r}, ${g}, ${b}`;
+    } catch (e) {
+      return '234, 88, 12'; // Fallback Orange
+    }
+  };
+
   return (
     <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 font-sans overflow-hidden">
       <style dangerouslySetInnerHTML={{ __html: `
