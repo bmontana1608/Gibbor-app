@@ -272,11 +272,14 @@ export default function DirectorioMiembros() {
           </h1>
           <p className="text-slate-500 text-sm mt-1">Control administrativo de deportistas y entrenadores.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button onClick={cargarJugadores} className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-all shadow-sm" title="Refrescar datos">
             <Activity className={`w-4 h-4 text-brand ${cargando ? 'animate-spin' : ''}`} />
           </button>
-          <button onClick={() => setIsModalInvitacionOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-xl shadow-slate-900/10"><UserPlus className="w-4 h-4" /> Invitar</button>
+          <button onClick={() => router.push(`/${tenantSlug}/director/miembros/nuevo`)} className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl hover:bg-brand/90 transition-all font-bold text-sm shadow-lg shadow-brand/20">
+            <UserPlus className="w-4 h-4" /> Nuevo
+          </button>
+          <button onClick={() => setIsModalInvitacionOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-xl shadow-slate-900/10"><Mail className="w-4 h-4" /> Invitar</button>
           <button onClick={exportarAExcel} className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold text-sm shadow-sm"><Download className="w-4 h-4" /> Exportar</button>
         </div>
       </div>
