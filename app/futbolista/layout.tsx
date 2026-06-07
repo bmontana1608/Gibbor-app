@@ -2,11 +2,13 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import FutbolistaLayoutClient from './FutbolistaLayoutClient';
+import SaaSSuspendidoView from '@/components/SaaSSuspendidoView';
 
 export default async function FutbolistaLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
   const tenantSlug = headersList.get('x-tenant-slug');
+  const isSuspended = headersList.get('x-club-suspended') === 'true';
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -27,6 +29,12 @@ export default async function FutbolistaLayout({ children }: { children: React.R
     return redirect(`/${tenantSlug}/login`);
   }
 
+  let wppNumber = '+573124265170';
+  if (isSuspended) {
+    const { data: configAdmin } = await supabase.from('configuracion_superadmin').select('telefono_soporte').single();
+    if (configAdmin?.telefono_soporte) wppNumber = configAdmin.telefono_soporte;
+  }
+
   // Cargar familia (Lógica existente simplificada para servidor)
   const cleanEmail = user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
   const { data: misPerfiles } = await supabase
@@ -40,7 +48,15 @@ export default async function FutbolistaLayout({ children }: { children: React.R
       initialProfile={perfil}
       initialFamily={misPerfiles || []}
     >
-      {children}
+      {isSuspended ? (
+        <SaaSSuspendidoView 
+          club={tenant} 
+          tarifaBase={Number((tenant as any)?.tarifa_por_jugador || 2000)} 
+          wppNumber={wppNumber} 
+        />
+      ) : (
+        children
+      )}
     </FutbolistaLayoutClient>
   );
 }

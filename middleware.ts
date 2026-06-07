@@ -121,10 +121,12 @@ export async function middleware(request: NextRequest) {
           }
 
           if (!isSuperAdmin) {
-            // Mostrar la pantalla de suspensión sin cambiar la URL original
-            url.pathname = `/${slug}/suspendido`;
-            return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
+            requestHeaders.set('x-club-suspended', 'true');
+          } else {
+            requestHeaders.set('x-club-suspended', 'false');
           }
+        } else {
+          requestHeaders.set('x-club-suspended', 'false');
         }
       }
     } catch (e) {

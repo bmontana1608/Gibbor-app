@@ -2,11 +2,13 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import EntrenadorLayoutClient from './EntrenadorLayoutClient';
+import SaaSSuspendidoView from '@/components/SaaSSuspendidoView';
 
 export default async function EntrenadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
   const tenantSlug = headersList.get('x-tenant-slug');
+  const isSuspended = headersList.get('x-club-suspended') === 'true';
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -37,9 +39,23 @@ export default async function EntrenadorLayout({ children }: { children: React.R
     return redirect(`/${tenantSlug}/login`);
   }
 
+  let wppNumber = '+573124265170';
+  if (isSuspended) {
+    const { data: configAdmin } = await supabase.from('configuracion_superadmin').select('telefono_soporte').single();
+    if (configAdmin?.telefono_soporte) wppNumber = configAdmin.telefono_soporte;
+  }
+
   return (
     <EntrenadorLayoutClient initialTenant={tenant} initialProfile={perfil}>
-      {children}
+      {isSuspended ? (
+        <SaaSSuspendidoView 
+          club={tenant} 
+          tarifaBase={Number((tenant as any)?.tarifa_por_jugador || 2000)} 
+          wppNumber={wppNumber} 
+        />
+      ) : (
+        children
+      )}
     </EntrenadorLayoutClient>
   );
 }

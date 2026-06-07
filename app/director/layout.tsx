@@ -3,10 +3,13 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import DirectorLayoutClient from './DirectorLayoutClient';
 
+import SaaSSuspendidoView from '@/components/SaaSSuspendidoView';
+
 export default async function DirectorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
   const tenantSlug = headersList.get('x-tenant-slug');
+  const isSuspended = headersList.get('x-club-suspended') === 'true';
 
   // 1. VERIFICACIÓN DE SESIÓN (SERVER-SIDE)
   // Esto evita el flickering visual porque el servidor redirige antes de enviar HTML.
@@ -37,9 +40,24 @@ export default async function DirectorLayout({ children }: { children: React.Rea
     return redirect('/');
   }
 
+  // 4. DATOS DE SUSPENSIÓN (Solo si aplica)
+  let wppNumber = '+573124265170';
+  if (isSuspended) {
+    const { data: configAdmin } = await supabase.from('configuracion_superadmin').select('telefono_soporte').single();
+    if (configAdmin?.telefono_soporte) wppNumber = configAdmin.telefono_soporte;
+  }
+
   return (
     <DirectorLayoutClient initialTenant={tenant} initialProfile={perfil}>
-      {children}
+      {isSuspended ? (
+        <SaaSSuspendidoView 
+          club={tenant} 
+          tarifaBase={Number((tenant as any)?.tarifa_por_jugador || 2000)} 
+          wppNumber={wppNumber} 
+        />
+      ) : (
+        children
+      )}
     </DirectorLayoutClient>
   );
 }
