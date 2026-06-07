@@ -37,13 +37,19 @@ export default async function SuspendidoPage({ params }: any) {
   // 4. Calcular precio a mostrar
   const tarifaBase = Number(club.tarifa_por_jugador || 2000);
 
-  // 5. Verificar si realmente está suspendido (Si pagaron y entraron aquí por error, pueden salir)
+  // 5. Verificar si realmente está suspendido
   let isSuspended = club.estado_suscripcion === 'Suspendido';
   const hoy = new Date();
   const diaActual = hoy.getDate();
-  const enPrueba = club.fecha_fin_prueba && new Date(club.fecha_fin_prueba) >= hoy;
 
-  if (!enPrueba && diaActual > 10) {
+  if (club.fecha_fin_prueba) {
+    const fechaFinPrueba = new Date(club.fecha_fin_prueba);
+    if (fechaFinPrueba < hoy) {
+      isSuspended = true;
+    }
+  }
+
+  if (!isSuspended && diaActual > 10) {
     const { data: facturas } = await supabase
       .from('facturacion_mensual')
       .select('estado_pago')
@@ -54,17 +60,12 @@ export default async function SuspendidoPage({ params }: any) {
     
     if (!facturas?.[0] || facturas[0].estado_pago !== 'pagado') {
        isSuspended = true;
-    } else {
-       // Si tienen la factura del mes pagada, no están suspendidos (solo por mora)
-       // Pero si el Admin manualmente lo suspendió, se mantiene.
     }
   }
 
-  if (!isSuspended && !enPrueba && diaActual <= 10) {
-    // Si no es > 10 y no ha sido suspendido manualmente, redirigir al home
-    if (club.estado_suscripcion !== 'Suspendido') {
-      return redirect(`/${tenant}/director`);
-    }
+  if (!isSuspended && club.estado_suscripcion !== 'Suspendido') {
+    // Si no está suspendido (factura pagada, o en periodo de prueba, o periodo de gracia), regresarlo
+    return redirect(`/${tenant}/director`);
   }
 
   return (

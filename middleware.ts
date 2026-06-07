@@ -77,10 +77,16 @@ export async function middleware(request: NextRequest) {
         const anioActual = hoy.getFullYear();
 
         // 1. Validar Periodo de Prueba
-        const enPrueba = clubData.fecha_fin_prueba && new Date(clubData.fecha_fin_prueba) >= hoy;
+        if (clubData.fecha_fin_prueba) {
+          const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
+          if (fechaFinPrueba < hoy) {
+            // El periodo de prueba expiró
+            isSuspended = true;
+          }
+        }
 
-        if (!enPrueba && diaActual > 10) {
-          // Si no está en prueba y ya pasó el día 10, verificamos si ha pagado la factura del mes actual
+        // 2. Si no está suspendido por prueba, revisar facturación regular (Corte el día 11)
+        if (!isSuspended && diaActual > 10) {
           const { data: facturas } = await supabase
             .from('facturacion_mensual')
             .select('estado_pago')
@@ -89,7 +95,6 @@ export async function middleware(request: NextRequest) {
             .eq('periodo_anio', anioActual)
             .limit(1);
 
-          // Si la factura no existe o su estado no es 'pagado', el club entra en suspensión temporal
           const facturaMes = facturas?.[0];
           if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
              isSuspended = true;
