@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   if (pathParts.length > 0 && !reservedPaths.includes(pathParts[0])) {
     slug = pathParts[0];
     const subPath = pathParts[1];
-    if (subPath === 'unete') {
+    if (subPath === 'unete' || subPath === 'suspendido') {
       finalPathname = pathname;
     } else {
       finalPathname = '/' + pathParts.slice(1).join('/');
@@ -121,8 +121,9 @@ export async function middleware(request: NextRequest) {
           }
 
           if (!isSuperAdmin) {
-            // Redirigir a la pantalla de suspensión global (manteniendo el tenant context)
-            return NextResponse.redirect(new URL(`/${slug}/suspendido`, request.url));
+            // Mostrar la pantalla de suspensión sin cambiar la URL original
+            url.pathname = `/${slug}/suspendido`;
+            return NextResponse.rewrite(url, { request: { headers: requestHeaders } });
           }
         }
       }
