@@ -204,7 +204,7 @@ export default function SuperAdminDashboard() {
   };
 
   if (isAdmin === false) return <LoginForm tenant={adminTenant} />;
-  if (isAdmin === null || fetching) return (
+  if (isAdmin === null || (fetching && clubes.length === 0)) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <Loader2 className="w-10 h-10 text-lime-500 animate-spin" />
     </div>
@@ -313,38 +313,45 @@ export default function SuperAdminDashboard() {
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              {fetching ? (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden relative">
+              {fetching && clubes.length === 0 ? (
                 <div className="flex items-center justify-center p-20"><Loader2 className="w-8 h-8 text-lime-500 animate-spin" /></div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                      <tr className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                        <th className="text-left px-6 py-4">Club</th>
-                        <th className="text-center px-6 py-4">Atletas</th>
-                        <th className="px-6 py-4 hidden md:table-cell">Canon SaaS</th>
-                        <th className="px-6 py-4">Estado</th>
-                        <th className="text-right px-6 py-4">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {clubes.map(club => (
-                        <ClubRow
-                          key={club.id} club={club}
-                          count={metrics?.alumnosPorClub?.[club.id] || 0}
-                          onToggle={toggleEstadoClub} onAudit={auditClub}
-                          onEdit={(c: any) => {
-                            setSelectedClub(c);
-                            setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000 });
-                            setShowEditModal(true);
-                          }}
-                          onDelete={eliminarClub}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <>
+                  {fetching && clubes.length > 0 && (
+                    <div className="absolute top-0 left-0 w-full h-1 bg-lime-100 overflow-hidden z-10">
+                      <div className="h-full bg-lime-500 animate-pulse w-1/2 rounded-full"></div>
+                    </div>
+                  )}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                          <th className="text-left px-6 py-4">Club</th>
+                          <th className="text-center px-6 py-4">Atletas</th>
+                          <th className="px-6 py-4 hidden md:table-cell">Canon SaaS</th>
+                          <th className="px-6 py-4">Estado</th>
+                          <th className="text-right px-6 py-4">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {clubes.map(club => (
+                          <ClubRow
+                            key={club.id} club={club}
+                            count={metrics?.alumnosPorClub?.[club.id] || 0}
+                            onToggle={toggleEstadoClub} onAudit={auditClub}
+                            onEdit={(c: any) => {
+                              setSelectedClub(c);
+                              setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000 });
+                              setShowEditModal(true);
+                            }}
+                            onDelete={eliminarClub}
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
