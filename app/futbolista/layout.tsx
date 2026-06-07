@@ -6,7 +6,7 @@ import FutbolistaLayoutClient from './FutbolistaLayoutClient';
 export default async function FutbolistaLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
-  const tenantSlug = headersList.get('x-tenant-slug') || 'default';
+  const tenantSlug = headersList.get('x-tenant-slug');
 
   const { data: { user } } = await supabase.auth.getUser();
 

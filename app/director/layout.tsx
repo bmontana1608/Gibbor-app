@@ -6,7 +6,7 @@ import DirectorLayoutClient from './DirectorLayoutClient';
 export default async function DirectorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const headersList = await headers();
-  const tenantSlug = headersList.get('x-tenant-slug') || 'default';
+  const tenantSlug = headersList.get('x-tenant-slug');
 
   // 1. VERIFICACIÓN DE SESIÓN (SERVER-SIDE)
   // Esto evita el flickering visual porque el servidor redirige antes de enviar HTML.
