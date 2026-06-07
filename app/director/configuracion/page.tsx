@@ -19,6 +19,9 @@ export default function ConfiguracionGeneral() {
   const [tenant, setTenant] = useState<any>(null);
   const { slug: tenantSlug } = useTenant();
 
+  const [nuevaContrasenaGlobal, setNuevaContrasenaGlobal] = useState('');
+  const [cambiandoContrasena, setCambiandoContrasena] = useState(false);
+
   const [config, setConfig] = useState({
     api_url: '', api_key: '', instance_name: 'Club_App',
     direccion: '', ciudad: '', nequi: '', daviplata: '',
@@ -289,6 +292,41 @@ export default function ConfiguracionGeneral() {
     
     // Default si no tiene (asumimos todos para no bloquear)
     return [0,1,2,3,4,5,6];
+  };
+
+  const handleCambiarContrasenaGlobal = async () => {
+    if (!nuevaContrasenaGlobal || nuevaContrasenaGlobal.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (!window.confirm('¿Estás seguro de cambiar la contraseña a TODOS los miembros de tu club? (Entrenadores, Jugadores, etc). Todos usarán esta nueva contraseña.')) return;
+    
+    setCambiandoContrasena(true);
+    try {
+      const { data: miembros } = await supabase.from('perfiles').select('id').eq('club_id', tenant.id);
+      if (!miembros || miembros.length === 0) {
+        toast.error('No hay miembros en el club');
+        setCambiandoContrasena(false);
+        return;
+      }
+      
+      const userIds = miembros.map(m => m.id);
+      
+      const res = await fetch('/api/director/reset-password-bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds, newPassword: nuevaContrasenaGlobal })
+      });
+      
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Error desconocido');
+      
+      toast.success(result.message || 'Contraseñas actualizadas con éxito');
+      setNuevaContrasenaGlobal('');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+    setCambiandoContrasena(false);
   };
 
   if (loadingConfig) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="text-brand border-t-transparent rounded-full animate-spin"></div></div>;
@@ -607,6 +645,39 @@ export default function ConfiguracionGeneral() {
                 </div>
               </div>
               <Zap className="absolute right-[-30px] bottom-[-30px] w-48 h-48 text-white/5 -rotate-12" />
+            </div>
+
+            {/* SEGURIDAD Y CONTRASEÑAS */}
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Key className="text-brand" /> Seguridad Global del Club</h2>
+              
+              <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col md:flex-row gap-6 items-center">
+                <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center shrink-0">
+                  <Key className="w-8 h-8" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-black text-red-800 mb-1">Contraseña Universal</h3>
+                  <p className="text-[10px] text-red-600/80 font-medium mb-4 max-w-sm">
+                    Establece una contraseña general para <strong className="font-bold">todos los usuarios</strong> de tu club. Útil si quieres que todos entren con una contraseña fácil de recordar (Ej: "club2024").
+                  </p>
+                  <div className="flex gap-2 w-full max-w-sm">
+                    <input 
+                      type="text" 
+                      placeholder="Nueva contraseña general" 
+                      value={nuevaContrasenaGlobal}
+                      onChange={e => setNuevaContrasenaGlobal(e.target.value)}
+                      className="flex-1 px-4 py-2.5 bg-white border border-red-200 rounded-xl outline-none font-bold text-sm text-red-900 focus:border-red-400"
+                    />
+                    <button 
+                      onClick={handleCambiarContrasenaGlobal}
+                      disabled={cambiandoContrasena}
+                      className="bg-red-600 hover:bg-red-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md disabled:opacity-50"
+                    >
+                      {cambiandoContrasena ? 'Aplicando...' : 'Aplicar a Todos'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
