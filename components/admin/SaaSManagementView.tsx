@@ -118,6 +118,24 @@ export default function SaaSManagementView() {
     }
   };
 
+  const marcarFacturaPagada = async (facturaId: string) => {
+    const confirmar = window.confirm('¿Confirmas que el club ha pagado este corte mensual? Esto reactivará sus servicios si estaban suspendidos.');
+    if (!confirmar) return;
+
+    const toastId = toast.loading('Actualizando estado de pago...');
+    const { error } = await supabase
+      .from('facturacion_mensual')
+      .update({ estado_pago: 'pagado', fecha_pago: new Date().toISOString() })
+      .eq('id', facturaId);
+
+    if (error) {
+      toast.error('Error al registrar pago: ' + error.message, { id: toastId });
+    } else {
+      toast.success('Pago registrado correctamente', { id: toastId });
+      cargarDatosGenerales();
+    }
+  };
+
   const formatearDinero = (monto: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -314,7 +332,17 @@ export default function SaaSManagementView() {
                       </span>
                     </div>
                     <div>
-                      <p className="text-3xl font-black text-white tracking-tighter italic">{formatearDinero(fac.total_pagar)}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-3xl font-black text-white tracking-tighter italic">{formatearDinero(fac.total_pagar)}</p>
+                        {fac.estado_pago !== 'pagado' && (
+                          <button 
+                            onClick={() => marcarFacturaPagada(fac.id)}
+                            className="bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors"
+                          >
+                            Marcar Pagado
+                          </button>
+                        )}
+                      </div>
                       <div className="flex items-center gap-3 mt-3">
                          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
                             <Users className="w-3 h-3 text-cyan-500" /> 
