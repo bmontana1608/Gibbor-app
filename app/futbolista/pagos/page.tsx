@@ -8,6 +8,8 @@ import {
   Wallet, FileText, Landmark, Smartphone, Building2
 } from "lucide-react";
 import { toast } from "sonner";
+import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
+import { useTenant } from "@/lib/hooks/useTenant";
 
 export default function PagosFutbolista() {
   const [pagos, setPagos] = useState<any[]>([]);
@@ -15,8 +17,63 @@ export default function PagosFutbolista() {
   const [configPago, setConfigPago] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
 
+  const { slug: tenantSlug } = useTenant();
+  const [tenant, setTenant] = useState<any>(null);
+
+  const handleVerRecibo = async (pago: any) => {
+    const toastId = toast.loading("Generando recibo...");
+    try {
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', perfil?.club_id).single();
+      const clubConfig = config || {};
+
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: pago.nombres || perfil?.nombres || '',
+        apellidos: pago.apellidos || perfil?.apellidos || '',
+        documento: perfil?.documento_identidad || null,
+        grupo: pago.grupo || perfil?.grupos || 'GENERAL',
+        tarifa: Number(pago.total || pago.monto || 0),
+        precioBase: Number(pago.monto_base || pago.total || 0),
+        descuentoProntoPago: Number(pago.descuento || 0),
+        consecutivo: pago.consecutivo || Math.floor(Math.random() * 1000),
+        fecha: pago.fecha || new Date().toISOString().split('T')[0],
+        fechaPeriodo: pago.fecha || new Date().toISOString().split('T')[0],
+        empresa: {
+          logo_url: tenant?.logo_url || tenant?.config?.logo,
+          nombre_club: clubConfig.nombre_club || tenant?.config?.nombre || 'Club',
+          direccion: clubConfig.direccion || 'Sede Deportiva',
+          ciudad: clubConfig.ciudad || 'Colombia',
+          nequi: clubConfig.nequi,
+          daviplata: clubConfig.daviplata,
+          bre_b: clubConfig.bre_b,
+          banco_nombre: clubConfig.banco_nombre,
+          banco_numero: clubConfig.banco_numero
+        }
+      });
+
+      const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const filename = `Recibo_${pago.consecutivo || 'pago'}.pdf`;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+
+      toast.success("Recibo generado correctamente", { id: toastId });
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al generar el recibo", { id: toastId });
+    }
+  };
+
   useEffect(() => {
     const fetchPagos = async () => {
+      // Cargar tenant info if needed by PDF
+      if (tenantSlug) {
+        fetch(`/api/tenant?slug=${tenantSlug}`)
+          .then(res => res.json())
+          .then(data => setTenant(data))
+          .catch(console.error);
+      }
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         let targetId = session.user.id;
@@ -291,7 +348,7 @@ export default function PagosFutbolista() {
                    </div>
                    
                    <button 
-                     onClick={() => toast.success("Iniciando descarga de recibo...")}
+                     onClick={() => handleVerRecibo(pago)}
                      className="p-3 bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white rounded-2xl transition-all shadow-sm group-hover:scale-110 active:scale-95"
                      title="Descargar Recibo"
                    >

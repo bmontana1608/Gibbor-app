@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { toPng } from 'html-to-image';
-import jsPDF from 'jspdf';
 import { useTenant } from "@/lib/hooks/useTenant";
+import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 
 function RadarChart({ data, size = 300, color = '#f97316' }: { data: { label: string, value: number }[], size?: number, color?: string }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -252,81 +252,41 @@ export default function DashboardFutbolista() {
   const handleVerRecibo = async (pago: any) => {
     const toastId = toast.loading("Generando tu recibo oficial...");
     try {
-      const doc = new jsPDF();
-      const clubName = tenant?.config?.nombre || 'MCM CLUB';
-      const clubLogo = tenant?.config?.logo || '/logo.png';
-      const brandColor = tenant?.config?.color || '#06b6d4';
-      
-      try {
-        doc.addImage(clubLogo, 'PNG', 15, 10, 20, 20);
-      } catch (e) {
-        console.warn("No se pudo cargar el logo en el PDF");
-      }
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).single();
+      const clubConfig = config || {};
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(22);
-      doc.setTextColor(brandColor);
-      doc.text(clubName.toUpperCase(), 40, 20);
-      
-      doc.setFontSize(8);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(clubName, 40, 25);
-      doc.text('Documento Digital de Soporte', 40, 29);
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: pago.nombres || perfil?.nombres || '',
+        apellidos: pago.apellidos || perfil?.apellidos || '',
+        documento: perfil?.documento_identidad || null,
+        grupo: pago.grupo || perfil?.grupos || 'GENERAL',
+        tarifa: Number(pago.total || pago.monto || 0),
+        precioBase: Number(pago.monto_base || pago.total || 0),
+        descuentoProntoPago: Number(pago.descuento || 0),
+        consecutivo: pago.consecutivo || Math.floor(Math.random() * 1000),
+        fecha: pago.fecha || new Date().toISOString().split('T')[0],
+        fechaPeriodo: pago.fecha || new Date().toISOString().split('T')[0],
+        empresa: {
+          logo_url: tenant?.logo_url || tenant?.config?.logo,
+          nombre_club: clubConfig.nombre_club || tenant?.config?.nombre || 'Club',
+          direccion: clubConfig.direccion || 'Sede Deportiva',
+          ciudad: clubConfig.ciudad || 'Colombia',
+          nequi: clubConfig.nequi,
+          daviplata: clubConfig.daviplata,
+          bre_b: clubConfig.bre_b,
+          banco_nombre: clubConfig.banco_nombre,
+          banco_numero: clubConfig.banco_numero
+        }
+      });
 
-      doc.setDrawColor(240, 240, 240);
-      doc.line(15, 35, 195, 35);
+      const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const filename = `Recibo_${pago.consecutivo || 'pago'}.pdf`;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
 
-      doc.setFontSize(10);
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "bold");
-      doc.text('DETALLES DEL RECIBO', 15, 45);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(14);
-      doc.text(`Recibo № ${String(pago.consecutivo || '000').padStart(4, '0')}`, 195, 45, { align: 'right' });
-
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(15, 50, 180, 40, 3, 3, 'F');
-      
-      doc.setFontSize(9);
-      doc.setTextColor(100, 100, 100);
-      doc.text('ALUMNO:', 20, 60);
-      doc.text('FECHA:', 20, 70);
-      doc.text('MÉTODO:', 20, 80);
-      doc.text('CONCEPTO:', 100, 70);
-
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "bold");
-      doc.text(`${perfil.nombres} ${perfil.apellidos}`.toUpperCase(), 40, 60);
-      
-      const normalized = normalizeDate(pago.fecha);
-      const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
-      const dateStr = dateObj && !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString() : 's/f';
-      doc.text(dateStr, 40, 70);
-      
-      doc.text(pago.metodo_pago || 'Electrónico', 40, 80);
-      doc.text(pago.concepto || 'Mensualidad', 125, 70);
-
-      doc.setFillColor(30, 41, 59);
-      doc.rect(15, 100, 180, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.text('DESCRIPCIÓN', 20, 106.5);
-      doc.text('TOTAL', 185, 106.5, { align: 'right' });
-
-      doc.setTextColor(30, 41, 59);
-      doc.setFont("helvetica", "normal");
-      doc.text('Aporte Mensual Formación Deportiva', 20, 120);
-      doc.setFont("helvetica", "bold");
-      doc.text(`$ ${Number(pago.total || 0).toLocaleString()}`, 185, 120, { align: 'right' });
-      
-      doc.line(15, 125, 195, 125);
-
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Este es un comprobante oficial generado por ${clubName}.`, 105, 150, { align: 'center' });
-
-      doc.save(`Recibo_${tenant?.slug || 'club'}_${pago.consecutivo || 'pago'}.pdf`);
       toast.success("Recibo generado correctamente", { id: toastId });
     } catch (err) {
       console.error(err);
