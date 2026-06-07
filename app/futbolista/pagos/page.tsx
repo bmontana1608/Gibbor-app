@@ -19,11 +19,17 @@ export default function PagosFutbolista() {
     const fetchPagos = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        let targetId = session.user.id;
+        const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
+        if (savedHijoId && savedHijoId !== session.user.id) {
+           targetId = savedHijoId;
+        }
+
         // Obtenemos el perfil para saber qué tarifa le toca
         const { data: userData } = await supabase
           .from("perfiles")
           .select("*")
-          .eq("id", session.user.id)
+          .eq("id", targetId)
           .single();
         setPerfil(userData);
 
@@ -41,7 +47,7 @@ export default function PagosFutbolista() {
         const { data: pagosData } = await supabase
           .from("pagos_ingresos")
           .select("*")
-          .eq("jugador_id", session.user.id)
+          .eq("jugador_id", targetId)
           .order("fecha", { ascending: false });
         
         if (pagosData) setPagos(pagosData);

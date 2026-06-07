@@ -134,6 +134,10 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
                     return (
                       <button 
                         key={hijo.id}
+                        onClick={() => {
+                          localStorage.setItem('hijo_seleccionado_id', hijo.id);
+                          window.location.href = `${basePath}/futbolista`;
+                        }}
                         className={`
                           w-full flex items-center gap-3 p-2 rounded-xl transition-all border
                           ${esActivo 
