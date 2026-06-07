@@ -807,7 +807,7 @@ function ClubRow({ club, count, onToggle, onAudit, onEdit, onDelete }: any) {
   );
 }
 
-function InputField({ label, value, onChange, placeholder = '', required = false, type = 'text', mono = false }: any) {
+function InputField({ label, value, onChange, placeholder = '', required = false, type = 'text', mono = false }: { label?: string, value: string, onChange: (v: string) => void, placeholder?: string, required?: boolean, type?: string, mono?: boolean }) {
   return (
     <div>
       {label && <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">{label}</label>}
