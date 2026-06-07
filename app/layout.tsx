@@ -5,7 +5,7 @@ import { getTenant } from '@/lib/tenant';
 import InstallPrompt from "@/components/InstallPrompt";
 
 export const viewport = {
-  themeColor: '#ea580c',
+  themeColor: '#0a0a0a',
 };
 
 export async function generateMetadata() {
@@ -28,8 +28,9 @@ export async function generateMetadata() {
       title: tenant.config.nombre,
     },
     icons: {
-      icon: tenant.config.logo || '/logo.png',
-      apple: tenant.config.logo || '/logo.png',
+      icon: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
+      apple: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
+      shortcut: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
     },
   };
 }

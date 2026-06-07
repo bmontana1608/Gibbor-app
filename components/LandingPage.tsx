@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Bot, ShieldCheck, Zap, ChevronRight, BarChart3, Smartphone, Building2, Trophy, Activity, Users, CreditCard, MessageSquare, MonitorPlay } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -80,12 +80,14 @@ export default function LandingPage() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-tr from-lime-500 to-emerald-400 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(132,204,22,0.3)]">
-              <MonitorPlay className="w-6 h-6 text-slate-950" />
-            </div>
-            <span className="font-bold text-xl tracking-tight hidden sm:block text-white">
-              MasterClub<span className="text-lime-400">Manager</span>
-            </span>
+            <Image
+              src="/logo_mcm_dark.png"
+              alt="Master Club Manager"
+              width={180}
+              height={48}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </div>
           
           <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-300">
