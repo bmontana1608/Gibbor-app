@@ -40,9 +40,19 @@ export default async function EntrenadorLayout({ children }: { children: React.R
   }
 
   let wppNumber = '+573124265170';
+  let activeAthletesCount = 0;
   if (isSuspended) {
     const { data: configAdmin } = await supabase.from('configuracion_superadmin').select('telefono_soporte').single();
     if (configAdmin?.telefono_soporte) wppNumber = configAdmin.telefono_soporte;
+
+    const { count } = await supabase
+      .from('perfiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('club_id', (tenant as any)?.id)
+      .eq('rol', 'Futbolista')
+      .eq('estado_miembro', 'Activo');
+    
+    if (count) activeAthletesCount = count;
   }
 
   return (
@@ -52,6 +62,7 @@ export default async function EntrenadorLayout({ children }: { children: React.R
           club={tenant} 
           tarifaBase={Number((tenant as any)?.tarifa_por_jugador || 2000)} 
           wppNumber={wppNumber} 
+          activeAthletesCount={activeAthletesCount || 1}
         />
       ) : (
         children

@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle2, LogOut } from 'lucide-react';
 
-export default function SaaSSuspendidoView({ club, tarifaBase, wppNumber }: { club: any, tarifaBase: number, wppNumber: string }) {
+export default function SaaSSuspendidoView({ club, tarifaBase, wppNumber, activeAthletesCount }: { club: any, tarifaBase: number, wppNumber: string, activeAthletesCount: number }) {
   const cleanNumber = wppNumber.replace(/[^0-9]/g, '');
 
   return (
@@ -124,8 +124,8 @@ export default function SaaSSuspendidoView({ club, tarifaBase, wppNumber }: { cl
            <div className="mt-6 bg-slate-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200">
               <div>
                 <p className="text-xs text-slate-500 font-medium">Pago Anual</p>
-                <p className="text-lg font-bold text-slate-900">Estimado anual: COP {(tarifaBase * 0.5 * 12 * 20).toLocaleString('es-CO')}</p>
-                <p className="text-[10px] text-slate-400">20 deportistas activos</p>
+                <p className="text-lg font-bold text-slate-900">Estimado anual: COP {(tarifaBase * 0.5 * 12 * activeAthletesCount).toLocaleString('es-CO')}</p>
+                <p className="text-[10px] text-slate-400">{activeAthletesCount} deportistas activos</p>
               </div>
               <a 
                 href={`https://wa.me/${cleanNumber}?text=Me%20interesa%20el%20plan%20ANUAL%20para%20el%20club%20${encodeURIComponent(club?.nombre || '')}`}
