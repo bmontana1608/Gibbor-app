@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Zap, ChevronRight, BarChart3, Smartphone, Building2, Trophy, CreditCard, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import MCMLogo from '@/components/MCMLogo';
 
 const featuresData = [
   {
@@ -79,15 +80,8 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logo_mcm.png"
-              alt="Master Club Manager"
-              width={220}
-              height={60}
-              className="h-14 w-auto object-contain"
-              priority
-            />
+          <div className="flex items-center">
+            <MCMLogo width={240} height={64} />
           </div>
           
           <div className="hidden lg:flex items-center gap-8 text-sm font-semibold text-slate-300">
