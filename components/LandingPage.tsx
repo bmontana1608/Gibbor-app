@@ -81,11 +81,11 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo_mcm_dark.png"
+              src="/logo_mcm.png"
               alt="Master Club Manager"
-              width={180}
-              height={48}
-              className="h-10 w-auto object-contain"
+              width={220}
+              height={60}
+              className="h-14 w-auto object-contain"
               priority
             />
           </div>

@@ -28,9 +28,11 @@ export async function generateMetadata() {
       title: tenant.config.nombre,
     },
     icons: {
-      icon: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
-      apple: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
-      shortcut: (tenant as any).isMaster ? '/logo_mcm.png' : (tenant.config.logo || '/logo.png'),
+      icon: [
+        { url: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'), type: 'image/png', sizes: '512x512' },
+      ],
+      apple: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'),
+      shortcut: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'),
     },
   };
 }
