@@ -40,7 +40,7 @@ const TIPO_COLORS: Record<string, string> = {
   'Torneo': 'bg-yellow-50 text-yellow-700 border-yellow-200',
   'Cancha': 'bg-blue-50 text-blue-700 border-blue-200',
   'Arbitraje': 'bg-purple-50 text-purple-700 border-purple-200',
-  'Viaje': 'bg-orange-50 text-orange-700 border-orange-200',
+  'Viaje': 'bg-brand/10 text-orange-700 border-brand/40',
   'Concentración': 'bg-red-50 text-red-700 border-red-200',
   'Otro': 'bg-slate-50 text-slate-600 border-slate-200',
 };

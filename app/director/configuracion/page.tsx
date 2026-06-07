@@ -291,14 +291,14 @@ export default function ConfiguracionGeneral() {
     return [0,1,2,3,4,5,6];
   };
 
-  if (loadingConfig) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="w-12 h-12 border-4 -[var(--brand-primary)] border-t-transparent rounded-full animate-spin"></div></div>;
+  if (loadingConfig) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="text-brand border-t-transparent rounded-full animate-spin"></div></div>;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans text-slate-800 pb-20">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 -[var(--brand-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)] rotate-2">
+            <div className="text-brand rounded-xl flex items-center justify-center shadow-lg shadowbg-brand/15 rotate-2">
               <Settings className="text-white w-7 h-7" />
             </div>
             <div>
@@ -307,30 +307,30 @@ export default function ConfiguracionGeneral() {
             </div>
           </div>
           <button onClick={handleSave} disabled={cargando} className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-xl shadow-slate-100">
-            {cargando ? 'Guardando...' : <><Save className="w-5 h-5 -[rgba(var(--brand-primary-rgb),0.4)]" /> Guardar Todo</>}
+            {cargando ? 'Guardando...' : <><Save className="w-5 h-5 border-brand/40" /> Guardar Todo</>}
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* IDENTIDAD */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-fit">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="w-4 h-4 -[var(--brand-primary)]" /> Identidad del Club</h2>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="text-brand" /> Identidad del Club</h2>
             <div className="space-y-5">
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Nombre del Club (en Carnet)</label>
-                <input type="text" value={config.nombre_club} onChange={(e) => setConfig({...config, nombre_club: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-black text-sm uppercase" />
+                <input type="text" value={config.nombre_club} onChange={(e) => setConfig({...config, nombre_club: e.target.value})} className="text-brand font-black text-sm uppercase" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Temporada Actual</label>
-                <input type="text" value={config.temporada_actual} onChange={(e) => setConfig({...config, temporada_actual: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-black text-sm uppercase" />
+                <input type="text" value={config.temporada_actual} onChange={(e) => setConfig({...config, temporada_actual: e.target.value})} className="text-brand font-black text-sm uppercase" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Dirección Sede</label>
-                <input type="text" value={config.direccion} onChange={(e) => setConfig({...config, direccion: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-sm" />
+                <input type="text" value={config.direccion} onChange={(e) => setConfig({...config, direccion: e.target.value})} className="text-brand font-bold text-sm" />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Ciudad</label>
-                <input type="text" value={config.ciudad} onChange={(e) => setConfig({...config, ciudad: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-sm" />
+                <input type="text" value={config.ciudad} onChange={(e) => setConfig({...config, ciudad: e.target.value})} className="text-brand font-bold text-sm" />
               </div>
             </div>
           </div>
@@ -338,14 +338,14 @@ export default function ConfiguracionGeneral() {
           {/* IDENTIDAD VISUAL DEL CLUB */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-fit mt-8 lg:mt-0 lg:col-span-1 lg:row-start-2">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Palette className="w-4 h-4 -[var(--brand-primary)]" /> Identidad Visual
+              <Palette className="text-brand" /> Identidad Visual
             </h2>
             <div className="space-y-6">
               
               {/* Logo Upload */}
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-3 block">Logo Institucional</label>
-                <div className="flex flex-col items-center gap-4 p-4 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 relative group transition-colors hover:border-[var(--brand-primary)] hover:bg-[rgba(var(--brand-primary-rgb),0.02)]">
+                <div className="text-brand hover:bg-[rgba(var(--brand-primary-rgb),0.02)]">
                   <div className="w-24 h-24 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
                     {identidad.logo_url ? (
                       <img src={identidad.logo_url} alt="Logo" className="w-full h-full object-contain p-2" />
@@ -354,7 +354,7 @@ export default function ConfiguracionGeneral() {
                     )}
                   </div>
                   <div className="text-center w-full">
-                    <label className="cursor-pointer bg-white border border-slate-200 hover:border-[var(--brand-primary)] text-slate-700 hover:text-[var(--brand-primary)] px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm w-full relative overflow-hidden">
+                    <label className="cursor-pointer bg-white border border-slate-200 hover:bordertext-brand text-slate-700 hover:texttext-brand px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm w-full relative overflow-hidden">
                       {subiendoLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       {subiendoLogo ? "Procesando..." : "Cambiar Logo"}
                       <input type="file" accept="image/*" onChange={handleSubirLogo} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={subiendoLogo} />
@@ -402,8 +402,8 @@ export default function ConfiguracionGeneral() {
                 </div>
               </div>
 
-              <div className="bg-[rgba(var(--brand-primary-rgb),0.1)] rounded-xl p-3 border border-[rgba(var(--brand-primary-rgb),0.2)]">
-                <p className="text-[9px] font-bold text-[var(--brand-primary)] leading-relaxed">
+              <div className="bgbg-brand/10 rounded-xl p-3 border borderbg-brand/20">
+                <p className="text-[9px] font-bold texttext-brand leading-relaxed">
                   💡 Estos colores se aplicarán automáticamente a toda la plataforma de tu club tras guardar y recargar la página.
                 </p>
               </div>
@@ -414,7 +414,7 @@ export default function ConfiguracionGeneral() {
           <div className="lg:col-span-2 space-y-8 lg:row-span-2">
             {/* PAGOS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><CreditCard className="w-4 h-4 -[var(--brand-primary)]" /> Métodos de Pago</h2>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><CreditCard className="text-brand" /> Métodos de Pago</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><Smartphone className="w-3 h-3 text-purple-500" /> Nequi</label>
@@ -503,8 +503,8 @@ export default function ConfiguracionGeneral() {
             {/* GESTIÓN DE PLANES MULTICLUB */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="w-4 h-4 -[var(--brand-primary)]" /> Planes y Restricciones</h2>
-                <p className="text-[9px] font-bold -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)] px-3 py-1 rounded-full uppercase tracking-tighter">SaaS Intelligence Active</p>
+                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="text-brand" /> Planes y Restricciones</h2>
+                <p className="text-[9px] font-bold text-brand bg-brand/10 px-3 py-1 rounded-full uppercase tracking-tighter">SaaS Intelligence Active</p>
               </div>
               
               <div className="space-y-4">
@@ -533,8 +533,8 @@ export default function ConfiguracionGeneral() {
                               }}
                               className={`w-7 h-7 rounded-lg text-[9px] font-black transition-all border ${
                                 isActive 
-                                ? '-[var(--brand-primary)] text-white -[var(--brand-primary)] shadow-sm' 
-                                : 'bg-white text-slate-400 border-slate-200 hover:-[rgba(var(--brand-primary-rgb),0.4)]'
+                                ? 'bg-brand-white text-brand shadow-sm' 
+                                : 'bg-white text-slate-400 border-slate-200 hover:border-brand/40'
                               }`}
                             >
                               {letra}
@@ -555,7 +555,7 @@ export default function ConfiguracionGeneral() {
             <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 -[var(--brand-primary)] rounded-2xl flex items-center justify-center shadow-lg -[var(--brand-primary)]/20 rotate-3">
+                  <div className="text-brand rounded-2xl flex items-center justify-center shadow-lg bg-brand/20 rotate-3">
                     <ShieldCheck className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -566,7 +566,7 @@ export default function ConfiguracionGeneral() {
 
                 <div className="space-y-6">
                   <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-lg">
-                    Crea un acceso directo a los perfiles de tus hijos. Cuando entres al <span className="-[var(--brand-primary)] font-bold">Modo Jugador</span>, verás sus carnets y estados de cuenta automáticamente.
+                    Crea un acceso directo a los perfiles de tus hijos. Cuando entres al <span className="text-brand font-bold">Modo Jugador</span>, verás sus carnets y estados de cuenta automáticamente.
                   </p>
 
                   <div className="space-y-3">
@@ -578,8 +578,8 @@ export default function ConfiguracionGeneral() {
                           hijosIds.map(id => {
                             const jug = jugadores.find(j => j.id === id);
                             return (
-                              <div key={id} className="-[var(--brand-primary)]/10 border -[var(--brand-primary)]/20 px-4 py-2 rounded-xl flex items-center gap-3 group transition-all">
-                                 <div className="w-6 h-6 rounded-full -[var(--brand-primary)] flex items-center justify-center text-[10px] font-bold text-white">
+                              <div key={id} className="bg-brand/10 border borderbg-brand/20 px-4 py-2 rounded-xl flex items-center gap-3 group transition-all">
+                                 <div className="bg-brand-white">
                                    {jug?.nombres?.charAt(0)}
                                  </div>
                                  <span className="text-xs font-bold text-slate-200">{jug?.nombres} {jug?.apellidos}</span>
@@ -626,7 +626,7 @@ export default function ConfiguracionGeneral() {
                     <input 
                       type="text" 
                       placeholder="Buscar por nombre..." 
-                      className="w-full pl-10 pr-4 py-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:-[var(--brand-primary)] text-sm font-bold"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:text-brand text-sm font-bold"
                       onChange={(e) => setBusqueda(e.target.value)}
                     />
                  </div>
@@ -644,17 +644,17 @@ export default function ConfiguracionGeneral() {
                             setHijosIds([...hijosIds, jug.id]);
                             setIsModalVincularOpen(false);
                           }}
-                          className="w-full p-4 flex items-center justify-between hover:-[rgba(var(--brand-primary-rgb),0.1)] rounded-2xl transition-all group"
+                          className="w-full p-4 flex items-center justify-between hover:bg-brand/10 rounded-2xl transition-all group"
                         >
                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center font-bold text-xs group-hover:-[var(--brand-primary)] group-hover:text-white">
+                              <div className="bg-brand-white">
                                 {jug.nombres.charAt(0)}
                               </div>
                               <div className="text-left">
                                 <p className="text-xs font-bold text-slate-800">{jug.nombres} {jug.apellidos}</p>
                               </div>
                            </div>
-                           <PlusCircle className="w-4 h-4 text-slate-300 group-hover:-[var(--brand-primary)]" />
+                           <PlusCircle className="text-brand" />
                         </button>
                     ))}
                  </div>

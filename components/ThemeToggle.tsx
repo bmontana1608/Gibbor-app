@@ -25,7 +25,7 @@ export default function ThemeToggle() {
     >
       <div className="relative w-5 h-5 overflow-hidden">
         <Sun 
-          className={`absolute inset-0 w-5 h-5 text-orange-500 transition-all duration-300 ${isDark ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`} 
+          className={`absolute inset-0 w-5 h-5 text-brand transition-all duration-300 ${isDark ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`} 
         />
         <Moon 
           className={`absolute inset-0 w-5 h-5 text-blue-400 transition-all duration-300 ${isDark ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`} 

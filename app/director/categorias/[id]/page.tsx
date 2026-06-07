@@ -123,7 +123,7 @@ export default function DetalleCategoria() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6 font-sans text-slate-800 relative">
-      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:text-[var(--brand-primary)] flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
+      <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:texttext-brand flex items-center gap-2 transition-colors font-bold text-sm w-fit group">
         <span className="group-hover:-translate-x-1 transition-transform">←</span> Volver a Grupos
       </button>
 
@@ -146,15 +146,15 @@ export default function DetalleCategoria() {
             <button onClick={() => router.push(route('/director/asistencia'))} className="flex-1 md:flex-none bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
               📋 Entrenar
             </button>
-            <button onClick={abrirEditarGrupo} className="flex-1 md:flex-none bg-[var(--brand-primary)] hover:opacity-90 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
+            <button onClick={abrirEditarGrupo} className="flex-1 md:flex-none bgbg-brand-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
               ✏️ Editar Grupo
             </button>
           </div>
         </div>
         <div className="flex px-6 border-t border-slate-100 bg-slate-50/50 overflow-x-auto custom-scrollbar">
-          <button onClick={() => setPestañaActiva('General')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'General' ? 'border-[var(--brand-primary)] text-[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Vista General</button>
-          <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${pestañaActiva === 'Miembros' ? 'border-[var(--brand-primary)] text-[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Miembros <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs">{miembros.length}</span></button>
-          <button onClick={() => setPestañaActiva('Horarios')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'Horarios' ? 'border-[var(--brand-primary)] text-[var(--brand-primary)]' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Horarios</button>
+          <button onClick={() => setPestañaActiva('General')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'General' ? 'bordertext-brand texttext-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Vista General</button>
+          <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap flex items-center gap-2 ${pestañaActiva === 'Miembros' ? 'bordertext-brand texttext-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Miembros <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-xs">{miembros.length}</span></button>
+          <button onClick={() => setPestañaActiva('Horarios')} className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${pestañaActiva === 'Horarios' ? 'bordertext-brand texttext-brand' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Horarios</button>
         </div>
       </div>
 
@@ -171,12 +171,12 @@ export default function DetalleCategoria() {
               </div>
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4"><span className="text-[var(--brand-primary)]">👨‍🏫</span> Entrenadores Asignados</h3>
+              <h3 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-wider border-b border-slate-100 pb-4"><span className="texttext-brand">👨‍🏫</span> Entrenadores Asignados</h3>
               {categoria.entrenadores ? (
                 <div className="flex flex-col gap-3">
                   {categoria.entrenadores.split(', ').map((ent: string, i: number) => (
                     <div key={i} className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                      <div className="w-10 h-10 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] flex items-center justify-center font-bold">{ent.charAt(0).toUpperCase()}</div>
+                      <div className="bg-brand/10 texttext-brand flex items-center justify-center font-bold">{ent.charAt(0).toUpperCase()}</div>
                       <p className="font-bold text-slate-700">{ent}</p>
                     </div>
                   ))}
@@ -205,7 +205,7 @@ export default function DetalleCategoria() {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-fade-in">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h3 className="font-bold text-slate-800">Jugadores ({miembros.length})</h3>
-            <button onClick={() => router.push(route('/director/miembros/nuevo'))} className="text-sm font-bold text-[var(--brand-primary)]">+ Añadir</button>
+            <button onClick={() => router.push(route('/director/miembros/nuevo'))} className="text-sm font-bold texttext-brand">+ Añadir</button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -231,7 +231,7 @@ export default function DetalleCategoria() {
                         </td>
                         <td className="p-4 text-center"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${esInactivo ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{jugador.estado_miembro || 'Activo'}</span></td>
                         <td className="p-4 text-center"><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{esAlDia ? 'Al día' : 'Pendiente'}</span></td>
-                        <td className="p-4 text-right"><button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-xs font-bold text-slate-600 hover:text-[var(--brand-primary)] border border-slate-200 px-3 py-1.5 rounded-lg">Ver Ficha</button></td>
+                        <td className="p-4 text-right"><button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-xs font-bold text-slate-600 hover:texttext-brand border border-slate-200 px-3 py-1.5 rounded-lg">Ver Ficha</button></td>
                       </tr>
                     );
                   })
@@ -246,15 +246,15 @@ export default function DetalleCategoria() {
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 md:p-8 animate-fade-in">
           <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2 uppercase tracking-wider"><span className="text-purple-500">🕒</span> Horarios</h3>
-            <button onClick={abrirEditarGrupo} className="text-sm font-bold text-[var(--brand-primary)] border border-[var(--brand-primary)]/20 px-3 py-1.5 rounded-lg">✏️ Modificar</button>
+            <button onClick={abrirEditarGrupo} className="text-sm font-bold texttext-brand border borderbg-brand/20 px-3 py-1.5 rounded-lg">✏️ Modificar</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {horariosArray.map((horario: string, index: number) => {
               const [dia, horas] = horario.trim().split(' ');
               return (
-                <div key={index} className="bg-slate-50 border border-slate-200 rounded-xl p-5 flex flex-col items-center justify-center text-center hover:border-[var(--brand-primary)]/40 transition-all">
+                <div key={index} className="text-brand/40 transition-all">
                   <span className="text-xl font-black text-slate-800 mb-2">{dia}</span>
-                  <span className="text-sm font-bold text-[var(--brand-primary)] bg-[var(--brand-primary)]/10 px-3 py-1.5 rounded-lg border border-[var(--brand-primary)]/10">{horas}</span>
+                  <span className="bg-brand/10">{horas}</span>
                 </div>
               );
             })}
@@ -282,8 +282,8 @@ export default function DetalleCategoria() {
                       const nombre = `${ent.nombres} ${ent.apellidos}`;
                       const sel = entrenadoresSeleccionados.includes(nombre);
                       return (
-                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer ${sel ? 'bg-[var(--brand-primary)]/5' : ''}`}>
-                          <input type="checkbox" checked={sel} onChange={() => toggleEntrenador(nombre)} className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <label key={ent.id} className={`flex items-center gap-3 p-3 cursor-pointer ${sel ? 'bgbg-brand/5' : ''}`}>
+                          <input type="checkbox" checked={sel} onChange={() => toggleEntrenador(nombre)} className="text-brand" />
                           <span className="text-sm font-medium">{nombre}</span>
                         </label>
                       );
@@ -308,7 +308,7 @@ export default function DetalleCategoria() {
             </div>
             <div className="p-6 border-t border-slate-100 flex justify-center gap-3">
               <button onClick={() => setMostrarModal(false)} className="flex-1 py-3 border border-slate-300 rounded-xl text-sm font-bold">Cancelar</button>
-              <button type="submit" form="editarGrupoForm" disabled={guardando} className="flex-1 py-3 bg-[var(--brand-primary)] text-white rounded-xl text-sm font-bold">{guardando ? 'Guardando...' : 'Actualizar'}</button>
+              <button type="submit" form="editarGrupoForm" disabled={guardando} className="flex-1 py-3 bgbg-brand-white rounded-xl text-sm font-bold">{guardando ? 'Guardando...' : 'Actualizar'}</button>
             </div>
           </div>
         </div>

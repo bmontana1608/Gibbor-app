@@ -113,7 +113,7 @@ export default function PagosFutbolista() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-             <CreditCard className="-[var(--brand-primary)] w-8 h-8" /> FINANZAS
+             <CreditCard className="text-brand w-8 h-8" /> FINANZAS
           </h1>
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">Control de tus mensualidades y recibos</p>
         </div>
@@ -134,18 +134,18 @@ export default function PagosFutbolista() {
       {/* TARJETA DE PRÓXIMO PAGO */}
       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
          <div className="relative z-10 space-y-4">
-            <p className="-[var(--brand-primary)] text-xs font-black uppercase tracking-[0.2em]">Próximo Vencimiento</p>
+            <p className="text-brand text-xs font-black uppercase tracking-[0.2em]">Próximo Vencimiento</p>
             <div className="flex items-end gap-2">
                <h2 className="text-4xl md:text-5xl font-black">10 {monthName}</h2>
                <span className="text-slate-500 font-bold mb-1">{targetYear}</span>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
-                  <Wallet className="w-4 h-4 -[rgba(var(--brand-primary-rgb),0.4)]" />
+                  <Wallet className="w-4 h-4 border-brand/40" />
                   <span className="text-xs font-bold">$120,000 COP</span>
                </div>
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 -[rgba(var(--brand-primary-rgb),0.4)]" />
+                  <Calendar className="w-4 h-4 border-brand/40" />
                   <span className="text-xs font-bold text-slate-300">Mensualidad Regular</span>
                </div>
             </div>
@@ -161,7 +161,7 @@ export default function PagosFutbolista() {
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
            <div className="flex items-center justify-between mb-6">
              <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
-                <Landmark className="w-5 h-5 text-[var(--brand-primary)]" /> Canales de Pago
+                <Landmark className="text-brand" /> Canales de Pago
              </h3>
              <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded-lg uppercase tracking-widest">Toca para copiar y abrir</span>
            </div>
@@ -244,7 +244,7 @@ export default function PagosFutbolista() {
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
-              <FileText className="w-4 h-4 -[var(--brand-primary)]" /> Historial de Pagos
+              <FileText className="text-brand" /> Historial de Pagos
             </h3>
             <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2.5 py-1 rounded-full">{pagos.length} RECIBOS</span>
          </div>
@@ -261,7 +261,7 @@ export default function PagosFutbolista() {
               pagos.map((pago: any) => (
                 <div key={pago.id} className="p-6 md:px-8 hover:bg-slate-50 transition-colors group flex items-center justify-between">
                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 group-hover:-[var(--brand-primary)] group-hover:-[var(--brand-primary)] transition-all shadow-sm">
+                      <div className="text-brand group-hover:text-brand transition-all shadow-sm">
                          <Calendar className="w-6 h-6" />
                       </div>
                       <div>

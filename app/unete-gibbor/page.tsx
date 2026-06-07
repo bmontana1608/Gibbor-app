@@ -136,7 +136,7 @@ export default function RegistroPublicoPorClub() {
   if (cargandoClub) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin -[var(--brand-primary)]" />
+        <Loader2 className="text-brand" />
       </div>
     );
   }
@@ -160,7 +160,7 @@ export default function RegistroPublicoPorClub() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mb-4 uppercase italic tracking-tighter">¡Registro Recibido!</h1>
           <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-            Los datos de <strong className="-[var(--brand-primary)] font-black">{formData.nombres}</strong> han sido enviados a{' '}
+            Los datos de <strong className="text-brand font-black">{formData.nombres}</strong> han sido enviados a{' '}
             <strong>{club?.nombre}</strong>. El director revisará la solicitud y te contactará pronto.
             <br />
             <span className="text-[8px] text-slate-300 font-mono mt-4 block uppercase tracking-widest">Target Club ID: {club?.id}</span>
@@ -229,12 +229,12 @@ export default function RegistroPublicoPorClub() {
             </div>
 
             {categoriaAsignada ? (
-              <div className="md:col-span-2 -[rgba(var(--brand-primary-rgb),0.1)] p-5 rounded-2xl border-2 -[var(--brand-primary)] animate-in zoom-in duration-300">
-                <p className="text-[10px] font-black -[var(--brand-primary)] uppercase tracking-widest mb-1">Categoría Asignada por Sistema</p>
+              <div className="text-brand animate-in zoom-in duration-300">
+                <p className="text-[10px] font-black text-brand uppercase tracking-widest mb-1">Categoría Asignada por Sistema</p>
                 <div className="flex items-center justify-between">
                   <h4 className="text-xl font-black text-slate-900 uppercase italic">{categoriaAsignada.nombre}</h4>
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-full border -[rgba(var(--brand-primary-rgb),0.4)]">
-                    <Target className="w-3.5 h-3.5 -[var(--brand-primary)]" /> {categoriaAsignada.nivel}
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-full border border-brand/40">
+                    <Target className="w-3.5 h-3.5 text-brand" /> {categoriaAsignada.nivel}
                   </div>
                 </div>
               </div>
@@ -265,10 +265,10 @@ export default function RegistroPublicoPorClub() {
 
         {/* REPRESENTANTE LEGAL (menores) */}
         {isMinor && (
-          <section className="bg-slate-900 border-l-8 -[var(--brand-primary)] rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+          <section className="bg-slate-900 border-l-8 text-brand rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
             <div className="flex items-center gap-5 mb-10">
               <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center">
-                <ShieldCheck className="-[rgba(var(--brand-primary-rgb),0.4)] w-7 h-7" />
+                <ShieldCheck className="border-brand/40 w-7 h-7" />
               </div>
               <div>
                 <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Representante Legal</h2>
@@ -292,7 +292,7 @@ export default function RegistroPublicoPorClub() {
         <section>
           <div className="flex items-center gap-5 mb-12">
             <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center border-b-4 border-slate-300">
-              <HeartPulse className="-[var(--brand-primary)] w-7 h-7" />
+              <HeartPulse className="text-brand w-7 h-7" />
             </div>
             <div>
               <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter">Ficha Médica</h2>
@@ -323,19 +323,19 @@ export default function RegistroPublicoPorClub() {
               <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergias, condiciones especiales... (Opcional)" rows={3} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700 resize-none" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 -[var(--brand-primary)] rounded-[2.5rem] p-8 md:p-12 shadow-lg">
+          <div className="text-brand rounded-[2.5rem] p-8 md:p-12 shadow-lg">
             <div className="md:col-span-2 flex items-center gap-4 mb-3">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                <Smartphone className="-[var(--brand-primary)] w-5 h-5" />
+                <Smartphone className="text-brand w-5 h-5" />
               </div>
               <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Contacto de Emergencia</h3>
             </div>
             <div>
-              <label className="block text-[10px] font-black -[var(--brand-primary)]/60 uppercase tracking-widest mb-3">Nombre Completo *</label>
+              <label className="block text-[10px] font-black text-brand/60 uppercase tracking-widest mb-3">Nombre Completo *</label>
               <input type="text" name="emergencia_nombre" value={formData.emergencia_nombre} onChange={handleChange} className="w-full bg-white/20 border border-white/20 rounded-2xl px-6 py-4 focus:bg-white outline-none font-bold text-white focus:text-slate-900" required placeholder="Nombre de contacto" />
             </div>
             <div>
-              <label className="block text-[10px] font-black -[var(--brand-primary)]/60 uppercase tracking-widest mb-3">Teléfono Urgencias *</label>
+              <label className="block text-[10px] font-black text-brand/60 uppercase tracking-widest mb-3">Teléfono Urgencias *</label>
               <input type="tel" name="emergencia_telefono" value={formData.emergencia_telefono} onChange={handleChange} className="w-full bg-white/20 border border-white/20 rounded-2xl px-6 py-4 focus:bg-white outline-none font-bold text-white focus:text-slate-900" required placeholder="Nro de celular" />
             </div>
           </div>
@@ -344,19 +344,19 @@ export default function RegistroPublicoPorClub() {
         {/* DOCUMENTACIÓN */}
         <section>
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 -[rgba(var(--brand-primary-rgb),0.1)]/50 rounded-2xl flex items-center justify-center border -[rgba(var(--brand-primary-rgb),0.4)]">
-              <FileText className="-[var(--brand-primary)] w-6 h-6" />
+            <div className="w-12 h-12 bg-brand/10/50 rounded-2xl flex items-center justify-center border border-brand/40">
+              <FileText className="text-brand w-6 h-6" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase italic tracking-tighter">Documentación</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-sm">
             {[
-              { key: 'jugador', label: 'Doc. Identidad Jugador', sub: 'T.I / C.C', icon: <FileText className="w-5 h-5 text-slate-400 group-hover:-[var(--brand-primary)]" />, col: '' },
-              { key: 'eps',     label: 'Registro EPS',           sub: 'Carné o Certificado', icon: <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:-[var(--brand-primary)]" />, col: '' },
-              { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="w-5 h-5 text-slate-400 group-hover:-[var(--brand-primary)]" />, col: 'md:col-span-2' },
+              { key: 'jugador', label: 'Doc. Identidad Jugador', sub: 'T.I / C.C', icon: <FileText className="text-brand" />, col: '' },
+              { key: 'eps',     label: 'Registro EPS',           sub: 'Carné o Certificado', icon: <ShieldCheck className="text-brand" />, col: '' },
+              { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="text-brand" />, col: 'md:col-span-2' },
             ].map(({ key, label, sub, icon, col }) => (
-              <div key={key} className={`${col} group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:-[var(--brand-primary)]/50 hover:-[rgba(var(--brand-primary-rgb),0.1)] transition-all cursor-pointer shadow-sm`}>
-                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:-[rgba(var(--brand-primary-rgb),0.1)] transition-colors">{icon}</div>
+              <div key={key} className={`${col} group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:bg-brand/50 hover:bg-brand/10 transition-all cursor-pointer shadow-sm`}>
+                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-brand/10 transition-colors">{icon}</div>
                 <p className="text-slate-900 font-black uppercase italic tracking-tighter text-sm">{label}</p>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
                   {(archivos as any)[key] ? <span className="text-emerald-500">✓ {(archivos as any)[key].name}</span> : sub}
@@ -372,7 +372,7 @@ export default function RegistroPublicoPorClub() {
         {/* ENVIAR */}
         <div className="pt-8">
           <button type="submit" disabled={guardando} className="group relative w-full bg-slate-900 text-white font-black text-xl py-6 rounded-[2rem] transition-all shadow-xl active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.4)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-r text-brand border-brand/40 opacity-0 group-hover:opacity-100 transition-opacity" />
             <span className="relative z-10 uppercase italic tracking-tighter">
               {guardando ? 'Procesando Envío...' : 'Enviar Solicitud de Inscripción'}
             </span>

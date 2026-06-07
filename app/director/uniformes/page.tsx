@@ -293,7 +293,7 @@ export default function UniformesModule() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
-               <Shirt className="w-8 h-8 -[var(--brand-primary)]" /> Dotación y Uniformes
+               <Shirt className="text-brand" /> Dotación y Uniformes
             </h1>
             <p className="text-slate-500 text-sm font-medium mt-1">
               Controla pedidos, tallas, costos de proveedor y tus ganancias.
@@ -309,7 +309,7 @@ export default function UniformesModule() {
 
         {/* DASHBOARD INTELIGENTE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 -[var(--brand-primary)]">
+           <div className="text-brand">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">${stats.totalVenta.toLocaleString('es-CO')}</h3>
               <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
@@ -376,7 +376,7 @@ export default function UniformesModule() {
                              <div className="flex flex-wrap gap-2">
                                {p.talla_camisa && <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-black rounded-md">👕 {p.talla_camisa}</span>}
                                {p.talla_short && <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-black rounded-md">🩳 {p.talla_short}</span>}
-                               {p.dorsal && <span className="px-2 py-1 -[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] text-[10px] font-black rounded-md">#️⃣ {p.dorsal}</span>}
+                               {p.dorsal && <span className="text-brand text-[10px] font-black rounded-md">#️⃣ {p.dorsal}</span>}
                              </div>
                           </td>
                           <td className="p-4">
@@ -529,7 +529,7 @@ export default function UniformesModule() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor de Venta (Cobro) ($)</label>
-                    <input type="number" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} placeholder="0" className="w-full p-4 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl font-black -[var(--brand-primary)] outline-none" />
+                    <input type="number" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} placeholder="0" className="text-brand outline-none" />
                   </div>
                 </div>
                 {Number(precioVenta) > 0 && (
@@ -580,7 +580,7 @@ export default function UniformesModule() {
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-b-[2rem]">
               <button 
                 onClick={guardarPedido}
-                className="w-full bg-slate-900 dark:-[var(--brand-primary)] text-white hover:scale-[1.02] transition-all px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20"
+                className="w-full bg-slate-900 dark:bg-brand-white hover:scale-[1.02] transition-all px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20"
               >
                 <CheckCircle className="w-5 h-5" /> Guardar Pedido
               </button>

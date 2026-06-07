@@ -26,11 +26,11 @@ export default function AsignarPuntos() {
   const [insigniaSeleccionada, setInsigniaSeleccionada] = useState<any>(null);
 
   const insigniasDisponibles = [
-    { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', color: '-[rgba(var(--brand-primary-rgb),0.4)] to-red-500', desc: 'Máximo artillero' },
+    { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', color: 'border-brand/40 to-red-500', desc: 'Máximo artillero' },
     { id: 'muro', nombre: 'Muro Defensivo', icono: '🛡️', color: 'from-blue-500 to-indigo-700', desc: 'Defensa impenetrable' },
     { id: 'cerebro', nombre: 'Cerebro del Campo', icono: '🧠', color: 'from-purple-500 to-pink-600', desc: 'Visión de juego superior' },
     { id: 'fairplay', nombre: 'Espíritu Deportivo', icono: '🤝', color: 'from-green-400 to-emerald-600', desc: 'Compañerismo y valores' },
-    { id: 'rayo', nombre: 'Rayo Veloz', icono: '⚡', color: 'from-yellow-400 -[var(--brand-primary)]', desc: 'Velocidad explosiva' }
+    { id: 'rayo', nombre: 'Rayo Veloz', icono: '⚡', color: 'from-yellow-400 text-brand', desc: 'Velocidad explosiva' }
   ];
 
   const razonesComunes = [

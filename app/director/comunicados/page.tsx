@@ -114,7 +114,7 @@ export default function PaginaComunicados() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3 italic tracking-tighter uppercase">
-              <Megaphone className="-[var(--brand-primary)] w-9 h-9" /> Centro de Comunicados
+              <Megaphone className="text-brand w-9 h-9" /> Centro de Comunicados
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Envía alertas instantáneas a todos los celulares de la academia.</p>
           </div>
@@ -131,19 +131,19 @@ export default function PaginaComunicados() {
 
         {/* BANNER DE ACTIVACIÓN (Para el usuario actual) */}
         {!isSubscribed && (
-          <div className="bg-gradient-to-r -[var(--brand-primary)] -[var(--brand-primary)] rounded-[2rem] p-6 text-white shadow-xl -[var(--brand-primary)]/20 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="bg-brand/20 flex flex-col md:flex-row items-center justify-between gap-4">
              <div className="flex items-center gap-4">
                 <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
                    <Bell className="w-8 h-8" />
                 </div>
                 <div>
                    <h3 className="text-lg font-black uppercase italic tracking-tight">Activa tus propias alertas</h3>
-                   <p className="text-sm -[rgba(var(--brand-primary-rgb),0.1)]">Suscríbete en este navegador para recibir las pruebas que envíes.</p>
+                   <p className="text-sm bg-brand/10">Suscríbete en este navegador para recibir las pruebas que envíes.</p>
                 </div>
              </div>
              <button 
               onClick={suscribirDispositivo}
-              className="bg-white -[var(--brand-primary)] px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-105 transition-all"
+              className="bg-white text-brand px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-105 transition-all"
              >
                 Habilitar Notificaciones
              </button>
@@ -155,7 +155,7 @@ export default function PaginaComunicados() {
           {/* EDITOR DE COMUNICADO */}
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-8">
-               <div className="w-10 h-10 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/10 rounded-xl flex items-center justify-center -[var(--brand-primary)]">
+               <div className="bg-brand/10 rounded-xl flex items-center justify-center text-brand">
                   <Send className="w-5 h-5" />
                </div>
                <h2 className="text-xl font-bold text-slate-800 dark:text-white">Redactar Alerta</h2>
@@ -169,7 +169,7 @@ export default function PaginaComunicados() {
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
                   placeholder="Ej: Cambio de Horario ⚠️"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold transition-all"
+                  className="text-brand font-bold transition-all"
                 />
               </div>
 
@@ -180,7 +180,7 @@ export default function PaginaComunicados() {
                   onChange={(e) => setMensaje(e.target.value)}
                   placeholder="Ej: El entrenamiento de hoy se traslada a las 4:00 PM en la Cancha Principal..."
                   rows={4}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-4 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-medium transition-all"
+                  className="text-brand font-medium transition-all"
                 />
               </div>
 
@@ -217,7 +217,7 @@ export default function PaginaComunicados() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 space-y-4">
-               <div className="flex items-center gap-3 -[var(--brand-primary)]">
+               <div className="text-brand">
                   <Info className="w-5 h-5" />
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Las notificaciones llegan incluso si el usuario no tiene la app abierta en ese momento.</p>
                </div>

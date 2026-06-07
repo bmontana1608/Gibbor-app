@@ -1639,7 +1639,7 @@ export default function ModuloCobranza() {
                 <p className="font-black text-slate-800 text-sm">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-3 -[var(--brand-primary)]"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
+                <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
                 <p className="text-sm font-bold text-slate-800">${(jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)).toLocaleString('es-CO')}</p>
               </div>
             </div>

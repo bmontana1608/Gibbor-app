@@ -133,10 +133,10 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
     <div className="relative">
       <button
         onClick={abrirPanel}
-        className="relative p-2 text-slate-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-xl transition-all"
+        className="relative p-2 text-slate-500 hover:text-brand hover:bg-brand/10 dark:hover:bg-brand/10 rounded-xl transition-all"
         aria-label="Notificaciones"
       >
-        <Bell className={`w-6 h-6 transition-colors ${totalNoLeidas > 0 ? 'text-orange-500' : ''}`} />
+        <Bell className={`w-6 h-6 transition-colors ${totalNoLeidas > 0 ? 'text-brand' : ''}`} />
         {totalNoLeidas > 0 && (
           <span className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white ring-2 ring-white dark:ring-slate-900 animate-bounce">
             {totalNoLeidas > 9 ? '9+' : totalNoLeidas}
@@ -156,12 +156,12 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                   <button
                     onClick={marcarTodasLeidas}
                     title="Marcar todas como leídas"
-                    className="text-slate-400 hover:text-orange-500 transition-colors p-1 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-500/10"
+                    className="text-slate-400 hover:text-brand transition-colors p-1 rounded-lg hover:bg-brand/10 dark:hover:bg-brand/10"
                   >
                     <CheckCheck className="w-4 h-4" />
                   </button>
                 )}
-                <span className="bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full text-[10px] font-bold italic">
+                <span className="bg-orange-100 dark:bg-brand/20 text-brand dark:text-brand/80 px-2 py-0.5 rounded-full text-[10px] font-bold italic">
                   {notificaciones.length} mensajes
                 </span>
               </div>
@@ -200,16 +200,16 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                           setIsOpen(false);
                         }}
                         className={`w-full p-4 flex items-start gap-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left group relative cursor-pointer ${
-                          esNoLeida ? 'bg-orange-50/50 dark:bg-orange-500/5' : ''
+                          esNoLeida ? 'bg-brand/10/50 dark:bg-brand/5' : ''
                         }`}
                       >
                         {/* Punto de no leída */}
                         {esNoLeida && (
-                          <span className="absolute top-4 right-3 w-2 h-2 rounded-full bg-orange-500 flex-shrink-0" />
+                          <span className="absolute top-4 right-3 w-2 h-2 rounded-full bg-brand flex-shrink-0" />
                         )}
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           notif.origen === 'registro'
-                            ? 'bg-orange-100 dark:bg-orange-500/10 text-orange-600'
+                            ? 'bg-orange-100 dark:bg-brand/10 text-brand'
                             : 'bg-blue-100 dark:bg-blue-500/10 text-blue-600'
                         }`}>
                           {notif.origen === 'registro' ? <UserPlus className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
@@ -235,7 +235,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
             {rolUsuario === 'Director' && (
               <button
                 onClick={() => { router.push('/director/comunicados'); setIsOpen(false); }}
-                className="w-full p-3 bg-slate-50 dark:bg-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2"
+                className="w-full p-3 bg-slate-50 dark:bg-slate-800 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-brand transition-colors border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2"
               >
                 Enviar nuevo comunicado <ArrowRight className="w-3 h-3" />
               </button>

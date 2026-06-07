@@ -76,7 +76,7 @@ export default function ConfiguracionServidor() {
       
       <button 
         onClick={() => router.back()} 
-        className="mb-6 text-slate-500 hover:-[var(--brand-primary)] flex items-center gap-2 transition-colors font-bold text-sm"
+        className="mb-6 text-slate-500 hover:text-brand flex items-center gap-2 transition-colors font-bold text-sm"
       >
         <ArrowLeft className="w-4 h-4" /> Volver a WhatsApp
       </button>
@@ -86,10 +86,10 @@ export default function ConfiguracionServidor() {
           
           {/* Cabecera */}
           <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-32 h-32 -[var(--brand-primary)]/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+             <div className="bg-brand/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
              <div className="relative z-10 flex items-center gap-5">
                 <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20">
-                   <Server className="w-8 h-8 -[rgba(var(--brand-primary-rgb),0.4)]" />
+                   <Server className="w-8 h-8 border-brand/40" />
                 </div>
                 <div>
                    <h1 className="text-2xl font-black tracking-tight">Configuración del Servidor</h1>
@@ -130,7 +130,7 @@ export default function ConfiguracionServidor() {
                   value={config.api_url}
                   onChange={(e) => setConfig({...config, api_url: e.target.value})}
                   placeholder="https://tu-servidor-whatsapp.com"
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-slate-700 placeholder:text-slate-300 transition-all"
+                  className="text-brand font-bold text-slate-700 placeholder:text-slate-300 transition-all"
                 />
               </div>
 
@@ -143,7 +143,7 @@ export default function ConfiguracionServidor() {
                   value={config.api_key}
                   onChange={(e) => setConfig({...config, api_key: e.target.value})}
                   placeholder="Introduce tu Token de Seguridad"
-                  className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-slate-700 placeholder:text-slate-300 transition-all"
+                  className="text-brand font-bold text-slate-700 placeholder:text-slate-300 transition-all"
                 />
               </div>
 
@@ -156,7 +156,7 @@ export default function ConfiguracionServidor() {
                      type="text" 
                      value={config.instance_name}
                      onChange={(e) => setConfig({...config, instance_name: e.target.value})}
-                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:-[var(--brand-primary)] font-bold text-slate-700"
+                     className="text-brand font-bold text-slate-700"
                    />
                 </div>
                 <div className="flex flex-col justify-center">
@@ -164,7 +164,7 @@ export default function ConfiguracionServidor() {
                    <div className="flex items-center gap-3">
                       <button 
                         onClick={() => setConfig({...config, active_webhook: !config.active_webhook})}
-                        className={`w-14 h-7 rounded-full relative transition-colors ${config.active_webhook ? '-[var(--brand-primary)]' : 'bg-slate-300'}`}
+                        className={`w-14 h-7 rounded-full relative transition-colors ${config.active_webhook ? 'text-brand' : 'bg-slate-300'}`}
                       >
                          <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${config.active_webhook ? 'right-1' : 'left-1'}`}></div>
                       </button>
@@ -178,7 +178,7 @@ export default function ConfiguracionServidor() {
               {/* Dirección del Club para PDF */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 -[var(--brand-primary)]" /> Dirección del Club (Para el PDF)
+                  <MapPin className="text-brand" /> Dirección del Club (Para el PDF)
                 </label>
                 <div className="relative group">
                   <input
@@ -186,7 +186,7 @@ export default function ConfiguracionServidor() {
                     value={config.direccion}
                     onChange={(e) => setConfig({ ...config, direccion: e.target.value })}
                     placeholder="Ej: Calle 10 #12-34 Barrio Centro"
-                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:-[var(--brand-primary)] transition-all font-medium text-slate-600 shadow-sm pr-12"
+                    className="text-brand transition-all font-medium text-slate-600 shadow-sm pr-12"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
                     <MapPin className="w-5 h-5" />
@@ -198,7 +198,7 @@ export default function ConfiguracionServidor() {
               {/* Ciudad del Club para PDF */}
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <Building className="w-4 h-4 -[var(--brand-primary)]" /> Ciudad y Departamento
+                  <Building className="text-brand" /> Ciudad y Departamento
                 </label>
                 <div className="relative group">
                   <input
@@ -206,7 +206,7 @@ export default function ConfiguracionServidor() {
                     value={config.ciudad}
                     onChange={(e) => setConfig({ ...config, ciudad: e.target.value })}
                     placeholder="Ej: Cúcuta, Norte de Santander"
-                    className="w-full bg-white border-2 border-slate-100 rounded-xl px-4 py-3 outline-none focus:-[var(--brand-primary)] transition-all font-medium text-slate-600 shadow-sm pr-12"
+                    className="text-brand transition-all font-medium text-slate-600 shadow-sm pr-12"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
                     <Building className="w-5 h-5" />
@@ -217,7 +217,7 @@ export default function ConfiguracionServidor() {
                 <button 
                   onClick={handleSave}
                   disabled={cargando}
-                  className="flex-1 -[var(--brand-primary)] hover:-[var(--brand-primary)] disabled:bg-slate-300 text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-[rgba(var(--brand-primary-rgb),0.15)] transition-all flex items-center justify-center gap-3"
+                  className="flex-1 bg-brand-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadowbg-brand/15 transition-all flex items-center justify-center gap-3"
                 >
                   {cargando ? 'Guardando...' : <><Save className="w-5 h-5" /> Guardar Cambios</>}
                 </button>

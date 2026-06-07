@@ -352,13 +352,13 @@ export default function DirectorioMiembros() {
                   }
                   
                   return (
-                    <div key={jugador.id} className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 relative overflow-hidden group hover:shadow-xl hover:-[var(--brand-primary)]/5 transition-all duration-500">
-                      <div className="absolute -top-4 -right-4 w-20 h-20 -[var(--brand-primary)]/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                    <div key={jugador.id} className="bg-brand/5 transition-all duration-500">
+                      <div className="bg-brand/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
                       <div className="relative z-10">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-xl">🎂</div>
                           <div>
-                            <p className="text-[10px] font-black -[var(--brand-primary)] uppercase tracking-widest">{dia} de {nombreMes}</p>
+                            <p className="text-[10px] font-black text-brand uppercase tracking-widest">{dia} de {nombreMes}</p>
                             <h4 className="font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-tight">{jugador.nombres}</h4>
                           </div>
                         </div>
@@ -397,7 +397,7 @@ export default function DirectorioMiembros() {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {cargando ? (
-                  <tr><td colSpan={5} className="p-20 text-center"><div className="animate-spin w-8 h-8 border-4 -[var(--brand-primary)] border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="text-brand border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
                 ) : jugadoresFiltrados.length === 0 ? (
                   <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
                 ) : (
@@ -413,7 +413,7 @@ export default function DirectorioMiembros() {
                         </div>
                       </td>
                       <td className="p-4 md:px-6">
-                        <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? '-[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/20 -[var(--brand-primary)] dark:-[rgba(var(--brand-primary-rgb),0.4)]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
+                        <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-brand/10 dark:bg-brand/20 text-brand dark:border-brand/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
                         <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate max-w-[80px] md:max-w-none">{jugador.grupos || 'Sin grupo'}</p>
                       </td>
                       <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-bold hidden md:table-cell">
@@ -430,7 +430,7 @@ export default function DirectorioMiembros() {
                             const emailSugerido = jugador.email_contacto || jugador.email || '';
                             setEmailAcceso(emailSugerido); 
                             setIsModalDetallesOpen(true); 
-                          }} className="p-2 text-slate-400 hover:-[var(--brand-primary)] hover:-[rgba(var(--brand-primary-rgb),0.1)] dark:hover:-[var(--brand-primary)]/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
+                          }} className="text-brand hover:bg-brand/10 dark:hover:bg-brand/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
                           {pestaña === 'Registrados' ? (
                             <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 "><ExternalLink className="w-5 h-5" /></button>
                           ) : (
@@ -455,7 +455,7 @@ export default function DirectorioMiembros() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800">
             <div className="p-8 text-center">
-              <div className="w-20 h-20 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/10 rounded-3xl flex items-center justify-center mx-auto mb-6"><Mail className="w-10 h-10 -[var(--brand-primary)]" /></div>
+              <div className="bg-brand/10 rounded-3xl flex items-center justify-center mx-auto mb-6"><Mail className="text-brand" /></div>
               <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">Invitar a un Miembro</h3>
               <p className="text-slate-500 text-sm font-medium mt-3 px-6">Envía este enlace a los padres para que se registren por su cuenta.</p>
               <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800 relative group">
@@ -494,10 +494,10 @@ export default function DirectorioMiembros() {
           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800 flex flex-col">
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 -[var(--brand-primary)] rounded-2xl flex items-center justify-center shadow-lg -[var(--brand-primary)]/20"><User className="text-white w-7 h-7" /></div>
+                <div className="text-brand rounded-2xl flex items-center justify-center shadow-lg bg-brand/20"><User className="text-white w-7 h-7" /></div>
                 <div>
                   <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Ficha del Miembro</h3>
-                  <p className="-[var(--brand-primary)] text-[10px] font-black uppercase tracking-widest mt-2 flex items-center gap-2"><span className="w-2 h-2 -[var(--brand-primary)] rounded-full animate-pulse"></span> {pestaña === 'Pendientes' ? 'Solicitud por Validar' : 'Activo en Plataforma'}</p>
+                  <p className="text-brand text-[10px] font-black uppercase tracking-widest mt-2 flex items-center gap-2"><span className="text-brand rounded-full animate-pulse"></span> {pestaña === 'Pendientes' ? 'Solicitud por Validar' : 'Activo en Plataforma'}</p>
                 </div>
               </div>
               <button onClick={() => setIsModalDetallesOpen(false)} className="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-slate-600 dark:hover:text-white shadow-sm"><X className="w-6 h-6" /></button>
@@ -517,8 +517,8 @@ export default function DirectorioMiembros() {
                 </div>
               </div>
 
-              <div className="bg-slate-900 rounded-[2rem] p-6 text-white border-l-4 -[var(--brand-primary)] shadow-xl">
-                <div className="flex items-center gap-4 mb-4"><ShieldCheck className="-[rgba(var(--brand-primary-rgb),0.4)] w-6 h-6" /><h4 className="text-sm font-black uppercase italic tracking-widest">Responsable</h4></div>
+              <div className="text-brand shadow-xl">
+                <div className="flex items-center gap-4 mb-4"><ShieldCheck className="border-brand/40 w-6 h-6" /><h4 className="text-sm font-black uppercase italic tracking-widest">Responsable</h4></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div><p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Nombre</p><p className="text-sm font-black">{solicitudSeleccionada.acudiente_nombre || 'No registrado'}</p></div>
                   <div><p className="text-[10px] text-slate-400 font-bold uppercase mb-1">ID</p><p className="text-sm font-black">{solicitudSeleccionada.acudiente_identificacion || 'N/A'}</p></div>
@@ -528,7 +528,7 @@ export default function DirectorioMiembros() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><HeartPulse className="w-6 h-6 text-red-500 mx-auto mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sangre</p><p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.tipo_sangre || 'N/A'}</p></div>
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Activity className="w-6 h-6 text-blue-500 mx-auto mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">EPS</p><p className="text-sm font-black text-slate-800 dark:text-white truncate">{solicitudSeleccionada.eps || 'N/A'}</p></div>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Download className="w-6 h-6 -[var(--brand-primary)] mx-auto mb-2 rotate-180" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Talla</p><p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.talla_uniforme || 'N/A'}</p></div>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Download className="text-brand mx-auto mb-2 rotate-180" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Talla</p><p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.talla_uniforme || 'N/A'}</p></div>
               </div>
 
               <div className={`p-6 rounded-[2rem] border-2 ${solicitudSeleccionada.patologias ? 'bg-red-50 border-red-100 dark:bg-red-950 dark:border-red-900' : 'bg-slate-50 dark:bg-slate-800'}`}>
@@ -539,16 +539,16 @@ export default function DirectorioMiembros() {
               {/* SECCIÓN DE EXPEDIENTE DIGITAL */}
               <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/20 rounded-xl flex items-center justify-center">
-                    <FileText className="-[var(--brand-primary)] w-5 h-5" />
+                  <div className="bg-brand/20 rounded-xl flex items-center justify-center">
+                    <FileText className="text-brand w-5 h-5" />
                   </div>
                   <h4 className="text-sm font-black uppercase italic tracking-widest">Expediente Digital</h4>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {solicitudSeleccionada.doc_jugador_url ? (
-                    <a href={solicitudSeleccionada.doc_jugador_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center p-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-3xl hover:-[var(--brand-primary)] transition-all group">
-                      <FileText className="w-8 h-8 text-slate-400 group-hover:-[var(--brand-primary)] mb-2" />
+                    <a href={solicitudSeleccionada.doc_jugador_url} target="_blank" rel="noopener noreferrer" className="text-brand transition-all group">
+                      <FileText className="text-brand mb-2" />
                       <p className="text-[10px] font-black uppercase text-slate-500">ID Jugador</p>
                       <span className="text-[9px] text-emerald-500 font-bold mt-1 uppercase tracking-widest">Disponible</span>
                     </a>
@@ -560,8 +560,8 @@ export default function DirectorioMiembros() {
                   )}
 
                   {solicitudSeleccionada.doc_eps_url ? (
-                    <a href={solicitudSeleccionada.doc_eps_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center p-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-3xl hover:-[var(--brand-primary)] transition-all group">
-                      <ShieldCheck className="w-8 h-8 text-slate-400 group-hover:-[var(--brand-primary)] mb-2" />
+                    <a href={solicitudSeleccionada.doc_eps_url} target="_blank" rel="noopener noreferrer" className="text-brand transition-all group">
+                      <ShieldCheck className="text-brand mb-2" />
                       <p className="text-[10px] font-black uppercase text-slate-500">Carné EPS</p>
                       <span className="text-[9px] text-emerald-500 font-bold mt-1 uppercase tracking-widest">Disponible</span>
                     </a>
@@ -573,8 +573,8 @@ export default function DirectorioMiembros() {
                   )}
 
                   {solicitudSeleccionada.doc_acudiente_url ? (
-                    <a href={solicitudSeleccionada.doc_acudiente_url} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center p-4 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-3xl hover:-[var(--brand-primary)] transition-all group">
-                      <User className="w-8 h-8 text-slate-400 group-hover:-[var(--brand-primary)] mb-2" />
+                    <a href={solicitudSeleccionada.doc_acudiente_url} target="_blank" rel="noopener noreferrer" className="text-brand transition-all group">
+                      <User className="text-brand mb-2" />
                       <p className="text-[10px] font-black uppercase text-slate-500">ID Acudiente</p>
                       <span className="text-[9px] text-emerald-500 font-bold mt-1 uppercase tracking-widest">Disponible</span>
                     </a>
@@ -588,9 +588,9 @@ export default function DirectorioMiembros() {
               </div>
 
               <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3 mb-6"><div className="w-10 h-10 -[rgba(var(--brand-primary-rgb),0.1)] dark:-[var(--brand-primary)]/20 rounded-xl flex items-center justify-center"><Key className="-[var(--brand-primary)] w-5 h-5" /></div><h4 className="text-sm font-black uppercase italic tracking-widest">Accesos a Plataforma</h4></div>
+                <div className="flex items-center gap-3 mb-6"><div className="bg-brand/20 rounded-xl flex items-center justify-center"><Key className="text-brand w-5 h-5" /></div><h4 className="text-sm font-black uppercase italic tracking-widest">Accesos a Plataforma</h4></div>
                 <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-center">
-                  <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl mb-4 font-bold outline-none focus:ring-2 focus:-[var(--brand-primary)]" />
+                  <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="text-brand" />
                   <div className="flex flex-col gap-3">
                     {solicitudSeleccionada.email && pestaña === 'Registrados' ? (
                       <button onClick={async () => { 
@@ -632,7 +632,7 @@ export default function DirectorioMiembros() {
                            toast.error("Error de conexión", { id: tid });
                         }
                         setGenerandoAcceso(false); 
-                      }} disabled={generandoAcceso} className="w-full -[var(--brand-primary)] text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
+                      }} disabled={generandoAcceso} className="w-full bg-brand-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
                     )}
                     <button onClick={() => window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=Acceso Activado.`, '_blank')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
                   </div>

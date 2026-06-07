@@ -78,11 +78,11 @@ export default function PushPermissionBanner() {
       <div className="bg-slate-900 dark:bg-slate-800 border border-slate-800 dark:border-slate-700 rounded-[2rem] p-5 shadow-2xl relative overflow-hidden group">
         
         {/* Efecto de fondo sutil */}
-        <div className="absolute -right-4 -top-4 w-24 h-24 bg-orange-500/10 blur-2xl rounded-full group-hover:bg-orange-500/20 transition-all duration-500"></div>
+        <div className="absolute -right-4 -top-4 w-24 h-24 bg-brand/10 blur-2xl rounded-full group-hover:bg-brand/20 transition-all duration-500"></div>
         
         <div className="flex gap-4 relative z-10">
-          <div className="bg-orange-500/20 p-3 rounded-2xl flex-shrink-0">
-            <Bell className="w-6 h-6 text-orange-500 animate-bounce" />
+          <div className="bg-brand/20 p-3 rounded-2xl flex-shrink-0">
+            <Bell className="w-6 h-6 text-brand animate-bounce" />
           </div>
 
           <div className="flex-1">
@@ -105,7 +105,7 @@ export default function PushPermissionBanner() {
             <button
               onClick={habilitarNotificaciones}
               disabled={loading}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+              className="w-full bg-brand hover:bg-orange-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

@@ -140,7 +140,7 @@ export default function NuevoMiembro() {
       
       <button 
         onClick={() => router.back()} 
-        className="mb-6 text-slate-500 hover:-[var(--brand-primary)] flex items-center gap-2 transition-colors font-bold text-sm w-fit group"
+        className="mb-6 text-slate-500 hover:text-brand flex items-center gap-2 transition-colors font-bold text-sm w-fit group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver al Directorio
       </button>
@@ -149,12 +149,12 @@ export default function NuevoMiembro() {
         
         {/* Cabecera del formulario */}
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 md:p-8 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1.5 h-full -[var(--brand-primary)]"></div>
+          <div className="text-brand"></div>
           <div className="relative z-10">
             <h1 className="text-2xl font-bold text-white mb-1">Inscripción Oficial</h1>
             <p className="text-sm text-slate-400">Ingresa la información completa del nuevo jugador.</p>
           </div>
-          <div className="hidden md:block w-32 h-32 -[var(--brand-primary)]/10 rounded-full absolute -right-10 -top-10 blur-2xl"></div>
+          <div className="bg-brand/10 rounded-full absolute -right-10 -top-10 blur-2xl"></div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-10">
@@ -162,58 +162,58 @@ export default function NuevoMiembro() {
           {/* 1. DATOS DEL JUGADOR */}
           <section>
             <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
-              <User className="-[var(--brand-primary)] w-5 h-5" /> Datos Personales
+              <User className="text-brand w-5 h-5" /> Datos Personales
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombres *</label>
-                <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="text" name="nombres" value={formData.nombres} onChange={handleChange} required className="text-brand outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Apellidos *</label>
-                <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="text" name="apellidos" value={formData.apellidos} onChange={handleChange} required className="text-brand outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Documento de Identidad *</label>
-                <input type="text" name="documento_identidad" value={formData.documento_identidad} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="text" name="documento_identidad" value={formData.documento_identidad} onChange={handleChange} required className="text-brand outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Fecha de Nacimiento *</label>
-                <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleDateChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm cursor-pointer" />
+                <input type="date" name="fecha_nacimiento" value={formData.fecha_nacimiento} onChange={handleDateChange} required className="text-brand outline-none text-sm cursor-pointer" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Teléfono Móvil / WhatsApp *</label>
                 <div className="flex">
                   <span className="bg-slate-100 border border-slate-300 border-r-0 rounded-l-lg px-3 py-2.5 text-slate-500 text-sm font-medium">+57</span>
-                  <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-r-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                  <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required className="text-brand outline-none text-sm" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email</label>
-                <input type="email" name="email_contacto" value={formData.email_contacto} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="email" name="email_contacto" value={formData.email_contacto} onChange={handleChange} className="text-brand outline-none text-sm" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Dirección de Residencia</label>
-                <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="text" name="direccion" value={formData.direccion} onChange={handleChange} className="text-brand outline-none text-sm" />
               </div>
             </div>
           </section>
 
           {/* 2. ACUDIENTE (CONDICIONAL) */}
           {formData.rol === 'Futbolista' && isMinor && (
-            <section className="-[rgba(var(--brand-primary-rgb),0.1)]/50 border -[rgba(var(--brand-primary-rgb),0.1)] rounded-xl p-5 md:p-6 shadow-sm">
-              <h2 className="text-lg font-bold -[var(--brand-primary)] border-b -[rgba(var(--brand-primary-rgb),0.4)]/50 pb-3 mb-2 flex items-center gap-2">
-                <Users className="w-5 h-5 -[var(--brand-primary)]" /> Datos del Acudiente
+            <section className="bg-brand/10/50 border bg-brand/10 rounded-xl p-5 md:p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-brand border-b border-brand/40/50 pb-3 mb-2 flex items-center gap-2">
+                <Users className="text-brand" /> Datos del Acudiente
               </h2>
-              <p className="text-xs -[var(--brand-primary)] mb-5">Requerido porque el jugador es menor de edad.</p>
+              <p className="text-xs text-brand mb-5">Requerido porque el jugador es menor de edad.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-bold -[var(--brand-primary)] uppercase tracking-wider mb-2">Nombre Completo *</label>
-                  <input type="text" name="acudiente_nombre" value={formData.acudiente_nombre} onChange={handleChange} required className="w-full px-4 py-2.5 border -[rgba(var(--brand-primary-rgb),0.4)] rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                  <label className="block text-xs font-bold text-brand uppercase tracking-wider mb-2">Nombre Completo *</label>
+                  <input type="text" name="acudiente_nombre" value={formData.acudiente_nombre} onChange={handleChange} required className="text-brand outline-none text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold -[var(--brand-primary)] uppercase tracking-wider mb-2">Identificación del Acudiente *</label>
-                  <input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion} onChange={handleChange} required className="w-full px-4 py-2.5 border -[rgba(var(--brand-primary-rgb),0.4)] rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                  <label className="block text-xs font-bold text-brand uppercase tracking-wider mb-2">Identificación del Acudiente *</label>
+                  <input type="text" name="acudiente_identificacion" value={formData.acudiente_identificacion} onChange={handleChange} required className="text-brand outline-none text-sm" />
                 </div>
               </div>
             </section>
@@ -227,17 +227,17 @@ export default function NuevoMiembro() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Sangre *</label>
-                <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer">
+                <select name="tipo_sangre" value={formData.tipo_sangre} onChange={handleChange} required className="text-brand outline-none text-sm bg-white cursor-pointer">
                   <option value="">Seleccionar...</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">EPS / Seguro *</label>
-                <input type="text" name="eps" value={formData.eps} onChange={handleChange} required className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm" />
+                <input type="text" name="eps" value={formData.eps} onChange={handleChange} required className="text-brand outline-none text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Talla Uniforme</label>
-                <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer">
+                <select name="talla_uniforme" value={formData.talla_uniforme} onChange={handleChange} className="text-brand outline-none text-sm bg-white cursor-pointer">
                   <option value="">Seleccionar...</option><option>6</option><option>8</option><option>10</option><option>12</option><option>14</option><option>16</option><option>S</option><option>M</option><option>L</option><option>XL</option>
                 </select>
               </div>
@@ -245,7 +245,7 @@ export default function NuevoMiembro() {
 
             <div className="mb-6">
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Patologías o Alergias</label>
-              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergia a medicamentos, etc. (Deja en blanco si no aplica)" rows={2} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm"></textarea>
+              <textarea name="patologias" value={formData.patologias} onChange={handleChange} placeholder="Asma, alergia a medicamentos, etc. (Deja en blanco si no aplica)" rows={2} className="text-brand outline-none text-sm"></textarea>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-red-50/50 p-5 rounded-xl border border-red-100 relative overflow-hidden">
@@ -269,7 +269,7 @@ export default function NuevoMiembro() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Rol en el Club</label>
-                <select name="rol" value={formData.rol} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer font-bold -[var(--brand-primary)]">
+                <select name="rol" value={formData.rol} onChange={handleChange} className="text-brand outline-none text-sm bg-white cursor-pointer font-bold text-brand">
                   <option value="Futbolista">Futbolista</option>
                   <option value="Entrenador">Entrenador</option>
                   <option value="Director">Director</option>
@@ -278,9 +278,9 @@ export default function NuevoMiembro() {
               <div className="md:col-span-2">
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Categoría(s) / Grupo(s) Asignados</label>
                 {formData.rol === 'Entrenador' ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border -[rgba(var(--brand-primary-rgb),0.1)] rounded-xl p-4 -[rgba(var(--brand-primary-rgb),0.1)]/30">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 border bg-brand/10 rounded-xl p-4 bg-brand/10/30">
                     {categorias.map(cat => (
-                      <label key={cat.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer hover:-[var(--brand-primary)] transition-colors">
+                      <label key={cat.nombre} className="text-brand transition-colors">
                         <input 
                           type="checkbox" 
                           checked={(formData.grupos || '').split(', ').includes(cat.nombre)}
@@ -294,7 +294,7 @@ export default function NuevoMiembro() {
                             }
                             setFormData({ ...formData, grupos: newGroups.join(', ') });
                           }}
-                          className="w-4 h-4 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
+                          className="text-brand focus:text-brand"
                         />
                         {cat.nombre}
                       </label>
@@ -303,7 +303,7 @@ export default function NuevoMiembro() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <select name="grupos" value={formData.grupos} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:-[var(--brand-primary)] outline-none text-sm bg-white cursor-pointer font-bold">
+                    <select name="grupos" value={formData.grupos} onChange={handleChange} className="text-brand outline-none text-sm bg-white cursor-pointer font-bold">
                       <option value="">Sin categoría / Sin asignar</option>
                       {categorias.map(cat => (
                         <option key={cat.nombre} value={cat.nombre}>{cat.nombre}</option>
@@ -316,7 +316,7 @@ export default function NuevoMiembro() {
                           type="checkbox"
                           checked={formData.override_categoria}
                           onChange={(e) => setFormData(prev => ({ ...prev, override_categoria: e.target.checked }))}
-                          className="w-4 h-4 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
+                          className="text-brand focus:text-brand"
                         />
                         <span>Fijar manualmente (Ignorar auto-asignación por edad)</span>
                       </label>
@@ -359,9 +359,9 @@ export default function NuevoMiembro() {
 
               {/* Vincular Familia (Solo Entrenador/Director) */}
               {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
-                <div className="md:col-span-2 -[rgba(var(--brand-primary-rgb),0.1)]/50 border -[rgba(var(--brand-primary-rgb),0.1)] rounded-xl p-6 mt-4">
-                  <h3 className="text-sm font-bold -[var(--brand-primary)] mb-4 flex items-center gap-2">
-                    <Users className="w-5 h-5 -[var(--brand-primary)]" /> Vincular Familia (Jugadores a cargo)
+                <div className="md:col-span-2 bg-brand/10/50 border bg-brand/10 rounded-xl p-6 mt-4">
+                  <h3 className="text-sm font-bold text-brand mb-4 flex items-center gap-2">
+                    <Users className="text-brand" /> Vincular Familia (Jugadores a cargo)
                   </h3>
                   <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
                     {categorias.map(cat => (
@@ -371,7 +371,7 @@ export default function NuevoMiembro() {
                           {todosLosJugadores
                             .filter(j => j.grupos === cat.nombre)
                             .map(jug => (
-                              <label key={jug.id} className="flex items-center gap-2 p-2 rounded-xl border border-white bg-white/50 hover:bg-white hover:-[rgba(var(--brand-primary-rgb),0.4)] transition-all cursor-pointer">
+                              <label key={jug.id} className="flex items-center gap-2 p-2 rounded-xl border border-white bg-white/50 hover:bg-white hover:border-brand/40 transition-all cursor-pointer">
                                 <input 
                                   type="checkbox"
                                   checked={formData.hijos_config.includes(jug.id)}
@@ -385,7 +385,7 @@ export default function NuevoMiembro() {
                                     }
                                     setFormData({ ...formData, hijos_config: newIds.join(',') });
                                   }}
-                                  className="w-3.5 h-3.5 rounded border-slate-300 -[var(--brand-primary)] focus:-[var(--brand-primary)]"
+                                  className="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:text-brand"
                                 />
                                 <div className="overflow-hidden">
                                   <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
@@ -414,7 +414,7 @@ export default function NuevoMiembro() {
             <button 
               type="submit" 
               disabled={guardando}
-              className="w-full md:w-auto -[var(--brand-primary)] hover:-[var(--brand-primary)] text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-md text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
+              className="w-full md:w-auto bg-brand-white px-8 py-3 rounded-xl font-bold transition-colors shadow-md text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
             >
               {guardando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
               {guardando ? 'Registrando en BD...' : 'Guardar Jugador Oficial'}

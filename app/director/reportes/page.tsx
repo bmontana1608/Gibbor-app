@@ -205,17 +205,17 @@ export default function ModuloReportes() {
       {/* CABECERA */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <BarChart className="w-6 h-6 -[var(--brand-primary)]" /> Reportes y Análisis
+          <BarChart className="text-brand" /> Reportes y Análisis
         </h1>
         
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="flex gap-4 w-full md:w-auto">
-            <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:-[var(--brand-primary)]">
+            <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="text-brand">
               <option>Últimos 7 días</option>
               <option>Últimos 30 días</option>
               <option>Este año</option>
             </select>
-            <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-medium outline-none cursor-pointer focus:ring-2 focus:-[var(--brand-primary)]">
+            <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="text-brand">
               <option>Todos los grupos</option>
               {categorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
             </select>
@@ -229,16 +229,16 @@ export default function ModuloReportes() {
 
       {/* PESTAÑAS DE NAVEGACIÓN */}
       <div className="bg-white rounded-t-2xl border-b border-slate-200 flex overflow-x-auto custom-scrollbar">
-        <button onClick={() => setPestañaActiva('Resumen')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Resumen' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Resumen')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Resumen' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <PieChart className="w-4 h-4" /> Resumen
         </button>
-        <button onClick={() => setPestañaActiva('Asistencia')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Asistencia' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Asistencia')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Asistencia' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <ClipboardCheck className="w-4 h-4" /> Asistencia
         </button>
-        <button onClick={() => setPestañaActiva('Financiero')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Financiero' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Financiero')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Financiero' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <DollarSign className="w-4 h-4" /> Financiero
         </button>
-        <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Miembros' ? '-[var(--brand-primary)] -[var(--brand-primary)] -[rgba(var(--brand-primary-rgb),0.1)]/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
+        <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Miembros' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
           <Users className="w-4 h-4" /> Miembros
         </button>
       </div>
@@ -254,7 +254,7 @@ export default function ModuloReportes() {
             {pestañaActiva === 'Financiero' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Reporte Financiero</>}
             {pestañaActiva === 'Miembros' && <><Users className="w-5 h-5 text-blue-500" /> Reporte de Miembros</>}
           </h2>
-          <button onClick={exportarCSV} className="-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)] border -[rgba(var(--brand-primary-rgb),0.4)] hover:-[rgba(var(--brand-primary-rgb),0.1)] px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
+          <button onClick={exportarCSV} className="bg-brand/10 text-brand border border-brand/40 hover:bg-brand/10 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
             <Download className="w-4 h-4" /> Exportar a Excel
           </button>
         </div>
@@ -306,7 +306,7 @@ export default function ModuloReportes() {
 
                 {/* Grupos con Mejor Asistencia */}
                 <div className="space-y-4 border-l border-slate-100 pl-8">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Target className="w-4 h-4 -[var(--brand-primary)]" /> Grupos con Mejor Asistencia</h3>
+                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Target className="text-brand" /> Grupos con Mejor Asistencia</h3>
                   <div className="space-y-3">
                     {categorias.length === 0 ? <p className="text-sm text-slate-400 italic">No hay grupos.</p> : categorias.map(cat => (
                       <div key={cat.id} className="flex justify-between items-center p-2 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
@@ -406,7 +406,7 @@ export default function ModuloReportes() {
                     placeholder="Buscar métricas de un miembro por nombre o apellido..." 
                     value={busquedaMiembro}
                     onChange={(e) => setBusquedaMiembro(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl outline-none text-sm focus:ring-2 focus:-[var(--brand-primary)] shadow-sm" 
+                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl outline-none text-sm focus:ring-2 focus:text-brand shadow-sm" 
                   />
                 </div>
 

@@ -80,7 +80,7 @@ export default function GestionEventos() {
   if (cargando) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 border-4 border-[var(--brand-primary)] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <div className="text-brand border-t-transparent rounded-full animate-spin mb-4"></div>
         <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando agenda...</p>
       </div>
     );
@@ -90,7 +90,7 @@ export default function GestionEventos() {
     <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-[var(--brand-primary)]">Agenda</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="texttext-brand">Agenda</span></h1>
           <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
         </div>
       </div>
@@ -98,14 +98,14 @@ export default function GestionEventos() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* FORMULARIO */}
         <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit">
-          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-[var(--brand-primary)]" /> Nuevo Evento</h2>
+          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="text-brand" /> Nuevo Evento</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Título</label>
               <input 
                 type="text" 
                 placeholder="Ej: Final de Torneo"
-                className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold focus:ring-2 focus:ring-[var(--brand-primary)] outline-none transition-all"
+                className="text-brand outline-none transition-all"
                 value={nuevoEvento.titulo}
                 onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})}
               />
@@ -168,7 +168,7 @@ export default function GestionEventos() {
                   onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
                   className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
                     nuevoEvento.categoria_id === '' 
-                    ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg' 
+                    ? 'bgbg-brand-white bordertext-brand shadow-lg' 
                     : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                   }`}
                 >
@@ -181,7 +181,7 @@ export default function GestionEventos() {
                     onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
                     className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
                       nuevoEvento.categoria_id === cat.nombre 
-                      ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)] shadow-lg' 
+                      ? 'bgbg-brand-white bordertext-brand shadow-lg' 
                       : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                     }`}
                   >
@@ -191,7 +191,7 @@ export default function GestionEventos() {
               </div>
             </div>
 
-            <button type="submit" className="w-full bg-[var(--brand-primary)] text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
+            <button type="submit" className="w-full bgbg-brand-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" /> Publicar Evento
             </button>
           </form>
@@ -203,10 +203,10 @@ export default function GestionEventos() {
           {eventos.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {eventos.map((evento) => (
-                <div key={evento.id} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-[var(--brand-primary)] transition-all">
+                <div key={evento.id} className="text-brand transition-all">
                   <div className="flex items-center gap-6">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
-                      evento.tipo === 'Partido' ? 'bg-[var(--brand-primary)]' : 
+                      evento.tipo === 'Partido' ? 'bgtext-brand' : 
                       evento.tipo === 'Entrenamiento' ? 'bg-blue-500' : 'bg-purple-500'
                     }`}>
                       {evento.tipo === 'Partido' ? <TrophyIcon className="w-7 h-7" /> : <Calendar className="w-7 h-7" />}
@@ -215,7 +215,7 @@ export default function GestionEventos() {
                       <h3 className="font-black text-slate-800 text-lg uppercase leading-none">{evento.titulo}</h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2">
                         <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          <Clock className="w-3 h-3 text-[var(--brand-primary)]" /> 
+                          <Clock className="text-brand" /> 
                           {evento.fecha} | {(() => {
                             const [h, m] = (evento.hora || '12:00').split(':');
                             let hour = parseInt(h);
@@ -224,8 +224,8 @@ export default function GestionEventos() {
                             return `${hour}:${m} ${ampm}`;
                           })()}
                         </span>
-                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-[var(--brand-primary)]" /> {evento.lugar}</span>}
-                        {evento.categoria_id && <span className="flex items-center gap-1.5 text-[10px] font-black text-[var(--brand-primary)] uppercase tracking-widest bg-[var(--brand-primary)]/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
+                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="text-brand" /> {evento.lugar}</span>}
+                        {evento.categoria_id && <span className="text-brand uppercase tracking-widest bgbg-brand/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
                       </div>
                     </div>
                   </div>

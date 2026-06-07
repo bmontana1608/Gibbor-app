@@ -324,11 +324,11 @@ export default function GestionSkillsEntrenador() {
       <div className="bg-slate-800 border-b border-white/5 p-4 lg:p-6 flex flex-col md:flex-row items-center justify-between shadow-xl z-20 gap-4">
          <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <div className="flex items-center gap-4">
-                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'text-[var(--brand-primary)]' : 'bg-slate-700'}`}>
+                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'texttext-brand' : 'bg-slate-700'}`}>
                     <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-current" />
                 </div>
                 <div>
-                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic text-[rgba(var(--brand-primary-rgb),0.4)]">Soccer Stats Lab</h1>
+                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic textborder-brand/40">Soccer Stats Lab</h1>
                     <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Evolution & Performance Tracking</p>
                 </div>
             </div>
@@ -342,8 +342,8 @@ export default function GestionSkillsEntrenador() {
          </div>
 
          <div className="flex w-full md:w-auto gap-1 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
-             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
-             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
+             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bgbg-brand-white shadow-lg shadowbg-brand/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
+             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bgbg-brand-white shadow-lg shadowbg-brand/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
          </div>
       </div>
 
@@ -385,10 +385,10 @@ export default function GestionSkillsEntrenador() {
                             <button 
                                 key={a.id} 
                                 onClick={() => seleccionarAlumno(a)}
-                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${alumnoSeleccionado?.id === a.id ? 'bg-[var(--brand-primary)] text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${alumnoSeleccionado?.id === a.id ? 'bgbg-brand-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                             >
                                 <div className="flex items-center gap-3 truncate">
-                                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white text-[var(--brand-primary)]' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
+                                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white texttext-brand' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
                                     <span className="text-[10px] font-black uppercase tracking-tight truncate">{a.nombres} {a.apellidos}</span>
                                 </div>
                                 {a.posicion && (
@@ -420,18 +420,18 @@ export default function GestionSkillsEntrenador() {
                             placeholder="Ej: Reflejos" 
                             value={nuevaHabilidad}
                             onChange={(e) => setNuevaHabilidad(e.target.value)}
-                            className="flex-1 bg-slate-900 border border-white/5 rounded-2xl p-4 text-sm font-bold text-white outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            className="text-brand"
                          />
                          <select
                             value={nuevoTipoHabilidad}
                             onChange={(e) => setNuevoTipoHabilidad(e.target.value)}
-                            className="bg-slate-900 border border-white/5 rounded-2xl px-4 text-xs font-bold text-slate-300 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            className="bg-slate-900 border border-white/5 rounded-2xl px-4 text-xs font-bold text-slate-300 outline-none focus:ring-2 focus:ringtext-brand"
                          >
                             <option value="General">General (Todos)</option>
                             <option value="Campo">Solo Jugadores de Campo</option>
                             <option value="Portero">Solo Porteros</option>
                          </select>
-                         <button onClick={agregarHabilidad} className="bg-[var(--brand-primary)] p-4 rounded-2xl hover:opacity-80 transition-colors shadow-lg flex justify-center"><Plus className="w-6 h-6" /></button>
+                         <button onClick={agregarHabilidad} className="bgtext-brand p-4 rounded-2xl hover:opacity-80 transition-colors shadow-lg flex justify-center"><Plus className="w-6 h-6" /></button>
                      </div>
 
                      <div className="grid grid-cols-1 gap-2">
@@ -459,7 +459,7 @@ export default function GestionSkillsEntrenador() {
                     <div className="space-y-6 lg:space-y-8">
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                             <div>
-                                 <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-[var(--brand-primary)]">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
+                                 <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter texttext-brand">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
                                  <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
                             </div>
                             
@@ -469,7 +469,7 @@ export default function GestionSkillsEntrenador() {
                                 <select 
                                     value={alumnoSeleccionado.posicion || ''}
                                     onChange={(e) => cambiarPosicionAlumno(e.target.value)}
-                                    className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:border-[var(--brand-primary)] cursor-pointer appearance-none shadow-sm"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:bordertext-brand cursor-pointer appearance-none shadow-sm"
                                 >
                                     <option value="">Asignar Posición...</option>
                                     <option value="Portero">Portero</option>
@@ -491,7 +491,7 @@ export default function GestionSkillsEntrenador() {
                                 <div key={h.id} className="space-y-2">
                                     <div className="flex justify-between items-end px-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h.nombreLimpio}</label>
-                                        <span className={`text-xl font-black italic ${ratings[h.nombreOriginal] > 80 ? 'text-[var(--brand-primary)]' : ratings[h.nombreOriginal] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombreOriginal] || 50}</span>
+                                        <span className={`text-xl font-black italic ${ratings[h.nombreOriginal] > 80 ? 'texttext-brand' : ratings[h.nombreOriginal] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombreOriginal] || 50}</span>
                                     </div>
                                     <input 
                                         type="range" 
@@ -500,7 +500,7 @@ export default function GestionSkillsEntrenador() {
                                         step="1"
                                         value={ratings[h.nombreOriginal] || 50}
                                         onChange={(e) => setRatings({...ratings, [h.nombreOriginal]: parseInt(e.target.value)})}
-                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[var(--brand-primary)]"
+                                        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accenttext-brand"
                                     />
                                 </div>
                             ))}
@@ -512,14 +512,14 @@ export default function GestionSkillsEntrenador() {
                                 value={comentarios}
                                 onChange={(e) => setComentarios(e.target.value)}
                                 placeholder="Escribe detalles sobre su evolución..."
-                                className="w-full bg-slate-900 border border-white/5 rounded-3xl p-5 text-xs font-medium text-slate-300 min-h-[100px] outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                                className="text-brand"
                             />
                         </div>
 
                         <button 
                             onClick={guardarEvaluacion}
                             disabled={guardando || getHabilidadesFiltradas().length === 0}
-                            className="w-full bg-[var(--brand-primary)] hover:opacity-90 p-5 rounded-3xl font-black italic tracking-tighter uppercase shadow-2xl shadow-[var(--brand-primary)]/30 transition-all active:scale-95 disabled:opacity-50"
+                            className="text-brand/30 transition-all active:scale-95 disabled:opacity-50"
                         >
                             {guardando ? 'ACTUALIZANDO CLOUD...' : 'GUARDAR EVALUACIÓN FIFA STYLE ⚡'}
                         </button>
@@ -528,7 +528,7 @@ export default function GestionSkillsEntrenador() {
                     {/* COLUMNA 2: VISUALIZACIÓN RADAR Y CURVA */}
                     <div className="space-y-6 lg:space-y-8 pb-10 lg:pb-0">
                         <div className="bg-slate-900/50 rounded-[40px] lg:rounded-[60px] p-6 lg:p-8 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group shadow-2xl min-h-[350px] lg:min-h-[450px]">
-                             <div className="absolute inset-0 bg-[var(--brand-primary)]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             <div className="absolute inset-0 bgbg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-8">Skill Polígon</h3>
                              
                              <RadarChart 
@@ -551,7 +551,7 @@ export default function GestionSkillsEntrenador() {
                                  <div className="w-px h-8 bg-white/10"></div>
                                  <div className="text-center">
                                       <p className="text-[8px] font-black text-slate-500 uppercase">Potencial</p>
-                                      <p className="text-2xl font-black text-[var(--brand-primary)] italic">99</p>
+                                      <p className="text-2xl font-black texttext-brand italic">99</p>
                                  </div>
                              </div>
                         </div>
@@ -559,8 +559,8 @@ export default function GestionSkillsEntrenador() {
                         {/* CURVA DE APRENDIZAJE SIMPLIFICADA */}
                         <div className="bg-slate-900 p-8 rounded-[40px] border border-white/5">
                              <div className="flex justify-between items-center mb-6">
-                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><TrendingUp className="w-4 h-4 text-[var(--brand-primary)]" /> Curva de Aprendizaje</h3>
-                                 <span className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
+                                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><TrendingUp className="text-brand" /> Curva de Aprendizaje</h3>
+                                 <span className="bgbg-brand/10 texttext-brand text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
                              </div>
                              
                              <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
@@ -571,7 +571,7 @@ export default function GestionSkillsEntrenador() {
                                              <p className="text-[8px] text-slate-500 uppercase font-bold italic">{ev.comentarios || 'Sin notas'}</p>
                                          </div>
                                          <div className="flex items-center gap-2">
-                                             <div className="w-8 h-8 rounded-lg bg-slate-900 border border-white/10 flex items-center justify-center font-black text-[var(--brand-primary)] italic text-xs">
+                                             <div className="text-brand italic text-xs">
                                                 {(() => {
                                                     const data = ev as any;
                                                     if (!data || !data.stats) return 0;
@@ -592,12 +592,12 @@ export default function GestionSkillsEntrenador() {
             ) : catSeleccionada ? (
                 <div className="flex flex-col items-center justify-center min-h-full p-8 text-center space-y-8 animate-in fade-in duration-700">
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black italic tracking-tighter uppercase text-[var(--brand-primary)]">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
+                        <h2 className="text-3xl font-black italic tracking-tighter uppercase texttext-brand">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
                         <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Análisis Estadístico de la Categoría</p>
                     </div>
 
                     <div className="bg-slate-900 shadow-2xl rounded-[60px] p-12 border border-white/5 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--brand-primary)] to-transparent opacity-50"></div>
+                        <div className="text-brand to-transparent opacity-50"></div>
                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-10">Radar de Rendimiento Colectivo (Solo Generales)</h3>
                         
                         {promedioCategoria ? (
@@ -613,7 +613,7 @@ export default function GestionSkillsEntrenador() {
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Evaluados</p>
-                                        <p className="text-2xl font-black text-[var(--brand-primary)] italic">{alumnos.length}</p>
+                                        <p className="text-2xl font-black texttext-brand italic">{alumnos.length}</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Debilidad</p>

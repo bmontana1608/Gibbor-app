@@ -109,7 +109,7 @@ export default function ComunicacionMasiva() {
         
         <div className="mb-8">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tighter">
-            <Megaphone className="w-8 h-8 -[var(--brand-primary)]" />
+            <Megaphone className="text-brand" />
             Central de Comunicación
           </h1>
           <p className="text-slate-500 font-medium mt-2">Envía anuncios a la plataforma y programa mensajes masivos por WhatsApp sin riesgo de baneo.</p>
@@ -130,7 +130,7 @@ export default function ComunicacionMasiva() {
                     <select 
                       value={audiencia} 
                       onChange={(e) => setAudiencia(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:-[var(--brand-primary)] outline-none"
+                      className="text-brand outline-none"
                     >
                       <option value="Todos">Todos los Miembros Activos</option>
                       <option value="Deudores">Solo Alumnos con Pagos Pendientes</option>
@@ -169,7 +169,7 @@ export default function ComunicacionMasiva() {
                       placeholder="Ej. Suspensión de entrenamientos por lluvia"
                       value={titulo}
                       onChange={(e) => setTitulo(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl text-sm font-bold focus:ring-2 focus:-[var(--brand-primary)] outline-none"
+                      className="text-brand outline-none"
                     />
                   </div>
                 )}
@@ -181,7 +181,7 @@ export default function ComunicacionMasiva() {
                     placeholder="Escribe el cuerpo del mensaje aquí..."
                     value={mensaje}
                     onChange={(e) => setMensaje(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl text-sm focus:ring-2 focus:-[var(--brand-primary)] outline-none resize-none"
+                    className="text-brand outline-none resize-none"
                   ></textarea>
                   {metodos.includes('whatsapp') && (
                     <p className="text-[10px] text-slate-400 mt-2 italic">* Los mensajes de WhatsApp se encolarán y enviarán progresivamente para proteger tu número de bloqueos por SPAM.</p>
@@ -242,14 +242,14 @@ export default function ComunicacionMasiva() {
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="w-4 h-4 -[var(--brand-primary)]" /> Consejos de Envío</h3>
+              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="text-brand" /> Consejos de Envío</h3>
               <ul className="space-y-3 text-xs text-slate-500 dark:text-slate-400">
                 <li className="flex items-start gap-2">
-                  <span className="-[var(--brand-primary)] mt-0.5">•</span>
+                  <span className="text-brand mt-0.5">•</span>
                   <span>Usa el filtro <strong>"Solo Deudores"</strong> en los últimos días del mes para cobrar amablemente.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="-[var(--brand-primary)] mt-0.5">•</span>
+                  <span className="text-brand mt-0.5">•</span>
                   <span>Si se cancela un entreno de emergencia, usa siempre ambos métodos (In-App y WhatsApp).</span>
                 </li>
               </ul>

@@ -296,7 +296,7 @@ export default function AsistenteWhatsApp() {
                <div className="space-y-6">
                   <div className="flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${config.bienvenida ? '-[rgba(var(--brand-primary-rgb),0.1)] -[var(--brand-primary)]' : 'bg-slate-50 text-slate-400'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${config.bienvenida ? 'bg-brand/10 text-brand' : 'bg-slate-50 text-slate-400'}`}>
                         <Users className="w-6 h-6" />
                       </div>
                       <div>
@@ -360,7 +360,7 @@ export default function AsistenteWhatsApp() {
                          <p className="text-xs text-slate-800">¡Hola Alex! ⚽️</p>
                          <p className="text-[11px] text-slate-600 mt-1">Te informamos que tu mensualidad de **Abril** ya está disponible.</p>
                          <div className="mt-3 bg-slate-50 border border-slate-100 p-2 rounded-lg flex items-center gap-2">
-                             <div className="w-8 h-8 -[rgba(var(--brand-primary-rgb),0.1)] flex items-center justify-center rounded -[var(--brand-primary)] font-bold text-[10px]">PDF</div>
+                             <div className="text-brand font-bold text-[10px]">PDF</div>
                              <p className="text-[10px] font-bold text-slate-500">Recibo_458.pdf</p>
                          </div>
                       </div>
