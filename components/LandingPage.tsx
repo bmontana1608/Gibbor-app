@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Zap } from 'lucide-react';
+import { ShieldCheck, Zap, ChevronRight, BarChart3, Smartphone, Building2, Trophy, CreditCard, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
