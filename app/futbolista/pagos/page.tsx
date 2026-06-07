@@ -35,6 +35,7 @@ export default function PagosFutbolista() {
         precioBase: Number(pago.monto_base || pago.total || 0),
         descuentoProntoPago: Number(pago.descuento || 0),
         consecutivo: pago.consecutivo || Math.floor(Math.random() * 1000),
+        metodo: pago.metodo_pago || 'Efectivo',
         fecha: pago.fecha || new Date().toISOString().split('T')[0],
         fechaPeriodo: pago.fecha || new Date().toISOString().split('T')[0],
         empresa: {
