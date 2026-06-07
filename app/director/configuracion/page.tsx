@@ -298,7 +298,7 @@ export default function ConfiguracionGeneral() {
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-10">
           <div className="flex items-center gap-4">
-            <div className="text-brand rounded-xl flex items-center justify-center shadow-lg shadowbg-brand/15 rotate-2">
+            <div className="text-brand rounded-xl flex items-center justify-center shadow-lg shadow-brand/15 rotate-2">
               <Settings className="text-white w-7 h-7" />
             </div>
             <div>
@@ -354,7 +354,7 @@ export default function ConfiguracionGeneral() {
                     )}
                   </div>
                   <div className="text-center w-full">
-                    <label className="cursor-pointer bg-white border border-slate-200 hover:bordertext-brand text-slate-700 hover:texttext-brand px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm w-full relative overflow-hidden">
+                    <label className="cursor-pointer bg-white border border-slate-200 hover:border-brand text-slate-700 hover:text-brand px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm w-full relative overflow-hidden">
                       {subiendoLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                       {subiendoLogo ? "Procesando..." : "Cambiar Logo"}
                       <input type="file" accept="image/*" onChange={handleSubirLogo} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={subiendoLogo} />
@@ -402,8 +402,8 @@ export default function ConfiguracionGeneral() {
                 </div>
               </div>
 
-              <div className="bgbg-brand/10 rounded-xl p-3 border borderbg-brand/20">
-                <p className="text-[9px] font-bold texttext-brand leading-relaxed">
+              <div className="bg-brand/10 rounded-xl p-3 border borderbg-brand/20">
+                <p className="text-[9px] font-bold text-brand leading-relaxed">
                   💡 Estos colores se aplicarán automáticamente a toda la plataforma de tu club tras guardar y recargar la página.
                 </p>
               </div>
@@ -533,7 +533,7 @@ export default function ConfiguracionGeneral() {
                               }}
                               className={`w-7 h-7 rounded-lg text-[9px] font-black transition-all border ${
                                 isActive 
-                                ? 'bg-brand-white text-brand shadow-sm' 
+                                ? 'bg-brand text-white text-brand shadow-sm' 
                                 : 'bg-white text-slate-400 border-slate-200 hover:border-brand/40'
                               }`}
                             >
@@ -579,7 +579,7 @@ export default function ConfiguracionGeneral() {
                             const jug = jugadores.find(j => j.id === id);
                             return (
                               <div key={id} className="bg-brand/10 border borderbg-brand/20 px-4 py-2 rounded-xl flex items-center gap-3 group transition-all">
-                                 <div className="bg-brand-white">
+                                 <div className="bg-brand text-white">
                                    {jug?.nombres?.charAt(0)}
                                  </div>
                                  <span className="text-xs font-bold text-slate-200">{jug?.nombres} {jug?.apellidos}</span>
@@ -647,7 +647,7 @@ export default function ConfiguracionGeneral() {
                           className="w-full p-4 flex items-center justify-between hover:bg-brand/10 rounded-2xl transition-all group"
                         >
                            <div className="flex items-center gap-3">
-                              <div className="bg-brand-white">
+                              <div className="bg-brand text-white">
                                 {jug.nombres.charAt(0)}
                               </div>
                               <div className="text-left">

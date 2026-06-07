@@ -7,7 +7,7 @@ export default function PaginaSuspendida() {
   const router = useRouter();
 
   return (
-    <div className="bg-brand-white">
+    <div className="bg-brand text-white">
       
       {/* Background Decor */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -45,7 +45,7 @@ export default function PaginaSuspendida() {
           <div className="flex flex-col gap-3">
             <button 
               onClick={() => window.open('https://gibbor-app.vercel.app/admin/pagos', '_blank')}
-              className="w-full bgbg-brand-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadowbg-brand/20 active:scale-95 flex items-center justify-center gap-3"
+              className="w-full bg-brand text-white py-4 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-brand/20 active:scale-95 flex items-center justify-center gap-3"
             >
               <CreditCard className="w-5 h-5" /> Subir Comprobante
             </button>

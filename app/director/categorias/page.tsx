@@ -405,7 +405,7 @@ export default function GestionCategorias() {
 
             <div className="p-6 border-t border-slate-100 bg-white flex justify-center gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
               <button type="button" onClick={cerrarModal} className="flex-1 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
-              <button type="submit" form="grupoForm" disabled={guardando} className="flex-1 py-3 bg-brand-white rounded-xl text-sm font-bold hover:text-brand shadow-sm disabled:opacity-50 transition-colors">
+              <button type="submit" form="grupoForm" disabled={guardando} className="flex-1 py-3 bg-brand text-white rounded-xl text-sm font-bold hover:text-brand shadow-sm disabled:opacity-50 transition-colors">
                 {guardando ? 'Guardando...' : (grupoEditandoId ? 'Actualizar Grupo' : 'Guardar Grupo')}
               </button>
             </div>

@@ -210,7 +210,7 @@ export default function PlanificadorEntrenador() {
           </button>
           <button 
             onClick={() => setMostrarModal(true)}
-            className="bgbg-brand-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
+            className="bg-brand text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
           >
             <Plus className="w-5 h-5" /> Nueva Sesión
           </button>
@@ -234,7 +234,7 @@ export default function PlanificadorEntrenador() {
               <div key={plan.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between">
                 <div>
                   <div className="flex justify-between items-start mb-4">
-                    <div className="bgbg-brand/10 texttext-brand p-3 rounded-2xl flex items-center gap-2">
+                    <div className="bg-brand/10 text-brand p-3 rounded-2xl flex items-center gap-2">
                       <BookOpen className="w-5 h-5" />
                       {tieneVideo && <span title="Contiene material audiovisual" className="flex"><Video className="text-brand animate-pulse" /></span>}
                     </div>
@@ -244,7 +244,7 @@ export default function PlanificadorEntrenador() {
                     </div>
                   </div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{plan.categoria || 'Sin categoría'}</p>
-                  <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:texttext-brand transition-colors">{plan.titulo}</h3>
+                  <h3 className="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-brand transition-colors">{plan.titulo}</h3>
                   <p className="text-xs text-slate-500 line-clamp-2 mb-4">{extractVideosFromDescription(plan.descripcion).description}</p>
                 </div>
                 <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
@@ -254,7 +254,7 @@ export default function PlanificadorEntrenador() {
                   </div>
                   <button 
                     onClick={() => setVerPlan(plan)}
-                    className="texttext-brand text-xs font-black flex items-center gap-1 group-hover:gap-2 transition-all"
+                    className="text-brand text-xs font-black flex items-center gap-1 group-hover:gap-2 transition-all"
                   >
                     Ver Detalle <ChevronRight className="w-4 h-4" />
                   </button>
@@ -271,10 +271,10 @@ export default function PlanificadorEntrenador() {
           <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-300 flex flex-col max-h-[90vh]">
             <div className="p-8 overflow-y-auto custom-scrollbar">
               <div className="flex justify-between items-start mb-6">
-                <div className="bgbg-brand/10 texttext-brand p-4 rounded-2xl"><BookOpen className="w-6 h-6" /></div>
+                <div className="bg-brand/10 text-brand p-4 rounded-2xl"><BookOpen className="w-6 h-6" /></div>
                 <button onClick={() => setVerPlan(null)} className="text-slate-400 hover:text-slate-600 transition-colors">✕</button>
               </div>
-              <p className="text-[10px] font-black texttext-brand uppercase tracking-[0.2em] mb-2">{verPlan.categoria}</p>
+              <p className="text-[10px] font-black text-brand uppercase tracking-[0.2em] mb-2">{verPlan.categoria}</p>
               <h2 className="text-2xl font-black text-slate-900 leading-tight mb-4 uppercase">{verPlan.titulo}</h2>
               <div className="bg-slate-50 p-5 rounded-2xl mb-6">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Objetivo Principal</p>
@@ -430,7 +430,7 @@ export default function PlanificadorEntrenador() {
                 <button 
                   type="button" 
                   onClick={agregarVideoInput}
-                  className="mt-3 text-[10px] font-black texttext-brand uppercase tracking-widest flex items-center gap-1 hover:opacity-70 transition-all"
+                  className="mt-3 text-[10px] font-black text-brand uppercase tracking-widest flex items-center gap-1 hover:opacity-70 transition-all"
                 >
                   <Plus className="w-3 h-3" /> Agregar otro video
                 </button>
@@ -443,7 +443,7 @@ export default function PlanificadorEntrenador() {
 
               <div className="pt-4 flex gap-3">
                 <button type="button" onClick={cerrarModal} className="flex-1 bg-white border border-slate-200 text-slate-600 font-bold py-4 rounded-2xl hover:bg-slate-50 transition-all">Cancelar</button>
-                <button type="submit" disabled={guardando} className="flex-1 bgbg-brand-white font-black py-4 rounded-2xl hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
+                <button type="submit" disabled={guardando} className="flex-1 bg-brand text-white font-black py-4 rounded-2xl hover:opacity-90 transition-all shadow-lg flex items-center justify-center gap-2">
                   {guardando ? 'Guardando...' : <Save className="w-5 h-5" />} {planEditando ? 'Guardar Cambios' : 'Guardar Plan'}
                 </button>
               </div>

@@ -189,7 +189,7 @@ export default function GestionCategoriasEntrenador() {
                             </div>
                             <button 
                                 onClick={() => seleccionarCat(cat)}
-                                className="w-full bg-slate-900 group-hover:bg-brand-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 italic uppercase tracking-tighter"
+                                className="w-full bg-slate-900 group-hover:bg-brand text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 italic uppercase tracking-tighter"
                             >
                                 Gestionar Grupo <ChevronRight className="w-4 h-4" />
                             </button>
@@ -249,7 +249,7 @@ export default function GestionCategoriasEntrenador() {
                                 {/* Info Principal */}
                                 <div className="bg-white rounded-[50px] p-8 border border-slate-200 shadow-xl flex flex-col md:flex-row gap-8 items-center relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-4">
-                                        <div className="bg-brand-white font-black italic text-2xl px-6 py-2 rounded-2xl shadow-lg shadowbg-brand/15">
+                                        <div className="bg-brand text-white font-black italic text-2xl px-6 py-2 rounded-2xl shadow-lg shadow-brand/15">
                                             {alumnoDetalle.puntos || 0} <span className="text-[10px] not-italic block uppercase bg-brand/10">Puntos</span>
                                         </div>
                                     </div>

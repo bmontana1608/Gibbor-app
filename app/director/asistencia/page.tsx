@@ -266,7 +266,7 @@ export default function ReporteAsistenciaDirector() {
                        </div>
                        <button 
                          onClick={() => setSesionSeleccionada(sesion)}
-                         className="bg-brand-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
+                         className="bg-brand text-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
                        >
                          <ChevronRight className="w-5 h-5" />
                        </button>

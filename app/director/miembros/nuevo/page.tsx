@@ -414,7 +414,7 @@ export default function NuevoMiembro() {
             <button 
               type="submit" 
               disabled={guardando}
-              className="w-full md:w-auto bg-brand-white px-8 py-3 rounded-xl font-bold transition-colors shadow-md text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
+              className="w-full md:w-auto bg-brand text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-md text-sm disabled:opacity-50 flex items-center justify-center gap-2 group"
             >
               {guardando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 group-hover:scale-110 transition-transform" />}
               {guardando ? 'Registrando en BD...' : 'Guardar Jugador Oficial'}

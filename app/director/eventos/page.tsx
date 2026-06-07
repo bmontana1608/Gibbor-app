@@ -90,7 +90,7 @@ export default function GestionEventos() {
     <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="texttext-brand">Agenda</span></h1>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-brand">Agenda</span></h1>
           <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default function GestionEventos() {
                   onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
                   className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
                     nuevoEvento.categoria_id === '' 
-                    ? 'bgbg-brand-white bordertext-brand shadow-lg' 
+                    ? 'bg-brand text-white border-brand shadow-lg' 
                     : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                   }`}
                 >
@@ -181,7 +181,7 @@ export default function GestionEventos() {
                     onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
                     className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
                       nuevoEvento.categoria_id === cat.nombre 
-                      ? 'bgbg-brand-white bordertext-brand shadow-lg' 
+                      ? 'bg-brand text-white border-brand shadow-lg' 
                       : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                     }`}
                   >
@@ -191,7 +191,7 @@ export default function GestionEventos() {
               </div>
             </div>
 
-            <button type="submit" className="w-full bgbg-brand-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
+            <button type="submit" className="w-full bg-brand text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" /> Publicar Evento
             </button>
           </form>
@@ -225,7 +225,7 @@ export default function GestionEventos() {
                           })()}
                         </span>
                         {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="text-brand" /> {evento.lugar}</span>}
-                        {evento.categoria_id && <span className="text-brand uppercase tracking-widest bgbg-brand/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
+                        {evento.categoria_id && <span className="text-brand uppercase tracking-widest bg-brand/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
                       </div>
                     </div>
                   </div>

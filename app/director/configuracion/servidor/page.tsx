@@ -217,7 +217,7 @@ export default function ConfiguracionServidor() {
                 <button 
                   onClick={handleSave}
                   disabled={cargando}
-                  className="flex-1 bg-brand-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadowbg-brand/15 transition-all flex items-center justify-center gap-3"
+                  className="flex-1 bg-brand text-white py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-brand/15 transition-all flex items-center justify-center gap-3"
                 >
                   {cargando ? 'Guardando...' : <><Save className="w-5 h-5" /> Guardar Cambios</>}
                 </button>

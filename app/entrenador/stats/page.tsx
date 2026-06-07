@@ -324,7 +324,7 @@ export default function GestionSkillsEntrenador() {
       <div className="bg-slate-800 border-b border-white/5 p-4 lg:p-6 flex flex-col md:flex-row items-center justify-between shadow-xl z-20 gap-4">
          <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <div className="flex items-center gap-4">
-                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'texttext-brand' : 'bg-slate-700'}`}>
+                <div className={`p-2 lg:p-3 rounded-2xl ${pestaña === 'Evaluación' ? 'text-brand' : 'bg-slate-700'}`}>
                     <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-current" />
                 </div>
                 <div>
@@ -342,8 +342,8 @@ export default function GestionSkillsEntrenador() {
          </div>
 
          <div className="flex w-full md:w-auto gap-1 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
-             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bgbg-brand-white shadow-lg shadowbg-brand/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
-             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bgbg-brand-white shadow-lg shadowbg-brand/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
+             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
+             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
          </div>
       </div>
 
@@ -385,10 +385,10 @@ export default function GestionSkillsEntrenador() {
                             <button 
                                 key={a.id} 
                                 onClick={() => seleccionarAlumno(a)}
-                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${alumnoSeleccionado?.id === a.id ? 'bgbg-brand-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
+                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all ${alumnoSeleccionado?.id === a.id ? 'bg-brand text-white shadow-lg' : 'bg-slate-800/50 text-slate-400 hover:bg-slate-800 hover:text-white'}`}
                             >
                                 <div className="flex items-center gap-3 truncate">
-                                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white texttext-brand' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
+                                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-black text-[10px] ${alumnoSeleccionado?.id === a.id ? 'bg-white text-brand' : 'bg-slate-700 text-slate-500'}`}>{a.nombres.charAt(0)}</div>
                                     <span className="text-[10px] font-black uppercase tracking-tight truncate">{a.nombres} {a.apellidos}</span>
                                 </div>
                                 {a.posicion && (
@@ -459,7 +459,7 @@ export default function GestionSkillsEntrenador() {
                     <div className="space-y-6 lg:space-y-8">
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                             <div>
-                                 <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter texttext-brand">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
+                                 <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-brand">{alumnoSeleccionado.nombres} {alumnoSeleccionado.apellidos}</h2>
                                  <p className="text-slate-500 text-[10px] lg:text-xs font-bold uppercase tracking-widest mt-1">Evaluación Técnica • {new Date().toLocaleDateString()}</p>
                             </div>
                             
@@ -469,7 +469,7 @@ export default function GestionSkillsEntrenador() {
                                 <select 
                                     value={alumnoSeleccionado.posicion || ''}
                                     onChange={(e) => cambiarPosicionAlumno(e.target.value)}
-                                    className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:bordertext-brand cursor-pointer appearance-none shadow-sm"
+                                    className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:border-brand cursor-pointer appearance-none shadow-sm"
                                 >
                                     <option value="">Asignar Posición...</option>
                                     <option value="Portero">Portero</option>
@@ -491,7 +491,7 @@ export default function GestionSkillsEntrenador() {
                                 <div key={h.id} className="space-y-2">
                                     <div className="flex justify-between items-end px-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h.nombreLimpio}</label>
-                                        <span className={`text-xl font-black italic ${ratings[h.nombreOriginal] > 80 ? 'texttext-brand' : ratings[h.nombreOriginal] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombreOriginal] || 50}</span>
+                                        <span className={`text-xl font-black italic ${ratings[h.nombreOriginal] > 80 ? 'text-brand' : ratings[h.nombreOriginal] > 60 ? 'text-amber-400' : 'text-rose-400'}`}>{ratings[h.nombreOriginal] || 50}</span>
                                     </div>
                                     <input 
                                         type="range" 
@@ -528,7 +528,7 @@ export default function GestionSkillsEntrenador() {
                     {/* COLUMNA 2: VISUALIZACIÓN RADAR Y CURVA */}
                     <div className="space-y-6 lg:space-y-8 pb-10 lg:pb-0">
                         <div className="bg-slate-900/50 rounded-[40px] lg:rounded-[60px] p-6 lg:p-8 border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group shadow-2xl min-h-[350px] lg:min-h-[450px]">
-                             <div className="absolute inset-0 bgbg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                             <div className="absolute inset-0 bg-brand/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-8">Skill Polígon</h3>
                              
                              <RadarChart 
@@ -551,7 +551,7 @@ export default function GestionSkillsEntrenador() {
                                  <div className="w-px h-8 bg-white/10"></div>
                                  <div className="text-center">
                                       <p className="text-[8px] font-black text-slate-500 uppercase">Potencial</p>
-                                      <p className="text-2xl font-black texttext-brand italic">99</p>
+                                      <p className="text-2xl font-black text-brand italic">99</p>
                                  </div>
                              </div>
                         </div>
@@ -560,7 +560,7 @@ export default function GestionSkillsEntrenador() {
                         <div className="bg-slate-900 p-8 rounded-[40px] border border-white/5">
                              <div className="flex justify-between items-center mb-6">
                                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2"><TrendingUp className="text-brand" /> Curva de Aprendizaje</h3>
-                                 <span className="bgbg-brand/10 texttext-brand text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
+                                 <span className="bg-brand/10 text-brand text-[8px] font-black px-2 py-0.5 rounded-full">HISTÓRICO</span>
                              </div>
                              
                              <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
@@ -592,7 +592,7 @@ export default function GestionSkillsEntrenador() {
             ) : catSeleccionada ? (
                 <div className="flex flex-col items-center justify-center min-h-full p-8 text-center space-y-8 animate-in fade-in duration-700">
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black italic tracking-tighter uppercase texttext-brand">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
+                        <h2 className="text-3xl font-black italic tracking-tighter uppercase text-brand">RESUMEN GRUPAL: {catSeleccionada.nombre}</h2>
                         <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Análisis Estadístico de la Categoría</p>
                     </div>
 
@@ -613,7 +613,7 @@ export default function GestionSkillsEntrenador() {
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Evaluados</p>
-                                        <p className="text-2xl font-black texttext-brand italic">{alumnos.length}</p>
+                                        <p className="text-2xl font-black text-brand italic">{alumnos.length}</p>
                                     </div>
                                     <div className="text-center">
                                         <p className="text-[8px] font-black text-slate-500 uppercase">Debilidad</p>

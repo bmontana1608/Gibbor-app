@@ -600,7 +600,7 @@ export default function ModuloNomina() {
               </button>
               <button 
                 onClick={procesarPago}
-                className="flex-1 bg-brand-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadowbg-brand/15 transition-all flex items-center justify-center gap-2"
+                className="flex-1 bg-brand text-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-2"
               >
                 <CheckCircle className="w-5 h-5" /> Guardar y Generar PDF
               </button>
@@ -621,7 +621,7 @@ export default function ModuloNomina() {
             <p className="text-slate-500 mb-8">El comprobante se generó correctamente para <strong>{reciboGenerado.beneficiario_externo || (reciboGenerado.entrenador ? reciboGenerado.entrenador.nombres : 'el proveedor')}</strong>.</p>
             
             <div className="flex flex-col gap-3">
-              <button onClick={imprimirRecibo} className="w-full bg-brand-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadowbg-brand/15 transition-all flex items-center justify-center gap-2">
+              <button onClick={imprimirRecibo} className="w-full bg-brand text-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-2">
                 <Printer className="w-5 h-5" /> Imprimir Comprobante
               </button>
               <button onClick={() => setReciboGenerado(null)} className="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors">

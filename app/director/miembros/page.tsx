@@ -632,7 +632,7 @@ export default function DirectorioMiembros() {
                            toast.error("Error de conexión", { id: tid });
                         }
                         setGenerandoAcceso(false); 
-                      }} disabled={generandoAcceso} className="w-full bg-brand-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
+                      }} disabled={generandoAcceso} className="w-full bg-brand text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
                     )}
                     <button onClick={() => window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=Acceso Activado.`, '_blank')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
                   </div>

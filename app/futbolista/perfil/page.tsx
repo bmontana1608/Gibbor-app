@@ -90,7 +90,7 @@ export default function PerfilFutbolista() {
             <button 
               type="submit"
               disabled={cargando}
-              className="w-full bg-brand-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl bg-brand/20 transition-all flex items-center justify-center gap-3"
+              className="w-full bg-brand text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl bg-brand/20 transition-all flex items-center justify-center gap-3"
             >
               {cargando ? "Actualizando..." : <><Save className="w-5 h-5" /> Guardar Nueva Clave</>}
             </button>

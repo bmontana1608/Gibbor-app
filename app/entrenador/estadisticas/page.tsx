@@ -91,7 +91,7 @@ export default function Ranking() {
          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                  <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-brand-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Temporada 2024</span>
+                    <span className="bg-brand text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Temporada 2024</span>
                     <span className="bg-white/10 text-white/60 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter italic">Live Ranking</span>
                  </div>
                  <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">CUADRO DE <span className="text-brand underline text-brand/30 underline-offset-8">HONOR</span> 🏆</h1>
@@ -149,7 +149,7 @@ export default function Ranking() {
                                     <tr key={jugador.id} className={`group hover:bg-brand/10/30 transition-all ${pos <= 3 ? 'bg-slate-50/20' : ''}`}>
                                         <td className="p-6">
                                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm ${
-                                                pos === 1 ? 'bg-brand-white rotate-6' : 
+                                                pos === 1 ? 'bg-brand text-white rotate-6' : 
                                                 pos === 2 ? 'bg-slate-200 text-slate-600' : 
                                                 pos === 3 ? 'bg-brand/10 text-brand' : 
                                                 'bg-white text-slate-400 border border-slate-100'

@@ -102,7 +102,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
               <img src={brandLogo} alt="Logo" className="w-10 h-10 object-contain shadow-xl rounded-full" />
               <div>
                 <h1 className="text-white font-black tracking-tighter uppercase italic text-xl leading-none">{brandName}</h1>
-                <p className="texttext-brand text-[10px] font-black uppercase tracking-widest leading-none mt-1">Player Mode</p>
+                <p className="text-brand text-[10px] font-black uppercase tracking-widest leading-none mt-1">Player Mode</p>
               </div>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-slate-500"><X className="w-6 h-6" /></button>
@@ -137,11 +137,11 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
                         className={`
                           w-full flex items-center gap-3 p-2 rounded-xl transition-all border
                           ${esActivo 
-                            ? "bordertext-brand/30 bgbg-brand/10 texttext-brand" 
+                            ? "border-brand/30 bg-brand/10 text-brand" 
                             : "border-transparent text-slate-400 hover:bg-slate-800/50"}
                         `}
                       >
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${esActivo ? "bgbg-brand-white" : "bg-slate-700 text-slate-400"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${esActivo ? "bg-brand text-white" : "bg-slate-700 text-slate-400"}`}>
                           {hijo.nombres.charAt(0)}
                         </div>
                         <span className="text-xs font-bold truncate">{hijo.nombres}</span>
@@ -163,11 +163,11 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
                     className={`
                       flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 group
                       ${activo 
-                        ? "bgbg-brand-white shadow-lg translate-x-1" 
+                        ? "bg-brand text-white shadow-lg translate-x-1" 
                         : "text-slate-400 hover:text-white hover:bg-slate-800/50"}
                     `}
                   >
-                    <span className={`${activo ? "text-white" : "text-slate-500 group-hover:texttext-brand"} transition-colors`}>{item.icon}</span>
+                    <span className={`${activo ? "text-white" : "text-slate-500 group-hover:text-brand"} transition-colors`}>{item.icon}</span>
                     <span className="font-bold text-sm tracking-tight">{item.name}</span>
                   </Link>
                 );

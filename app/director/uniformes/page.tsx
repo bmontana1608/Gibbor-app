@@ -580,7 +580,7 @@ export default function UniformesModule() {
             <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-b-[2rem]">
               <button 
                 onClick={guardarPedido}
-                className="w-full bg-slate-900 dark:bg-brand-white hover:scale-[1.02] transition-all px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20"
+                className="w-full bg-slate-900 dark:bg-brand text-white hover:scale-[1.02] transition-all px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20"
               >
                 <CheckCircle className="w-5 h-5" /> Guardar Pedido
               </button>
