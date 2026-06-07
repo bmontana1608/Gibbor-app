@@ -26,7 +26,7 @@ export default function SaaSManagementView() {
       const { data: planesData } = await supabase.from('planes_saas').select('*').order('id');
       if (planesData) setPlanes(planesData);
 
-      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id').order('nombre');
+      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id').neq('estado', 'Eliminado').order('nombre');
       if (clubesData) setClubes(clubesData);
 
       const fecha = new Date();
