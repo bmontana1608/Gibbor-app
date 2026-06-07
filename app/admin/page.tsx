@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
@@ -47,6 +47,8 @@ export default function SuperAdminDashboard() {
   // Mi Cuenta (SuperAdmin credentials)
   const [miCuentaData, setMiCuentaData] = useState({ newEmail: '', newPassword: '', confirmPassword: '' });
   const [miCuentaLoading, setMiCuentaLoading] = useState(false);
+  // Bandera para ignorar eventos de auth durante actualización de credenciales
+  const isUpdatingCredentials = useRef(false);
 
   const cargarUsuarios = async () => {
     const { data } = await supabase.from('perfiles').select('*').limit(50);
@@ -96,16 +98,17 @@ export default function SuperAdminDashboard() {
     cargarTodo();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // SIGNED_IN: recargar datos cuando el usuario se loguea exitosamente
+      // Si estamos actualizando credenciales del superadmin, ignorar todos los eventos
+      // para evitar que el USER_UPDATED / re-autenticación interna nos expulse
+      if (isUpdatingCredentials.current) return;
+
       if (event === 'SIGNED_IN') {
         cargarTodo();
       }
-      // SIGNED_OUT: solo cerrar si realmente no hay sesión activa
-      // (evita falsos positivos durante el refresh automático del token)
+      // Solo cerrar sesión si no hay sesión activa de verdad
       if (event === 'SIGNED_OUT' && !session) {
         setIsAdmin(false);
       }
-      // TOKEN_REFRESHED: ignorar, el token se renovó automáticamente — no hacer nada
     });
 
     return () => subscription.unsubscribe();
@@ -180,6 +183,8 @@ export default function SuperAdminDashboard() {
       toast.error('Las contraseñas no coinciden'); return;
     }
     setMiCuentaLoading(true);
+    // Bloquear el listener de auth para que el USER_UPDATED no nos expulse
+    isUpdatingCredentials.current = true;
     try {
       const updates: any = {};
       if (tipo === 'email') updates.email = miCuentaData.newEmail;
@@ -188,8 +193,14 @@ export default function SuperAdminDashboard() {
       if (error) throw new Error(error.message);
       toast.success(tipo === 'email' ? 'Correo actualizado. Revisa tu bandeja para confirmar.' : 'Contraseña actualizada correctamente');
       setMiCuentaData({ newEmail: '', newPassword: '', confirmPassword: '' });
-    } catch (err: any) { toast.error(err.message); }
-    finally { setMiCuentaLoading(false); }
+    } catch (err: any) { 
+      toast.error(err.message); 
+    } finally { 
+      setMiCuentaLoading(false);
+      // Esperar 2s antes de reactivar el listener, para que Supabase
+      // termine de procesar todos los eventos internos del updateUser
+      setTimeout(() => { isUpdatingCredentials.current = false; }, 2000);
+    }
   };
 
   if (isAdmin === false) return <LoginForm tenant={adminTenant} />;
