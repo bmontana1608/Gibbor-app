@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, ArrowRight, User, Smartphone } from 'lucide-react';
-import { getYouTubeId, isDriveUrl, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
+import { getYouTubeId, isDriveUrl, getDriveId, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 import { useRouter } from 'next/navigation';
 
 export default function BibliotecaEntrenador() {
@@ -152,13 +152,23 @@ export default function BibliotecaEntrenador() {
       );
     }
     if (isDriveUrl(url)) {
+      const driveId = getDriveId(url);
       return (
         <div 
-          className="w-full h-40 bg-blue-50 dark:bg-blue-900/20 rounded-t-2xl flex items-center justify-center border-b border-slate-100 dark:border-slate-800 group cursor-pointer"
+          className="relative w-full h-40 bg-slate-900 rounded-t-2xl overflow-hidden group cursor-pointer"
           onClick={() => setPlayingVideoId(ejercicio.id)}
         >
-          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-             <Video className="text-blue-500 w-8 h-8" />
+          {driveId ? (
+            <img src={`https://drive.google.com/thumbnail?id=${driveId}&sz=w800`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Drive Thumbnail" />
+          ) : (
+            <div className="w-full h-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+              <Video className="text-blue-500 w-8 h-8" />
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 group-hover:bg-brand/90 transition-all">
+                <PlaySquare className="text-white w-6 h-6 ml-1" />
+             </div>
           </div>
         </div>
       );

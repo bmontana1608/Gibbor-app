@@ -132,13 +132,23 @@ export default function BibliotecaAdminView() {
       );
     }
     if (isDriveUrl(url)) {
+      const driveId = getDriveId(url);
       return (
         <div 
-          className="w-full h-40 bg-blue-900/20 rounded-t-2xl flex items-center justify-center border-b border-white/5 group cursor-pointer"
+          className="relative w-full h-40 bg-zinc-950 rounded-t-2xl overflow-hidden group cursor-pointer"
           onClick={() => setPlayingVideoId(ejercicio.id)}
         >
-          <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-             <Video className="text-blue-400 w-8 h-8" />
+          {driveId ? (
+            <img src={`https://drive.google.com/thumbnail?id=${driveId}&sz=w800`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt="Thumbnail" />
+          ) : (
+            <div className="w-full h-full bg-blue-900/20 flex items-center justify-center">
+              <Video className="text-blue-400 w-8 h-8" />
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-12 h-12 bg-blue-600/90 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
+                <PlaySquare className="text-white w-6 h-6 ml-1" />
+             </div>
           </div>
         </div>
       );
