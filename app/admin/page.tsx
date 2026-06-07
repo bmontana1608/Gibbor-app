@@ -39,7 +39,7 @@ export default function SuperAdminDashboard() {
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({
-    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: ''
+    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000
   });
   const [userFormData, setUserFormData] = useState({ newPassword: '', newEmail: '' });
   const [adminFormData, setAdminFormData] = useState({ nombres: '', apellidos: '', email: '', password: '' });
@@ -336,7 +336,7 @@ export default function SuperAdminDashboard() {
                           onToggle={toggleEstadoClub} onAudit={auditClub}
                           onEdit={(c: any) => {
                             setSelectedClub(c);
-                            setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '' });
+                            setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000 });
                             setShowEditModal(true);
                           }}
                           onDelete={eliminarClub}
@@ -465,9 +465,34 @@ export default function SuperAdminDashboard() {
           <div className="animate-in fade-in duration-300 max-w-2xl">
             <h2 className="text-2xl font-black text-slate-800 mb-2">Configuración</h2>
             <p className="text-sm text-gray-500 mb-6">Ajustes generales del núcleo de la plataforma.</p>
-            <div className="space-y-3">
+            <div className="space-y-3 mb-8">
               <SettingToggle label="Modo de Mantenimiento" sub="Suspender acceso a todos los clubes" enabled={false} />
               <SettingToggle label="Registro de Nuevos Clubes" sub="Permitir onboarding desde la Landing Page" enabled={true} />
+            </div>
+            
+            <h3 className="font-bold text-slate-800 mb-4 border-t pt-6">Facturación SaaS y Soporte</h3>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+               <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">WhatsApp de Soporte (Pagos)</label>
+               <div className="flex gap-2">
+                 <input 
+                   type="text" 
+                   id="wppSoporteInput"
+                   defaultValue="+573124265170" 
+                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                 />
+                 <button 
+                   onClick={async () => {
+                     const val = (document.getElementById('wppSoporteInput') as HTMLInputElement).value;
+                     const { error } = await supabase.from('configuracion_superadmin').update({ telefono_soporte: val }).eq('id', 1);
+                     if (error) toast.error('Error al guardar');
+                     else toast.success('Teléfono actualizado');
+                   }}
+                   className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
+                 >
+                   Guardar
+                 </button>
+               </div>
+               <p className="text-xs text-gray-400 mt-2">A este número se redirigirán los clubes suspendidos por mora.</p>
             </div>
           </div>
         )}
@@ -575,7 +600,7 @@ export default function SuperAdminDashboard() {
                   </div>
                 </div>
 
-                <button onClick={() => { setEditFormData({ nombre: selectedClub.nombre, correo_administrativo: selectedClub.correo_administrativo || '', telefono_contacto: selectedClub.telefono_contacto || '', direccion: selectedClub.direccion || '', nombre_legal: selectedClub.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '' }); setShowEditModal(true); }} className="w-full bg-lime-500 text-white font-bold py-3 rounded-xl">
+                <button onClick={() => { setEditFormData({ nombre: selectedClub.nombre, correo_administrativo: selectedClub.correo_administrativo || '', telefono_contacto: selectedClub.telefono_contacto || '', direccion: selectedClub.direccion || '', nombre_legal: selectedClub.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: selectedClub.fecha_fin_prueba ? new Date(selectedClub.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: selectedClub.tarifa_por_jugador || 2000 }); setShowEditModal(true); }} className="w-full bg-lime-500 text-white font-bold py-3 rounded-xl">
                   Editar Datos del Club
                 </button>
 
@@ -660,6 +685,30 @@ export default function SuperAdminDashboard() {
                 <InputField label="Teléfono" value={editFormData.telefono_contacto} onChange={v => setEditFormData({ ...editFormData, telefono_contacto: v })} />
               </div>
               <InputField label="Dirección" value={editFormData.direccion} onChange={v => setEditFormData({ ...editFormData, direccion: v })} />
+
+              <div className="border-t border-gray-100 pt-4 pb-2">
+                <h4 className="text-xs font-bold text-lime-600 uppercase tracking-widest mb-3">Facturación SaaS</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Fin Periodo Prueba</label>
+                    <input 
+                      type="date" 
+                      value={editFormData.fecha_fin_prueba} 
+                      onChange={e => setEditFormData({...editFormData, fecha_fin_prueba: e.target.value})}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Tarifa x Jugador ($)</label>
+                    <input 
+                      type="number" 
+                      value={editFormData.tarifa_por_jugador} 
+                      onChange={e => setEditFormData({...editFormData, tarifa_por_jugador: Number(e.target.value)})}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <div>
