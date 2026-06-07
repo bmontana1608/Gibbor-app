@@ -163,9 +163,20 @@ export default function BibliotecaDirector() {
           className="w-full h-40 bg-black rounded-t-2xl flex items-center justify-center border-b border-zinc-800 group cursor-pointer relative overflow-hidden"
           onClick={() => setPlayingVideoId(ejercicio.id)}
         >
-          <div className="absolute inset-0 opacity-20 bg-gradient-to-tr from-[#00f2fe] to-[#4facfe]"></div>
-          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform relative z-10 shadow-[0_0_15px_rgba(255,0,80,0.5)] border border-[#00f2fe]/30">
-             <Smartphone className="text-white w-8 h-8" />
+          <img 
+            src={`https://www.tikwm.com/video/cover/${tiktokId}.webp`} 
+            alt="TikTok Thumbnail"
+            className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+               (e.target as HTMLImageElement).style.display = 'none';
+               const fallback = (e.target as HTMLImageElement).parentElement?.querySelector('.fallback-tiktok');
+               if (fallback) fallback.classList.remove('hidden');
+            }}
+          />
+          <div className="fallback-tiktok hidden absolute inset-0 opacity-20 bg-gradient-to-tr from-[#00f2fe] to-[#4facfe]"></div>
+          <div className="w-12 h-12 bg-black/60 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform relative z-10 shadow-[0_0_15px_rgba(255,0,80,0.5)] border border-[#00f2fe]/50">
+             <PlaySquare className="text-white w-5 h-5 ml-0.5" />
           </div>
         </div>
       );
