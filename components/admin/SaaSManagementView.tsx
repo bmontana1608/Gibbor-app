@@ -147,7 +147,7 @@ export default function SaaSManagementView() {
   if (cargando) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-lime-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -158,12 +158,12 @@ export default function SaaSManagementView() {
       {/* Header integrado en el flujo */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
-          <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">SaaS <span className="text-cyan-500">Manager</span></h2>
-          <p className="text-slate-500 text-sm font-medium">Control maestro de suscripciones y facturación multiclub.</p>
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-slate-800 to-slate-500 bg-clip-text text-transparent">SaaS <span className="text-lime-500">Manager</span></h2>
+          <p className="text-gray-500 text-sm font-medium">Control maestro de suscripciones y facturación multiclub.</p>
         </div>
         <button 
           onClick={ejecutarFacturacionEdgeFunction} 
-          className="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-5 rounded-2xl font-black flex items-center gap-3 transition-all shadow-2xl shadow-cyan-900/40 hover:-translate-y-1 active:scale-95 uppercase italic tracking-tighter text-xs"
+          className="bg-lime-500 hover:bg-lime-400 text-white px-8 py-5 rounded-2xl font-black flex items-center gap-3 transition-all shadow-lg shadow-lime-200 hover:-translate-y-1 active:scale-95 uppercase italic tracking-tighter text-xs"
         >
           <Activity className="w-5 h-5 text-white" />
           Calcular Corte Mensual
@@ -174,14 +174,14 @@ export default function SaaSManagementView() {
         
         {/* PANEL IZQUIERDO: GESTIÓN DE PLANES */}
         <div className="space-y-8">
-          <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-8 shadow-2xl relative">
-            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
-              <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
+            <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+              <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-emerald-500" /> Esquemas Base
               </h2>
               <button 
                 onClick={() => setPlanEnEdicion({ nombre: '', precio_por_jugador: 2000, moneda: 'COP' })}
-                className="text-[10px] font-black text-cyan-500 uppercase tracking-widest bg-cyan-500/10 px-4 py-2 rounded-xl hover:bg-cyan-500/20 border border-cyan-500/20 transition-all"
+                className="text-[10px] font-black text-lime-600 uppercase tracking-widest bg-lime-50 px-4 py-2 rounded-xl hover:bg-lime-100 border border-lime-200 transition-all"
               >
                 + Crear Plan
               </button>
@@ -189,22 +189,22 @@ export default function SaaSManagementView() {
 
             <div className="space-y-4">
               {planes.map(plan => (
-                <div key={plan.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all">
+                <div key={plan.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group hover:border-gray-200 transition-all">
                   <div>
-                    <h3 className="font-black text-white uppercase italic tracking-tighter text-sm">{plan.nombre}</h3>
-                    <p className="text-[10px] font-bold text-slate-500 mt-1">{formatearDinero(plan.precio_por_jugador)} / Atleta</p>
+                    <h3 className="font-black text-slate-800 uppercase italic tracking-tighter text-sm">{plan.nombre}</h3>
+                    <p className="text-[10px] font-bold text-gray-500 mt-1">{formatearDinero(plan.precio_por_jugador)} / Atleta</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => setPlanEnEdicion(plan)}
-                      className="text-slate-500 hover:text-cyan-500 p-2 transition-colors bg-zinc-950 rounded-xl border border-white/5"
+                      className="text-gray-400 hover:text-lime-600 p-2 transition-colors bg-white rounded-xl border border-gray-200"
                       title="Editar Plan"
                     >
                       <Settings className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={() => eliminarPlan(plan)}
-                      className="text-slate-500 hover:text-red-500 p-2 transition-colors bg-zinc-950 rounded-xl border border-white/5 hover:border-red-500/30"
+                      className="text-gray-400 hover:text-red-500 p-2 transition-colors bg-white rounded-xl border border-gray-200 hover:border-red-200"
                       title="Eliminar Plan"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -216,39 +216,39 @@ export default function SaaSManagementView() {
 
             {/* Formulario de Edición de Plan */}
             {planEnEdicion && (
-              <div className="mt-8 p-6 bg-zinc-950 rounded-3xl border border-white/10 animate-in fade-in zoom-in-95 shadow-2xl">
-                <h4 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-6">
+              <div className="mt-8 p-6 bg-gray-50 rounded-3xl border border-gray-200 animate-in fade-in zoom-in-95 shadow-lg">
+                <h4 className="text-[10px] font-black text-lime-600 uppercase tracking-widest mb-6">
                   {planEnEdicion.id ? 'Editando Plan Existente' : 'Nuevo Esquema de Cobro'}
                 </h4>
                 <div className="space-y-6">
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 block">Nombre del Esquema</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Nombre del Esquema</label>
                     <input 
                       type="text" 
                       value={planEnEdicion.nombre} 
                       onChange={(e) => setPlanEnEdicion({...planEnEdicion, nombre: e.target.value})} 
-                      className="w-full bg-zinc-900 border border-white/10 text-white rounded-2xl px-4 py-3 outline-none focus:border-cyan-500/50 font-bold text-sm transition-colors"
+                      className="w-full bg-white border border-gray-200 text-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-bold text-sm transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 block">Precio x Jugador Activo</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Precio x Jugador Activo</label>
                     <input 
                       type="number" 
                       value={planEnEdicion.precio_por_jugador} 
                       onChange={(e) => setPlanEnEdicion({...planEnEdicion, precio_por_jugador: Number(e.target.value)})} 
-                      className="w-full bg-zinc-900 border border-white/10 text-emerald-400 rounded-2xl px-4 py-3 outline-none focus:border-cyan-500/50 font-black text-lg transition-colors"
+                      className="w-full bg-white border border-gray-200 text-emerald-600 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-black text-lg transition-colors"
                     />
                   </div>
                   <div className="flex gap-3 pt-2">
                     <button 
                       onClick={() => setPlanEnEdicion(null)} 
-                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-gray-200 text-gray-500 hover:text-slate-800 hover:bg-gray-100 transition-colors"
                     >
                       Cancelar
                     </button>
                     <button 
                       onClick={guardarPlan} 
-                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white transition-all shadow-xl"
+                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all shadow-md"
                     >
                       Guardar
                     </button>
@@ -263,30 +263,30 @@ export default function SaaSManagementView() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* Lista de Clubes y Asignación */}
-          <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-8 shadow-2xl relative">
-            <h2 className="text-xs font-black text-white uppercase tracking-widest mb-8 flex items-center gap-2 border-b border-white/5 pb-6">
-              <Building2 className="w-4 h-4 text-cyan-500" /> Asignación de Contratos
+          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
+            <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2 border-b border-gray-100 pb-6">
+              <Building2 className="w-4 h-4 text-lime-500" /> Asignación de Contratos
             </h2>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="pb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Academia Nodo</th>
-                    <th className="pb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subdominio</th>
-                    <th className="pb-4 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Plan Asignado</th>
+                  <tr className="border-b border-gray-100">
+                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Academia Nodo</th>
+                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Subdominio</th>
+                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Plan Asignado</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5">
+                <tbody className="divide-y divide-gray-50">
                   {clubes.map(club => (
-                    <tr key={club.id} className="group hover:bg-white/[0.02] transition-colors">
-                      <td className="py-5 px-4 font-black text-white uppercase italic tracking-tighter text-sm">{club.nombre}</td>
-                      <td className="py-5 px-4 font-mono text-xs text-cyan-500">/{club.slug}</td>
+                    <tr key={club.id} className="group hover:bg-gray-50 transition-colors">
+                      <td className="py-5 px-4 font-black text-slate-800 uppercase italic tracking-tighter text-sm">{club.nombre}</td>
+                      <td className="py-5 px-4 font-mono text-xs text-lime-600">/{club.slug}</td>
                       <td className="py-5 px-4 text-right">
                         <select 
                           value={club.plan_id || ''} 
                           onChange={(e) => asignarPlanAClub(club.id, Number(e.target.value))}
-                          className="bg-zinc-950 border border-white/10 text-slate-300 font-bold text-xs rounded-xl px-4 py-3 outline-none focus:border-cyan-500 cursor-pointer w-48 transition-colors"
+                          className="bg-white border border-gray-200 text-slate-700 font-bold text-xs rounded-xl px-4 py-3 outline-none focus:border-lime-500 cursor-pointer w-48 transition-colors"
                         >
                           <option value="" disabled>Seleccionar Plan...</option>
                           {planes.map(p => (
@@ -302,55 +302,55 @@ export default function SaaSManagementView() {
           </div>
 
           {/* Resumen de Facturación del Mes */}
-          <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-8 shadow-2xl relative">
-            <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
-              <h2 className="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
+            <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+              <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-emerald-500" /> Proyección Mes Actual
               </h2>
-              <div className="flex items-center gap-2 text-[10px] font-black text-cyan-500 uppercase tracking-widest bg-cyan-500/10 px-4 py-2 rounded-xl border border-cyan-500/20">
+              <div className="flex items-center gap-2 text-[10px] font-black text-lime-600 uppercase tracking-widest bg-lime-50 px-4 py-2 rounded-xl border border-lime-200">
                 <RefreshCcw className="w-3 h-3" /> Estado Live
               </div>
             </div>
 
             {facturacion.length === 0 ? (
-              <div className="text-center py-16 bg-zinc-950/50 rounded-3xl border border-dashed border-white/10">
-                <Activity className="w-10 h-10 text-slate-700 mx-auto mb-4" />
-                <p className="text-sm font-bold text-slate-400">Aún no hay cálculos de facturación para este mes.</p>
-                <p className="text-xs text-slate-500 mt-2">Usa el botón superior para ejecutar la función serverless de corte.</p>
+              <div className="text-center py-16 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                <Activity className="w-10 h-10 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm font-bold text-gray-500">Aún no hay cálculos de facturación para este mes.</p>
+                <p className="text-xs text-gray-400 mt-2">Usa el botón superior para ejecutar la función serverless de corte.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {facturacion.map(fac => (
-                  <div key={fac.id} className="p-6 bg-zinc-950 rounded-3xl border border-white/5 hover:border-cyan-500/30 transition-colors flex flex-col gap-4 shadow-xl">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fac.clubes?.nombre}</span>
+                  <div key={fac.id} className="p-6 bg-white rounded-3xl border border-gray-200 hover:border-lime-300 transition-colors flex flex-col gap-4 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                      <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{fac.clubes?.nombre}</span>
                       <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border ${
-                        fac.estado_pago === 'pagado' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 
-                        'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                        fac.estado_pago === 'pagado' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 
+                        'bg-yellow-50 text-yellow-600 border-yellow-200'
                       }`}>
                         {fac.estado_pago}
                       </span>
                     </div>
                     <div>
                       <div className="flex items-center justify-between">
-                        <p className="text-3xl font-black text-white tracking-tighter italic">{formatearDinero(fac.total_pagar)}</p>
+                        <p className="text-3xl font-black text-slate-800 tracking-tighter italic">{formatearDinero(fac.total_pagar)}</p>
                         {fac.estado_pago !== 'pagado' && (
                           <button 
                             onClick={() => marcarFacturaPagada(fac.id)}
-                            className="bg-emerald-600/20 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors"
+                            className="bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors"
                           >
                             Marcar Pagado
                           </button>
                         )}
                       </div>
                       <div className="flex items-center gap-3 mt-3">
-                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
-                            <Users className="w-3 h-3 text-cyan-500" /> 
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{fac.cantidad_jugadores} Atletas</span>
+                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+                            <Users className="w-3 h-3 text-lime-500" /> 
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{fac.cantidad_jugadores} Atletas</span>
                          </div>
-                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">
+                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
                             <DollarSign className="w-3 h-3 text-emerald-500" /> 
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base: {formatearDinero(fac.tarifa_aplicada)}</span>
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Base: {formatearDinero(fac.tarifa_aplicada)}</span>
                          </div>
                       </div>
                     </div>
