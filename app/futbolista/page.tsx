@@ -186,21 +186,28 @@ export default function DashboardFutbolista() {
         const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
         const misPerfiles = await resFam.json();
         
-        let currentPerfilId = session.user.id;
+        let currentPerfilId = selectedHijoId; // Priorizar el estado local si ya se seleccionó uno
 
         if (Array.isArray(misPerfiles) && misPerfiles.length > 0) {
           setHijos(misPerfiles.filter((p:any) => p.id !== session.user.id || (p.rol !== "Director" && p.rol !== "Entrenador")));
-          const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
-          const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
-          if (savedHijoId && esValido && savedHijoId !== session.user.id) {
-            currentPerfilId = savedHijoId;
-          } else {
-            const miPerfil = misPerfiles.find((p:any) => p.id === session.user.id);
-            if ((miPerfil?.rol === 'Director' || miPerfil?.rol === 'Entrenador') && misPerfiles.length > 1) {
-              const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
-              if (primerHijo) currentPerfilId = primerHijo.id;
+          
+          if (!currentPerfilId) {
+            const savedHijoId = localStorage.getItem('hijo_seleccionado_id');
+            const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
+            if (savedHijoId && esValido && savedHijoId !== session.user.id) {
+              currentPerfilId = savedHijoId;
+            } else {
+              const miPerfil = misPerfiles.find((p:any) => p.id === session.user.id);
+              if ((miPerfil?.rol === 'Director' || miPerfil?.rol === 'Entrenador') && misPerfiles.length > 1) {
+                const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
+                if (primerHijo) currentPerfilId = primerHijo.id;
+              } else {
+                currentPerfilId = session.user.id;
+              }
             }
           }
+        } else if (!currentPerfilId) {
+          currentPerfilId = session.user.id;
         }
         
         setSelectedHijoId(currentPerfilId);
@@ -345,7 +352,10 @@ export default function DashboardFutbolista() {
           {hijos.map(hijo => (
             <button 
                 key={hijo.id} 
-                onClick={() => setSelectedHijoId(hijo.id)} 
+                onClick={() => {
+                  localStorage.setItem('hijo_seleccionado_id', hijo.id);
+                  setSelectedHijoId(hijo.id);
+                }} 
                 className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${selectedHijoId === hijo.id ? 'text-white shadow-lg' : 'text-slate-400'}`}
                 style={selectedHijoId === hijo.id ? { backgroundColor: brandColor } : {}}
             >
