@@ -11,13 +11,27 @@ export async function POST(request: Request) {
   try {
     const { correo_director, password_director, ...clubData } = await request.json();
 
-    // 1. Insertar el club
+    // 1. Obtener el plan SaaS por defecto (el primero disponible)
+    const { data: planes, error: planError } = await supabaseAdmin
+      .from('planes_saas')
+      .select('id')
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    if (planError || !planes || planes.length === 0) {
+      return NextResponse.json({ error: 'No existe ningún plan SaaS configurado. Crea un plan en "Suscripciones" primero.' }, { status: 400 });
+    }
+
+    const planId = planes[0].id;
+
+    // 2. Insertar el club con el plan_id correcto
     const { data: clubResult, error: clubError } = await supabaseAdmin
       .from('clubes')
       .insert([{
         ...clubData,
         estado: 'Activo',
-        plan: 'Premium'
+        plan: 'Premium',
+        plan_id: planId
       }])
       .select();
 
