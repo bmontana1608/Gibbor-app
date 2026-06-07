@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
-    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    const { data: perfil } = await supabase.from('perfiles').select('rol, club_id').eq('id', user.id).single();
     if (perfil?.rol !== 'Director') return NextResponse.json({ error: 'Solo el director puede enviar alertas' }, { status: 403 });
 
     // Configurar web-push SOLO cuando se va a usar (Lazy Loading)
@@ -44,8 +44,12 @@ export async function POST(req: Request) {
       process.env.VAPID_PRIVATE_KEY
     );
 
-    // 1. Obtener todos los suscritos
-    const { data: subscripciones, error } = await supabase.from('push_subscriptions').select('*');
+    // 1. Obtener todos los suscritos del MISMO CLUB
+    const { data: subscripciones, error } = await supabase
+      .from('push_subscriptions')
+      .select('*')
+      .eq('club_id', perfil.club_id); // FILTRO DE AISLAMIENTO MULTI-TENANT
+
     if (error) throw error;
 
     if (!subscripciones || subscripciones.length === 0) {
@@ -72,11 +76,12 @@ export async function POST(req: Request) {
 
     await Promise.all(notifications);
 
-    // 3. Guardar en la tabla de notificaciones para que aparezca en la campana
+    // 3. Guardar en la tabla de notificaciones de la app
     await supabase.from('notificaciones_app').insert({
       titulo,
       mensaje,
-      tipo: 'comunicado'
+      tipo: 'comunicado',
+      club_id: perfil.club_id // AISLAMIENTO MULTI-TENANT
     });
 
     return NextResponse.json({ success: true, count: subscripciones.length });

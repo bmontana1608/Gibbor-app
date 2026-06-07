@@ -46,6 +46,9 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
 
       // 1. Comunicados
       let queryComunicados = supabase.from('notificaciones_app').select('*');
+      if (clubId) {
+        queryComunicados = queryComunicados.eq('club_id', clubId);
+      }
       if (activeUserId) {
         queryComunicados = queryComunicados.or(`user_id.eq.${activeUserId},user_id.is.null`);
       }

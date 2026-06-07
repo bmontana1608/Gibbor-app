@@ -28,10 +28,13 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
+    const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', user.id).single();
+    
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
         user_id: user.id,
+        club_id: perfil?.club_id || null,
         subscription: subscription,
         endpoint: subscription.endpoint
       }, { onConflict: 'endpoint' });
