@@ -94,12 +94,23 @@ export default function SuperAdminDashboard() {
 
   useEffect(() => {
     cargarTodo();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN') cargarTodo();
-      if (event === 'SIGNED_OUT') setIsAdmin(false);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // SIGNED_IN: recargar datos cuando el usuario se loguea exitosamente
+      if (event === 'SIGNED_IN') {
+        cargarTodo();
+      }
+      // SIGNED_OUT: solo cerrar si realmente no hay sesión activa
+      // (evita falsos positivos durante el refresh automático del token)
+      if (event === 'SIGNED_OUT' && !session) {
+        setIsAdmin(false);
+      }
+      // TOKEN_REFRESHED: ignorar, el token se renovó automáticamente — no hacer nada
     });
+
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []); // ← Sin dependencias: solo se ejecuta una vez al montar
+
 
   const toggleEstadoClub = async (id: string, estadoActual: string) => {
     const nuevoEstado = estadoActual === 'Activo' ? 'Suspendido' : 'Activo';
