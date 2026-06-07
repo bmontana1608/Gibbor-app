@@ -5,18 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
-  Settings, LogOut, Plus, Search, Globe, CreditCard,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library
+  Settings, LogOut, Plus, Globe, CreditCard,
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import LoginForm from '@/components/LoginForm';
 import SaaSManagementView from '@/components/admin/SaaSManagementView';
 import BibliotecaAdminView from '@/components/admin/BibliotecaAdminView';
+import MCMLogo from '@/components/MCMLogo';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,12 +30,7 @@ export default function SuperAdminDashboard() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [clubAudit, setClubAudit] = useState<any>(null);
   const [formData, setFormData] = useState({
-    nombre: '',
-    slug: '',
-    logo_url: '',
-    color_primario: '#06b6d4',
-    correo_director: '',
-    password_director: ''
+    nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: ''
   });
 
   // SaaS Governance State
@@ -43,27 +39,15 @@ export default function SuperAdminDashboard() {
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({
-    nombre: '',
-    correo_administrativo: '',
-    telefono_contacto: '',
-    direccion: '',
-    nombre_legal: '',
-    sync_director_email: false,
-    director_password: '',
-    director_id: ''
+    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: ''
   });
-  const [userFormData, setUserFormData] = useState({
-    newPassword: '',
-    newEmail: ''
-  });
-  const [adminFormData, setAdminFormData] = useState({
-    nombres: '',
-    apellidos: '',
-    email: '',
-    password: ''
-  });
+  const [userFormData, setUserFormData] = useState({ newPassword: '', newEmail: '' });
+  const [adminFormData, setAdminFormData] = useState({ nombres: '', apellidos: '', email: '', password: '' });
+  
+  // Mi Cuenta (SuperAdmin credentials)
+  const [miCuentaData, setMiCuentaData] = useState({ newEmail: '', newPassword: '', confirmPassword: '' });
+  const [miCuentaLoading, setMiCuentaLoading] = useState(false);
 
-  // Cargar Usuarios Globales
   const cargarUsuarios = async () => {
     const { data } = await supabase.from('perfiles').select('*').limit(50);
     setUsuariosGlobales(data || []);
@@ -73,16 +57,10 @@ export default function SuperAdminDashboard() {
     if (vista === 'usuarios') cargarUsuarios();
   }, [vista]);
 
-  // Configuración del Tenant para el Login de SuperAdmin
   const adminTenant = {
-    config: {
-      nombre: 'Master Club Manager (MCM)',
-      color: '#0891b2', // Cian corporativo
-      logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
-    }
+    config: { nombre: 'Master Club Manager', color: '#84cc16', logo: '/logo_mcm.png' }
   };
 
-  // Cargar expedientes
   const auditClub = async (club: any) => {
     setSelectedClub(club);
     setDetailsLoading(true);
@@ -96,940 +74,646 @@ export default function SuperAdminDashboard() {
     setDetailsLoading(false);
   };
 
-  // Cargar datos consolidados
   const cargarTodo = async () => {
     setFetching(true);
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      setIsAdmin(false);
-      setFetching(false);
-      return;
-    }
-
-    const { data: perfil } = await supabase
-      .from('perfiles')
-      .select('rol')
-      .eq('id', user.id)
-      .single();
-
-    const userRole = perfil?.rol?.toLowerCase();
-
-    if (userRole !== 'superadmin') {
-      setIsAdmin(false);
-      setFetching(false);
-      return;
-    }
-
+    if (!user) { setIsAdmin(false); setFetching(false); return; }
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol?.toLowerCase() !== 'superadmin') { setIsAdmin(false); setFetching(false); return; }
     setIsAdmin(true);
-
-    // Cargar Clubes, Métricas y Logs
     const [resClubes, resMetrics, resLogs] = await Promise.all([
       supabase.from('clubes').select('*, planes_saas(precio_por_jugador)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
       supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50)
     ]);
-
     setClubes(resClubes.data || []);
     setMetrics(resMetrics);
     setLogs(resLogs.data || []);
-    
     setFetching(false);
   };
 
   useEffect(() => {
     cargarTodo();
-
-    // ESCUCHA DE SESIÓN: Si el usuario se loguea desde el formulario, cargamos todo automáticamente
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        cargarTodo();
-      }
-      if (event === 'SIGNED_OUT') {
-        setIsAdmin(false);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') cargarTodo();
+      if (event === 'SIGNED_OUT') setIsAdmin(false);
     });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [router]);
-
-  if (isAdmin === false) {
-    return <LoginForm tenant={adminTenant} />;
-  }
-
-  if (isAdmin === null || fetching) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
-      </div>
-    );
-  }
 
   const toggleEstadoClub = async (id: string, estadoActual: string) => {
     const nuevoEstado = estadoActual === 'Activo' ? 'Suspendido' : 'Activo';
     const { error } = await supabase.from('clubes').update({ estado: nuevoEstado }).eq('id', id);
-    
-    if (error) {
-      toast.error('Error al cambiar estado');
-    } else {
-      toast.success(`Club ${nuevoEstado}`);
-      cargarTodo();
-    }
+    if (error) toast.error('Error al cambiar estado');
+    else { toast.success(`Club ${nuevoEstado}`); cargarTodo(); }
   };
 
   const eliminarClub = async (id: string, nombre: string) => {
-    const confirmar = window.confirm(`¿ESTÁS SEGURO? Esta acción ELIMINARÁ permanentemente a "${nombre.toUpperCase()}" y todos sus datos del ecosistema MCM. No se puede deshacer.`);
-    if (!confirmar) return;
-
+    if (!window.confirm(`¿ESTÁS SEGURO? Esto eliminará "${nombre.toUpperCase()}" permanentemente.`)) return;
     try {
       const res = await fetch(`/api/admin/clubes/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-
-      toast.success('Club eliminado definitivamente');
-      cargarTodo();
-    } catch (e: any) {
-      toast.error('Error al eliminar: ' + e.message);
-    }
+      toast.success('Club eliminado'); cargarTodo();
+    } catch (e: any) { toast.error('Error al eliminar: ' + e.message); }
   };
 
-
   const handleCrearClub = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+    e.preventDefault(); setLoading(true);
     try {
-      const response = await fetch('/api/admin/clubes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
+      const response = await fetch('/api/admin/clubes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
       const data = await response.json();
-
       if (data.error) throw new Error(data.error);
-      
       setClubes([data, ...clubes]);
       setShowModal(false);
-      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#06b6d4', correo_director: '', password_director: '' });
+      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '' });
       toast.success('¡Academia registrada con éxito!');
-    } catch (err: any) {
-      toast.error('Error de Seguridad: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err: any) { toast.error('Error: ' + err.message); }
+    finally { setLoading(false); }
   };
 
   const handleEditClub = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedClub?.id) return;
-    setLoading(true);
+    e.preventDefault(); if (!selectedClub?.id) return; setLoading(true);
     try {
-      const response = await fetch(`/api/admin/clubes/${selectedClub.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editFormData)
-      });
+      const response = await fetch(`/api/admin/clubes/${selectedClub.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editFormData) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Error al actualizar');
-      
-      toast.success('Club actualizado correctamente');
-      setShowEditModal(false);
-      cargarTodo();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
+      toast.success('Club actualizado'); setShowEditModal(false); cargarTodo();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setLoading(false); }
   };
 
   const handleManageUser = async (action: 'RESET_PASSWORD' | 'CHANGE_EMAIL') => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/governance/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: selectedUser.id, 
-          action, 
-          payload: userFormData 
-        })
-      });
+      const response = await fetch('/api/admin/governance/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: selectedUser.id, action, payload: userFormData }) });
       if (!response.ok) throw new Error('Error en la operación');
-      toast.success('Operación exitosa');
-      setShowUserModal(false);
-      setUserFormData({ newPassword: '', newEmail: '' });
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
+      toast.success('Operación exitosa'); setShowUserModal(false); setUserFormData({ newPassword: '', newEmail: '' });
+    } catch (err: any) { toast.error(err.message); }
+    finally { setLoading(false); }
   };
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault(); setLoading(true);
     try {
-      const response = await fetch('/api/admin/governance/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          action: 'CREATE_ADMIN', 
-          payload: adminFormData 
-        })
-      });
+      const response = await fetch('/api/admin/governance/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'CREATE_ADMIN', payload: adminFormData }) });
       if (!response.ok) throw new Error('Error al crear administrador');
-      toast.success('Nuevo SuperAdmin creado');
-      setShowCreateAdminModal(false);
-      setAdminFormData({ nombres: '', apellidos: '', email: '', password: '' });
-      cargarUsuarios();
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
+      toast.success('Nuevo SuperAdmin creado'); setShowCreateAdminModal(false);
+      setAdminFormData({ nombres: '', apellidos: '', email: '', password: '' }); cargarUsuarios();
+    } catch (err: any) { toast.error(err.message); }
+    finally { setLoading(false); }
   };
 
-  return (
-    <div className="min-h-screen bg-[#050505] text-slate-100 font-sans tracking-tight relative overflow-hidden">
-      
-      {/* Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-cyan-600/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
+  const handleUpdateMiCuenta = async (tipo: 'email' | 'password') => {
+    if (tipo === 'password' && miCuentaData.newPassword !== miCuentaData.confirmPassword) {
+      toast.error('Las contraseñas no coinciden'); return;
+    }
+    setMiCuentaLoading(true);
+    try {
+      const updates: any = {};
+      if (tipo === 'email') updates.email = miCuentaData.newEmail;
+      if (tipo === 'password') updates.password = miCuentaData.newPassword;
+      const { error } = await supabase.auth.updateUser(updates);
+      if (error) throw new Error(error.message);
+      toast.success(tipo === 'email' ? 'Correo actualizado. Revisa tu bandeja para confirmar.' : 'Contraseña actualizada correctamente');
+      setMiCuentaData({ newEmail: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) { toast.error(err.message); }
+    finally { setMiCuentaLoading(false); }
+  };
 
-      {/* Sidebar Lateral */}
-      <aside className="fixed left-0 top-0 h-full w-64 bg-zinc-900/50 backdrop-blur-xl border-r border-white/5 p-6 hidden md:flex flex-col z-50">
-        <div className="flex items-center gap-4 mb-12 px-2">
-          <div className="relative w-12 h-12 flex items-center justify-center group rotate-3">
-             {/* Fondo de Brillo */}
-             <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full group-hover:bg-cyan-500/40 transition-all"></div>
-             
-             {/* Escudo SVG Personalizado */}
-             <svg width="40" height="44" viewBox="0 0 40 44" fill="none" xmlns="http://www.w3.org/2000/svg" className="relative z-10 drop-shadow-xl group-hover:scale-110 transition-transform duration-500">
-                <path d="M20 0L4 7.33333V18.3333C4 28.2333 10.8267 37.4733 20 40.3333C29.1733 37.4733 36 28.2333 36 18.3333V7.33333L20 0Z" fill="#0891b2" stroke="#eab308" strokeWidth="2.5"/>
-                <path d="M20 10V30" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                <path d="M14 20H26" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-             </svg>
-          </div>
-          <div>
-            <h1 className="font-black text-2xl uppercase tracking-tighter italic leading-none flex items-center">
-                <span className="text-white">M</span>
-                <span className="text-yellow-500">C</span>
-                <span className="text-cyan-400">M</span>
-            </h1>
-            <p className="text-[7.5px] text-yellow-500/90 font-black uppercase tracking-[0.2em] leading-none mt-1.5 italic">
-                El corazón de tu formación deportiva
-            </p>
-          </div>
+  if (isAdmin === false) return <LoginForm tenant={adminTenant} />;
+  if (isAdmin === null || fetching) return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <Loader2 className="w-10 h-10 text-lime-500 animate-spin" />
+    </div>
+  );
+
+  const navItems = [
+    { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes' },
+    { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios' },
+    { id: 'saas-billing', icon: <CreditCard size={20} />, label: 'Planes' },
+    { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas' },
+    { id: 'biblioteca', icon: <Library size={20} />, label: 'Biblioteca' },
+    { id: 'auditoria', icon: <History size={20} />, label: 'Auditoría' },
+    { id: 'mi-cuenta', icon: <User size={20} />, label: 'Mi Cuenta' },
+    { id: 'configuracion', icon: <Settings size={20} />, label: 'Ajustes' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gray-50 text-slate-800 font-sans">
+
+      {/* ── SIDEBAR (Desktop) ── */}
+      <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 p-6 hidden md:flex flex-col z-50 shadow-sm">
+        <div className="mb-8">
+          <MCMLogo width={180} height={48} />
+          <p className="text-xs text-gray-400 font-semibold mt-3 ml-1">Panel SuperAdmin</p>
         </div>
 
-        <nav className="space-y-2 flex-1">
-          <NavItem icon={<Building2 size={18} />} label="Gestión de Clubes" active={vista === 'clubes'} onClick={() => setVista('clubes')} />
-          <NavItem icon={<Users size={18} />} label="Usuarios Globales" active={vista === 'usuarios'} onClick={() => setVista('usuarios')} />
-          <NavItem icon={<CreditCard size={18} />} label="Suscripciones" active={vista === 'saas-billing'} onClick={() => setVista('saas-billing')} />
-          <NavItem icon={<TrendingUp size={18} />} label="Métricas Master" active={vista === 'metricas'} onClick={() => setVista('metricas')} />
-          <NavItem icon={<Library size={18} />} label="Biblioteca MCM" active={vista === 'biblioteca'} onClick={() => setVista('biblioteca')} />
+        <nav className="space-y-1 flex-1">
+          {navItems.slice(0, 6).map(item => (
+            <SideNavItem key={item.id} icon={item.icon} label={item.label} active={vista === item.id} onClick={() => setVista(item.id as any)} />
+          ))}
         </nav>
 
-        <div className="pt-6 border-t border-white/5 space-y-2">
-          <button onClick={() => setVista('configuracion')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${vista === 'configuracion' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <Settings size={18} />
-            <span className="text-xs font-bold uppercase tracking-widest">Configuración</span>
-          </button>
-
-          <div className="mt-8 pt-8 border-t border-white/5">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 px-4">Seguridad Pro</p>
-            <button onClick={() => setVista('auditoria')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${vista === 'auditoria' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-              <History size={18} />
-              <span className="text-xs font-bold uppercase tracking-widest">Auditoría</span>
-            </button>
-          </div>
-
-          <button 
+        <div className="border-t border-gray-100 pt-4 space-y-1">
+          <SideNavItem icon={<User size={18} />} label="Mi Cuenta" active={vista === 'mi-cuenta'} onClick={() => setVista('mi-cuenta')} />
+          <SideNavItem icon={<Settings size={18} />} label="Configuración" active={vista === 'configuracion'} onClick={() => setVista('configuracion')} />
+          <button
             onClick={async () => {
-              const { error } = await supabase.auth.signOut();
-              if (error) {
-                toast.error("Error al cerrar sesión");
-              } else {
-                toast.success("Sesión cerrada correctamente");
-                setIsAdmin(false);
-                router.refresh();
-              }
+              await supabase.auth.signOut();
+              toast.success('Sesión cerrada');
+              setIsAdmin(false);
+              router.refresh();
             }}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all group"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all group text-left"
           >
             <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
-            <span className="text-xs font-bold uppercase tracking-widest">Cerrar Sesión</span>
+            <span className="text-sm font-semibold">Cerrar Sesión</span>
           </button>
         </div>
       </aside>
 
-      {/* Contenido Principal */}
-      <main className="md:ml-64 p-8 relative z-10">
+      {/* ── TOPBAR (Mobile) ── */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <MCMLogo width={140} height={38} />
+        <button
+          onClick={async () => { await supabase.auth.signOut(); setIsAdmin(false); router.refresh(); }}
+          className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+        >
+          <LogOut size={20} />
+        </button>
+      </header>
 
-        {/* Dashboard de Métricas Master (Solo se ve en vista 'clubes' o 'metricas') */}
+      {/* ── BOTTOM NAV (Mobile) ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 shadow-lg">
+        {navItems.slice(0, 5).map(item => (
+          <button
+            key={item.id}
+            onClick={() => setVista(item.id as any)}
+            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${vista === item.id ? 'text-lime-600' : 'text-gray-400'}`}
+          >
+            {item.icon}
+            <span className="text-[10px] font-bold">{item.label}</span>
+          </button>
+        ))}
+        <button
+          onClick={() => setVista('mi-cuenta')}
+          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${vista === 'mi-cuenta' ? 'text-lime-600' : 'text-gray-400'}`}
+        >
+          <User size={20} />
+          <span className="text-[10px] font-bold">Cuenta</span>
+        </button>
+      </nav>
+
+      {/* ── MAIN CONTENT ── */}
+      <main className="md:ml-64 pt-20 md:pt-0 pb-24 md:pb-0 p-4 md:p-8">
+
+        {/* MÉTRICAS HEADER */}
         {(vista === 'clubes' || vista === 'metricas') && (
-          <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
-             <MetricCard 
-                label="Ingreso SaaS Proyectado" 
-                value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} 
-                icon={<TrendingUp className="text-emerald-400" />} 
-                sub="Canon $2,000 / Niño / Mes" 
-                color="emerald"
-             />
-             <MetricCard 
-                label="Alumnos en Red" 
-                value={metrics?.totalJugadores || '0'} 
-                icon={<Users className="text-cyan-400" />} 
-                sub="Deportistas activos" 
-                color="cyan"
-             />
-             <MetricCard 
-                label="Recaudo Histórico" 
-                value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} 
-                icon={<CreditCard className="text-blue-400" />} 
-                sub="Flujo total procesado" 
-                color="blue"
-             />
-             <MetricCard 
-                label="Ecosistema Activo" 
-                value={`${metrics?.clubesActivos || 0} / ${metrics?.totalClubes || 0}`} 
-                icon={<ShieldCheck className="text-purple-400" />} 
-                sub="Academias en operación" 
-                color="purple"
-             />
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <MetricCard label="Ingreso SaaS" value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} icon={<TrendingUp className="text-lime-600" size={20} />} sub="Proyectado / Mes" color="lime" />
+            <MetricCard label="Alumnos" value={metrics?.totalJugadores || '0'} icon={<Users className="text-blue-500" size={20} />} sub="En toda la red" color="blue" />
+            <MetricCard label="Recaudo" value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} icon={<CreditCard className="text-emerald-500" size={20} />} sub="Flujo total" color="emerald" />
+            <MetricCard label="Clubes" value={`${metrics?.clubesActivos || 0}/${metrics?.totalClubes || 0}`} icon={<ShieldCheck className="text-violet-500" size={20} />} sub="Activos / Total" color="violet" />
           </section>
         )}
 
-        {vista === 'metricas' && (
-          <section className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-              <h2 className="text-3xl font-black uppercase italic tracking-tighter">Análisis Temprano de <span className="text-cyan-500">Crecimiento MCM</span></h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                  <div className="bg-zinc-900 border border-white/5 p-10 rounded-[3rem]">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 mb-8 border-b border-white/5 pb-4">Densidad de Jugadores por Academia</h4>
-                      <div className="space-y-6">
-                          {clubes.slice(0, 5).map(c => (
-                            <div key={c.id}>
-                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
-                                    <span>{c.nombre}</span>
-                                    <span className="text-cyan-500">{metrics?.alumnosPorClub?.[c.id] || 0} / 50</span>
-                                </div>
-                                <div className="w-full h-2 bg-zinc-950 rounded-full overflow-hidden border border-white/5">
-                                    <div 
-                                      className="h-full bg-cyan-600 rounded-full" 
-                                      style={{ width: `${Math.min(((metrics?.alumnosPorClub?.[c.id] || 0) / 50) * 100, 100)}%` }}
-                                    />
-                                </div>
-                            </div>
-                          ))}
-                      </div>
-                  </div>
-
-                  <div className="bg-zinc-900 border border-white/5 p-10 rounded-[3rem] flex flex-col items-center justify-center text-center">
-                      <TrendingUp className="text-emerald-500 mb-6" size={48} />
-                      <h4 className="text-xl font-black uppercase italic tracking-tighter mb-2">Tendencia de Expansión</h4>
-                      <p className="text-slate-500 text-sm font-medium max-w-xs">El ecosistema ha crecido un 15% este mes. Se proyectan 3 nuevas aperturas para el próximo trimestre.</p>
-                      <button className="mt-8 bg-white/5 text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-xl border border-white/5 hover:border-cyan-500/50 transition-colors">Generar Reporte PDF</button>
-                  </div>
-              </div>
-          </section>
-        )}
-
-        {vista === 'auditoria' && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-               <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/5 rounded-3xl p-8">
-                  <div className="flex items-center justify-between mb-8">
-                     <div>
-                        <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Historial de Auditoría</h2>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Control de operaciones maestras MCM</p>
-                     </div>
-                     <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500">
-                        <ShieldCheck size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Blindaje Activo</span>
-                     </div>
-                  </div>
-
-                  <div className="space-y-4">
-                     {logs.map((log: any) => (
-                       <div key={log.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all group">
-                          <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                                  log.accion.includes('ELIMINAR') || log.accion.includes('DELETE') ? 'bg-red-500/10 text-red-500' : 'bg-emerald-500/10 text-emerald-500'
-                                }`}>
-                                   <History size={16} />
-                                </div>
-                                <div>
-                                   <p className="text-[10px] font-black text-white uppercase tracking-widest">{log.accion.replace(/_/g, ' ')}</p>
-                                   <p className="text-sm text-slate-400 font-medium mt-0.5">{log.descripcion}</p>
-                                </div>
-                             </div>
-                             <div className="text-right">
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                   {new Date(log.fecha).toLocaleString()}
-                                </p>
-                             </div>
-                          </div>
-                       </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-          )}
-        
+        {/* ── VISTA CLUBES ── */}
         {vista === 'clubes' && (
-          <>
-            {/* Header Superior */}
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in duration-1000">
+          <div className="animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-white to-white/40 bg-clip-text text-transparent">MCM <span className="text-cyan-500">Command Center</span></h2>
-                <p className="text-slate-500 text-sm font-medium">Control global del ecosistema Master Club Manager.</p>
+                <h2 className="text-2xl font-black text-slate-800">Gestión de Clubes</h2>
+                <p className="text-sm text-gray-500">Academias conectadas al ecosistema MCM</p>
               </div>
-              <button 
-                onClick={() => setShowModal(true)}
-                className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-8 py-5 rounded-2xl flex items-center gap-3 transition-all shadow-2xl shadow-cyan-900/40 hover:-translate-y-1 active:scale-95 text-xs uppercase italic tracking-tighter"
-              >
-                <Plus size={20} strokeWidth={3} /> Desplegar Nueva Academia
+              <button onClick={() => setShowModal(true)} className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-lime-200 text-sm">
+                <Plus size={18} /> Nueva Academia
               </button>
-            </header>
+            </div>
 
-            {/* Listado de Clubes */}
-            <section className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-10 shadow-2xl relative min-h-[400px] animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               {fetching ? (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
-                </div>
+                <div className="flex items-center justify-center p-20"><Loader2 className="w-8 h-8 text-lime-500 animate-spin" /></div>
               ) : (
-                <>
-                  <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-4">
-                        <div className="w-1.5 h-6 bg-cyan-600 rounded-full" />
-                        <h3 className="font-black uppercase italic tracking-tighter text-2xl">Academias Conectadas</h3>
-                    </div>
-                    <div className="flex items-center gap-4 text-[10px] font-black text-slate-500 uppercase tracking-widest bg-white/5 px-6 py-2 rounded-full border border-white/5">
-                      <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div> {clubes.length} Nodos</span>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead>
-                        <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/5">
-                          <th className="pb-6 px-4">Directorio / Club</th>
-                          <th className="pb-6 px-4 text-center">Población</th>
-                          <th className="pb-6 px-4">Canon SaaS</th>
-                          <th className="pb-6 px-4">Estado Red</th>
-                          <th className="pb-6 px-4 text-right">Controles</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {clubes.map((club) => (
-                          <ClubRow 
-                            key={club.id} 
-                            club={club} 
-                            count={metrics?.alumnosPorClub?.[club.id] || 0}
-                            onToggle={toggleEstadoClub} 
-                            onAudit={auditClub}
-                            onEdit={(c: any) => {
-                              setSelectedClub(c);
-                              setEditFormData({
-                                nombre: c.nombre,
-                                correo_administrativo: c.correo_administrativo || '',
-                                telefono_contacto: c.telefono_contacto || '',
-                                direccion: c.direccion || '',
-                                nombre_legal: c.nombre_legal || '',
-                                sync_director_email: false,
-                                director_password: '',
-                                director_id: '' 
-                              });
-                              setShowEditModal(true);
-                            }}
-                            onDelete={eliminarClub}
-                          />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="text-left px-6 py-4">Club</th>
+                        <th className="text-center px-6 py-4">Atletas</th>
+                        <th className="px-6 py-4 hidden md:table-cell">Canon SaaS</th>
+                        <th className="px-6 py-4">Estado</th>
+                        <th className="text-right px-6 py-4">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {clubes.map(club => (
+                        <ClubRow
+                          key={club.id} club={club}
+                          count={metrics?.alumnosPorClub?.[club.id] || 0}
+                          onToggle={toggleEstadoClub} onAudit={auditClub}
+                          onEdit={(c: any) => {
+                            setSelectedClub(c);
+                            setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '' });
+                            setShowEditModal(true);
+                          }}
+                          onDelete={eliminarClub}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
-            </section>
-          </>
+            </div>
+          </div>
         )}
 
+        {/* ── VISTA USUARIOS ── */}
         {vista === 'usuarios' && (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                  <div>
-                    <h2 className="text-3xl font-black uppercase italic tracking-tighter">Miembros por <span className="text-cyan-500">Club Conectado</span></h2>
-                    <p className="text-slate-500 text-sm font-medium">Distribución global de la población deportiva en la red MCM.</p>
-                  </div>
-                  <button 
-                    onClick={() => setShowCreateAdminModal(true)}
-                    className="bg-yellow-600 hover:bg-yellow-500 text-white font-black px-6 py-3 rounded-xl flex items-center gap-2 transition-all shadow-xl text-[10px] uppercase tracking-widest"
-                  >
-                    <ShieldCheck size={16} /> Crear SuperAdmin
-                  </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {clubes.map(club => {
-                    const miembrosClub = usuariosGlobales.filter(u => u.club_id === club.id);
-                    if (miembrosClub.length === 0) return null;
-
-                    return (
-                      <div key={club.id} className="bg-zinc-900/40 backdrop-blur-md rounded-[2.5rem] border border-white/5 p-8 hover:border-cyan-500/30 transition-all group shadow-2xl">
-                          <div className="flex items-center gap-4 mb-8 border-b border-white/5 pb-6">
-                              <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden">
-                                 <img src={club.logo_url} className="w-full h-full object-contain" />
-                              </div>
-                              <div>
-                                  <h3 className="font-black text-lg uppercase italic tracking-tighter text-white">{club.nombre}</h3>
-                                  <div className="flex items-center gap-2">
-                                      <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-none">{miembrosClub.length} Miembros Activos</p>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <div className="space-y-4 mb-8">
-                              {miembrosClub.slice(0, 3).map(u => (
-                                <div key={u.id} className="flex items-center justify-between p-3 bg-white/5 rounded-2xl border border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-7 h-7 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-500 text-[8px] font-black">
-                                            {u.nombres?.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-white uppercase italic tracking-tighter leading-none">{u.nombres}</p>
-                                            <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">{u.rol}</p>
-                                        </div>
-                                    </div>
-                                    <button 
-                                      onClick={() => {
-                                        setSelectedUser(u);
-                                        setUserFormData({ newPassword: '', newEmail: u.email_contacto || '' });
-                                        setShowUserModal(true);
-                                      }}
-                                      className="text-cyan-500 hover:text-cyan-400 p-1 rounded-lg hover:bg-white/5 transition-colors"
-                                      title="Gestionar Credenciales"
-                                    >
-                                      <Lock size={12} />
-                                    </button>
-                                </div>
-                              ))}
-                              {miembrosClub.length > 3 && (
-                                <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest text-center pt-2">
-                                  + {miembrosClub.length - 3} Miembros adicionales
-                                </p>
-                              )}
-                          </div>
-
-                          <button 
-                            onClick={() => auditClub(club)}
-                            className="w-full bg-white/5 text-[10px] font-black uppercase tracking-widest py-4 rounded-xl border border-white/5 hover:bg-cyan-600 hover:border-cyan-500 hover:text-white transition-all"
-                          >
-                            Ver Nómina Completa
-                          </button>
-                      </div>
-                    );
-                  })}
-              </div>
-          </section>
-        )}
-
-        {vista === 'saas-billing' && (
-          <SaaSManagementView />
-        )}
-
-        {vista === 'biblioteca' && (
-          <BibliotecaAdminView />
-        )}
-
-        {vista === 'configuracion' && (
-          <section className="max-w-4xl py-10 space-y-12 animate-in fade-in duration-700">
+          <div className="animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2">AJUSTES <span className="text-cyan-500">MAESTROS</span></h2>
-                <p className="text-slate-500 text-sm font-medium">Configuración de núcleo de la plataforma Master Club Manager.</p>
+                <h2 className="text-2xl font-black text-slate-800">Usuarios Globales</h2>
+                <p className="text-sm text-gray-500">Distribución de miembros por academia</p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 border-b border-white/5 pb-2">Sistema & Seguridad</h3>
-                      <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-cyan-500/30 transition-all">
-                          <div>
-                              <p className="font-bold uppercase tracking-tight text-white mb-1">Modo de Mantenimiento</p>
-                              <p className="text-[10px] text-slate-500 uppercase font-black">Suspender acceso a todos los clubes</p>
-                          </div>
-                          <div className="w-12 h-6 bg-zinc-800 rounded-full border border-white/5 relative cursor-pointer">
-                              <div className="absolute left-1 top-1 w-4 h-4 bg-zinc-600 rounded-full"></div>
-                          </div>
+              <button onClick={() => setShowCreateAdminModal(true)} className="bg-violet-500 hover:bg-violet-400 text-white font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg text-sm">
+                <ShieldCheck size={16} /> Crear SuperAdmin
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {clubes.map(club => {
+                const miembrosClub = usuariosGlobales.filter(u => u.club_id === club.id);
+                if (miembrosClub.length === 0) return null;
+                return (
+                  <div key={club.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5">
+                    <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+                      <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 p-1.5 flex items-center justify-center overflow-hidden">
+                        <img src={club.logo_url} className="w-full h-full object-contain" />
                       </div>
-                      <div className="p-6 bg-zinc-900 rounded-3xl border border-white/5 flex items-center justify-between group hover:border-cyan-500/30 transition-all">
-                          <div>
-                              <p className="font-bold uppercase tracking-tight text-white mb-1">Registro de Nuevos Clubes</p>
-                              <p className="text-[10px] text-slate-500 uppercase font-black">Permitir onboarding desde Landing</p>
-                          </div>
-                          <div className="w-12 h-6 bg-cyan-600 rounded-full border border-cyan-500 relative cursor-pointer">
-                              <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-lg"></div>
-                          </div>
+                      <div>
+                        <h3 className="font-bold text-sm text-slate-800">{club.nombre}</h3>
+                        <p className="text-xs text-gray-400">{miembrosClub.length} miembros</p>
                       </div>
+                    </div>
+                    <div className="space-y-2">
+                      {miembrosClub.slice(0, 3).map(u => (
+                        <div key={u.id} className="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg bg-lime-100 text-lime-700 flex items-center justify-center text-[10px] font-black">{u.nombres?.charAt(0)}</div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-700">{u.nombres}</p>
+                              <p className="text-[10px] text-gray-400">{u.rol}</p>
+                            </div>
+                          </div>
+                          <button onClick={() => { setSelectedUser(u); setUserFormData({ newPassword: '', newEmail: u.email_contacto || '' }); setShowUserModal(true); }} className="text-gray-400 hover:text-lime-600 p-1 transition-colors"><Lock size={12} /></button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                  <div className="space-y-6">
-                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 border-b border-white/5 pb-2">Identidad de Marca (White-label)</h3>
-                      <div className="p-8 bg-zinc-900 rounded-[2.5rem] border border-white/5 space-y-4">
-                          <div className="flex items-center justify-between">
-                             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Logo Principal SaaS</p>
-                             <button className="text-[9px] font-black uppercase tracking-widest text-cyan-500">Cambiar</button>
-                          </div>
-                          <div className="w-full h-32 bg-zinc-950 rounded-2xl border border-white/5 flex items-center justify-center border-dashed">
-                              <ShieldCheck className="text-zinc-800 w-12 h-12" />
-                          </div>
+        {/* ── VISTA MÉTRICAS ── */}
+        {vista === 'metricas' && (
+          <div className="animate-in fade-in duration-300 space-y-6">
+            <h2 className="text-2xl font-black text-slate-800">Métricas Master</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Jugadores por Academia</h4>
+                <div className="space-y-4">
+                  {clubes.slice(0, 5).map(c => (
+                    <div key={c.id}>
+                      <div className="flex justify-between text-xs font-semibold mb-1.5">
+                        <span className="text-slate-700">{c.nombre}</span>
+                        <span className="text-lime-600">{metrics?.alumnosPorClub?.[c.id] || 0}</span>
                       </div>
-                  </div>
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-lime-500 rounded-full transition-all" style={{ width: `${Math.min(((metrics?.alumnosPorClub?.[c.id] || 0) / 50) * 100, 100)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-          </section>
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col items-center justify-center text-center">
+                <TrendingUp className="text-lime-500 mb-4" size={40} />
+                <h4 className="text-lg font-black text-slate-800 mb-2">Tendencia de Crecimiento</h4>
+                <p className="text-sm text-gray-500 max-w-xs">El ecosistema ha crecido un 15% este mes. Se proyectan 3 nuevas aperturas para el próximo trimestre.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── VISTA AUDITORÍA ── */}
+        {vista === 'auditoria' && (
+          <div className="animate-in fade-in duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800">Historial de Auditoría</h2>
+                <p className="text-sm text-gray-500">Control de operaciones maestras MCM</p>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-lime-50 border border-lime-200 rounded-xl text-lime-700 text-xs font-bold">
+                <ShieldCheck size={14} /> Blindaje Activo
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+              {logs.map((log: any) => (
+                <div key={log.id} className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${log.accion.includes('ELIMINAR') || log.accion.includes('DELETE') ? 'bg-red-100 text-red-500' : 'bg-lime-100 text-lime-600'}`}>
+                    <History size={15} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-800 uppercase tracking-wide truncate">{log.accion.replace(/_/g, ' ')}</p>
+                    <p className="text-xs text-gray-500 truncate">{log.descripcion}</p>
+                  </div>
+                  <p className="text-xs text-gray-400 font-medium whitespace-nowrap hidden sm:block">{new Date(log.fecha).toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {vista === 'saas-billing' && <SaaSManagementView />}
+        {vista === 'biblioteca' && <BibliotecaAdminView />}
+
+        {/* ── VISTA CONFIGURACIÓN ── */}
+        {vista === 'configuracion' && (
+          <div className="animate-in fade-in duration-300 max-w-2xl">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Configuración</h2>
+            <p className="text-sm text-gray-500 mb-6">Ajustes generales del núcleo de la plataforma.</p>
+            <div className="space-y-3">
+              <SettingToggle label="Modo de Mantenimiento" sub="Suspender acceso a todos los clubes" enabled={false} />
+              <SettingToggle label="Registro de Nuevos Clubes" sub="Permitir onboarding desde la Landing Page" enabled={true} />
+            </div>
+          </div>
+        )}
+
+        {/* ── VISTA MI CUENTA ── */}
+        {vista === 'mi-cuenta' && (
+          <div className="animate-in fade-in duration-300 max-w-lg">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Mi Cuenta</h2>
+            <p className="text-sm text-gray-500 mb-6">Actualiza tus credenciales de acceso como SuperAdmin.</p>
+
+            {/* Cambiar Email */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Mail size={18} /></div>
+                <div>
+                  <h3 className="font-bold text-slate-800">Cambiar Correo Electrónico</h3>
+                  <p className="text-xs text-gray-400">Recibirás un enlace de confirmación al nuevo correo</p>
+                </div>
+              </div>
+              <input
+                type="email"
+                placeholder="nuevo@correo.com"
+                value={miCuentaData.newEmail}
+                onChange={e => setMiCuentaData({ ...miCuentaData, newEmail: e.target.value })}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none mb-3 bg-gray-50"
+              />
+              <button
+                onClick={() => handleUpdateMiCuenta('email')}
+                disabled={miCuentaLoading || !miCuentaData.newEmail}
+                className="w-full bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
+              >
+                {miCuentaLoading ? <Loader2 className="animate-spin" size={16} /> : <><Check size={16} /> Actualizar Correo</>}
+              </button>
+            </div>
+
+            {/* Cambiar Contraseña */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 bg-lime-50 rounded-xl flex items-center justify-center text-lime-600"><KeyRound size={18} /></div>
+                <div>
+                  <h3 className="font-bold text-slate-800">Cambiar Contraseña</h3>
+                  <p className="text-xs text-gray-400">Mínimo 8 caracteres, incluye letras y números</p>
+                </div>
+              </div>
+              <div className="space-y-3 mb-3">
+                <input
+                  type="password"
+                  placeholder="Nueva contraseña"
+                  value={miCuentaData.newPassword}
+                  onChange={e => setMiCuentaData({ ...miCuentaData, newPassword: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                />
+                <input
+                  type="password"
+                  placeholder="Confirmar nueva contraseña"
+                  value={miCuentaData.confirmPassword}
+                  onChange={e => setMiCuentaData({ ...miCuentaData, confirmPassword: e.target.value })}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm outline-none bg-gray-50 ${miCuentaData.confirmPassword && miCuentaData.newPassword !== miCuentaData.confirmPassword ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-lime-400'}`}
+                />
+                {miCuentaData.confirmPassword && miCuentaData.newPassword !== miCuentaData.confirmPassword && (
+                  <p className="text-xs text-red-500 flex items-center gap-1"><AlertTriangle size={12} /> Las contraseñas no coinciden</p>
+                )}
+              </div>
+              <button
+                onClick={() => handleUpdateMiCuenta('password')}
+                disabled={miCuentaLoading || !miCuentaData.newPassword || miCuentaData.newPassword !== miCuentaData.confirmPassword}
+                className="w-full bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-sm"
+              >
+                {miCuentaLoading ? <Loader2 className="animate-spin" size={16} /> : <><Lock size={16} /> Cambiar Contraseña</>}
+              </button>
+            </div>
+          </div>
         )}
       </main>
 
-      {/* MODAL DETALLES CLUB */}
+      {/* ── PANEL DETALLE CLUB ── */}
       {selectedClub && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-end animate-in slide-in-from-right duration-300">
-           <div className="bg-zinc-900 w-full max-w-2xl h-full border-l border-white/10 p-10 flex flex-col shadow-2xl relative overflow-y-auto">
-              <button 
-                onClick={() => { setSelectedClub(null); setClubAudit(null); }} 
-                className="absolute top-8 right-8 text-slate-500 hover:text-white bg-white/5 p-2 rounded-xl transition-colors"
-              >
-                <X size={24} />
-              </button>
-
-              <div className="flex items-center gap-6 mb-10 mt-4">
-                 <div className="w-20 h-20 bg-zinc-950 rounded-[2rem] border border-white/10 p-4 flex items-center justify-center overflow-hidden">
-                    <img src={selectedClub.logo_url} className="w-full h-full object-contain" />
-                 </div>
-                 <div>
-                    <h3 className="text-3xl font-black uppercase italic tracking-tighter text-white">{selectedClub.nombre}</h3>
-                    <p className="text-cyan-500 font-mono text-sm tracking-widest">/{selectedClub.slug}</p>
-                 </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-end">
+          <div className="bg-white w-full max-w-lg h-full border-l border-gray-200 p-6 flex flex-col shadow-2xl overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gray-100 rounded-2xl p-2 flex items-center justify-center overflow-hidden border border-gray-200">
+                  <img src={selectedClub.logo_url} className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-800">{selectedClub.nombre}</h3>
+                  <p className="text-lime-600 text-xs font-mono">/{selectedClub.slug}</p>
+                </div>
               </div>
+              <button onClick={() => { setSelectedClub(null); setClubAudit(null); }} className="text-gray-400 hover:text-gray-700 bg-gray-100 p-2 rounded-xl transition-colors"><X size={20} /></button>
+            </div>
 
-              {detailsLoading ? (
-                <div className="flex-1 flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-cyan-500 animate-spin" />
+            {detailsLoading ? (
+              <div className="flex-1 flex items-center justify-center"><Loader2 className="w-8 h-8 text-lime-500 animate-spin" /></div>
+            ) : clubAudit && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-xs text-gray-400 font-semibold mb-1">Entrenadores</p>
+                    <p className="text-2xl font-black text-slate-800">{clubAudit.stats?.coaches || 0}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <p className="text-xs text-gray-400 font-semibold mb-1">Categorías</p>
+                    <p className="text-2xl font-black text-slate-800">{clubAudit.stats?.categorias || 0}</p>
+                  </div>
                 </div>
-              ) : clubAudit && (
-                <div className="space-y-10">
-                   {/* Mini Dashboard del Club */}
-                   <div className="grid grid-cols-2 gap-6">
-                      <div className="bg-zinc-950 p-6 rounded-[2rem] border border-white/5">
-                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Entrenadores</p>
-                         <p className="text-3xl font-black text-white italic tracking-tighter">{clubAudit.stats?.coaches || 0}</p>
-                      </div>
-                      <div className="bg-zinc-950 p-6 rounded-[2rem] border border-white/5">
-                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categorías</p>
-                         <p className="text-3xl font-black text-white italic tracking-tighter">{clubAudit.stats?.categorias || 0}</p>
-                      </div>
-                   </div>
-                   
-                   <div className="pt-6 border-t border-white/5">
-                      <button 
-                        onClick={() => {
-                          setEditFormData({
-                            nombre: selectedClub.nombre,
-                            correo_administrativo: selectedClub.correo_administrativo || '',
-                            telefono_contacto: selectedClub.telefono_contacto || '',
-                            direccion: selectedClub.direccion || '',
-                            nombre_legal: selectedClub.nombre_legal || '',
-                            sync_director_email: false,
-                            director_password: '',
-                            director_id: '' 
-                          });
-                          setShowEditModal(true);
-                        }}
-                        className="w-full bg-cyan-600 text-white font-black uppercase tracking-tighter italic py-4 rounded-2xl shadow-2xl shadow-cyan-900/20"
-                      >
-                        Editar Datos Sensibles
-                      </button>
-                   </div>
 
-                   {/* Actividad Reciente */}
-                   <div>
-                      <h4 className="text-xs font-black uppercase tracking-widest text-white mb-6 border-b border-white/5 pb-4">Actividad Financiera Reciente</h4>
-                      <div className="space-y-4">
-                         {clubAudit.actividad?.length > 0 ? clubAudit.actividad.map((pago: any) => (
-                           <div key={pago.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                              <div>
-                                 <p className="text-sm font-bold text-white uppercase tracking-tighter">{pago.jugador_nombre || 'Alumno Sin Nombre'}</p>
-                                 <p className="text-[10px] text-slate-500 font-medium">{new Date(pago.fecha).toLocaleDateString()}</p>
-                              </div>
-                              <p className="text-sm font-black text-emerald-500 italic tracking-tighter">+ ${parseFloat(pago.total).toLocaleString('es-CO')}</p>
-                           </div>
-                         )) : (
-                           <p className="text-sm text-slate-500 italic">No hay pagos registrados recientemente.</p>
-                         )}
-                      </div>
-                   </div>
+                <button onClick={() => { setEditFormData({ nombre: selectedClub.nombre, correo_administrativo: selectedClub.correo_administrativo || '', telefono_contacto: selectedClub.telefono_contacto || '', direccion: selectedClub.direccion || '', nombre_legal: selectedClub.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '' }); setShowEditModal(true); }} className="w-full bg-lime-500 text-white font-bold py-3 rounded-xl">
+                  Editar Datos del Club
+                </button>
 
-                   {/* Acciones Maestras */}
-                   <div className="pt-10 border-t border-white/5">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-cyan-500 mb-6">Zona de Peligro</h4>
-                      <div className="flex flex-wrap gap-4">
-                         <button 
-                           onClick={() => toggleEstadoClub(selectedClub.id, selectedClub.estado)}
-                           className={`flex-1 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl transition-all ${selectedClub.estado === 'Activo' ? 'bg-red-600/10 text-red-500 border border-red-500/20 hover:bg-red-600 text-white' : 'bg-emerald-600 text-white'}`}
-                         >
-                           {selectedClub.estado === 'Activo' ? 'Suspender Academia' : 'Reactivar Academia'}
-                         </button>
-                         <Link 
-                           href={`/${selectedClub.slug}/director`}
-                           className="flex-1 bg-white/5 text-slate-400 font-black uppercase italic tracking-tighter text-xs py-4 px-6 rounded-2xl border border-white/5 hover:text-white transition-all flex items-center justify-center gap-2"
-                         >
-                           <ArrowRightLeft size={14} /> Ver como Director
-                         </Link>
-                      </div>
-                   </div>
-                </div>
-              )}
-           </div>
-        </div>
-      )}
-
-      {/* MODAL CREAR CLUB */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-zinc-900 border border-white/10 rounded-[3rem] w-full max-w-xl p-10 relative shadow-[0_0_100px_-20px_rgba(8,145,178,0.15)]">
-            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
-              <X size={24} />
-            </button>
-            <h3 className="text-2xl font-black uppercase italic tracking-tighter mb-8 flex items-center gap-3">
-              <Building2 className="text-cyan-500" /> Registrar <span className="text-cyan-500">Nueva Academia</span>
-            </h3>
-
-            <form onSubmit={handleCrearClub} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Nombre Oficial</label>
-                  <input required value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} type="text" placeholder="Ej: Eagles Football Academy" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
-                </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Subdominio (Slug)</label>
-                  <input required value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/\s/g, '-')})} type="text" placeholder="eagles-fc" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-mono text-sm text-cyan-500" />
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Actividad Financiera Reciente</h4>
+                  <div className="space-y-2">
+                    {clubAudit.actividad?.length > 0 ? clubAudit.actividad.map((pago: any) => (
+                      <div key={pago.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700">{pago.jugador_nombre || 'Alumno'}</p>
+                          <p className="text-xs text-gray-400">{new Date(pago.fecha).toLocaleDateString()}</p>
+                        </div>
+                        <p className="text-sm font-black text-emerald-600">+${parseFloat(pago.total).toLocaleString('es-CO')}</p>
+                      </div>
+                    )) : <p className="text-sm text-gray-400 text-center py-4">No hay pagos recientes.</p>}
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Color de Marca</label>
-                  <input value={formData.color_primario} onChange={e => setFormData({...formData, color_primario: e.target.value})} type="color" className="w-full bg-zinc-950 border border-white/10 rounded-2xl h-[54px] p-2 cursor-pointer" />
-                </div>
-                <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">URL Logo (Imagen)</label>
-                  <input required value={formData.logo_url} onChange={e => setFormData({...formData, logo_url: e.target.value})} type="url" placeholder="https://..." className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
-                </div>
-                
-                <div className="col-span-2 border-t border-white/5 pt-4 mt-2">
-                  <h4 className="text-xs font-black text-cyan-500 uppercase tracking-widest mb-4">Credenciales del Administrador (Dueño)</h4>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Correo Electrónico</label>
-                      <input required value={formData.correo_director} onChange={e => setFormData({...formData, correo_director: e.target.value})} type="email" placeholder="admin@escuela.com" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-bold text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Contraseña Temporal</label>
-                      <input required value={formData.password_director} onChange={e => setFormData({...formData, password_director: e.target.value})} type="text" placeholder="Pass1234!" className="w-full bg-zinc-950 border border-white/10 rounded-2xl px-6 py-4 focus:border-cyan-500/50 outline-none transition-all font-mono text-sm" />
-                    </div>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3">Zona de Peligro</h4>
+                  <div className="flex gap-3">
+                    <button onClick={() => toggleEstadoClub(selectedClub.id, selectedClub.estado)} className={`flex-1 font-bold py-3 px-4 rounded-xl text-sm transition-all ${selectedClub.estado === 'Activo' ? 'bg-red-50 text-red-600 border border-red-200 hover:bg-red-600 hover:text-white' : 'bg-lime-500 text-white'}`}>
+                      {selectedClub.estado === 'Activo' ? 'Suspender' : 'Reactivar'}
+                    </button>
+                    <Link href={`/${selectedClub.slug}/director`} className="flex-1 bg-gray-100 text-gray-600 font-bold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-gray-200 transition-all">
+                      <ArrowRightLeft size={14} /> Ver
+                    </Link>
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+      )}
 
-              <div className="pt-6">
-                <button type="submit" disabled={loading} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 shadow-xl shadow-cyan-900/20 active:scale-95 transition-all text-sm uppercase italic tracking-tighter">
-                  {loading ? <Loader2 className="animate-spin" /> : <><Check /> Confirmar Registro</>}
-                </button>
+      {/* ── MODAL CREAR CLUB ── */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><Building2 className="text-lime-600" size={20} /> Nueva Academia</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleCrearClub} className="space-y-4">
+              <InputField label="Nombre Oficial" value={formData.nombre} onChange={v => setFormData({ ...formData, nombre: v })} placeholder="Eagles Football Academy" required />
+              <InputField label="Subdominio (Slug)" value={formData.slug} onChange={v => setFormData({ ...formData, slug: v.toLowerCase().replace(/\s/g, '-') })} placeholder="eagles-fc" required mono />
+              <InputField label="URL Logo" value={formData.logo_url} onChange={v => setFormData({ ...formData, logo_url: v })} placeholder="https://..." required />
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Color de Marca</label>
+                <input value={formData.color_primario} onChange={e => setFormData({ ...formData, color_primario: e.target.value })} type="color" className="w-full border border-gray-200 rounded-xl h-12 p-1.5 cursor-pointer" />
               </div>
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-bold text-lime-600 uppercase tracking-widest mb-3">Credenciales del Director</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField label="Correo" value={formData.correo_director} onChange={v => setFormData({ ...formData, correo_director: v })} placeholder="admin@club.com" required type="email" />
+                  <InputField label="Contraseña Temporal" value={formData.password_director} onChange={v => setFormData({ ...formData, password_director: v })} placeholder="Pass1234!" required />
+                </div>
+              </div>
+              <button type="submit" disabled={loading} className="w-full bg-lime-500 hover:bg-lime-400 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-lime-200">
+                {loading ? <Loader2 className="animate-spin" size={18} /> : <><Check size={18} /> Confirmar Registro</>}
+              </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL EDICIÓN CLUB (SaaS Governance) */}
+      {/* ── MODAL EDITAR CLUB ── */}
       {showEditModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-white/10 w-full max-w-xl rounded-[2.5rem] p-10 shadow-3xl">
-            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-8 border-b border-white/5 pb-4">Gobernanza de <span className="text-cyan-500">Privacidad</span></h2>
-            <form onSubmit={handleEditClub} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Nombre Comercial</label>
-                  <input 
-                    type="text" 
-                    value={editFormData.nombre}
-                    onChange={(e) => setEditFormData({...editFormData, nombre: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Nombre Legal / Razón Social</label>
-                  <input 
-                    type="text" 
-                    value={editFormData.nombre_legal}
-                    onChange={(e) => setEditFormData({...editFormData, nombre_legal: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                  />
-                </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800">Editar Club</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleEditClub} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Nombre Comercial" value={editFormData.nombre} onChange={v => setEditFormData({ ...editFormData, nombre: v })} />
+                <InputField label="Nombre Legal" value={editFormData.nombre_legal} onChange={v => setEditFormData({ ...editFormData, nombre_legal: v })} />
               </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Correo Administrativo</label>
-                  <input 
-                    type="email" 
-                    value={editFormData.correo_administrativo}
-                    onChange={(e) => setEditFormData({...editFormData, correo_administrativo: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Teléfono de Contacto</label>
-                  <input 
-                    type="text" 
-                    value={editFormData.telefono_contacto}
-                    onChange={(e) => setEditFormData({...editFormData, telefono_contacto: e.target.value})}
-                    className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Correo Administrativo" value={editFormData.correo_administrativo} onChange={v => setEditFormData({ ...editFormData, correo_administrativo: v })} type="email" />
+                <InputField label="Teléfono" value={editFormData.telefono_contacto} onChange={v => setEditFormData({ ...editFormData, telefono_contacto: v })} />
               </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Dirección Física</label>
-                <input 
-                  type="text" 
-                  value={editFormData.direccion}
-                  onChange={(e) => setEditFormData({...editFormData, direccion: e.target.value})}
-                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-white focus:border-cyan-500 outline-none"
-                />
-              </div>
-              
-              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl flex items-center justify-between">
+              <InputField label="Dirección" value={editFormData.direccion} onChange={v => setEditFormData({ ...editFormData, direccion: v })} />
+
+              <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
                 <div>
-                  <p className="text-xs font-bold text-yellow-500 uppercase">Sincronizar Acceso</p>
-                  <p className="text-[10px] text-yellow-500/60 font-black uppercase">¿Actualizar el email de login del Director?</p>
+                  <p className="text-sm font-bold text-amber-700">Sincronizar email del Director</p>
+                  <p className="text-xs text-amber-600">¿Actualizar email de login del Director?</p>
                 </div>
-                <button 
-                  type="button"
-                  onClick={() => setEditFormData({...editFormData, sync_director_email: !editFormData.sync_director_email})}
-                  className={`w-12 h-6 rounded-full transition-colors relative ${editFormData.sync_director_email ? 'bg-yellow-500' : 'bg-zinc-800 border border-white/5'}`}
-                >
-                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${editFormData.sync_director_email ? 'right-1' : 'left-1'}`} />
+                <button type="button" onClick={() => setEditFormData({ ...editFormData, sync_director_email: !editFormData.sync_director_email })} className={`w-11 h-6 rounded-full transition-colors relative ${editFormData.sync_director_email ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow ${editFormData.sync_director_email ? 'right-1' : 'left-1'}`} />
                 </button>
               </div>
 
               {editFormData.sync_director_email && (
-                <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-2xl animate-in slide-in-from-top-2 duration-300">
-                  <label className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 block">Nueva Contraseña del Director (Opcional)</label>
-                  <input 
-                    type="text" 
-                    placeholder="Dejar en blanco para no cambiar clave"
-                    value={editFormData.director_password}
-                    onChange={(e) => setEditFormData({...editFormData, director_password: e.target.value})}
-                    className="w-full bg-zinc-950 border border-red-500/20 rounded-xl px-4 py-3 text-white focus:border-red-500 outline-none placeholder:text-red-500/30"
-                  />
-                  <p className="text-[8px] text-red-500/60 font-bold uppercase tracking-widest mt-2 flex items-center gap-1">
-                    <AlertTriangle size={8} /> Se actualizará tanto el email como la clave si los proporcionas.
-                  </p>
-                </div>
+                <InputField label="Nueva Contraseña del Director (opcional)" value={editFormData.director_password} onChange={v => setEditFormData({ ...editFormData, director_password: v })} placeholder="Dejar vacío para no cambiar" />
               )}
 
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl">Cancelar</button>
-                <button type="submit" disabled={loading} className="flex-[2] py-4 text-[10px] font-black uppercase tracking-widest text-white bg-cyan-600 rounded-xl shadow-xl shadow-cyan-900/40">Guardar Cambios Maestros</button>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-3 text-sm font-bold text-gray-500 bg-gray-100 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={loading} className="flex-[2] py-3 text-sm font-bold text-white bg-lime-500 rounded-xl shadow-lg shadow-lime-200">
+                  {loading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Guardar Cambios'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL GESTIÓN CREDENCIALES (Service Role Power) */}
+      {/* ── MODAL GESTIÓN CREDENCIALES USUARIO ── */}
       {showUserModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-3xl">
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter text-white mb-2">Seguridad <span className="text-red-500">MCM</span></h2>
-            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-8">Gestionando credenciales de: {selectedUser?.nombres}</p>
-            
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Cambiar Email de Acceso</h4>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-black text-slate-800">Seguridad del Usuario</h3>
+              <button onClick={() => setShowUserModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-gray-400 mb-6">Gestionando: <strong>{selectedUser?.nombres}</strong></p>
+            <div className="space-y-5">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Cambiar Email</label>
                 <div className="flex gap-2">
-                  <input 
-                    type="email" 
-                    placeholder="Nuevo correo" 
-                    value={userFormData.newEmail}
-                    onChange={(e) => setUserFormData({...userFormData, newEmail: e.target.value})}
-                    className="flex-1 bg-zinc-950 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-red-500 outline-none"
-                  />
-                  <button onClick={() => handleManageUser('CHANGE_EMAIL')} className="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Actualizar</button>
+                  <input type="email" placeholder="Nuevo correo" value={userFormData.newEmail} onChange={e => setUserFormData({ ...userFormData, newEmail: e.target.value })} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50" />
+                  <button onClick={() => handleManageUser('CHANGE_EMAIL')} className="px-3 py-2 bg-lime-500 text-white rounded-xl text-xs font-bold hover:bg-lime-400 transition-colors">OK</button>
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2">Resetear Contraseña</h4>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest block mb-2">Resetear Contraseña</label>
                 <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    placeholder="Nueva contraseña temporal" 
-                    value={userFormData.newPassword}
-                    onChange={(e) => setUserFormData({...userFormData, newPassword: e.target.value})}
-                    className="flex-1 bg-zinc-950 border border-white/5 rounded-xl px-4 py-2 text-xs text-white focus:border-red-500 outline-none"
-                  />
-                  <button onClick={() => handleManageUser('RESET_PASSWORD')} className="bg-white/5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">Resetear</button>
+                  <input type="text" placeholder="Nueva contraseña temporal" value={userFormData.newPassword} onChange={e => setUserFormData({ ...userFormData, newPassword: e.target.value })} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50" />
+                  <button onClick={() => handleManageUser('RESET_PASSWORD')} className="px-3 py-2 bg-lime-500 text-white rounded-xl text-xs font-bold hover:bg-lime-400 transition-colors">OK</button>
                 </div>
               </div>
-
-              <button onClick={() => setShowUserModal(false)} className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl mt-4">Cerrar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL CREAR SUPER ADMIN */}
+      {/* ── MODAL CREAR SUPER ADMIN ── */}
       {showCreateAdminModal && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-[70] flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-3xl">
-            <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white mb-2">Nuevo <span className="text-yellow-500">SaaS Master</span></h2>
-            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-8">Este usuario tendrá control TOTAL sobre el ecosistema.</p>
-            
-            <form onSubmit={handleCreateAdmin} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input 
-                  type="text" 
-                  placeholder="Nombres" 
-                  value={adminFormData.nombres}
-                  onChange={(e) => setAdminFormData({...adminFormData, nombres: e.target.value})}
-                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
-                />
-                <input 
-                  type="text" 
-                  placeholder="Apellidos" 
-                  value={adminFormData.apellidos}
-                  onChange={(e) => setAdminFormData({...adminFormData, apellidos: e.target.value})}
-                  className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
-                />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-black text-slate-800">Nuevo SuperAdmin</h3>
+              <button onClick={() => setShowCreateAdminModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={18} /></button>
+            </div>
+            <p className="text-xs text-gray-400 mb-5">Este usuario tendrá control total sobre el ecosistema.</p>
+            <form onSubmit={handleCreateAdmin} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Nombres" value={adminFormData.nombres} onChange={v => setAdminFormData({ ...adminFormData, nombres: v })} />
+                <InputField label="Apellidos" value={adminFormData.apellidos} onChange={v => setAdminFormData({ ...adminFormData, apellidos: v })} />
               </div>
-              <input 
-                type="email" 
-                placeholder="Email corporativo" 
-                value={adminFormData.email}
-                onChange={(e) => setAdminFormData({...adminFormData, email: e.target.value})}
-                className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
-              />
-              <input 
-                type="password" 
-                placeholder="Contraseña" 
-                value={adminFormData.password}
-                onChange={(e) => setAdminFormData({...adminFormData, password: e.target.value})}
-                className="w-full bg-zinc-950 border border-white/5 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-yellow-500"
-              />
-              
-              <div className="flex gap-4 pt-4">
-                <button type="button" onClick={() => setShowCreateAdminModal(false)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5 rounded-xl">Cancelar</button>
-                <button type="submit" disabled={loading} className="flex-[2] py-4 text-[10px] font-black uppercase tracking-widest text-black bg-yellow-500 rounded-xl font-bold shadow-xl shadow-yellow-900/20">Crear Guardián</button>
+              <InputField label="Email" value={adminFormData.email} onChange={v => setAdminFormData({ ...adminFormData, email: v })} type="email" />
+              <InputField label="Contraseña" value={adminFormData.password} onChange={v => setAdminFormData({ ...adminFormData, password: v })} type="password" />
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowCreateAdminModal(false)} className="flex-1 py-3 text-sm font-bold text-gray-500 bg-gray-100 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={loading} className="flex-[2] py-3 text-sm font-bold text-white bg-violet-500 rounded-xl">
+                  {loading ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Crear Guardián'}
+                </button>
               </div>
             </form>
           </div>
@@ -1039,134 +723,115 @@ export default function SuperAdminDashboard() {
   );
 }
 
-// Componentes Auxiliares
-function NavItem({ icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) {
+// ── Componentes Auxiliares ──
+
+function SideNavItem({ icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <div 
-      onClick={onClick}
-      className={`flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-all ${active ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-900/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-    >
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all text-left ${active ? 'bg-lime-50 text-lime-700 font-bold border border-lime-200' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 font-semibold'}`}>
       {icon}
-      <span className="text-xs font-bold uppercase tracking-widest leading-none">{label}</span>
-    </div>
+      <span className="text-sm">{label}</span>
+    </button>
   );
 }
 
-function MetricCard({ label, value, icon, sub, color = "cyan" }: any) {
+function MetricCard({ label, value, icon, sub, color = "lime" }: any) {
   const colorMap: any = {
-    cyan: "from-cyan-500/20 to-cyan-500/5 border-cyan-500/20 text-cyan-500",
-    emerald: "from-emerald-500/20 to-emerald-500/5 border-emerald-500/20 text-emerald-500",
-    blue: "from-blue-500/20 to-blue-500/5 border-blue-500/20 text-blue-500",
-    purple: "from-purple-500/20 to-purple-500/5 border-purple-500/20 text-purple-500",
+    lime: "bg-lime-50 border-lime-200",
+    blue: "bg-blue-50 border-blue-200",
+    emerald: "bg-emerald-50 border-emerald-200",
+    violet: "bg-violet-50 border-violet-200",
   };
-
   return (
-    <div className={`relative bg-zinc-900 border ${colorMap[color].split(' ')[2]} p-8 rounded-[2.5rem] hover:scale-[1.02] transition-all group overflow-hidden shadow-2xl`}>
-      <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${colorMap[color].split(' ')[0]} ${colorMap[color].split(' ')[1]} blur-3xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity`} />
-      
-      <div className="flex items-center justify-between mb-6 relative z-10">
-        <div className="w-12 h-12 bg-zinc-950 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
-          {icon}
-        </div>
-        <div className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-white/5 rounded-full border border-white/5`}>Live</div>
+    <div className={`bg-white border ${colorMap[color]} p-5 rounded-2xl shadow-sm`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center border border-gray-200 shadow-sm">{icon}</div>
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-full">Live</span>
       </div>
-      
-      <div className="relative z-10">
-        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</h4>
-        <p className="text-3xl font-black text-white italic tracking-tighter mb-2">{value}</p>
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest bg-white/5 inline-block px-2 py-0.5 rounded-md">{sub}</p>
-      </div>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-2xl font-black text-slate-800">{value}</p>
+      <p className="text-xs text-gray-400 mt-1">{sub}</p>
     </div>
   );
 }
 
 function ClubRow({ club, count, onToggle, onAudit, onEdit, onDelete }: any) {
   const [host, setHost] = useState('');
-  
-  useEffect(() => {
-    setHost(window.location.host);
-  }, []);
-
+  useEffect(() => { setHost(window.location.host); }, []);
   const getClubUrl = () => {
     if (!host) return '#';
     if (host.includes('localhost')) return `http://localhost:3000/${club.slug}/director`;
     return `https://${host}/${club.slug}/director`;
   };
-
   const precioSaaS = club.planes_saas?.precio_por_jugador || 2000;
   const canonMensual = count * precioSaaS;
 
   return (
-    <tr className="group hover:bg-white/[0.02] transition-all">
-      <td className="py-6 px-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center overflow-hidden shadow-2xl group-hover:-[var(--brand-primary)]/50 transition-colors">
-             <img src={club.logo_url} className="w-full h-full object-contain" />
+    <tr className="hover:bg-gray-50 transition-colors">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gray-100 border border-gray-200 p-1 flex items-center justify-center overflow-hidden">
+            <img src={club.logo_url} className="w-full h-full object-contain" />
           </div>
           <div>
-            <p className="font-black text-sm text-white uppercase italic tracking-tighter">{club.nombre}</p>
-            <a href={getClubUrl()} target="_blank" className="text-[10px] font-bold -[var(--brand-primary)]/50 hover:-[var(--brand-primary)] transition-colors uppercase tracking-widest flex items-center gap-1">
-              <Globe size={10} /> <span>/{club.slug}</span>
+            <p className="font-bold text-sm text-slate-800">{club.nombre}</p>
+            <a href={getClubUrl()} target="_blank" className="text-xs text-gray-400 hover:text-lime-600 flex items-center gap-1 transition-colors">
+              <Globe size={10} /> /{club.slug}
             </a>
           </div>
         </div>
       </td>
-      <td className="py-6 px-4 text-center">
-        <div className="inline-flex flex-col">
-          <span className="text-lg font-black text-white italic leading-none">{count}</span>
-          <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Atletas</span>
-        </div>
+      <td className="px-6 py-4 text-center">
+        <span className="text-lg font-black text-slate-800">{count}</span>
+        <span className="text-xs text-gray-400 block">atletas</span>
       </td>
-      <td className="py-6 px-4">
-        <div className="flex flex-col">
-          <span className="text-lg font-black text-emerald-400 italic leading-none">
-            ${canonMensual.toLocaleString('es-CO')}
-          </span>
-          <span className="text-[8px] text-slate-600 uppercase font-black tracking-widest">Facturación / Mes</span>
-        </div>
+      <td className="px-6 py-4 hidden md:table-cell">
+        <span className="text-sm font-black text-emerald-600">${canonMensual.toLocaleString('es-CO')}</span>
+        <span className="text-xs text-gray-400 block">/ mes</span>
       </td>
-      <td className="py-6 px-4">
-        <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl border ${
-          club.estado === 'Activo' 
-            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]' 
-            : 'bg-red-500/10 text-red-500 border-red-500/20'
-        }`}>
+      <td className="px-6 py-4">
+        <span className={`text-xs font-bold px-3 py-1 rounded-full border ${club.estado === 'Activo' ? 'bg-lime-50 text-lime-700 border-lime-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
           {club.estado}
         </span>
       </td>
-      <td className="py-6 px-4 text-right">
-        <div className="flex items-center justify-end gap-3 opacity-40 group-hover:opacity-100 transition-opacity">
-          <button 
-            onClick={() => onToggle(club.id, club.estado)}
-            className={`text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border ${
-              club.estado === 'Activo' 
-                ? 'text-red-400 border-red-500/20 hover:bg-red-500/10' 
-                : 'text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10'
-            }`}
-          >
+      <td className="px-6 py-4 text-right">
+        <div className="flex items-center justify-end gap-2">
+          <button onClick={() => onToggle(club.id, club.estado)} className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${club.estado === 'Activo' ? 'text-red-500 border-red-200 hover:bg-red-50' : 'text-lime-600 border-lime-200 hover:bg-lime-50'}`}>
             {club.estado === 'Activo' ? 'Suspender' : 'Reactivar'}
           </button>
-          <button 
-            onClick={() => onEdit(club)}
-            className="text-[9px] font-black uppercase tracking-widest text-cyan-400 px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl hover:bg-cyan-500 hover:text-white transition-all shadow-xl"
-          >
-            Editar
-          </button>
-          <button 
-            onClick={() => onAudit(club)}
-            className="text-[9px] font-black uppercase tracking-widest text-white px-4 py-2 bg-white/5 border border-white/5 rounded-xl hover:bg-cyan-600 hover:border-cyan-500 transition-all shadow-xl"
-          >
-            Detalles
-          </button>
-          <button 
-            onClick={() => onDelete(club.id, club.nombre)}
-            className="p-2 text-slate-600 hover:text-red-500 transition-colors"
-            title="Eliminar Club"
-          >
-            <Trash2 size={16} />
-          </button>
+          <button onClick={() => onEdit(club)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-all">Editar</button>
+          <button onClick={() => onAudit(club)} className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 transition-all">Ver</button>
+          <button onClick={() => onDelete(club.id, club.nombre)} className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
         </div>
       </td>
     </tr>
+  );
+}
+
+function InputField({ label, value, onChange, placeholder = '', required = false, type = 'text', mono = false }: any) {
+  return (
+    <div>
+      {label && <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">{label}</label>}
+      <input
+        type={type} required={required} value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50 transition-colors ${mono ? 'font-mono text-lime-600' : ''}`}
+      />
+    </div>
+  );
+}
+
+function SettingToggle({ label, sub, enabled }: { label: string, sub: string, enabled: boolean }) {
+  const [on, setOn] = useState(enabled);
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center justify-between shadow-sm">
+      <div>
+        <p className="font-semibold text-slate-800 text-sm">{label}</p>
+        <p className="text-xs text-gray-400">{sub}</p>
+      </div>
+      <button onClick={() => setOn(!on)} className={`w-11 h-6 rounded-full transition-colors relative ${on ? 'bg-lime-500' : 'bg-gray-300'}`}>
+        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow ${on ? 'right-1' : 'left-1'}`} />
+      </button>
+    </div>
   );
 }
