@@ -248,7 +248,7 @@ export default function DashboardFutbolista() {
       const doc = new jsPDF();
       const clubName = tenant?.nombre || 'MCM CLUB';
       const clubLogo = tenant?.logo_url || '/logo.png';
-      const brandColor = tenant?.color_primario || '#ea580c';
+      const brandColor = tenant?.color_primario || '#06b6d4';
       
       try {
         doc.addImage(clubLogo, 'PNG', 15, 10, 20, 20);
@@ -334,7 +334,7 @@ export default function DashboardFutbolista() {
     </div>
   );
 
-  const brandColor = tenant?.color_primario || '#ea580c';
+  const brandColor = tenant?.color_primario || '#06b6d4';
   const brandName = tenant?.nombre || 'Club';
 
   return (

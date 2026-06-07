@@ -83,7 +83,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
   const brandName = tenant?.config?.nombre || 'Plataforma';
   const brandLogo = tenant?.config?.logo || '/logo.png';
-  const brandColor = tenant?.config?.color || '#ea580c';
+  const brandColor = tenant?.config?.color || '#06b6d4';
 
   const hexToRgb = (hex: string) => {
     try {

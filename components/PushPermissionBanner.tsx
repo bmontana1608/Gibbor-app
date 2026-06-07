@@ -105,7 +105,7 @@ export default function PushPermissionBanner() {
             <button
               onClick={habilitarNotificaciones}
               disabled={loading}
-              className="w-full bg-brand hover:bg-orange-600 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+              className="w-full bg-brand hover:bg-brand/80 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

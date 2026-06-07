@@ -161,7 +161,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                     <CheckCheck className="w-4 h-4" />
                   </button>
                 )}
-                <span className="bg-orange-100 dark:bg-brand/20 text-brand dark:text-brand/80 px-2 py-0.5 rounded-full text-[10px] font-bold italic">
+                <span className="bg-brand/10 dark:bg-brand/20 text-brand dark:text-brand/80 px-2 py-0.5 rounded-full text-[10px] font-bold italic">
                   {notificaciones.length} mensajes
                 </span>
               </div>
@@ -209,7 +209,7 @@ export default function NotificationBell({ clubId }: { clubId?: string }) {
                         )}
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                           notif.origen === 'registro'
-                            ? 'bg-orange-100 dark:bg-brand/10 text-brand'
+                            ? 'bg-brand/10 dark:bg-brand/10 text-brand'
                             : 'bg-blue-100 dark:bg-blue-500/10 text-blue-600'
                         }`}>
                           {notif.origen === 'registro' ? <UserPlus className="w-5 h-5" /> : <Megaphone className="w-5 h-5" />}
