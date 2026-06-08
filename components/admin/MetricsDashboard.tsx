@@ -41,7 +41,7 @@ export default function MetricsDashboard({ metrics }: MetricsDashboardProps) {
               <Tooltip 
                 cursor={{ fill: '#f8fafc' }}
                 contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                formatter={(value: number) => [`$${value.toLocaleString('es-CO')}`, '']}
+                formatter={(value: any) => [`$${Number(value || 0).toLocaleString('es-CO')}`, '']}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px', fontWeight: 'bold' }} />
               <Bar dataKey="proyectado" name="Facturado (Proyección)" fill="#cbd5e1" radius={[6, 6, 0, 0]} barSize={24} />
