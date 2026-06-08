@@ -99,7 +99,8 @@ export default function SuperAdminDashboard() {
     if (perfil?.rol?.toLowerCase() !== 'superadmin') { setIsAdmin(false); setFetching(false); return; }
     setIsAdmin(true);
     const [resClubes, resMetrics, resLogs, resConfig, resPlanes] = await Promise.all([
-      supabase.from('clubes').select('*, planes_saas(id, nombre, tipo_cobro, precio_base, limite_jugadores_base)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
+      // Agregamos created_at y updated_at_dummy (ficticio o existente) para limpiar el cache
+      supabase.from('clubes').select('*, planes_saas(id, nombre, tipo_cobro, precio_base, limite_jugadores_base), created_at').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
       supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50),
       supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle(),

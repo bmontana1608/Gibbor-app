@@ -26,9 +26,9 @@ export default function SaaSManagementView() {
       const { data: planesData } = await supabase.from('planes_saas').select('*').order('id');
       if (planesData) setPlanes(planesData);
 
-      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id, estado').order('nombre');
+      // Se agrega created_at al select para forzar un nuevo cache key en Next.js
+      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id, estado, created_at').neq('estado', 'Eliminado').order('nombre');
       if (clubesData) {
-        // Doble validación para evitar clubs que estén eliminados incluso si la caché falla
         setClubes(clubesData.filter(c => c.estado !== 'Eliminado' && c.estado !== 'eliminado'));
       }
 
