@@ -203,7 +203,7 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId: 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, clubId })
+        body: JSON.stringify({ message: userMsg.text, clubId, role })
       });
 
       const data = await res.json();
