@@ -16,7 +16,7 @@ export default function TicketsAdminView() {
       .select(`
         *,
         clubes(nombre),
-        perfiles(nombres, email)
+        perfiles(nombres, correo)
       `)
       .order('creado_en', { ascending: false });
 
@@ -88,7 +88,7 @@ export default function TicketsAdminView() {
                   
                   <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
                     <div><span className="font-bold text-slate-700">Club:</span> {ticket.clubes?.nombre}</div>
-                    <div><span className="font-bold text-slate-700">Usuario:</span> {ticket.perfiles?.nombres} ({ticket.perfiles?.email})</div>
+                    <div><span className="font-bold text-slate-700">Usuario:</span> {ticket.perfiles?.nombres} ({ticket.perfiles?.correo})</div>
                   </div>
                 </div>
 
