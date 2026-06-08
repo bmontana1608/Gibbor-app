@@ -359,6 +359,7 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId: 
               </button>
             </form>
           </div>
+          </div>
         </>
       )}
     </>
