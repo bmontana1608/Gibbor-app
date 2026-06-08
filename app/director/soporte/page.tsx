@@ -38,19 +38,31 @@ export default function SoporteDirectorPage() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const { data: per } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
-      setProfile(per);
-      
-      if (per) {
-        // Find club id
-        const { data: rel } = await supabase.from('clubes_usuarios').select('club_id').eq('usuario_id', per.id).limit(1);
-        if (rel && rel.length > 0) {
-          setClubId(rel[0].club_id);
-          loadTickets(per.id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
         }
+        
+        const { data: per } = await supabase.from('perfiles').select('*').eq('id', user.id).single();
+        setProfile(per);
+        
+        if (per) {
+          // Find club id
+          const { data: rel } = await supabase.from('clubes_usuarios').select('club_id').eq('usuario_id', per.id).limit(1);
+          if (rel && rel.length > 0) {
+            setClubId(rel[0].club_id);
+            await loadTickets(per.id);
+          } else {
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
       }
     };
     init();
