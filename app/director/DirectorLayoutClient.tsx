@@ -6,10 +6,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
+import GibbiAssistant from "@/components/GibbiAssistant";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library } from 'lucide-react';
 
 interface DirectorLayoutClientProps {
+
   children: React.ReactNode;
   initialTenant: any;
   initialProfile: any;
@@ -223,6 +225,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            <GibbiAssistant />
             <NotificationBell clubId={tenant?.id} />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
             <ThemeToggle />
