@@ -159,27 +159,38 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 w-full h-[90vh] md:h-auto md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl rounded-t-[2rem] md:rounded-[2rem] border border-slate-200 dark:border-slate-800 z-[100] flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 md:slide-in-from-right-10 duration-300">
+        <>
+          {/* Overlay para cerrar al hacer clic afuera (visible solo en móviles o como capa invisible en desktop) */}
+          <div 
+            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[90] md:bg-transparent md:backdrop-blur-none" 
+            onClick={() => setIsOpen(false)}
+          />
           
-          {/* Header */}
-          <div className="bg-slate-900 px-6 py-4 flex items-center justify-between relative overflow-hidden shrink-0">
-            <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-brand to-purple-600"></div>
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-12 h-12 bg-white rounded-full p-1 shadow-lg overflow-hidden border-2 border-white/20 flex items-center justify-center">
-                <img src="/gibbi.png" alt="Gibbi" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+          <div className="fixed bottom-0 right-0 md:bottom-6 md:right-6 w-full h-[85vh] md:h-auto md:max-h-[80vh] md:w-[400px] bg-white dark:bg-slate-900 shadow-2xl rounded-t-[2rem] md:rounded-[2rem] border border-slate-200 dark:border-slate-800 z-[100] flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 md:slide-in-from-right-10 duration-300">
+            
+            {/* Header */}
+            <div className="bg-slate-900 px-6 py-4 flex items-center justify-between relative overflow-hidden shrink-0">
+              <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-brand to-purple-600"></div>
+              <div className="flex items-center gap-3 relative z-10">
+                <div className="w-12 h-12 bg-white rounded-full p-1 shadow-lg overflow-hidden border-2 border-white/20 flex items-center justify-center">
+                  <img src="/gibbi.png" alt="Gibbi" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }} />
+                </div>
+                <div>
+                  <h3 className="text-white font-black text-lg tracking-tight leading-none">Gibbi IA</h3>
+                  <p className="text-brand font-black text-[10px] uppercase tracking-widest mt-1 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Online
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-white font-black text-lg tracking-tight leading-none">Gibbi IA</h3>
-                <p className="text-brand font-black text-[10px] uppercase tracking-widest mt-1 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Online
-                </p>
-              </div>
+              <button 
+                onClick={() => setIsOpen(false)} 
+                className="bg-white/10 hover:bg-white/20 text-white rounded-full transition-all relative z-10 p-2.5 flex items-center justify-center shadow-sm"
+                aria-label="Cerrar asistente"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white transition-colors relative z-10 p-2">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto p-4 md:max-h-[500px] custom-scrollbar bg-slate-50 dark:bg-slate-950 flex flex-col gap-4">
@@ -248,7 +259,7 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
               </button>
             </form>
           </div>
-        </div>
+        </>
       )}
     </>
   );
