@@ -38,11 +38,13 @@ export default function SaaSManagementView() {
       
       const { data: facData } = await supabase
         .from('facturacion_mensual')
-        .select('*, clubes(nombre)')
+        .select('*, clubes(nombre, estado)')
         .eq('periodo_mes', mes)
         .eq('periodo_anio', anio);
       
-      if (facData) setFacturacion(facData);
+      if (facData) {
+        setFacturacion(facData.filter(f => f.clubes?.estado !== 'Eliminado' && f.clubes?.estado !== 'eliminado'));
+      }
 
     } catch (error) {
       console.error("Error cargando panel SaaS:", error);
