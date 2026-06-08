@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
-  Settings, LogOut, Plus, Globe, CreditCard,
+  Settings, LogOut, Plus, Globe, CreditCard, Activity,
   X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
