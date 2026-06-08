@@ -65,11 +65,18 @@ export async function POST(request: Request) {
       });
     }
 
-    // 2. Llamada a Gemini
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    // 2. Obtener Clave de Gemini desde configuracion_superadmin
+    const { data: configData } = await supabaseAdmin
+      .from('configuracion_superadmin')
+      .select('gemini_api_key')
+      .eq('id', 1)
+      .maybeSingle();
+
+    const GEMINI_API_KEY = configData?.gemini_api_key || process.env.GEMINI_API_KEY;
+    
     if (!GEMINI_API_KEY) {
       return NextResponse.json({ 
-        reply: "🦁 Hola, necesito que el administrador configure mi clave de Gemini (GEMINI_API_KEY) para poder pensar y responderte.",
+        reply: "🦁 Hola, necesito que el administrador configure mi clave de Gemini desde el panel SuperAdmin para poder pensar y responderte.",
         usage: { used, max: maxQuota }
       });
     }

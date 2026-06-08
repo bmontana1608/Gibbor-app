@@ -25,6 +25,7 @@ export default function SuperAdminDashboard() {
   const [usuariosGlobales, setUsuariosGlobales] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
+  const [configAdmin, setConfigAdmin] = useState<any>({});
   const [fetching, setFetching] = useState(true);
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -83,14 +84,16 @@ export default function SuperAdminDashboard() {
     const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
     if (perfil?.rol?.toLowerCase() !== 'superadmin') { setIsAdmin(false); setFetching(false); return; }
     setIsAdmin(true);
-    const [resClubes, resMetrics, resLogs] = await Promise.all([
+    const [resClubes, resMetrics, resLogs, resConfig] = await Promise.all([
       supabase.from('clubes').select('*, planes_saas(precio_por_jugador)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
-      supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50)
+      supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50),
+      supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle()
     ]);
     setClubes(resClubes.data || []);
     setMetrics(resMetrics);
     setLogs(resLogs.data || []);
+    if (resConfig.data) setConfigAdmin(resConfig.data);
     setFetching(false);
   };
 
@@ -478,18 +481,18 @@ export default function SuperAdminDashboard() {
             </div>
             
             <h3 className="font-bold text-slate-800 mb-4 border-t pt-6">Facturación SaaS y Soporte</h3>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">WhatsApp de Soporte (Pagos)</label>
                <div className="flex gap-2">
                  <input 
                    type="text" 
-                   id="wppSoporteInput"
-                   defaultValue="+573124265170" 
+                   value={configAdmin.telefono_soporte || ''} 
+                   onChange={e => setConfigAdmin({...configAdmin, telefono_soporte: e.target.value})}
                    className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
                  />
                  <button 
                    onClick={async () => {
-                     const val = (document.getElementById('wppSoporteInput') as HTMLInputElement).value;
+                     const val = configAdmin.telefono_soporte;
                      const { error } = await supabase.from('configuracion_superadmin').update({ telefono_soporte: val }).eq('id', 1);
                      if (error) toast.error('Error al guardar');
                      else toast.success('Teléfono actualizado');
@@ -500,6 +503,35 @@ export default function SuperAdminDashboard() {
                  </button>
                </div>
                <p className="text-xs text-gray-400 mt-2">A este número se redirigirán los clubes suspendidos por mora.</p>
+            </div>
+
+            <h3 className="font-bold text-slate-800 mb-4 border-t pt-6 flex items-center gap-2"><Bot size={18} /> Inteligencia Artificial (Gibbi)</h3>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+               <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Clave API de Gemini</label>
+               <div className="flex gap-2">
+                 <input 
+                   type="password" 
+                   placeholder="AIzaSy..." 
+                   value={configAdmin.gemini_api_key || ''} 
+                   onChange={e => setConfigAdmin({...configAdmin, gemini_api_key: e.target.value})}
+                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                 />
+                 <button 
+                   onClick={async () => {
+                     const val = configAdmin.gemini_api_key;
+                     const { error } = await supabase.from('configuracion_superadmin').update({ gemini_api_key: val }).eq('id', 1);
+                     if (error) {
+                        toast.error('Error al guardar. Verifica que la columna gemini_api_key exista.');
+                        console.error(error);
+                     }
+                     else toast.success('API Key guardada. Gibbi ya puede funcionar.');
+                   }}
+                   className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
+                 >
+                   Guardar
+                 </button>
+               </div>
+               <p className="text-xs text-gray-400 mt-2">Si está vacío, Gibbi no responderá mensajes generativos a los clubes.</p>
             </div>
           </div>
         )}
