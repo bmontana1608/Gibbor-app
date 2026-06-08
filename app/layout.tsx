@@ -3,6 +3,7 @@ import Providers from "@/components/Providers";
 import "./globals.css";
 import { getTenant } from '@/lib/tenant';
 import InstallPrompt from "@/components/InstallPrompt";
+import GlobalAnnouncementBanner from "@/components/GlobalAnnouncementBanner";
 
 export const viewport = {
   themeColor: '#0a0a0a',
@@ -59,6 +60,7 @@ export default async function RootLayout({
         } as React.CSSProperties}
       >
         <Providers>
+          <GlobalAnnouncementBanner />
           {children}
           <InstallPrompt />
           <SWRegistration />

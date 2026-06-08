@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
-  Settings, LogOut, Plus, Globe, CreditCard, Activity,
+  Settings, LogOut, Plus, Globe, CreditCard, Activity, Megaphone,
   X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -16,10 +16,11 @@ import BibliotecaAdminView from '@/components/admin/BibliotecaAdminView';
 import TicketsAdminView from '@/components/admin/TicketsAdminView';
 import MCMLogo from '@/components/MCMLogo';
 import MetricsDashboard from '@/components/admin/MetricsDashboard';
+import ComunicacionAdminView from '@/components/admin/ComunicacionAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -269,6 +270,7 @@ export default function SuperAdminDashboard() {
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas' },
     { id: 'biblioteca', icon: <Library size={20} />, label: 'Biblioteca' },
     { id: 'tickets', icon: <LifeBuoy size={20} />, label: 'Tickets' },
+    { id: 'comunicacion', icon: <Megaphone size={20} />, label: 'Anuncios' },
     { id: 'auditoria', icon: <History size={20} />, label: 'Auditoría' },
     { id: 'mi-cuenta', icon: <User size={20} />, label: 'Mi Cuenta' },
     { id: 'configuracion', icon: <Settings size={20} />, label: 'Ajustes' },
@@ -497,6 +499,7 @@ export default function SuperAdminDashboard() {
         {vista === 'saas-billing' && <SaaSManagementView />}
         {vista === 'biblioteca' && <BibliotecaAdminView />}
         {vista === 'tickets' && <TicketsAdminView />}
+        {vista === 'comunicacion' && <ComunicacionAdminView />}
 
         {/* ── VISTA CONFIGURACIÓN ── */}
         {vista === 'configuracion' && (
