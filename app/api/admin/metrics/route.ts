@@ -20,21 +20,31 @@ export async function GET() {
       .eq('rol', 'Futbolista')
       .in('club_id', validClubIds);
 
-    // 3. Recaudo Global del Mes Actual (Solo de clubes válidos)
+    // 3. Volumen Transaccional (Dinero que los clubes han recaudado internamente este mes)
     const inicioMes = new Date();
     inicioMes.setDate(1);
     inicioMes.setHours(0,0,0,0);
     const isoInicio = inicioMes.toISOString();
 
-    const { data: pagos } = await supabaseAdmin
+    const { data: pagosClubes } = await supabaseAdmin
       .from('pagos_ingresos')
       .select('total')
       .filter('fecha', 'gte', isoInicio)
       .in('club_id', validClubIds);
 
-    const recaudoTotal = pagos?.reduce((acc, p) => acc + parseFloat(p.total || 0), 0) || 0;
+    const volumenTransaccional = pagosClubes?.reduce((acc, p) => acc + parseFloat(p.total || 0), 0) || 0;
 
-    // 4. Conteo de alumnos detallado por Club
+    // 4. Recaudo SaaS (Lo que la plataforma ha cobrado a los clubes este mes y ya está pagado)
+    const { data: facturacionSaaS } = await supabaseAdmin
+      .from('facturacion_mensual')
+      .select('total')
+      .eq('estado_pago', 'pagado')
+      .eq('periodo_mes', inicioMes.getMonth() + 1)
+      .eq('periodo_anio', inicioMes.getFullYear());
+      
+    const recaudoSaaS = facturacionSaaS?.reduce((acc, f) => acc + parseFloat(f.total || 0), 0) || 0;
+
+    // 5. Conteo de alumnos detallado por Club
     const { data: perfiles } = await supabaseAdmin
       .from('perfiles')
       .select('club_id')
@@ -48,7 +58,7 @@ export async function GET() {
       }
     });
 
-    // 5. Clubes Activos (Realmente operando)
+    // 6. Clubes Activos (Realmente operando)
     const { count: clubesActivos } = await supabaseAdmin
       .from('clubes')
       .select('*', { count: 'exact', head: true })
@@ -58,7 +68,8 @@ export async function GET() {
       totalClubes,
       clubesActivos,
       totalJugadores: totalJugadores || 0,
-      recaudoTotal,
+      volumenTransaccional,
+      recaudoSaaS,
       proyeccionIngresosSaaS: (totalJugadores || 0) * 2000,
       alumnosPorClub,
       mesActual: inicioMes.toLocaleString('es-CO', { month: 'long', year: 'numeric' })

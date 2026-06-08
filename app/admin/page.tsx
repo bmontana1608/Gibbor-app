@@ -344,10 +344,10 @@ export default function SuperAdminDashboard() {
 
         {/* MÉTRICAS HEADER */}
         {(vista === 'clubes' || vista === 'metricas') && (
-          <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <MetricCard label="Ingreso SaaS" value={`$${metrics?.proyeccionIngresosSaaS?.toLocaleString('es-CO') || '0'}`} icon={<TrendingUp className="text-lime-600" size={20} />} sub="Proyectado / Mes" color="lime" />
-            <MetricCard label="Alumnos" value={metrics?.totalJugadores || '0'} icon={<Users className="text-blue-500" size={20} />} sub="En toda la red" color="blue" />
-            <MetricCard label="Recaudo" value={`$${metrics?.recaudoTotal?.toLocaleString('es-CO') || '0'}`} icon={<CreditCard className="text-emerald-500" size={20} />} sub="Flujo total" color="emerald" />
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in duration-300 mb-8">
+            <MetricCard label="Recaudo SaaS" value={`$${metrics?.recaudoSaaS?.toLocaleString('es-CO') || '0'}`} icon={<CreditCard className="text-emerald-500" size={20} />} sub="Ingresos de Plataforma" color="emerald" />
+            <MetricCard label="Volumen Transaccional" value={`$${metrics?.volumenTransaccional?.toLocaleString('es-CO') || '0'}`} icon={<Activity className="text-blue-500" size={20} />} sub="Flujo total de clubes" color="blue" />
+            <MetricCard label="Jugadores" value={metrics?.totalJugadores || 0} icon={<Users className="text-lime-500" size={20} />} sub="Totales registrados" color="lime" />
             <MetricCard label="Clubes" value={`${metrics?.clubesActivos || 0}/${metrics?.totalClubes || 0}`} icon={<ShieldCheck className="text-violet-500" size={20} />} sub="Activos / Total" color="violet" />
           </section>
         )}
