@@ -254,8 +254,8 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId: 
         className="w-10 h-10 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full flex items-center justify-center transition-all relative group"
         title="Pregúntale a Gibbi"
       >
-        <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
-        <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-brand rounded-full border-2 border-white dark:border-slate-900"></div>
+        <Bot className="w-5 h-5 text-brand animate-pulse" />
+        <div className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900"></div>
       </button>
 
       {isOpen && (
