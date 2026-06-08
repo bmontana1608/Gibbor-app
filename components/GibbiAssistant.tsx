@@ -40,6 +40,8 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
             { label: '🎨 Configurar Colores del Club', action: 'colors' },
             { label: '💳 Añadir Métodos de Pago', action: 'payments' },
             { label: '🏆 Crear Categorías', action: 'categories' },
+            { label: '👥 Registrar Jugadores', action: 'players' },
+            { label: '📢 Enviar un Comunicado', action: 'announcements' },
             { label: '🤖 ¿Qué más puedes hacer?', action: 'help' }
           ]
         }
@@ -73,6 +75,22 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
           id: Date.now().toString() + '1',
           type: 'bot',
           text: 'Las categorías separan a tus jugadores por edades. Ve a **"Categorías"** en el menú izquierdo, haz clic en el botón azul "Nueva Categoría" y define su nombre y año de nacimiento. ¡Luego podrás asignar jugadores a esa categoría!'
+        }]);
+        break;
+      case 'players':
+        userMsg.text = 'Registrar Jugadores';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Para agregar un nuevo jugador o entrenador, ve a **"Miembros"** en el menú lateral. Haz clic en el botón **"Nuevo Miembro"**, llena sus datos básicos (nombre, correo) y asígnale el rol de Futbolista. ¡Inmediatamente aparecerá en tu lista y podrás asignarlo a una categoría!'
+        }]);
+        break;
+      case 'announcements':
+        userMsg.text = 'Enviar un Comunicado';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Ve al módulo **"Comunicados"**. Allí puedes escribir un mensaje importante para todos los padres de familia y jugadores. Si tienes habilitado el Asistente de WhatsApp, el comunicado les llegará directamente a su celular como por arte de magia. ✨'
         }]);
         break;
       case 'help':
