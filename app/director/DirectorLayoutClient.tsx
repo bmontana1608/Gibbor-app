@@ -7,9 +7,8 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import GibbiAssistant from "@/components/GibbiAssistant";
-import PushPermissionBanner from "@/components/PushPermissionBanner";
-import SupportTicketModal from "@/components/SupportTicketModal";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy } from 'lucide-react';
+import PushPermissionBanner from "@/components/PushPermissionBanner";
 
 interface DirectorLayoutClientProps {
 
@@ -23,7 +22,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const tenantSlug = initialTenant?.slug || '';
   const [basePath, setBasePath] = useState(tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '');
   const mainRef = useRef<HTMLElement>(null);
@@ -227,13 +225,13 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <button 
-              onClick={() => setIsSupportModalOpen(true)}
+            <Link 
+              href={`${basePath}/soporte`}
               className="w-10 h-10 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full flex items-center justify-center transition-all"
               title="Soporte Técnico"
             >
               <LifeBuoy className="w-5 h-5" />
-            </button>
+            </Link>
             <GibbiAssistant clubId={tenant?.id} role={profile?.rol || 'Director'} />
             <NotificationBell clubId={tenant?.id} />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
@@ -258,13 +256,6 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           {children}
         </main>
       </div>
-      {/* MODAL DE SOPORTE */}
-      <SupportTicketModal 
-        isOpen={isSupportModalOpen}
-        onClose={() => setIsSupportModalOpen(false)}
-        clubId={tenant?.id}
-        directorId={profile?.id}
-      />
     </div>
   );
 }
