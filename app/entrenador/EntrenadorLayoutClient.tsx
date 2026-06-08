@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield, Layout, Trophy, Radar, ArrowRightLeft, Zap, Library } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
+import GibbiAssistant from "@/components/GibbiAssistant";
 
 interface EntrenadorLayoutClientProps {
   children: React.ReactNode;
@@ -90,14 +91,21 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
           <img src={brandLogo} alt="Logo" className="w-8 h-8 object-contain rounded-full" />
           <span className="text-white font-black tracking-tighter uppercase italic text-sm">{brandName} Staff</span>
         </div>
-        <button 
-          onClick={() => setIsSidebarOpen(prev => !prev)}
-          aria-label="Abrir menú"
-          style={{ touchAction: 'manipulation' }}
-          className="text-white p-2 active:scale-95 transition-transform"
-        >
-          <Menu className="w-7 h-7" />
-        </button>
+        <div className="flex items-center gap-3">
+          <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Entrenador'} />
+          <button 
+            onClick={() => setIsSidebarOpen(prev => !prev)}
+            aria-label="Abrir menú"
+            style={{ touchAction: 'manipulation' }}
+            className="text-white p-2 active:scale-95 transition-transform"
+          >
+            <Menu className="w-7 h-7" />
+          </button>
+        </div>
+      </div>
+
+      <div className="hidden md:block fixed bottom-6 right-6 z-40">
+        <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Entrenador'} />
       </div>
 
       {/* OVERLAY MÓVIL - condicional para evitar bloqueos */}

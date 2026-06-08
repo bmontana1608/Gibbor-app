@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import ThemeToggle from "@/components/ThemeToggle";
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import NotificationBell from "@/components/NotificationBell";
+import GibbiAssistant from "@/components/GibbiAssistant";
 import { 
   Home, User, CreditCard, Award, 
   Settings, LogOut, Menu, X, ShieldCheck, 
@@ -229,8 +230,9 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{usuario?.nombres ? `Jugador: ${usuario.nombres}` : 'Cargando...'}</p>
            </div>
            <div className="flex items-center gap-3">
+              <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Futbolista'} />
               <ThemeToggle />
-              <NotificationBell />
+              <NotificationBell clubId={tenant?.id} />
            </div>
         </div>
         <div className="p-4 md:p-10 pb-24 mx-auto max-w-7xl">

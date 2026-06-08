@@ -14,7 +14,7 @@ interface Message {
   isTyping?: boolean;
 }
 
-export default function GibbiAssistant({ clubId }: { clubId: string }) {
+export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId: string; role?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -31,23 +31,44 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
   // Initial Greeting
   useEffect(() => {
     if (isOpen && messages.length === 0) {
+      let roleOptions = [];
+
+      if (role === 'Director' || role === 'SuperAdmin') {
+        roleOptions = [
+          { label: '🎨 Configurar Colores del Club', action: 'colors' },
+          { label: '💳 Añadir Métodos de Pago', action: 'payments' },
+          { label: '🏆 Crear Categorías', action: 'categories' },
+          { label: '👥 Registrar Jugadores', action: 'players' },
+          { label: '📢 Enviar un Comunicado', action: 'announcements' },
+        ];
+      } else if (role === 'Entrenador') {
+        roleOptions = [
+          { label: '📋 Tomar Asistencia', action: 'attendance' },
+          { label: '🏅 Asignar Puntos de Honor', action: 'points' },
+          { label: '⚽ Usar el Planificador', action: 'planner' },
+          { label: '📊 Ver Estadísticas', action: 'stats' },
+        ];
+      } else {
+        // Jugador / Familia
+        roleOptions = [
+          { label: '💳 Pagar Mensualidad', action: 'pay_dues' },
+          { label: '🪪 Ver mi Carnet', action: 'id_card' },
+          { label: '🔒 Cambiar Contraseña', action: 'security' },
+        ];
+      }
+
+      roleOptions.push({ label: '🤖 ¿Qué más puedes hacer?', action: 'help' });
+
       setMessages([
         {
           id: 'welcome',
           type: 'bot',
           text: `¡Hola! Soy Gibbi, tu asistente táctico. 🦁⚽\n\nEstoy aquí para ayudarte a sacar el máximo provecho de Gibbor Multiclub. ¿En qué te puedo ayudar hoy?`,
-          options: [
-            { label: '🎨 Configurar Colores del Club', action: 'colors' },
-            { label: '💳 Añadir Métodos de Pago', action: 'payments' },
-            { label: '🏆 Crear Categorías', action: 'categories' },
-            { label: '👥 Registrar Jugadores', action: 'players' },
-            { label: '📢 Enviar un Comunicado', action: 'announcements' },
-            { label: '🤖 ¿Qué más puedes hacer?', action: 'help' }
-          ]
+          options: roleOptions
         }
       ]);
     }
-  }, [isOpen]);
+  }, [isOpen, role]);
 
   const handleOptionClick = (action: string) => {
     const userMsg: Message = { id: Date.now().toString(), type: 'user', text: '' };
@@ -93,12 +114,73 @@ export default function GibbiAssistant({ clubId }: { clubId: string }) {
           text: 'Ve al módulo **"Comunicados"**. Allí puedes escribir un mensaje importante para todos los padres de familia y jugadores. Si tienes habilitado el Asistente de WhatsApp, el comunicado les llegará directamente a su celular como por arte de magia. ✨'
         }]);
         break;
+      // === Opciones de Entrenador ===
+      case 'attendance':
+        userMsg.text = 'Tomar Asistencia';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Ve al módulo de **"Pasar Asistencia"**. Selecciona la fecha y la categoría que vas a entrenar. Verás la lista de tus jugadores y podrás marcar si asistieron (✅), faltaron (❌) o llegaron tarde (⏰).'
+        }]);
+        break;
+      case 'points':
+        userMsg.text = 'Asignar Puntos de Honor';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Entra a **"Puntos de Honor"**. Busca a tu jugador y asígnale puntos positivos (Goleador, MVP, Disciplina) o negativos (Llegada tarde, Tarjeta Roja). ¡Estos puntos se verán reflejados en su Carnet virtual!'
+        }]);
+        break;
+      case 'planner':
+        userMsg.text = 'Usar el Planificador';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'En el **"Planificador"** puedes armar tu sesión de entrenamiento, organizar los ejercicios por fases (Calentamiento, Fase Central, etc.) y dejar todo estructurado antes de salir a la cancha.'
+        }]);
+        break;
+      case 'stats':
+        userMsg.text = 'Ver Estadísticas';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'El **"Stats Lab"** y **"Estadísticas"** te permiten evaluar el rendimiento de tus jugadores mediante métricas de FIFA y radares de habilidades. ¡Es genial para ver su progreso mensual!'
+        }]);
+        break;
+
+      // === Opciones de Jugador ===
+      case 'pay_dues':
+        userMsg.text = 'Pagar Mensualidad';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Entra al menú de **"Mis Pagos"**. Allí verás tus cobros pendientes. Puedes descargar tu recibo, contactar por WhatsApp para pagar o ver tu historial de pagos confirmados.'
+        }]);
+        break;
+      case 'id_card':
+        userMsg.text = 'Ver mi Carnet';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Ve a **"Mi Carnet"**. Ahí encontrarás tu tarjeta de jugador oficial con tu código QR, tu nivel general, los puntos de honor que has ganado y el radar de tus habilidades deportivas.'
+        }]);
+        break;
+      case 'security':
+        userMsg.text = 'Cambiar Contraseña';
+        setMessages(prev => [...prev, userMsg, {
+          id: Date.now().toString() + '1',
+          type: 'bot',
+          text: 'Ve a **"Seguridad"** en el menú. Allí podrás actualizar tu correo electrónico, cambiar tu contraseña y ver la información básica de tu cuenta.'
+        }]);
+        break;
+
+      // === Opción de Ayuda ===
       case 'help':
         userMsg.text = '¿Qué más puedes hacer?';
         setMessages(prev => [...prev, userMsg, {
           id: Date.now().toString() + '1',
           type: 'bot',
-          text: 'Puedo responder preguntas específicas sobre cómo usar la plataforma. Por ejemplo, puedes escribirme:\n\n- "¿Cómo paso asistencia?"\n- "¿Cómo creo un cobro global?"\n- "¿Para qué sirve el planificador?"\n\nIntenta escribirme cualquier duda que tengas 👇'
+          text: `Puedo responder preguntas específicas sobre cómo usar la plataforma. Por ejemplo, puedes escribirme:\n\n- "¿Cómo paso asistencia?"\n- "¿Cómo creo un cobro?"\n- "¿Para qué sirven los puntos?"\n\nIntenta escribirme cualquier duda que tengas 👇`
         }]);
         break;
     }
