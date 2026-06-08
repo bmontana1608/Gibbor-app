@@ -135,6 +135,52 @@ export default function AsistenteWhatsApp() {
     notificar_comprobante: true
   });
 
+  const [recConfig, setRecConfig] = useState({ r1: 5, r2: 10, r3: 25 });
+  const [configId, setConfigId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      if (!slug || slug === 'master') return;
+      try {
+        const { data: tenant } = await supabase.from('clubes').select('id').eq('slug', slug).single();
+        if (tenant) {
+          const { data: conf } = await supabase.from('configuracion_wa')
+            .select('id, recordatorio_1, recordatorio_2, recordatorio_3')
+            .eq('club_id', tenant.id)
+            .single();
+          if (conf) {
+            setRecConfig({ 
+              r1: conf.recordatorio_1 || 5, 
+              r2: conf.recordatorio_2 || 10, 
+              r3: conf.recordatorio_3 || 25 
+            });
+            setConfigId(conf.id);
+          }
+        }
+      } catch (e) {
+        console.error("Error al cargar configuracion_wa:", e);
+      }
+    };
+    fetchConfig();
+  }, [slug]);
+
+  const updateRecConfig = async (key: 'r1'|'r2'|'r3', value: number) => {
+    setRecConfig(prev => ({ ...prev, [key]: value }));
+    if (!configId) return;
+    
+    let dbField = '';
+    if (key === 'r1') dbField = 'recordatorio_1';
+    if (key === 'r2') dbField = 'recordatorio_2';
+    if (key === 'r3') dbField = 'recordatorio_3';
+
+    try {
+      await supabase.from('configuracion_wa').update({ [dbField]: value }).eq('id', configId);
+      toast.success('Configuración actualizada');
+    } catch (e: any) {
+      toast.error('Error al guardar: ' + e.message);
+    }
+  };
+
   const toggleConfig = (key: keyof typeof config) => {
     setConfig(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -324,19 +370,56 @@ export default function AsistenteWhatsApp() {
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between group">
+                  <div className="flex flex-col gap-4 group">
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${config.recordatorios ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}`}>
                         <Clock className="w-6 h-6" />
                       </div>
-                      <div>
-                        <p className="font-bold text-slate-800">Recordatorios de Cobro</p>
-                        <p className="text-xs text-slate-500">Notificar automáticamente el día de vencimiento de la mensualidad.</p>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-slate-800">Recordatorios de Cobro</p>
+                          <button onClick={() => toggleConfig('recordatorios')} className={`w-14 h-7 rounded-full relative transition-colors ${config.recordatorios ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                            <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${config.recordatorios ? 'right-1' : 'left-1'}`}></div>
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">Configura qué días del mes se enviarán los 3 avisos automáticos.</p>
                       </div>
                     </div>
-                    <button onClick={() => toggleConfig('recordatorios')} className={`w-14 h-7 rounded-full relative transition-colors ${config.recordatorios ? 'bg-emerald-500' : 'bg-slate-300'}`}>
-                      <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${config.recordatorios ? 'right-1' : 'left-1'}`}></div>
-                    </button>
+                    
+                    {config.recordatorios && (
+                      <div className="ml-16 grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Aviso 1 (Pronto Pago)</label>
+                          <select 
+                            value={recConfig.r1} 
+                            onChange={(e) => updateRecConfig('r1', Number(e.target.value))}
+                            className="w-full text-sm p-2 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none"
+                          >
+                            {Array.from({length: 31}, (_, i) => i + 1).map(d => <option key={`r1-${d}`} value={d}>Día {d}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Aviso 2 (Vencido)</label>
+                          <select 
+                            value={recConfig.r2} 
+                            onChange={(e) => updateRecConfig('r2', Number(e.target.value))}
+                            className="w-full text-sm p-2 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none"
+                          >
+                            {Array.from({length: 31}, (_, i) => i + 1).map(d => <option key={`r2-${d}`} value={d}>Día {d}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Aviso 3 (Pre-Suspensión)</label>
+                          <select 
+                            value={recConfig.r3} 
+                            onChange={(e) => updateRecConfig('r3', Number(e.target.value))}
+                            className="w-full text-sm p-2 rounded-lg border border-slate-200 focus:border-emerald-500 outline-none"
+                          >
+                            {Array.from({length: 31}, (_, i) => i + 1).map(d => <option key={`r3-${d}`} value={d}>Día {d}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    )}
                   </div>
                </div>
             </div>
