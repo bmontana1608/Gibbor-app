@@ -14,12 +14,12 @@ interface Message {
   isTyping?: boolean;
 }
 
-export default function GibbiAssistant() {
+export default function GibbiAssistant({ clubId }: { clubId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { slug, tenant } = useTenant();
+  const { slug } = useTenant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [quota, setQuota] = useState<{ used: number, max: number }>({ used: 0, max: 20 });
 
@@ -103,7 +103,7 @@ export default function GibbiAssistant() {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg.text, clubId: tenant?.id })
+        body: JSON.stringify({ message: userMsg.text, clubId })
       });
 
       const data = await res.json();

@@ -225,7 +225,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <GibbiAssistant />
+            <GibbiAssistant clubId={tenant?.id} />
             <NotificationBell clubId={tenant?.id} />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
             <ThemeToggle />
