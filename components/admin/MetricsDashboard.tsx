@@ -1,5 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Trophy, TrendingUp, AlertTriangle, Building2, CheckCircle2 } from 'lucide-react';
+import { Trophy, TrendingUp, AlertTriangle, Building2, CheckCircle2, Activity, Trash2 } from 'lucide-react';
 
 interface MetricsDashboardProps {
   metrics: any;
