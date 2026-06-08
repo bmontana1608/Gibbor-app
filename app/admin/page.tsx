@@ -456,60 +456,6 @@ export default function SuperAdminDashboard() {
           </div>
         )}
 
-        {/* ── VISTA PLANES SAAS ── */}
-        {vista === 'saas-billing' && (
-          <div className="animate-in fade-in duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-2xl font-black text-slate-800">Planes SaaS</h2>
-                <p className="text-sm text-gray-500">Configura los planes de suscripción para los clubes.</p>
-              </div>
-              <button 
-                onClick={() => {
-                  setPlanFormData({ id: null, nombre: '', tipo_cobro: 'mensual', precio_base: 0, limite_jugadores_base: 120, precio_jugador_extra: 2000, activo: true });
-                  setShowPlanModal(true);
-                }}
-                className="bg-lime-500 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-colors"
-              >
-                <CreditCard size={18} /> Nuevo Plan
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {planesSaaS.map(plan => (
-                <div key={plan.id} className={`bg-white rounded-2xl border ${plan.activo ? 'border-gray-200' : 'border-red-100 bg-red-50/30'} p-6 shadow-sm relative`}>
-                  {!plan.activo && <div className="absolute top-4 right-4 text-xs font-bold text-red-500 bg-red-100 px-2 py-1 rounded-md">Inactivo</div>}
-                  <div className="text-xs font-bold text-lime-600 bg-lime-50 w-max px-2 py-1 rounded-md uppercase tracking-wider mb-2">
-                    {plan.tipo_cobro}
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-800 mb-1">{plan.nombre}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-2xl font-black text-slate-800">${Number(plan.precio_base).toLocaleString()}</span>
-                    <span className="text-xs text-gray-500">COP {plan.tipo_cobro === 'anual' ? '/año' : '/mes'}</span>
-                  </div>
-                  
-                  <ul className="space-y-2 text-sm text-gray-600 mb-6">
-                    <li className="flex justify-between"><span>Límite base:</span> <strong>{plan.limite_jugadores_base === 0 ? 'Ilimitado' : plan.limite_jugadores_base} jug.</strong></li>
-                    <li className="flex justify-between"><span>Jugador extra:</span> <strong>${Number(plan.precio_jugador_extra).toLocaleString()}</strong></li>
-                  </ul>
-                  
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => {
-                        setPlanFormData(plan);
-                        setShowPlanModal(true);
-                      }}
-                      className="flex-1 border border-gray-200 hover:border-lime-500 hover:text-lime-600 text-gray-600 font-bold py-2 rounded-xl transition-colors text-sm"
-                    >
-                      Editar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* ── VISTA MÉTRICAS ── */}
         {vista === 'metricas' && (
           <div className="animate-in fade-in duration-300 space-y-6">
