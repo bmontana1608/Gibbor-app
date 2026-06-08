@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/whatsapp",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/recordatorios",
+      "schedule": "0 13 * * *"
+    }
+  ]
+}
