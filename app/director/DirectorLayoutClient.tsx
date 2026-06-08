@@ -22,9 +22,22 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const router = useRouter();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const tenantSlug = initialTenant?.slug || '';
   const [basePath, setBasePath] = useState(tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '');
   const mainRef = useRef<HTMLElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar el menú al hacer clic afuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   const tenant = initialTenant;
   const profile = initialProfile;
@@ -236,10 +249,52 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             <NotificationBell clubId={tenant?.id} />
             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
             <ThemeToggle />
-            <div className="hidden md:flex items-center gap-2 ml-2 pl-2 border-l border-slate-100 dark:border-slate-800">
-              <div className="w-8 h-8 rounded-full bg-brand-muted flex items-center justify-center border border-brand/20">
+            <div className="hidden md:flex items-center gap-2 ml-2 pl-2 border-l border-slate-100 dark:border-slate-800 relative" ref={userMenuRef}>
+              <button 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="w-8 h-8 rounded-full bg-brand-muted hover:bg-brand/20 flex items-center justify-center border border-brand/20 transition-all focus:outline-none focus:ring-2 focus:ring-brand/50"
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="true"
+              >
                 <User className="w-4 h-4 text-brand" />
-              </div>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="absolute top-12 right-0 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl shadow-slate-900/10 py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-2">
+                    <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{profile?.nombre || 'Director'}</p>
+                    <p className="text-[10px] uppercase font-black text-brand tracking-widest">{brandName}</p>
+                  </div>
+                  
+                  <Link 
+                    href={`${basePath}/director/configuracion`} 
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Ajustes de Cuenta
+                  </Link>
+                  
+                  <Link 
+                    href={`${basePath}/director/aportes`} 
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Facturación / Planes
+                  </Link>
+
+                  <div className="h-px bg-slate-100 dark:bg-slate-800 my-2"></div>
+                  
+                  <button 
+                    onClick={() => { setIsUserMenuOpen(false); cerrarSesion(); }}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Cerrar Sesión
+                  </button>
+                </div>
+              )}
             </div>
             <button 
               onClick={() => setIsSidebarOpen(prev => !prev)}
