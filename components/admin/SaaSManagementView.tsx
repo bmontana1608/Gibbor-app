@@ -177,144 +177,163 @@ export default function SaaSManagementView() {
         </button>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="space-y-8">
         
-        {/* PANEL IZQUIERDO: GESTIÓN DE PLANES */}
-        <div className="space-y-8">
-          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
-            <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
-              <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-emerald-500" /> Esquemas Base
+        {/* SECCIÓN SUPERIOR: GESTIÓN DE PLANES */}
+        <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8 border-b border-gray-100 pb-6">
+            <div>
+              <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-emerald-500" /> Planes de Suscripción SaaS
               </h2>
-              <button 
-                onClick={() => setPlanEnEdicion({ nombre: '', precio_por_jugador: 2000, moneda: 'COP' })}
-                className="text-[10px] font-black text-lime-600 uppercase tracking-widest bg-lime-50 px-4 py-2 rounded-xl hover:bg-lime-100 border border-lime-200 transition-all"
-              >
-                + Crear Plan
-              </button>
+              <p className="text-sm text-gray-500 mt-1">Configura las tarifas y límites de jugadores para tus academias.</p>
             </div>
+            <button 
+              onClick={() => setPlanEnEdicion({ nombre: '', tipo_cobro: 'mensual', precio_base: 0, limite_jugadores_base: 120, precio_jugador_extra: 2000, activo: true })}
+              className="bg-lime-500 hover:bg-lime-400 text-white font-bold py-3 px-6 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-lime-200 hover:-translate-y-1 active:scale-95 text-sm"
+            >
+              <CreditCard size={18} /> Crear Nuevo Plan
+            </button>
+          </div>
 
-            <div className="space-y-4">
-              {planes.map(plan => (
-                <div key={plan.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between group hover:border-gray-200 transition-all">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-black text-slate-800 uppercase italic tracking-tighter text-sm">{plan.nombre}</h3>
-                      <span className="bg-lime-100 text-lime-700 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">{plan.tipo_cobro}</span>
-                    </div>
-                    <p className="text-[10px] font-bold text-gray-500 mt-1">Base: {formatearDinero(plan.precio_base)} | Extra: {formatearDinero(plan.precio_jugador_extra)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setPlanEnEdicion({
-                        ...plan, 
-                        precio_base: plan.precio_base ?? 0,
-                        limite_jugadores_base: plan.limite_jugadores_base ?? 120,
-                        precio_jugador_extra: plan.precio_jugador_extra ?? 0
-                      })}
-                      className="text-gray-400 hover:text-lime-600 p-2 transition-colors bg-white rounded-xl border border-gray-200"
-                      title="Editar Plan"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => eliminarPlan(plan)}
-                      className="text-gray-400 hover:text-red-500 p-2 transition-colors bg-white rounded-xl border border-gray-200 hover:border-red-200"
-                      title="Eliminar Plan"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {planes.map(plan => (
+              <div key={plan.id} className={`bg-white rounded-3xl border ${plan.activo ? 'border-gray-200 hover:border-lime-300' : 'border-red-100 bg-red-50/30'} p-6 shadow-sm relative transition-all group`}>
+                {!plan.activo && <div className="absolute top-4 right-4 text-xs font-bold text-red-500 bg-red-100 px-2 py-1 rounded-md">Inactivo</div>}
+                <div className="text-xs font-black text-lime-700 bg-lime-100 w-max px-3 py-1 rounded-lg uppercase tracking-widest mb-4">
+                  {plan.tipo_cobro}
                 </div>
-              ))}
-            </div>
+                <h3 className="font-black text-xl text-slate-800 mb-2">{plan.nombre}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-3xl font-black text-slate-800 tracking-tighter italic">{formatearDinero(plan.precio_base)}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase">/ {plan.tipo_cobro === 'anual' ? 'año' : 'mes'}</span>
+                </div>
+                
+                <ul className="space-y-3 text-sm text-gray-600 mb-8 border-t border-gray-100 pt-4">
+                  <li className="flex justify-between items-center">
+                    <span className="text-gray-500">Límite base:</span> 
+                    <strong className="font-black">{plan.limite_jugadores_base === 0 ? 'Ilimitado' : `${plan.limite_jugadores_base} jug.`}</strong>
+                  </li>
+                  <li className="flex justify-between items-center">
+                    <span className="text-gray-500">Jugador extra:</span> 
+                    <strong className="font-black">{formatearDinero(plan.precio_jugador_extra)}</strong>
+                  </li>
+                </ul>
+                
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => setPlanEnEdicion({
+                      ...plan, 
+                      precio_base: plan.precio_base ?? 0,
+                      limite_jugadores_base: plan.limite_jugadores_base ?? 120,
+                      precio_jugador_extra: plan.precio_jugador_extra ?? 0
+                    })}
+                    className="flex-1 border border-gray-200 hover:border-lime-500 hover:text-lime-600 text-gray-600 font-bold py-2.5 rounded-xl transition-colors text-sm flex items-center justify-center gap-2 bg-gray-50 hover:bg-lime-50"
+                  >
+                    <Settings className="w-4 h-4" /> Editar
+                  </button>
+                  <button 
+                    onClick={() => eliminarPlan(plan)}
+                    className="px-4 border border-gray-200 hover:border-red-500 hover:text-red-600 text-gray-400 font-bold py-2.5 rounded-xl transition-colors bg-gray-50 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Formulario de Edición de Plan */}
-            {planEnEdicion && (
-              <div className="mt-8 p-6 bg-gray-50 rounded-3xl border border-gray-200 animate-in fade-in zoom-in-95 shadow-lg">
-                <h4 className="text-[10px] font-black text-lime-600 uppercase tracking-widest mb-6">
+        {/* Modal de Edición de Plan */}
+        {planEnEdicion && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60] animate-in fade-in">
+            <div className="bg-white rounded-[2rem] max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="p-6 md:p-8">
+                <h4 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-lime-500" />
                   {planEnEdicion.id ? 'Editando Plan Existente' : 'Nuevo Esquema de Cobro'}
                 </h4>
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Nombre del Esquema</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Nombre del Esquema</label>
                     <input 
                       type="text" 
                       value={planEnEdicion.nombre} 
                       onChange={(e) => setPlanEnEdicion({...planEnEdicion, nombre: e.target.value})} 
-                      className="w-full bg-white border border-gray-200 text-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-bold text-sm transition-colors"
+                      className="w-full bg-gray-50 border border-gray-200 text-slate-800 rounded-2xl px-4 py-3.5 outline-none focus:border-lime-500 focus:bg-white font-bold transition-colors"
+                      placeholder="Ej: Plan Crecimiento"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Tipo Cobro</label>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Tipo Cobro</label>
                       <select 
                         value={planEnEdicion.tipo_cobro || 'mensual'} 
                         onChange={(e) => setPlanEnEdicion({...planEnEdicion, tipo_cobro: e.target.value})} 
-                        className="w-full bg-white border border-gray-200 text-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-bold text-sm transition-colors"
+                        className="w-full bg-gray-50 border border-gray-200 text-slate-800 rounded-2xl px-4 py-3.5 outline-none focus:border-lime-500 focus:bg-white font-bold transition-colors"
                       >
                         <option value="mensual">Mensual</option>
                         <option value="anual">Anual</option>
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Precio Base (COP)</label>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Precio Base (COP)</label>
                       <input 
                         type="number" 
                         value={planEnEdicion.precio_base ?? 0} 
                         onChange={(e) => setPlanEnEdicion({...planEnEdicion, precio_base: Number(e.target.value)})} 
-                        className="w-full bg-white border border-gray-200 text-emerald-600 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-black transition-colors"
+                        className="w-full bg-gray-50 border border-gray-200 text-emerald-600 rounded-2xl px-4 py-3.5 outline-none focus:border-emerald-500 focus:bg-white font-black transition-colors"
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Límite Base</label>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Límite Base de Jugadores</label>
                       <input 
                         type="number" 
                         value={planEnEdicion.limite_jugadores_base ?? 120} 
                         onChange={(e) => setPlanEnEdicion({...planEnEdicion, limite_jugadores_base: Number(e.target.value)})} 
-                        className="w-full bg-white border border-gray-200 text-slate-800 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-black transition-colors"
+                        className="w-full bg-gray-50 border border-gray-200 text-slate-800 rounded-2xl px-4 py-3.5 outline-none focus:border-lime-500 focus:bg-white font-black transition-colors"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1 block">Costo Extra (COP)</label>
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Costo Jugador Extra (COP)</label>
                       <input 
                         type="number" 
                         value={planEnEdicion.precio_jugador_extra ?? 0} 
                         onChange={(e) => setPlanEnEdicion({...planEnEdicion, precio_jugador_extra: Number(e.target.value)})} 
-                        className="w-full bg-white border border-gray-200 text-emerald-600 rounded-2xl px-4 py-3 outline-none focus:border-lime-500 font-black transition-colors"
+                        className="w-full bg-gray-50 border border-gray-200 text-emerald-600 rounded-2xl px-4 py-3.5 outline-none focus:border-emerald-500 focus:bg-white font-black transition-colors"
                       />
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 mt-4 px-2">
-                    <input type="checkbox" id="planActivo" checked={planEnEdicion.activo !== false} onChange={e => setPlanEnEdicion({...planEnEdicion, activo: e.target.checked})} className="w-4 h-4 accent-lime-500" />
-                    <label htmlFor="planActivo" className="text-xs font-bold text-gray-700 cursor-pointer">Plan Activo</label>
+                  <div className="flex items-center gap-3 mt-2 p-4 bg-lime-50/50 rounded-2xl border border-lime-100">
+                    <input type="checkbox" id="planActivo" checked={planEnEdicion.activo !== false} onChange={e => setPlanEnEdicion({...planEnEdicion, activo: e.target.checked})} className="w-5 h-5 accent-lime-500" />
+                    <label htmlFor="planActivo" className="text-sm font-bold text-lime-900 cursor-pointer">Plan Activo y Visible</label>
                   </div>
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-3 pt-6 border-t border-gray-100 mt-4">
                     <button 
                       onClick={() => setPlanEnEdicion(null)} 
-                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest border border-gray-200 text-gray-500 hover:text-slate-800 hover:bg-gray-100 transition-colors"
+                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-xs tracking-widest border border-gray-200 text-gray-500 hover:text-slate-800 hover:bg-gray-100 transition-colors"
                     >
                       Cancelar
                     </button>
                     <button 
                       onClick={guardarPlan} 
-                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white transition-all shadow-md"
+                      className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-xs tracking-widest bg-lime-500 text-white hover:bg-lime-400 transition-all shadow-lg shadow-lime-200"
                     >
-                      Guardar
+                      Guardar Plan
                     </button>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* PANEL DERECHO: ASIGNACIÓN Y ESTADO */}
-        <div className="lg:col-span-2 space-y-8">
+        {/* PANELES INFERIORES: ASIGNACIÓN Y FACTURACIÓN */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           
           {/* Lista de Clubes y Asignación */}
           <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
