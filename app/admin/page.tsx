@@ -13,11 +13,12 @@ import { toast } from 'sonner';
 import LoginForm from '@/components/LoginForm';
 import SaaSManagementView from '@/components/admin/SaaSManagementView';
 import BibliotecaAdminView from '@/components/admin/BibliotecaAdminView';
+import TicketsAdminView from '@/components/admin/TicketsAdminView';
 import MCMLogo from '@/components/MCMLogo';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -219,6 +220,7 @@ export default function SuperAdminDashboard() {
     { id: 'saas-billing', icon: <CreditCard size={20} />, label: 'Planes' },
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas' },
     { id: 'biblioteca', icon: <Library size={20} />, label: 'Biblioteca' },
+    { id: 'tickets', icon: <LifeBuoy size={20} />, label: 'Tickets' },
     { id: 'auditoria', icon: <History size={20} />, label: 'Auditoría' },
     { id: 'mi-cuenta', icon: <User size={20} />, label: 'Mi Cuenta' },
     { id: 'configuracion', icon: <Settings size={20} />, label: 'Ajustes' },
@@ -235,7 +237,7 @@ export default function SuperAdminDashboard() {
         </div>
 
         <nav className="space-y-1 flex-1">
-          {navItems.slice(0, 6).map(item => (
+          {navItems.slice(0, 7).map(item => (
             <SideNavItem key={item.id} icon={item.icon} label={item.label} active={vista === item.id} onClick={() => setVista(item.id as any)} />
           ))}
         </nav>
@@ -469,6 +471,7 @@ export default function SuperAdminDashboard() {
 
         {vista === 'saas-billing' && <SaaSManagementView />}
         {vista === 'biblioteca' && <BibliotecaAdminView />}
+        {vista === 'tickets' && <TicketsAdminView />}
 
         {/* ── VISTA CONFIGURACIÓN ── */}
         {vista === 'configuracion' && (
@@ -506,7 +509,7 @@ export default function SuperAdminDashboard() {
             </div>
 
             <h3 className="font-bold text-slate-800 mb-4 border-t pt-6 flex items-center gap-2"><Bot size={18} /> Inteligencia Artificial (Gibbi)</h3>
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Clave API de Gemini</label>
                <div className="flex gap-2">
                  <input 
@@ -532,6 +535,35 @@ export default function SuperAdminDashboard() {
                  </button>
                </div>
                <p className="text-xs text-gray-400 mt-2">Si está vacío, Gibbi no responderá mensajes generativos a los clubes.</p>
+            </div>
+
+            <h3 className="font-bold text-slate-800 mb-4 border-t pt-6 flex items-center gap-2"><LifeBuoy size={18} /> Integraciones de Soporte</h3>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+               <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Slack Webhook URL (Tickets)</label>
+               <div className="flex gap-2">
+                 <input 
+                   type="text" 
+                   placeholder="https://hooks.slack.com/services/..." 
+                   value={configAdmin.slack_webhook_url || ''} 
+                   onChange={e => setConfigAdmin({...configAdmin, slack_webhook_url: e.target.value})}
+                   className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                 />
+                 <button 
+                   onClick={async () => {
+                     const val = configAdmin.slack_webhook_url;
+                     const { error } = await supabase.from('configuracion_superadmin').update({ slack_webhook_url: val }).eq('id', 1);
+                     if (error) {
+                        toast.error('Error al guardar. Verifica que corriste el script SQL.');
+                        console.error(error);
+                     }
+                     else toast.success('Webhook de Slack guardado.');
+                   }}
+                   className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
+                 >
+                   Guardar
+                 </button>
+               </div>
+               <p className="text-xs text-gray-400 mt-2">Los nuevos tickets se enviarán automáticamente a este canal de Slack.</p>
             </div>
           </div>
         )}
