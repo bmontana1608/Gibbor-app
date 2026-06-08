@@ -496,7 +496,7 @@ export default function SuperAdminDashboard() {
                  <button 
                    onClick={async () => {
                      const val = configAdmin.telefono_soporte;
-                     const { error } = await supabase.from('configuracion_superadmin').update({ telefono_soporte: val }).eq('id', 1);
+                     const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, telefono_soporte: val });
                      if (error) toast.error('Error al guardar');
                      else toast.success('Teléfono actualizado');
                    }}
@@ -522,7 +522,7 @@ export default function SuperAdminDashboard() {
                  <button 
                    onClick={async () => {
                      const val = configAdmin.gemini_api_key;
-                     const { error } = await supabase.from('configuracion_superadmin').update({ gemini_api_key: val }).eq('id', 1);
+                     const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, gemini_api_key: val });
                      if (error) {
                         toast.error('Error al guardar. Verifica que la columna gemini_api_key exista.');
                         console.error(error);
@@ -550,9 +550,9 @@ export default function SuperAdminDashboard() {
                  />
                  <button 
                    onClick={async () => {
-                     const val = configAdmin.slack_webhook_url;
-                     const { error } = await supabase.from('configuracion_superadmin').update({ slack_webhook_url: val }).eq('id', 1);
-                     if (error) {
+                      const val = configAdmin.slack_webhook_url;
+                      const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, slack_webhook_url: val });
+                      if (error) {
                         toast.error('Error al guardar. Verifica que corriste el script SQL.');
                         console.error(error);
                      }
