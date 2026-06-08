@@ -83,6 +83,56 @@ export async function POST(request: Request) {
     // 2.4 Eliminar el perfil antiguo (El temporal)
     await supabaseAdmin.from('perfiles').delete().eq('id', perfilId);
 
+    // ==========================================
+    // 3. MENSAJE DE BIENVENIDA (WHATSAPP)
+    // ==========================================
+    try {
+      // 3.1 Buscar el club al que pertenece el nuevo usuario
+      const { data: rel } = await supabaseAdmin
+        .from('clubes_usuarios')
+        .select('club_id')
+        .eq('usuario_id', authUser.user.id)
+        .limit(1)
+        .single();
+
+      if (rel && rel.club_id) {
+        // 3.2 Buscar el club y su configuracion WA
+        const { data: clubInfo } = await supabaseAdmin
+          .from('clubes')
+          .select('slug, nombre')
+          .eq('id', rel.club_id)
+          .single();
+
+        const { data: waConfig } = await supabaseAdmin
+          .from('configuracion_wa')
+          .select('active_webhook')
+          .eq('club_id', rel.club_id)
+          .single();
+
+        // Asumimos bienvenida activa si tienen WA configurado (hasta que se agregue la columna booleana real)
+        const bienvenidaActiva = waConfig?.active_webhook === true;
+
+        if (clubInfo && bienvenidaActiva && perfilOriginal?.telefono) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://portalgibbor.com';
+          const clubLoginUrl = `${appUrl}/${clubInfo.slug}/login`;
+          
+          const mensajeBienvenida = `¡Hola ${perfilOriginal.nombres}! 👋⚽\n\nNos emociona darte la bienvenida oficial a *${clubInfo.nombre}*. ¡Qué alegría tenerte en nuestro equipo!\n\nTu perfil en nuestra plataforma deportiva ya está listo. Desde allí podrás ver tus evaluaciones, llevar control de tu asistencia y gestionar tus pagos de manera súper fácil.\n\nAquí tienes tus credenciales de acceso seguro:\n\n📧 *Usuario:* ${email}\n🔑 *Contraseña:* ${password}\n\n👉 *Ingresa a tu portal aquí:* ${clubLoginUrl}\n\nSi tienes alguna pregunta, ¡no dudes en escribirnos por aquí mismo! Estamos para ayudarte a brillar en la cancha. 🏆✨`;
+
+          await supabaseAdmin.from('mensajes_cola').insert({
+            club_id: rel.club_id,
+            telefono_destino: perfilOriginal.telefono,
+            mensaje: mensajeBienvenida,
+            estado: 'Pendiente',
+            tipo_mensaje: 'text'
+          });
+          console.log(`Mensaje de bienvenida encolado para ${perfilOriginal.telefono}`);
+        }
+      }
+    } catch (waError) {
+      console.error('Error al encolar mensaje de bienvenida:', waError);
+      // No bloqueamos la creación del usuario si falla WhatsApp
+    }
+
     return NextResponse.json({ success: true, userId: authUser.user.id });
 
   } catch (error: any) {
