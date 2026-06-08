@@ -66,6 +66,7 @@ export default function SaaSManagementView() {
       precio_base: planEnEdicion.precio_base,
       limite_jugadores_base: planEnEdicion.limite_jugadores_base || 120,
       precio_jugador_extra: planEnEdicion.precio_jugador_extra || 0,
+      precio_por_jugador: planEnEdicion.precio_base || 0, // Fallback para la restricción NOT NULL de la DB
       activo: planEnEdicion.activo ?? true
     });
 
