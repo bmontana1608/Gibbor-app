@@ -191,24 +191,24 @@ export default function BibliotecaAdminView() {
     <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
-          <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">Biblioteca MCM Global</h2>
-          <p className="text-slate-500 text-sm font-medium">Gestiona los ejercicios maestro que todos los clubes verán por defecto.</p>
+          <h2 className="text-4xl font-black uppercase italic tracking-tighter mb-2 bg-gradient-to-r from-lime-500 to-emerald-600 bg-clip-text text-transparent">Biblioteca MCM Global</h2>
+          <p className="text-gray-500 text-sm font-medium">Gestiona los ejercicios maestro que todos los clubes verán por defecto.</p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
-          className="bg-cyan-600 hover:bg-cyan-500 text-white font-black px-6 py-4 rounded-xl flex items-center gap-3 transition-all shadow-xl shadow-cyan-900/30 text-xs uppercase tracking-widest"
+          className="bg-lime-500 hover:bg-lime-400 text-white font-black px-6 py-4 rounded-xl flex items-center gap-3 transition-all shadow-xl shadow-lime-200 text-xs uppercase tracking-widest"
         >
           <Plus size={18} strokeWidth={3} /> Subir Ejercicio Global
         </button>
       </div>
 
-      <div className="bg-zinc-900/40 backdrop-blur-md rounded-[3rem] border border-white/5 p-8 shadow-2xl min-h-[500px]">
-        <div className="flex items-center gap-4 mb-8 bg-zinc-950 p-2 rounded-2xl border border-white/5">
-           <Search className="text-slate-500 ml-4 w-5 h-5" />
+      <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm min-h-[500px]">
+        <div className="flex items-center gap-4 mb-8 bg-gray-50 p-2 rounded-2xl border border-gray-200">
+           <Search className="text-gray-400 ml-4 w-5 h-5" />
            <input 
              type="text" 
              placeholder="Buscar en la base maestra..." 
-             className="bg-transparent border-none text-white outline-none flex-1 py-3 text-sm font-bold placeholder:text-slate-600"
+             className="bg-transparent border-none text-slate-800 outline-none flex-1 py-3 text-sm font-bold placeholder:text-gray-400"
              value={searchTerm}
              onChange={(e) => setSearchTerm(e.target.value)}
            />
@@ -216,36 +216,36 @@ export default function BibliotecaAdminView() {
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+            <Loader2 className="w-12 h-12 text-lime-500 animate-spin" />
           </div>
         ) : filtrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <PlaySquare className="w-16 h-16 text-slate-700 mb-4" />
-            <p className="text-slate-400 font-bold">No hay ejercicios globales registrados.</p>
-            <p className="text-xs text-slate-600 mt-2">Sube el primer video para enriquecer la red MCM.</p>
+            <PlaySquare className="w-16 h-16 text-gray-300 mb-4" />
+            <p className="text-gray-500 font-bold">No hay ejercicios globales registrados.</p>
+            <p className="text-xs text-gray-400 mt-2">Sube el primer video para enriquecer la red MCM.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtrados.map(ejercicio => (
-              <div key={ejercicio.id} className="bg-zinc-900 border border-white/10 rounded-2xl hover:border-cyan-500/50 transition-all flex flex-col group shadow-lg">
+              <div key={ejercicio.id} className="bg-white border border-gray-200 rounded-2xl hover:border-lime-400 transition-all flex flex-col group shadow-sm">
                 {renderVideoThumbnail(ejercicio)}
                 <div className="p-5 flex-1 flex flex-col">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-cyan-500/10 text-cyan-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-lime-100 text-lime-700 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
                       {ejercicio.fase_juego}
                     </span>
-                    <span className="bg-white/5 text-slate-400 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
+                    <span className="bg-gray-100 text-gray-500 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
                       {ejercicio.categoria_edad}
                     </span>
                   </div>
-                  <h3 className="font-black text-white leading-tight mb-2 uppercase italic tracking-tighter">{ejercicio.titulo}</h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 flex-1 mb-4">{ejercicio.descripcion}</p>
+                  <h3 className="font-black text-slate-800 leading-tight mb-2 uppercase italic tracking-tighter">{ejercicio.titulo}</h3>
+                  <p className="text-xs text-gray-500 line-clamp-2 flex-1 mb-4">{ejercicio.descripcion}</p>
                   
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                  <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
                      <span className="text-[10px] text-emerald-500 font-black uppercase tracking-widest flex items-center gap-1">
                         <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> Scope Global
                      </span>
-                     <button onClick={() => handleEliminar(ejercicio.id)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+                     <button onClick={() => handleEliminar(ejercicio.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
                         <Trash2 size={16} />
                      </button>
                   </div>
@@ -257,22 +257,22 @@ export default function BibliotecaAdminView() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-zinc-950 border border-white/10 rounded-[2rem] w-full max-w-2xl p-8 shadow-2xl">
-              <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white mb-6 border-b border-white/5 pb-4">Añadir Ejercicio Maestro</h3>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+           <div className="bg-white border border-gray-200 rounded-[2rem] w-full max-w-2xl p-8 shadow-2xl">
+              <h3 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800 mb-6 border-b border-gray-100 pb-4">Añadir Ejercicio Maestro</h3>
               <form onSubmit={handleGuardar} className="space-y-4">
                  <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Título del Ejercicio</label>
-                      <input type="text" required value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-cyan-500" placeholder="Ej: Rondo de Activación 4v2" />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Título del Ejercicio</label>
+                      <input type="text" required value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 font-bold outline-none focus:border-lime-500" placeholder="Ej: Rondo de Activación 4v2" />
                     </div>
                     <div className="col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Link del Video (Drive o YouTube)</label>
-                      <input type="url" required value={formData.video_url} onChange={e => setFormData({...formData, video_url: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm outline-none focus:border-cyan-500" placeholder="https://..." />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Link del Video (Drive o YouTube)</label>
+                      <input type="url" required value={formData.video_url} onChange={e => setFormData({...formData, video_url: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 font-mono text-sm outline-none focus:border-lime-500" placeholder="https://..." />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Fase del Entrenamiento</label>
-                      <select value={formData.fase_juego} onChange={e => setFormData({...formData, fase_juego: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-cyan-500">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Fase del Entrenamiento</label>
+                      <select value={formData.fase_juego} onChange={e => setFormData({...formData, fase_juego: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 font-bold outline-none focus:border-lime-500">
                          <option value="Calentamiento">Calentamiento</option>
                          <option value="Parte Principal">Parte Principal</option>
                          <option value="Vuelta a la Calma">Vuelta a la Calma</option>
@@ -280,8 +280,8 @@ export default function BibliotecaAdminView() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Categoría Recomendada</label>
-                      <select value={formData.categoria_edad} onChange={e => setFormData({...formData, categoria_edad: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-cyan-500">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Categoría Recomendada</label>
+                      <select value={formData.categoria_edad} onChange={e => setFormData({...formData, categoria_edad: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 font-bold outline-none focus:border-lime-500">
                          <option value="Todas">Todas las categorías</option>
                          <option value="Iniciación (U6-U10)">Iniciación (U6-U10)</option>
                          <option value="Formación (U12-U14)">Formación (U12-U14)</option>
@@ -289,16 +289,16 @@ export default function BibliotecaAdminView() {
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Descripción y Reglas</label>
-                      <textarea required rows={4} value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-medium outline-none focus:border-cyan-500 custom-scrollbar" placeholder="Detalla cómo se ejecuta el ejercicio..." />
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Descripción y Reglas</label>
+                      <textarea required rows={4} value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-slate-800 font-medium outline-none focus:border-lime-500 custom-scrollbar" placeholder="Detalla cómo se ejecuta el ejercicio..." />
                     </div>
                  </div>
                  
-                 <div className="flex gap-4 pt-6 border-t border-white/5 mt-6">
-                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-6 py-4 rounded-xl bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-xs transition-colors">
+                 <div className="flex gap-4 pt-6 border-t border-gray-100 mt-6">
+                    <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-6 py-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 font-black uppercase tracking-widest text-xs transition-colors">
                       Cancelar
                     </button>
-                    <button type="submit" disabled={saving} className="flex-1 px-6 py-4 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-black uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2">
+                    <button type="submit" disabled={saving} className="flex-1 px-6 py-4 rounded-xl bg-lime-500 hover:bg-lime-400 text-white font-black uppercase tracking-widest text-xs transition-colors flex items-center justify-center gap-2 shadow-lg shadow-lime-200">
                       {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar y Publicar Global'}
                     </button>
                  </div>
