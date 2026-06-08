@@ -15,6 +15,7 @@ import SaaSManagementView from '@/components/admin/SaaSManagementView';
 import BibliotecaAdminView from '@/components/admin/BibliotecaAdminView';
 import TicketsAdminView from '@/components/admin/TicketsAdminView';
 import MCMLogo from '@/components/MCMLogo';
+import MetricsDashboard from '@/components/admin/MetricsDashboard';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
@@ -459,31 +460,8 @@ export default function SuperAdminDashboard() {
 
         {/* ── VISTA MÉTRICAS ── */}
         {vista === 'metricas' && (
-          <div className="animate-in fade-in duration-300 space-y-6">
-            <h2 className="text-2xl font-black text-slate-800">Métricas Master</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Jugadores por Academia</h4>
-                <div className="space-y-4">
-                  {clubes.slice(0, 5).map(c => (
-                    <div key={c.id}>
-                      <div className="flex justify-between text-xs font-semibold mb-1.5">
-                        <span className="text-slate-700">{c.nombre}</span>
-                        <span className="text-lime-600">{metrics?.alumnosPorClub?.[c.id] || 0}</span>
-                      </div>
-                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-lime-500 rounded-full transition-all" style={{ width: `${Math.min(((metrics?.alumnosPorClub?.[c.id] || 0) / 50) * 100, 100)}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col items-center justify-center text-center">
-                <TrendingUp className="text-lime-500 mb-4" size={40} />
-                <h4 className="text-lg font-black text-slate-800 mb-2">Tendencia de Crecimiento</h4>
-                <p className="text-sm text-gray-500 max-w-xs">El ecosistema ha crecido un 15% este mes. Se proyectan 3 nuevas aperturas para el próximo trimestre.</p>
-              </div>
-            </div>
+          <div className="animate-in fade-in duration-300">
+            <MetricsDashboard metrics={metrics} />
           </div>
         )}
 
