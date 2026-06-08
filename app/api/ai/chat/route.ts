@@ -106,7 +106,7 @@ Si te preguntan algo que no sepas, diles amablemente que contacten a soporte té
         },
         generationConfig: {
           temperature: 0.7,
-          maxOutputTokens: 250
+          maxOutputTokens: 1000
         }
       })
     });
