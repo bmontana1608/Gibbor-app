@@ -41,7 +41,7 @@ export default function SuperAdminDashboard() {
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({
-    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000
+    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000, plan_id: '' as string | number
   });
   const [userFormData, setUserFormData] = useState({ newPassword: '', newEmail: '' });
   const [adminFormData, setAdminFormData] = useState({ nombres: '', apellidos: '', email: '', password: '' });
@@ -78,6 +78,19 @@ export default function SuperAdminDashboard() {
     setDetailsLoading(false);
   };
 
+  const [planesSaaS, setPlanesSaaS] = useState<any[]>([]);
+  const [planesLoading, setPlanesLoading] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [planFormData, setPlanFormData] = useState({
+    id: null as number | null,
+    nombre: '',
+    tipo_cobro: 'mensual',
+    precio_base: 0,
+    limite_jugadores_base: 120,
+    precio_jugador_extra: 0,
+    activo: true
+  });
+
   const cargarTodo = async () => {
     setFetching(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -85,17 +98,50 @@ export default function SuperAdminDashboard() {
     const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
     if (perfil?.rol?.toLowerCase() !== 'superadmin') { setIsAdmin(false); setFetching(false); return; }
     setIsAdmin(true);
-    const [resClubes, resMetrics, resLogs, resConfig] = await Promise.all([
-      supabase.from('clubes').select('*, planes_saas(precio_por_jugador)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
+    const [resClubes, resMetrics, resLogs, resConfig, resPlanes] = await Promise.all([
+      supabase.from('clubes').select('*, planes_saas(id, nombre, tipo_cobro, precio_base, limite_jugadores_base)').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
       supabase.from('logs_auditoria').select('*').order('fecha', { ascending: false }).limit(50),
-      supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle()
+      supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle(),
+      supabase.from('planes_saas').select('*').order('id', { ascending: true })
     ]);
     setClubes(resClubes.data || []);
     setMetrics(resMetrics);
     setLogs(resLogs.data || []);
     if (resConfig.data) setConfigAdmin(resConfig.data);
+    setPlanesSaaS(resPlanes.data || []);
     setFetching(false);
+  };
+
+  const handleSavePlan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPlanesLoading(true);
+    try {
+      const payload = {
+        nombre: planFormData.nombre,
+        tipo_cobro: planFormData.tipo_cobro,
+        precio_base: planFormData.precio_base,
+        limite_jugadores_base: planFormData.limite_jugadores_base,
+        precio_jugador_extra: planFormData.precio_jugador_extra,
+        activo: planFormData.activo
+      };
+      
+      let res;
+      if (planFormData.id) {
+        res = await supabase.from('planes_saas').update(payload).eq('id', planFormData.id);
+      } else {
+        res = await supabase.from('planes_saas').insert(payload);
+      }
+      
+      if (res.error) throw res.error;
+      toast.success(planFormData.id ? 'Plan actualizado' : 'Plan creado exitosamente');
+      setShowPlanModal(false);
+      cargarTodo(); // recargar
+    } catch (err: any) {
+      toast.error('Error al guardar plan: ' + err.message);
+    } finally {
+      setPlanesLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -347,7 +393,7 @@ export default function SuperAdminDashboard() {
                             onToggle={toggleEstadoClub} onAudit={auditClub}
                             onEdit={(c: any) => {
                               setSelectedClub(c);
-                              setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000 });
+                              setEditFormData({ nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '', direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000, plan_id: c.plan_id || '' });
                               setShowEditModal(true);
                             }}
                             onDelete={eliminarClub}
@@ -406,6 +452,60 @@ export default function SuperAdminDashboard() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* ── VISTA PLANES SAAS ── */}
+        {vista === 'saas-billing' && (
+          <div className="animate-in fade-in duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800">Planes SaaS</h2>
+                <p className="text-sm text-gray-500">Configura los planes de suscripción para los clubes.</p>
+              </div>
+              <button 
+                onClick={() => {
+                  setPlanFormData({ id: null, nombre: '', tipo_cobro: 'mensual', precio_base: 0, limite_jugadores_base: 120, precio_jugador_extra: 2000, activo: true });
+                  setShowPlanModal(true);
+                }}
+                className="bg-lime-500 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-2 transition-colors"
+              >
+                <CreditCard size={18} /> Nuevo Plan
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {planesSaaS.map(plan => (
+                <div key={plan.id} className={`bg-white rounded-2xl border ${plan.activo ? 'border-gray-200' : 'border-red-100 bg-red-50/30'} p-6 shadow-sm relative`}>
+                  {!plan.activo && <div className="absolute top-4 right-4 text-xs font-bold text-red-500 bg-red-100 px-2 py-1 rounded-md">Inactivo</div>}
+                  <div className="text-xs font-bold text-lime-600 bg-lime-50 w-max px-2 py-1 rounded-md uppercase tracking-wider mb-2">
+                    {plan.tipo_cobro}
+                  </div>
+                  <h3 className="font-bold text-lg text-slate-800 mb-1">{plan.nombre}</h3>
+                  <div className="flex items-baseline gap-1 mb-4">
+                    <span className="text-2xl font-black text-slate-800">${Number(plan.precio_base).toLocaleString()}</span>
+                    <span className="text-xs text-gray-500">COP {plan.tipo_cobro === 'anual' ? '/año' : '/mes'}</span>
+                  </div>
+                  
+                  <ul className="space-y-2 text-sm text-gray-600 mb-6">
+                    <li className="flex justify-between"><span>Límite base:</span> <strong>{plan.limite_jugadores_base === 0 ? 'Ilimitado' : plan.limite_jugadores_base} jug.</strong></li>
+                    <li className="flex justify-between"><span>Jugador extra:</span> <strong>${Number(plan.precio_jugador_extra).toLocaleString()}</strong></li>
+                  </ul>
+                  
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setPlanFormData(plan);
+                        setShowPlanModal(true);
+                      }}
+                      className="flex-1 border border-gray-200 hover:border-lime-500 hover:text-lime-600 text-gray-600 font-bold py-2 rounded-xl transition-colors text-sm"
+                    >
+                      Editar
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -678,7 +778,7 @@ export default function SuperAdminDashboard() {
                   </div>
                 </div>
 
-                <button onClick={() => { setEditFormData({ nombre: selectedClub.nombre, correo_administrativo: selectedClub.correo_administrativo || '', telefono_contacto: selectedClub.telefono_contacto || '', direccion: selectedClub.direccion || '', nombre_legal: selectedClub.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: selectedClub.fecha_fin_prueba ? new Date(selectedClub.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: selectedClub.tarifa_por_jugador || 2000 }); setShowEditModal(true); }} className="w-full bg-lime-500 text-white font-bold py-3 rounded-xl">
+                <button onClick={() => { setEditFormData({ nombre: selectedClub.nombre, correo_administrativo: selectedClub.correo_administrativo || '', telefono_contacto: selectedClub.telefono_contacto || '', direccion: selectedClub.direccion || '', nombre_legal: selectedClub.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: selectedClub.fecha_fin_prueba ? new Date(selectedClub.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: selectedClub.tarifa_por_jugador || 2000, plan_id: selectedClub.plan_id || '' }); setShowEditModal(true); }} className="w-full bg-lime-500 text-white font-bold py-3 rounded-xl">
                   Editar Datos del Club
                 </button>
 
@@ -714,7 +814,58 @@ export default function SuperAdminDashboard() {
         </div>
       )}
 
-      {/* ── MODAL CREAR CLUB ── */}
+      {/* ── MODAL PLAN SAAS ── */}
+      {showPlanModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center sticky top-0 bg-white">
+              <h2 className="text-xl font-bold text-slate-800">{planFormData.id ? 'Editar Plan' : 'Nuevo Plan SaaS'}</h2>
+              <button onClick={() => setShowPlanModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSavePlan} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Plan</label>
+                <input type="text" required value={planFormData.nombre} onChange={e => setPlanFormData({...planFormData, nombre: e.target.value})} className="w-full border rounded-xl px-4 py-2" placeholder="Ej: Plan Anual Crecimiento" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Tipo de Cobro</label>
+                <select value={planFormData.tipo_cobro} onChange={e => setPlanFormData({...planFormData, tipo_cobro: e.target.value})} className="w-full border rounded-xl px-4 py-2">
+                  <option value="mensual">Mensual</option>
+                  <option value="anual">Anual</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Precio Base (COP)</label>
+                <input type="number" required min="0" value={planFormData.precio_base} onChange={e => setPlanFormData({...planFormData, precio_base: Number(e.target.value)})} className="w-full border rounded-xl px-4 py-2" placeholder="1296000" />
+                <p className="text-xs text-gray-500 mt-1">Lo que se cobra fijo por este plan.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Límite de Jugadores Base</label>
+                <input type="number" required min="0" value={planFormData.limite_jugadores_base} onChange={e => setPlanFormData({...planFormData, limite_jugadores_base: Number(e.target.value)})} className="w-full border rounded-xl px-4 py-2" placeholder="120" />
+                <p className="text-xs text-gray-500 mt-1">Cuántos jugadores incluye el Precio Base. (0 = ilimitados).</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Precio por Jugador Extra (COP)</label>
+                <input type="number" required min="0" value={planFormData.precio_jugador_extra} onChange={e => setPlanFormData({...planFormData, precio_jugador_extra: Number(e.target.value)})} className="w-full border rounded-xl px-4 py-2" placeholder="1800" />
+                <p className="text-xs text-gray-500 mt-1">Costo por cada jugador que exceda el límite base.</p>
+              </div>
+              <div className="flex items-center gap-2 mt-4 p-4 bg-gray-50 rounded-xl">
+                <input type="checkbox" id="activoPlan" checked={planFormData.activo} onChange={e => setPlanFormData({...planFormData, activo: e.target.checked})} className="w-5 h-5 accent-lime-500" />
+                <label htmlFor="activoPlan" className="text-sm font-bold text-gray-700 cursor-pointer">Plan Activo</label>
+              </div>
+
+              <div className="flex gap-3 pt-6 border-t mt-6">
+                <button type="button" onClick={() => setShowPlanModal(false)} className="flex-1 px-4 py-3 border rounded-xl font-bold text-gray-600 hover:bg-gray-50">Cancelar</button>
+                <button type="submit" disabled={planesLoading} className="flex-1 px-4 py-3 bg-lime-500 hover:bg-lime-400 text-white rounded-xl font-bold flex items-center justify-center gap-2">
+                  {planesLoading ? <Loader2 className="animate-spin" size={18} /> : 'Guardar Plan'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODALES GOVERNANCE ── */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -776,16 +927,35 @@ export default function SuperAdminDashboard() {
                       className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50"
                     />
                   </div>
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Tarifa x Jugador ($)</label>
-                    <input 
-                      type="number" 
-                      value={editFormData.tarifa_por_jugador} 
-                      onChange={e => setEditFormData({...editFormData, tarifa_por_jugador: Number(e.target.value)})}
-                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50"
-                    />
-                  </div>
                 </div>
+                  <div className="bg-gray-50 p-4 rounded-xl space-y-3 mt-3">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Facturación SaaS</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Plan de Suscripción</label>
+                        <select 
+                          value={editFormData.plan_id} 
+                          onChange={e => setEditFormData({...editFormData, plan_id: e.target.value})}
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-white"
+                        >
+                          <option value="">Sin plan (Personalizado)</option>
+                          {planesSaaS.map(p => (
+                            <option key={p.id} value={p.id}>{p.nombre} ({p.tipo_cobro})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Tarifa Custom (Solo si no hay plan)</label>
+                        <input 
+                          type="number" 
+                          value={editFormData.tarifa_por_jugador} 
+                          onChange={e => setEditFormData({...editFormData, tarifa_por_jugador: Number(e.target.value)})}
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-white"
+                          disabled={!!editFormData.plan_id}
+                        />
+                      </div>
+                    </div>
+                  </div>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">

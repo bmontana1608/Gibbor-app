@@ -125,7 +125,8 @@ export async function PATCH(
       sync_director_email,
       director_id,
       fecha_fin_prueba,
-      tarifa_por_jugador
+      tarifa_por_jugador,
+      plan_id
     } = await request.json();
 
     // 1. Actualizar datos del club
@@ -139,6 +140,7 @@ export async function PATCH(
         nombre_legal,
         fecha_fin_prueba: fecha_fin_prueba ? new Date(fecha_fin_prueba).toISOString() : null,
         tarifa_por_jugador,
+        plan_id: plan_id || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
