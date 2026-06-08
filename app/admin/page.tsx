@@ -495,9 +495,12 @@ export default function SuperAdminDashboard() {
                  />
                  <button 
                    onClick={async () => {
-                     const val = configAdmin.telefono_soporte;
-                     const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, telefono_soporte: val });
-                     if (error) toast.error('Error al guardar');
+                      const val = configAdmin.telefono_soporte;
+                      const res = await fetch('/api/admin/configuracion', {
+                        method: 'POST',
+                        body: JSON.stringify({ telefono_soporte: val })
+                      });
+                      if (!res.ok) toast.error('Error al guardar');
                      else toast.success('Teléfono actualizado');
                    }}
                    className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
@@ -521,13 +524,15 @@ export default function SuperAdminDashboard() {
                  />
                  <button 
                    onClick={async () => {
-                     const val = configAdmin.gemini_api_key;
-                     const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, gemini_api_key: val });
-                     if (error) {
-                        toast.error('Error al guardar. Verifica que la columna gemini_api_key exista.');
-                        console.error(error);
-                     }
-                     else toast.success('API Key guardada. Gibbi ya puede funcionar.');
+                      const val = configAdmin.gemini_api_key;
+                      const res = await fetch('/api/admin/configuracion', {
+                        method: 'POST',
+                        body: JSON.stringify({ gemini_api_key: val })
+                      });
+                      if (!res.ok) {
+                        toast.error('Error al guardar en la base de datos.');
+                      }
+                      else toast.success('API Key guardada. Gibbi ya puede funcionar.');
                    }}
                    className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
                  >
@@ -551,10 +556,12 @@ export default function SuperAdminDashboard() {
                  <button 
                    onClick={async () => {
                       const val = configAdmin.slack_webhook_url;
-                      const { error } = await supabase.from('configuracion_superadmin').upsert({ id: 1, slack_webhook_url: val });
-                      if (error) {
-                        toast.error('Error al guardar. Verifica que corriste el script SQL.');
-                        console.error(error);
+                      const res = await fetch('/api/admin/configuracion', {
+                        method: 'POST',
+                        body: JSON.stringify({ slack_webhook_url: val })
+                      });
+                      if (!res.ok) {
+                        toast.error('Error al guardar en la base de datos.');
                      }
                      else toast.success('Webhook de Slack guardado.');
                    }}
