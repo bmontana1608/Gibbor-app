@@ -132,7 +132,7 @@ export default function SaaSManagementView() {
     const toastId = toast.loading('Actualizando estado de pago...');
     const { error } = await supabase
       .from('facturacion_mensual')
-      .update({ estado_pago: 'pagado', fecha_pago: new Date().toISOString() })
+      .update({ estado_pago: 'pagado' })
       .eq('id', facturaId);
 
     if (error) {
