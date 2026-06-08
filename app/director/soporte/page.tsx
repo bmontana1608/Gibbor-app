@@ -49,14 +49,12 @@ export default function SoporteDirectorPage() {
         setProfile(per);
         
         if (per) {
-          // Find club id
+          // Find club id (may be empty for superadmins testing the view)
           const { data: rel } = await supabase.from('clubes_usuarios').select('club_id').eq('usuario_id', per.id).limit(1);
           if (rel && rel.length > 0) {
             setClubId(rel[0].club_id);
-            await loadTickets(per.id);
-          } else {
-            setLoading(false);
           }
+          await loadTickets(per.id);
         } else {
           setLoading(false);
         }
