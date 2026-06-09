@@ -120,6 +120,7 @@ export default function BibliotecaEntrenador() {
                 src={embedUrl}
                 controls
                 autoPlay
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-contain"
               ></video>
             ) : (

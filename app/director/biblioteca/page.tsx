@@ -103,6 +103,7 @@ export default function BibliotecaDirector() {
                 src={embedUrl}
                 controls
                 autoPlay
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-contain"
               ></video>
             ) : (

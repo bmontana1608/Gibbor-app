@@ -144,6 +144,7 @@ export default function BibliotecaAdminView() {
                 src={embedUrl}
                 controls
                 autoPlay
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-contain"
               ></video>
             ) : (

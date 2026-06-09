@@ -315,6 +315,7 @@ export default function PlanificadorEntrenador() {
                                   <video 
                                     src={embedUrl!}
                                     controls
+                                    referrerPolicy="no-referrer"
                                     className="w-full h-full object-contain"
                                   ></video>
                                 ) : (
