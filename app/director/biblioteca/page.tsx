@@ -99,12 +99,11 @@ export default function BibliotecaDirector() {
         return (
           <div className="relative w-full h-40 bg-black rounded-t-2xl overflow-hidden">
             {isMp4 ? (
-              {/* @ts-ignore */}
               <video 
                 src={embedUrl}
                 controls
                 autoPlay
-                referrerPolicy="no-referrer"
+                {...({ referrerPolicy: "no-referrer" } as any)}
                 className="w-full h-full object-contain"
               ></video>
             ) : (
