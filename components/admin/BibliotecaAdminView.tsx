@@ -140,6 +140,7 @@ export default function BibliotecaAdminView() {
         return (
           <div className="relative w-full h-40 bg-black rounded-t-2xl overflow-hidden">
             {isMp4 ? (
+              {/* @ts-ignore - React types might lack referrerPolicy for video */}
               <video 
                 src={embedUrl}
                 controls

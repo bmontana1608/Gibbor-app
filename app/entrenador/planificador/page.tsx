@@ -312,6 +312,7 @@ export default function PlanificadorEntrenador() {
                             return (
                               <div key={idx} className="aspect-video w-full bg-slate-900 rounded-2xl overflow-hidden shadow-inner border border-slate-200">
                                 {isMp4 ? (
+                                  {/* @ts-ignore */}
                                   <video 
                                     src={embedUrl!}
                                     controls
