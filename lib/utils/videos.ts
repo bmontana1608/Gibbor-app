@@ -35,7 +35,8 @@ export function getEmbedUrl(url: string): string | null {
   
   const driveId = getDriveId(cleanUrl);
   if (driveId) {
-    return `https://drive.google.com/file/d/${driveId}/preview`;
+    // Return direct download stream link. Adding &ext=.mp4 tricks the frontend into using the native <video> tag
+    return `https://drive.google.com/uc?export=download&id=${driveId}&ext=.mp4`;
   }
   
   const tiktokId = getTikTokId(cleanUrl);
