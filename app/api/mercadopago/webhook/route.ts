@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -12,32 +11,70 @@ export async function POST(req: Request) {
     const url = new URL(req.url);
     const action = url.searchParams.get('type') || url.searchParams.get('topic');
     const paymentId = url.searchParams.get('data.id') || url.searchParams.get('id');
+    const clubId = url.searchParams.get('clubId');
 
-    // Solo nos interesan las notificaciones de pago
-    if ((action === 'payment' || action === 'payment.created') && paymentId) {
+    if ((action === 'payment' || action === 'payment.created') && paymentId && clubId) {
       
-      // Dado que el pago pertenece a un club (y su access_token), no podemos simplemente
-      // consultarlo con nuestro token de plataforma. PERO, si configuramos el webhook general,
-      // necesitamos buscar el pago. O mejor aún, Mercado Pago envía el external_reference en el webhook a veces.
-      // Si no tenemos el token aquí, ¿cómo leemos el pago?
-      // Solución B2B2C: Guardamos el token en la base de datos y lo buscamos por external_reference? No, no viene en la URL.
-      // En Mercado Pago Connect, si usamos notificaciones IPN, necesitamos el token del vendedor.
-      // Para simplificar: En un entorno de múltiples clubes, usualmente usamos "OAuth" y el webhook recibe el user_id del vendedor.
-      
-      // *Temporalmente* para hacer que funcione la lógica base asumiendo un club:
-      // (En producción requeriremos asociar el payment_id al token del club, lo cual MP hace enviando el `user_id` del vendedor)
-      
-      // 1. Aquí idealmente consultarías el pago usando el token del club.
-      // Como workaround rápido, si tu aplicación está bajo tu cuenta principal, puedes intentar leerlo si tienes permisos de aplicación.
-      
-      console.log(`Pago recibido ID: ${paymentId}`);
-      // Lógica de Supabase:
-      // Si logras leer la `external_reference` (que es `clubId_jugadorId_monto`), puedes extraer los IDs:
-      // const [clubId, jugadorId, monto] = external_reference.split('_');
-      //
-      // await supabaseAdmin.from('perfiles').update({ estado_pago: 'Al día' }).eq('id', jugadorId);
-      // await supabaseAdmin.from('pagos_ingresos').insert([...])
-      
+      // 1. Obtener el token del club
+      const { data: club } = await supabaseAdmin
+        .from('clubes')
+        .select('mp_access_token')
+        .eq('id', clubId)
+        .single();
+        
+      if (!club || !club.mp_access_token) return NextResponse.json({ error: 'Club not configured' }, { status: 400 });
+
+      // 2. Consultar el pago en MP
+      const res = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+        headers: { Authorization: `Bearer ${club.mp_access_token}` }
+      });
+      const paymentData = await res.json();
+
+      if (paymentData.status === 'approved') {
+        const external_reference = paymentData.external_reference;
+        if (external_reference) {
+          const [extClubId, jugadorId, monto] = external_reference.split('_');
+
+          // Verificar si ya se procesó (por si Mercado Pago envía el webhook duplicado)
+          const { data: existing } = await supabaseAdmin.from('pagos_ingresos').select('id').eq('notas', `MP_ID:${paymentId}`).single();
+          
+          if (!existing) {
+             // 3. Obtener datos del jugador
+             const { data: jugador } = await supabaseAdmin.from('perfiles').select('nombres, apellidos, grupos').eq('id', jugadorId).single();
+             
+             // 4. Obtener el consecutivo
+             const { data: maxConsecutivo } = await supabaseAdmin
+               .from('pagos_ingresos')
+               .select('consecutivo')
+               .eq('club_id', clubId)
+               .order('consecutivo', { ascending: false })
+               .limit(1)
+               .single();
+             const nextConsecutivo = (maxConsecutivo?.consecutivo || 0) + 1;
+
+             // 5. Registrar el ingreso
+             await supabaseAdmin.from('pagos_ingresos').insert({
+                club_id: clubId,
+                jugador_id: jugadorId,
+                nombres: jugador?.nombres || 'Jugador',
+                apellidos: jugador?.apellidos || '',
+                grupo: jugador?.grupos || 'GENERAL',
+                monto_base: Number(monto),
+                descuento: 0,
+                recargo: 0,
+                total: Number(monto),
+                metodo_pago: 'Mercado Pago',
+                notas: `MP_ID:${paymentId}`,
+                fecha: new Date().toISOString(),
+                consecutivo: nextConsecutivo
+             });
+
+             // 6. Marcar al jugador como 'Al Día'
+             await supabaseAdmin.from('perfiles').update({ estado_pago: 'Al Día' }).eq('id', jugadorId);
+          }
+        }
+      }
+
       return NextResponse.json({ received: true, id: paymentId });
     }
 

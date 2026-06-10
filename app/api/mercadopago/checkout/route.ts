@@ -56,7 +56,7 @@ export async function POST(req: Request) {
           pending: `${origin}/futbolista/pagos?mp_status=pending`,
         },
         auto_return: 'approved',
-        notification_url: 'https://masterclubmanager.com/api/mercadopago/webhook',
+        notification_url: `https://masterclubmanager.com/api/mercadopago/webhook?clubId=${clubId}`,
         external_reference: `${clubId}_${jugadorId}_${monto}`, // Guardamos metadatos para el webhook
         statement_descriptor: 'MENSUALIDAD MCM',
       }
