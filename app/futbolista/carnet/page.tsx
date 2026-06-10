@@ -35,9 +35,26 @@ export default function CarnetFutbolista() {
 
         // 2. Identificar el perfil a cargar
         const savedHijoId = typeof window !== 'undefined' ? localStorage.getItem('hijo_seleccionado_id') : null;
-        let targetId = savedHijoId || session.user.id;
-
+        
+        let targetId = session.user.id;
+        
         try {
+          const cleanEmail = session.user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
+          const resFam = await fetch(`/api/familia?email=${cleanEmail}&uid=${session.user.id}`, { cache: 'no-store' });
+          const misPerfiles = await resFam.json();
+          
+          if (savedHijoId && Array.isArray(misPerfiles)) {
+             const esValido = misPerfiles.some((p: any) => p.id === savedHijoId);
+             if (esValido) {
+               targetId = savedHijoId;
+             } else {
+               // Si el localStorage tenía basura vieja, limpiar
+               localStorage.removeItem('hijo_seleccionado_id');
+               const primerHijo = misPerfiles.find((p:any) => p.rol !== 'Director' && p.rol !== 'Entrenador');
+               if (primerHijo) targetId = primerHijo.id;
+             }
+          }
+          
           const { data: currentPerfil, error } = await supabase
             .from("perfiles")
             .select("*, clubes(nombre, logo_url, color_primario)")
