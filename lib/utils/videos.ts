@@ -29,7 +29,8 @@ export function getEmbedUrl(url: string): string | null {
   
   const ytId = getYouTubeId(cleanUrl);
   if (ytId) {
-    return `https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0&iv_load_policy=3`;
+    // color=white makes the progress bar neutral. modestbranding removes the YT logo. rel=0 prevents random recommendations.
+    return `https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0&iv_load_policy=3&color=white&playsinline=1`;
   }
   
   const driveId = getDriveId(cleanUrl);
@@ -39,7 +40,8 @@ export function getEmbedUrl(url: string): string | null {
   
   const tiktokId = getTikTokId(cleanUrl);
   if (tiktokId) {
-    return `https://www.tikwm.com/video/media/play/${tiktokId}.mp4`;
+    // Revert to official TikTok iframe to prevent black screens caused by hotlink protection
+    return `https://www.tiktok.com/embed/v2/${tiktokId}`;
   }
   
   return cleanUrl; // fallback
