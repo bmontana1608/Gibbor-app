@@ -111,7 +111,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
 
           <div className="bg-slate-800/50 rounded-2xl p-4 mb-4 border border-slate-700/50">
              <div className="flex items-center gap-3">
-                <div className="bg-brand/50 overflow-hidden shrink-0">
+                <div className="w-12 h-12 rounded-full bg-brand/50 overflow-hidden shrink-0 flex items-center justify-center text-white font-black text-lg shadow-inner">
                   {usuario?.foto_url ? (
                     <img src={usuario.foto_url} alt={usuario?.nombres} className="w-full h-full object-cover" />
                   ) : (
