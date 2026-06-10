@@ -139,22 +139,31 @@ export default function GestionCategorias() {
     };
 
     if (grupoEditandoId) {
-      // Al actualizar, eliminamos el ID del cuerpo para evitar conflictos con la PK
-      const { id, created_at, ...datosParaActualizar } = datosFinales;
-      const { error } = await supabase.from('categorias').update(datosParaActualizar).eq('id', grupoEditandoId);
+      const datosParaActualizar = { id: grupoEditandoId, ...datosFinales };
+      const res = await fetch('/api/categorias', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosParaActualizar)
+      });
+      const result = await res.json();
       
-      if (error) {
-        toast.error("Error al actualizar: " + error.message, { id: toastId });
+      if (result.error) {
+        toast.error("Error al actualizar: " + result.error, { id: toastId });
       } else { 
         toast.success("Categoría actualizada correctamente.", { id: toastId });
         cerrarModal(); 
-        // Pequeño delay para asegurar que Supabase procesó el cambio antes de re-consultar
         setTimeout(() => cargarDatos(), 300); 
       }
     } else {
-      const { error } = await supabase.from('categorias').insert([datosFinales]);
-      if (error) {
-        toast.error("Error al crear grupo: " + error.message, { id: toastId });
+      const res = await fetch('/api/categorias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosFinales)
+      });
+      const result = await res.json();
+      
+      if (result.error) {
+        toast.error("Error al crear grupo: " + result.error, { id: toastId });
       } else { 
         toast.success("Nueva categoría creada exitosamente.", { id: toastId });
         cerrarModal(); 
