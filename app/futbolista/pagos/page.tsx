@@ -121,6 +121,19 @@ export default function PagosFutbolista() {
         setPerfil(userData);
 
         if (userData?.club_id) {
+          // Obtenemos el plan de pago del jugador
+          if (userData.tipo_plan) {
+            const { data: planData } = await supabase
+              .from("planes")
+              .select("precio_base")
+              .eq("club_id", userData.club_id)
+              .ilike("nombre", userData.tipo_plan)
+              .single();
+            if (planData && planData.precio_base) {
+              setPlanBase(planData.precio_base);
+            }
+          }
+
           // Obtenemos los canales de pago
           const { data: configData } = await supabase
             .from("configuracion_wa")
