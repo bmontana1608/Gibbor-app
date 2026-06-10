@@ -19,6 +19,35 @@ export default function PagosFutbolista() {
 
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
+  const [planBase, setPlanBase] = useState(120000);
+  const [pagandoEnLinea, setPagandoEnLinea] = useState(false);
+
+  const handleMercadoPagoCheckout = async () => {
+    if (!perfil || !tenant?.id) return;
+    setPagandoEnLinea(true);
+    try {
+      const res = await fetch('/api/mercadopago/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clubId: tenant.id,
+          jugadorId: perfil.id,
+          monto: planBase,
+          nombreJugador: `${perfil.nombres} ${perfil.apellidos}`.trim(),
+          email: perfil.email || '',
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'No se pudo iniciar el pago');
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+      setPagandoEnLinea(false);
+    }
+  };
 
   const handleVerRecibo = async (pago: any) => {
     const toastId = toast.loading("Generando recibo...");
@@ -206,12 +235,22 @@ export default function PagosFutbolista() {
             <div className="flex flex-wrap gap-4 pt-4">
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                   <Wallet className="w-4 h-4 border-brand/40" />
-                  <span className="text-xs font-bold">$120,000 COP</span>
+                  <span className="text-xs font-bold">${planBase.toLocaleString('es-CO')} COP</span>
                </div>
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                   <Calendar className="w-4 h-4 border-brand/40" />
                   <span className="text-xs font-bold text-slate-300">Mensualidad Regular</span>
                </div>
+               {tenant?.mp_access_token && estadoPagoReal !== 'Al día' && (
+                 <button 
+                   onClick={handleMercadoPagoCheckout} 
+                   disabled={pagandoEnLinea}
+                   className="bg-[#009EE3] text-white px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-[#009EE3]/20 ml-auto"
+                 >
+                   {pagandoEnLinea ? <span className="animate-pulse">Procesando...</span> : <CreditCard className="w-4 h-4" />}
+                   Pagar con Mercado Pago
+                 </button>
+               )}
             </div>
          </div>
          {/* Background Decoration */}

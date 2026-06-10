@@ -102,6 +102,8 @@ export async function getTenant(overrideSlug?: string | null) {
     id: currentClub.id,
     slug: currentClub.slug,
     isMaster: false,
+    mp_access_token: currentClub.mp_access_token,
+    mp_public_key: currentClub.mp_public_key,
     config: {
       nombre: currentClub.nombre,
       color: currentClub.color_primario || '#06b6d4',

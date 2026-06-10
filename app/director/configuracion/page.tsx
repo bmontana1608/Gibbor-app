@@ -243,6 +243,32 @@ export default function ConfiguracionGeneral() {
     setCargando(false);
   };
 
+  const MP_CLIENT_ID = process.env.NEXT_PUBLIC_MP_CLIENT_ID || '7714123508461740';
+
+  const handleConnectMercadoPago = () => {
+    if (!tenant?.id) return;
+    const origin = window.location.origin;
+    const redirectUri = `${origin}/api/mercadopago/callback`;
+    // Enviamos el id y el slug del club en el state
+    const stateParams = `${tenant.id}:::${tenant.slug}`;
+    const url = `https://auth.mercadopago.com/authorization?client_id=${MP_CLIENT_ID}&response_type=code&platform_id=mp&state=${stateParams}&redirect_uri=${redirectUri}`;
+    window.location.href = url;
+  };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const mpStatus = urlParams.get('mp_status');
+
+    if (mpStatus === 'success') {
+      toast.success('¡Mercado Pago conectado exitosamente!');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTenant((prev: any) => ({ ...prev, mp_access_token: 'connected' }));
+    } else if (mpStatus === 'error') {
+      toast.error('Error al conectar Mercado Pago');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const handleSubirLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       if (!e.target.files || e.target.files.length === 0) return;
@@ -453,7 +479,36 @@ export default function ConfiguracionGeneral() {
             {/* PAGOS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><CreditCard className="text-brand" /> Métodos de Pago</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* MERCADO PAGO CONNECT */}
+              <div className="mb-6 p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col md:flex-row items-center gap-6 justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#009EE3]/10 text-[#009EE3] rounded-xl flex items-center justify-center shrink-0">
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-800">Pagos Automáticos (Mercado Pago)</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 max-w-sm">Permite a los papás pagar con Nequi, Daviplata, Tarjeta o PSE. El dinero cae directamente a la cuenta de Mercado Pago del club.</p>
+                  </div>
+                </div>
+                <div>
+                  {tenant?.mp_access_token ? (
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl border border-emerald-100">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span className="text-xs font-bold">Cuenta Vinculada</span>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={handleConnectMercadoPago}
+                      className="bg-[#009EE3] hover:bg-[#0089c7] text-white px-6 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap shadow-md shadow-[#009EE3]/20"
+                    >
+                      Vincular mi Cuenta
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><Smartphone className="w-3 h-3 text-purple-500" /> Nequi</label>
                   <input type="text" value={config.nequi} onChange={(e) => setConfig({...config, nequi: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-black text-sm" />
