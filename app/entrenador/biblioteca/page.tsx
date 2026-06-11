@@ -113,8 +113,11 @@ export default function BibliotecaEntrenador() {
       const embedUrl = getEmbedUrl(url);
       if (embedUrl) {
         const isMp4 = embedUrl.endsWith('.mp4');
+        const isTikTok = embedUrl.includes('tiktok.com');
+        const containerHeightClass = isTikTok ? 'h-[550px]' : isMp4 ? 'h-[450px]' : 'aspect-video';
+        
         return (
-          <div className={`relative w-full bg-black rounded-t-2xl overflow-hidden transition-all duration-300 ${isMp4 ? 'h-[450px]' : 'aspect-video'}`}>
+          <div className={`relative w-full bg-black rounded-t-2xl overflow-hidden transition-all duration-300 ${containerHeightClass}`}>
             {isMp4 ? (
               <video 
                 src={embedUrl}

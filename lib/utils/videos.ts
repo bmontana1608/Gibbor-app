@@ -41,8 +41,8 @@ export function getEmbedUrl(url: string): string | null {
   
   const tiktokId = getTikTokId(cleanUrl);
   if (tiktokId) {
-    // Return direct MP4 from tikwm to avoid TikTok iframe noise (likes, comments)
-    return `https://www.tikwm.com/video/media/play/${tiktokId}.mp4`;
+    // Revert to official TikTok iframe to prevent black screens caused by hotlink protection
+    return `https://www.tiktok.com/embed/v2/${tiktokId}`;
   }
   
   return cleanUrl; // fallback
