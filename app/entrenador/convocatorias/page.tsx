@@ -55,8 +55,7 @@ export default function ConvocatoriasEntrenador() {
         .from('perfiles')
         .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
         .eq('club_id', currentTenant.id)
-        .eq('rol', 'Futbolista')
-        .eq('estado_miembro', 'Activo');
+        .eq('rol', 'Futbolista');
         
       if (categoriasAsignadas.length > 0) {
         queryJugadores = queryJugadores.in('grupos', categoriasAsignadas);
