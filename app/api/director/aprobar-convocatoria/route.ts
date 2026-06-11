@@ -36,7 +36,8 @@ export async function POST(request: Request) {
           id,
           nombres,
           apellidos,
-          telefono
+          telefono,
+          grupos
         )
       `)
       .eq('evento_id', evento_id);
@@ -62,10 +63,12 @@ export async function POST(request: Request) {
       const titulo = evento.titulo;
       const nombreCompleto = `${perfil.nombres} ${perfil.apellidos}`;
       const rol = convocado.rol_partido.toUpperCase();
+      const categoria = (perfil.grupos || '').replace('|MANUAL', '').trim() || 'Tu Categoría';
+      const notasExtra = evento.descripcion ? `\n\n📌 *Notas del Entrenador:*\n${evento.descripcion}` : '';
       
       // WhatsApp (si tiene teléfono)
       if (perfil.telefono) {
-        const mensaje = `⚽ *¡ATENCIÓN FAMILIA!* 🎉\n\nNos complace informarles que *${nombreCompleto}* ha sido oficialmente CONVOCADO para representar al club en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará bien al club. ¡Los esperamos! 💪🔥`;
+        const mensaje = `⚽ *¡ATENCIÓN FAMILIA GIBBOR!* 🎉\n\nNos complace informarles que *${nombreCompleto}* (Categoría: ${categoria}) ha sido oficialmente CONVOCADO para representar al club en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐${notasExtra}\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará bien al club. ¡Los esperamos! 💪🔥`;
 
         const result = await enviarMensajeWhatsApp(
           perfil.telefono,
