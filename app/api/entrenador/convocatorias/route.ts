@@ -1,29 +1,44 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { getTenant } from '@/lib/tenant';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error('Faltan variables de entorno de Supabase');
+  return createClient(url, key);
+}
 
 export async function GET(request: Request) {
-  const clubId = request.headers.get('x-club-id');
-  if (!clubId) return NextResponse.json({ error: 'Falta club_id' }, { status: 400 });
+  try {
+    const clubId = request.headers.get('x-club-id');
+    if (!clubId) {
+      return NextResponse.json({ error: 'Falta club_id en el header' }, { status: 400 });
+    }
 
-  const { data, error } = await supabaseAdmin
-    .from('perfiles')
-    .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
-    .eq('club_id', clubId)
-    .eq('rol', 'Futbolista')
-    .order('nombres', { ascending: true });
+    const supabaseAdmin = getAdmin();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data ?? []);
+    const { data, error } = await supabaseAdmin
+      .from('perfiles')
+      .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
+      .eq('club_id', clubId)
+      .eq('rol', 'Futbolista')
+      .order('nombres', { ascending: true });
+
+    if (error) {
+      console.error('[GET /api/entrenador/convocatorias] Supabase error:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json(data ?? []);
+  } catch (err: any) {
+    console.error('[GET /api/entrenador/convocatorias] Exception:', err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
   try {
+    const supabaseAdmin = getAdmin();
     const { evento, jugadores } = await request.json();
 
     if (!evento || !evento.club_id || !evento.creado_por || !evento.titulo) {
@@ -66,7 +81,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, evento: eventoGuardado });
   } catch (error: any) {
-    console.error("Error creando convocatoria:", error);
+    console.error('[POST /api/entrenador/convocatorias]', error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
