@@ -48,12 +48,24 @@ export default function ConvocatoriasEntrenador() {
       setPerfil(usuario);
 
       // Cargar jugadores filtrando datos sensibles (Seguridad)
-      // Solo pedimos id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones
-      const { data: jugadoresData } = await supabase
+      // Y filtrando SOLO por las categorías asignadas al entrenador
+      const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
+      
+      let queryJugadores = supabase
         .from('perfiles')
-        .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones')
+        .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
         .eq('club_id', currentTenant.id)
-        .eq('rol', 'Futbolista');
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo');
+        
+      if (categoriasAsignadas.length > 0) {
+        queryJugadores = queryJugadores.in('grupos', categoriasAsignadas);
+      } else {
+        // Si no tiene categorías asignadas, mostramos vacío o permitimos ver 'Ninguna'
+        queryJugadores = queryJugadores.eq('grupos', 'Ninguna');
+      }
+
+      const { data: jugadoresData } = await queryJugadores;
 
       if (jugadoresData) {
         setJugadores(jugadoresData);
