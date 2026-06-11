@@ -41,9 +41,14 @@ export default async function EntrenadorLayout({ children }: { children: React.R
 
   let wppNumber = '+573124265170';
   let activeAthletesCount = 0;
+  let activePlanes: any[] = [];
+  
   if (isSuspended) {
     const { data: configAdmin } = await supabase.from('configuracion_superadmin').select('telefono_soporte').single();
     if (configAdmin?.telefono_soporte) wppNumber = configAdmin.telefono_soporte;
+
+    const { data: planes } = await supabase.from('planes_saas').select('*').eq('activo', true).order('precio_base', { ascending: true });
+    if (planes) activePlanes = planes;
 
     const { count } = await supabase
       .from('perfiles')
@@ -60,7 +65,7 @@ export default async function EntrenadorLayout({ children }: { children: React.R
       {isSuspended ? (
         <SaaSSuspendidoView 
           club={tenant} 
-          tarifaBase={Number((tenant as any)?.tarifa_por_jugador || 2000)} 
+          planes={activePlanes}
           wppNumber={wppNumber} 
           activeAthletesCount={activeAthletesCount || 1}
         />
