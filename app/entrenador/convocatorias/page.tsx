@@ -64,28 +64,12 @@ export default function ConvocatoriasEntrenador() {
         .from('perfiles')
         .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
         .eq('club_id', usuario.club_id)
-        .eq('rol', 'Futbolista')
-        .neq('estado_miembro', 'Inactivo');
+        .eq('rol', 'Futbolista');
 
       if (jugadoresData) {
-        // Filtrar por categorías asignadas si tiene alguna, sino mostrar todos para no dejarlo varado
-        let filtrados = jugadoresData;
-        if (categoriasDelEntrenador.length > 0) {
-          filtrados = jugadoresData.filter(j => {
-             const gruposJugador = j.grupos || '';
-             return categoriasDelEntrenador.some(cat => gruposJugador.includes(cat));
-          });
-        } else {
-           // Fallback: tratar de usar usuario.grupos
-           const gruposString = (usuario.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
-           if (gruposString.length > 0) {
-              filtrados = jugadoresData.filter(j => {
-                 const gruposJugador = j.grupos || '';
-                 return gruposString.some((cat: string) => gruposJugador.includes(cat));
-              });
-           }
-        }
-        setJugadores(filtrados);
+        // MOSTRAR TODOS LOS JUGADORES PARA EVITAR LISTAS VACÍAS
+        // Ya están organizados por categoría de edad en la interfaz
+        setJugadores(jugadoresData);
       }
       setCargando(false);
     }
