@@ -7,7 +7,8 @@ import { Calendar, Users, Send, ShieldCheck, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConvocatoriasEntrenador() {
-  const { slug: tenantSlug, tenant } = useTenant();
+  const { slug: tenantSlug } = useTenant();
+  const [tenant, setTenant] = useState<any>(null);
   const [perfil, setPerfil] = useState<any>(null);
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -26,8 +27,17 @@ export default function ConvocatoriasEntrenador() {
 
   useEffect(() => {
     async function cargarDatos() {
+      if (!tenantSlug) return;
+      
+      let currentTenant = tenant;
+      if (!currentTenant) {
+        const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
+        currentTenant = await resT.json();
+        setTenant(currentTenant);
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session || !tenant) return;
+      if (!session || !currentTenant) return;
 
       const { data: usuario } = await supabase
         .from('perfiles')
@@ -42,7 +52,7 @@ export default function ConvocatoriasEntrenador() {
       const { data: jugadoresData } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones')
-        .eq('club_id', tenant.id)
+        .eq('club_id', currentTenant.id)
         .eq('rol', 'Futbolista');
 
       if (jugadoresData) {
@@ -50,8 +60,8 @@ export default function ConvocatoriasEntrenador() {
       }
       setCargando(false);
     }
-    if (tenant) cargarDatos();
-  }, [tenant]);
+    cargarDatos();
+  }, [tenantSlug]);
 
   const agruparPorCategoria = (lista: any[]) => {
     const grupos: { [key: string]: any[] } = {};

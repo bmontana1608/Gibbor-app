@@ -7,14 +7,24 @@ import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserChec
 import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
-  const { slug: tenantSlug, tenant } = useTenant();
+  const { slug: tenantSlug } = useTenant();
+  const [tenant, setTenant] = useState<any>(null);
   const [eventos, setEventos] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     async function cargarEventos() {
-      if (!tenant) return;
+      if (!tenantSlug) return;
       
+      let currentTenant = tenant;
+      if (!currentTenant) {
+        const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
+        currentTenant = await resT.json();
+        setTenant(currentTenant);
+      }
+      
+      if (!currentTenant) return;
+
       const { data } = await supabase
         .from('eventos')
         .select(`
