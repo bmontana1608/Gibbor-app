@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield, Layout, Trophy, Radar, ArrowRightLeft, Zap, Library, Play, ShieldCheck } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GibbiAssistant from "@/components/GibbiAssistant";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface EntrenadorLayoutClientProps {
   children: React.ReactNode;
@@ -78,7 +79,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   };
 
   return (
-    <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 font-sans overflow-hidden">
+    <div key={`${tenantSlug}-${pathname}`} className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
       <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --brand-primary: ${brandColor};
@@ -94,6 +95,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
           <span className="text-white font-black tracking-tighter uppercase italic text-sm">{brandName} Staff</span>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Entrenador'} />
           <button 
             onClick={() => setIsSidebarOpen(prev => !prev)}
@@ -120,7 +122,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
       {/* ASIDE / SIDEBAR */}
       <aside 
-        className={`fixed inset-y-0 left-0 bg-white border-r border-slate-200 flex flex-col z-50 transform transition-all duration-300 md:sticky md:top-0 md:h-screen md:translate-x-0 w-64
+        className={`fixed inset-y-0 left-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-50 transform transition-all duration-300 md:sticky md:top-0 md:h-screen md:translate-x-0 w-64
           ${isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'}
         `}
       >
@@ -129,7 +131,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
             <div className="flex items-center gap-3">
               <img src={brandLogo} alt="Logo" className="w-9 h-9 object-contain rounded-full shadow-md" />
               <div>
-                <span className="text-xl font-black text-slate-800 tracking-tighter uppercase italic leading-none block">{brandName}</span>
+                <span className="text-xl font-black text-slate-800 dark:text-white tracking-tighter uppercase italic leading-none block">{brandName}</span>
                 <span className="text-[9px] font-black uppercase tracking-widest leading-none" style={{ color: brandColor }}>Staff Mode</span>
               </div>
             </div>
@@ -138,12 +140,12 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
             </button>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center gap-3 mb-2 group transition-all">
+          <div className="bg-slate-50 dark:bg-slate-950 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 flex items-center gap-3 mb-2 group transition-all">
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold border shrink-0 shadow-inner" style={{ backgroundColor: `${brandColor}10`, color: brandColor, borderColor: `${brandColor}20` }}>
               {usuario?.nombres?.charAt(0) || 'S'}
             </div>
             <div className="overflow-hidden">
-              <p className="font-black text-slate-800 text-sm truncate uppercase italic tracking-tighter">
+              <p className="font-black text-slate-800 dark:text-white text-sm truncate uppercase italic tracking-tighter">
                 {usuario?.nombres?.split(' ')[0] || 'Staff User'}
               </p>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none mt-1">Entrenador</p>
@@ -178,7 +180,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
             );
           })}
 
-          <div className="p-4 mt-6 mx-2 bg-slate-900 rounded-[1.5rem] border border-slate-800 shadow-xl relative overflow-hidden">
+          <div className="p-4 mt-6 mx-2 bg-slate-900 dark:bg-slate-950 rounded-[1.5rem] border border-slate-800 shadow-xl relative overflow-hidden">
              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <ArrowRightLeft className="w-3 h-3" /> Otros Espacios
              </p>
@@ -208,17 +210,18 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-100 bg-white">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-2">
             <button 
                 onClick={cerrarSesion} 
-                className="w-full flex items-center gap-3 text-slate-400 hover:text-red-500 hover:bg-red-50 px-4 py-3 rounded-xl transition-all font-bold text-sm group"
+                className="flex-1 flex items-center justify-center gap-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all font-bold text-sm group"
             >
-                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> <span>Cerrar Sesión</span>
+                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> <span className="hidden md:inline">Salir</span>
             </button>
+            <ThemeToggle />
         </div>
       </aside>
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto bg-slate-50 pt-16 md:pt-0">
+      <main ref={mainRef} className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 pt-16 md:pt-0">
         <div className="p-4 md:p-8">
             {children}
         </div>
