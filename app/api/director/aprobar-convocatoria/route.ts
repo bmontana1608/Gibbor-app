@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
+import { enviarMensajeWhatsAppServer } from '@/lib/whatsappServer';
 import webpush from 'web-push';
 
 const supabaseAdmin = createClient(
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       if (perfil.telefono) {
         const mensaje = `⚽ *¡ATENCIÓN FAMILIA GIBBOR!* 🎉\n\nNos complace informarles que *${nombreCompleto}* (Categoría: ${categoria}) ha sido oficialmente CONVOCADO para representar al club en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐${notasExtra}\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará bien al club. ¡Los esperamos! 💪🔥`;
 
-        const result = await enviarMensajeWhatsApp(
+        const result = await enviarMensajeWhatsAppServer(
           perfil.telefono,
           mensaje,
           undefined,
