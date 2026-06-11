@@ -76,8 +76,6 @@ export async function middleware(request: NextRequest) {
           const fechaCorte = new Date(clubData.proximo_corte);
           if (fechaCorte < hoy) {
              isSuspended = true;
-          } else {
-             isSuspended = false;
           }
         } else {
           // 2. Lógica Legacy (si el club aún no tiene un corte asignado)
