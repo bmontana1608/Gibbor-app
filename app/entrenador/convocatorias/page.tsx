@@ -47,18 +47,15 @@ export default function ConvocatoriasEntrenador() {
       
       setPerfil(usuario);
 
-      // Cargar jugadores via API usando el token del usuario
-      // El servidor identifica el club a partir del perfil del usuario autenticado
-      const resJugadores = await fetch('/api/entrenador/convocatorias', {
-        headers: {
-          'x-user-id': usuario.id,
-          'x-club-id': usuario.club_id
-        }
-      });
-      if (resJugadores.ok) {
-        const jugadoresData = await resJugadores.json();
-        if (Array.isArray(jugadoresData)) {
-          setJugadores(jugadoresData);
+      // Cargar jugadores via endpoint dedicado con service role
+      // Usa query param para evitar problemas con headers personalizados
+      if (usuario?.club_id) {
+        const resJugadores = await fetch(`/api/jugadores-club?club_id=${usuario.club_id}`);
+        if (resJugadores.ok) {
+          const jugadoresData = await resJugadores.json();
+          if (Array.isArray(jugadoresData)) {
+            setJugadores(jugadoresData);
+          }
         }
       }
       setCargando(false);
