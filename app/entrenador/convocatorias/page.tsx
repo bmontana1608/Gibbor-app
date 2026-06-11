@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Calendar, Users, Send, ShieldCheck, User } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function ConvocatoriasEntrenador() {
   const { slug: tenantSlug, tenant } = useTenant();

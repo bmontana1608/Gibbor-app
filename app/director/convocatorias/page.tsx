@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
   const { slug: tenantSlug, tenant } = useTenant();
