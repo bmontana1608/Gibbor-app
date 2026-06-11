@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { club_id, meses = 1 } = await request.json();
+    const { club_id, meses = 1, es_prueba = false } = await request.json();
 
     if (!club_id) {
       return NextResponse.json({ error: 'Falta el ID del club' }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       .update({
         proximo_corte: nuevoCorte,
         estado: 'Activo',
-        estado_suscripcion: 'Al Día'
+        estado_suscripcion: es_prueba ? 'En Prueba' : 'Al Día'
       })
       .eq('id', club_id);
 

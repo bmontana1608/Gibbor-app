@@ -110,22 +110,22 @@ export default function SaaSManagementView() {
     }
   };
 
-  const registrarPagoMensual = async (clubId: string) => {
-    const toastId = toast.loading("Registrando pago y extendiendo suscripción...");
+  const registrarPagoMensual = async (clubId: string, esPrueba = false) => {
+    const toastId = toast.loading(esPrueba ? "Otorgando mes de prueba..." : "Registrando pago y extendiendo suscripción...");
     try {
       const res = await fetch('/api/admin/suscripciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ club_id: clubId, meses: 1 })
+        body: JSON.stringify({ club_id: clubId, meses: 1, es_prueba: esPrueba })
       });
       const result = await res.json();
       
       if (result.error) throw new Error(result.error);
       
-      toast.success(result.mensaje || "Pago registrado y suscripción extendida", { id: toastId });
+      toast.success(result.mensaje || (esPrueba ? "Período de prueba activado" : "Pago registrado y suscripción extendida"), { id: toastId });
       cargarDatosGenerales();
     } catch (error: any) {
-      toast.error("Error al registrar pago: " + error.message, { id: toastId });
+      toast.error((esPrueba ? "Error al otorgar prueba: " : "Error al registrar pago: ") + error.message, { id: toastId });
     }
   };
 
@@ -433,12 +433,18 @@ export default function SaaSManagementView() {
                             {club.proximo_corte || 'No Definido'}
                           </span>
                         </td>
-                        <td className="py-5 px-4 text-right">
+                        <td className="py-5 px-4 text-right flex flex-col gap-2 items-end justify-center min-h-[90px]">
                           <button 
                             onClick={() => registrarPagoMensual(club.id)}
-                            className="bg-slate-800 hover:bg-lime-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all uppercase tracking-widest shadow-sm hover:shadow-lime-200"
+                            className="bg-slate-800 hover:bg-lime-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all uppercase tracking-widest shadow-sm hover:shadow-lime-200 w-full max-w-[180px]"
                           >
-                            Registrar Pago (1 Mes)
+                            Pago (1 Mes)
+                          </button>
+                          <button 
+                            onClick={() => registrarPagoMensual(club.id, true)}
+                            className="bg-purple-50 text-purple-600 border border-purple-200 hover:bg-purple-600 hover:text-white font-bold py-1.5 px-4 rounded-xl text-[10px] transition-all uppercase tracking-widest w-full max-w-[180px]"
+                          >
+                            Prueba (1 Mes)
                           </button>
                         </td>
                       </tr>
