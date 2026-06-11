@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
-import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star } from 'lucide-react';
+import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star, ShieldCheck } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function DashboardEntrenador() {
@@ -96,7 +96,7 @@ export default function DashboardEntrenador() {
       </div>
 
       {/* Grid de Accesos Rápidos */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         <Link href="/entrenador/asistencia" className="rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden" style={{ backgroundColor: brandColor, boxShadow: `0 10px 25px -5px ${brandColor}40` }}>
           <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
@@ -130,6 +130,18 @@ export default function DashboardEntrenador() {
           <div>
             <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-slate-900">Stats Lab</h3>
             <p className="text-slate-400 text-xs font-medium">Análisis de rendimiento grupal.</p>
+          </div>
+        </Link>
+
+        <Link href="/entrenador/convocatorias" className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] border border-indigo-500 transition-all relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="bg-white/20 p-4 rounded-2xl border border-white/10"><ShieldCheck className="w-7 h-7" /></div>
+            <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">Convocatorias</h3>
+            <p className="text-white/80 text-xs font-medium">Titulares, suplentes y nómina.</p>
           </div>
         </Link>
 

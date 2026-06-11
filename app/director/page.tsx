@@ -326,14 +326,14 @@ export default function DashboardDirector() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all group">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push(`${basePath}/director/convocatorias`)}>
           <div className="w-10 h-10 rounded-xl bg-brand-muted text-brand flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Calendar className="w-5 h-5" />
+            <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">Eventos Próximos</p>
-            <p className="text-2xl font-black text-slate-800 dark:text-white">0</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Sin torneos programados</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">Convocatorias</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white">Ver</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de nóminas</p>
           </div>
         </div>
       </div>
