@@ -25,27 +25,16 @@ export default function ConvocatoriasDirector() {
       
       if (!currentTenant) return;
 
-      const { data, error } = await supabase
-        .from('eventos')
-        .select(`
-          *,
-          perfiles!eventos_creado_por_fkey (nombres, apellidos),
-          convocatorias (
-            id,
-            rol_partido,
-            estado_notificacion,
-            perfiles!convocatorias_jugador_id_fkey (nombres, apellidos, foto_url, posicion)
-          )
-        `)
-        .eq('club_id', currentTenant.id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error("Error fetching eventos:", error.message);
-      } else if (data) {
-        // Filtrar solo eventos que tengan convocatorias
-        const eventosConConvocatorias = data.filter(e => e.convocatorias && e.convocatorias.length > 0);
-        setEventos(eventosConConvocatorias);
+      try {
+        const res = await fetch(`/api/director/convocatorias?slug=${tenantSlug}`);
+        if (res.ok) {
+          const data = await res.json();
+          setEventos(data);
+        } else {
+          console.error("Error fetching convocatorias from API");
+        }
+      } catch (err) {
+        console.error("Error de red fetching convocatorias:", err);
       }
       setCargando(false);
     }
