@@ -34,7 +34,8 @@ export async function GET(request: Request) {
       pagosRes,
       asisRes,
       configRes,
-      eventosRes
+      eventosRes,
+      convocatoriasRes
     ] = await Promise.all([
       // Evaluaciones técnicas reales (Desde el nuevo Stats Lab)
       supabaseAdmin.from('evaluaciones_tecnicas').select('stats').eq('jugador_id', id).eq('club_id', (tenant as any).id).order('fecha', { ascending: false }).limit(5),
@@ -48,14 +49,25 @@ export async function GET(request: Request) {
       // Configuración Club
       supabaseAdmin.from('configuracion_wa').select('nombre_club, temporada_actual').eq('club_id', (tenant as any).id).single(),
 
-      // Próximos Eventos (Filtrados)
+      // Próximos Eventos (Filtrados general)
       supabaseAdmin.from('eventos')
         .select('*')
         .gte('fecha', new Date().toISOString().split('T')[0])
         .eq('club_id', (tenant as any).id)
         .or(`categoria_id.is.null,categoria_id.eq."",categoria_id.eq."${perfilData?.grupos || 'NINGUNA'}"`)
         .order('fecha', { ascending: true })
-        .limit(3)
+        .limit(3),
+        
+      // Convocatorias Confirmadas para este jugador
+      supabaseAdmin.from('convocatorias')
+        .select(`
+          id,
+          rol_partido,
+          eventos!inner(*)
+        `)
+        .eq('jugador_id', id)
+        .eq('eventos.estado', 'Aprobado')
+        .gte('eventos.fecha', new Date().toISOString().split('T')[0])
     ]);
 
     // Procesar Datos de Evaluación (Mapeo Inteligente para Carta PRO)
@@ -113,7 +125,8 @@ export async function GET(request: Request) {
       asistenciaPct,
       asistencias: asisRes.data || [],
       config: configRes.data,
-      eventos: eventosRes?.data || []
+      eventos: eventosRes?.data || [],
+      convocatorias: convocatoriasRes?.data || []
     });
 
   } catch (err: any) {

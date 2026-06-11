@@ -169,6 +169,7 @@ export default function DashboardFutbolista() {
   const [asistenciasLogs, setAsistenciasLogs] = useState<any[]>([]);
   const [insignias, setInsignias] = useState<any[]>([]);
   const [eventos, setEventos] = useState<any[]>([]);
+  const [convocatorias, setConvocatorias] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDatos = async () => {
@@ -222,6 +223,7 @@ export default function DashboardFutbolista() {
           setAsistenciaPct(resDash.asistenciaPct || 0);
           setAsistenciasLogs(resDash.asistencias || []);
           setEventos(resDash.eventos || []);
+          setConvocatorias(resDash.convocatorias || []);
         }
 
       } catch (err) {
@@ -350,6 +352,45 @@ export default function DashboardFutbolista() {
           </div>
         </div>
       </div>
+
+      {/* BANNER CONVOCATORIA (Si aplica) */}
+      {convocatorias && convocatorias.length > 0 && (
+        <div className="space-y-4">
+          {convocatorias.map((conv) => (
+            <div key={conv.id} className="relative overflow-hidden rounded-[2.5rem] p-8 md:p-10 shadow-2xl animate-in slide-in-from-top-4 duration-700 border-2" style={{ borderColor: `${brandColor}50`, background: `linear-gradient(135deg, ${brandColor}10, transparent)` }}>
+              {/* Confetti / Decoración de fondo */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/20 rounded-full blur-[80px] -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-[80px] -ml-20 -mb-20" style={{ backgroundColor: `${brandColor}20` }}></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-2xl border-4" style={{ borderColor: brandColor }}>
+                  <Trophy className="w-12 h-12 text-yellow-500" />
+                </div>
+                
+                <div className="flex-1">
+                  <div className="inline-block px-3 py-1 mb-3 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-md animate-pulse" style={{ backgroundColor: brandColor }}>
+                    ¡HAS SIDO CONVOCADO!
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-black text-slate-800 uppercase italic tracking-tighter leading-none mb-2">
+                    {conv.eventos?.titulo}
+                  </h2>
+                  <p className="text-slate-600 font-bold mb-4 flex items-center justify-center md:justify-start gap-4">
+                    <span><Calendar className="w-4 h-4 inline mr-1 text-slate-400"/> {new Date(conv.eventos?.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    <span><Target className="w-4 h-4 inline mr-1 text-slate-400"/> {conv.eventos?.lugar || 'Por definir'}</span>
+                  </p>
+                </div>
+
+                <div className="bg-slate-900 rounded-[2rem] p-6 text-center border-b-4 min-w-[160px] transform hover:scale-105 transition-transform" style={{ borderBottomColor: brandColor }}>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Tu Rol Oficial</p>
+                  <p className={`text-2xl font-black italic uppercase tracking-tighter ${conv.rol_partido === 'Titular' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {conv.rol_partido}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* AGENDA */}
       <div className="space-y-4">
