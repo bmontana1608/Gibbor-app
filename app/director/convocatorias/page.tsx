@@ -25,7 +25,7 @@ export default function ConvocatoriasDirector() {
       
       if (!currentTenant) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('eventos')
         .select(`
           *,
@@ -34,14 +34,18 @@ export default function ConvocatoriasDirector() {
             id,
             rol_partido,
             estado_notificacion,
-            perfiles!convocatorias_jugador_id_fkey (nombres, apellidos, foto_url, posiciones)
+            perfiles!convocatorias_jugador_id_fkey (nombres, apellidos, foto_url, posicion)
           )
         `)
-        .eq('club_id', tenant.id)
+        .eq('club_id', currentTenant.id)
         .order('created_at', { ascending: false });
 
-      if (data) {
-        setEventos(data);
+      if (error) {
+        console.error("Error fetching eventos:", error.message);
+      } else if (data) {
+        // Filtrar solo eventos que tengan convocatorias
+        const eventosConConvocatorias = data.filter(e => e.convocatorias && e.convocatorias.length > 0);
+        setEventos(eventosConConvocatorias);
       }
       setCargando(false);
     }
