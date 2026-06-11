@@ -47,9 +47,14 @@ export default function ConvocatoriasEntrenador() {
       
       setPerfil(usuario);
 
-      // Cargar jugadores via API (usa service role, bypassa RLS)
-      // Esto es lo mismo que hace el módulo de Asistencia que sí funciona
-      const resJugadores = await fetch(`/api/entrenador/convocatorias?slug=${tenantSlug}`);
+      // Cargar jugadores via API usando el token del usuario
+      // El servidor identifica el club a partir del perfil del usuario autenticado
+      const resJugadores = await fetch('/api/entrenador/convocatorias', {
+        headers: {
+          'x-user-id': usuario.id,
+          'x-club-id': usuario.club_id
+        }
+      });
       if (resJugadores.ok) {
         const jugadoresData = await resJugadores.json();
         if (Array.isArray(jugadoresData)) {

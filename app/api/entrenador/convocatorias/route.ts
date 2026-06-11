@@ -8,17 +8,13 @@ const supabaseAdmin = createClient(
 );
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const slug = searchParams.get('slug');
-  if (!slug) return NextResponse.json({ error: 'Falta slug' }, { status: 400 });
-
-  const tenant = await getTenant(slug) as any;
-  if (!tenant?.id) return NextResponse.json({ error: 'Club no encontrado' }, { status: 404 });
+  const clubId = request.headers.get('x-club-id');
+  if (!clubId) return NextResponse.json({ error: 'Falta club_id' }, { status: 400 });
 
   const { data, error } = await supabaseAdmin
     .from('perfiles')
     .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
-    .eq('club_id', tenant.id)
+    .eq('club_id', clubId)
     .eq('rol', 'Futbolista')
     .order('nombres', { ascending: true });
 
