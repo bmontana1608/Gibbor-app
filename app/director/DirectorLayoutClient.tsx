@@ -65,6 +65,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
     { name: 'Miembros', path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
     { name: 'Agenda', path: `${basePath}/director/eventos`, icon: <Calendar className="w-5 h-5" /> },
+    { name: 'Convocatorias', path: `${basePath}/director/convocatorias`, icon: <ClipboardCheck className="w-5 h-5" /> },
     { name: 'Cobranza', path: `${basePath}/director/cobranza`, icon: <CreditCard className="w-5 h-5" /> },
     { name: 'Aportes', path: `${basePath}/director/aportes`, icon: <Coins className="w-5 h-5" /> },
     { name: 'Nómina', path: `${basePath}/director/nomina`, icon: <Briefcase className="w-5 h-5" /> },
