@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from 'next/link';
 import { supabase } from "@/lib/supabase";
 import { 
   Trophy, Zap, Star, Calendar, 
@@ -412,15 +413,25 @@ export default function DashboardFutbolista() {
                 </div>
                 <div>
                   <h4 className="font-black text-slate-900 leading-tight uppercase">{evento.titulo}</h4>
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 mt-2">
-                    <Zap className="w-3 h-3" style={{ color: brandColor }} /> 
-                    {(() => {
-                      const [h, m] = evento.hora.split(':');
-                      let hour = parseInt(h);
-                      const ampm = hour >= 12 ? 'PM' : 'AM';
-                      hour = hour % 12 || 12;
-                      return `${hour}:${m} ${ampm}`;
-                    })()}
+                  <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                      <Zap className="w-3 h-3" style={{ color: brandColor }} /> 
+                      {(() => {
+                        const [h, m] = evento.hora.split(':');
+                        let hour = parseInt(h);
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        hour = hour % 12 || 12;
+                        return `${hour}:${m} ${ampm}`;
+                      })()}
+                    </div>
+                    {evento.tipo === 'Partido' && (
+                      <Link 
+                        href={`/futbolista/partidos/${evento.id}/en-vivo`}
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full flex items-center gap-1 shadow-md transition-all animate-pulse"
+                      >
+                        🔴 En Vivo
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
