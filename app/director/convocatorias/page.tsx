@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
-import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck, Trash2, X } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck, Trash2, X, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
@@ -11,6 +11,7 @@ export default function ConvocatoriasDirector() {
   const [tenant, setTenant] = useState<any>(null);
   const [eventos, setEventos] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [notificandoJugador, setNotificandoJugador] = useState<string | null>(null);
 
   useEffect(() => {
     async function cargarEventos() {
@@ -122,6 +123,38 @@ export default function ConvocatoriasDirector() {
     }
   };
 
+  const notificarJugador = async (convocatoriaId: string, eventoId: string) => {
+    setNotificandoJugador(convocatoriaId);
+    const toastId = toast.loading('Enviando WhatsApp al jugador...');
+    try {
+      const res = await fetch('/api/director/notificar-jugador', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evento_id: eventoId, convocado_id: convocatoriaId, club_slug: tenantSlug })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        toast.success('Mensaje enviado por WhatsApp', { id: toastId });
+        setEventos(prev => prev.map(e => {
+          if (e.id === eventoId) {
+            const nuevasConvs = e.convocatorias?.map((c: any) => 
+              c.id === convocatoriaId ? { ...c, estado_notificacion: 'Enviada' } : c
+            ) || [];
+            return { ...e, convocatorias: nuevasConvs };
+          }
+          return e;
+        }));
+      } else {
+        toast.error(data.error || 'Error al enviar mensaje', { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    } finally {
+      setNotificandoJugador(null);
+    }
+  };
+
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando convocatorias...</div>;
 
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
@@ -227,6 +260,26 @@ export default function ConvocatoriasDirector() {
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
+                      )}
+                      
+                      {evento.estado === 'Aprobado' && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                          {convocado.estado_notificacion === 'Enviada' && (
+                            <span className="text-[8px] font-black uppercase text-emerald-500 mr-1 bg-emerald-50 px-1.5 py-0.5 rounded">Enviado</span>
+                          )}
+                          <button
+                            onClick={() => notificarJugador(convocado.id, evento.id)}
+                            disabled={notificandoJugador === convocado.id}
+                            className={`p-2 rounded-lg shadow-sm border transition-all ${convocado.estado_notificacion === 'Enviada' ? 'text-slate-400 hover:text-indigo-500 bg-white border-slate-200' : 'text-white bg-indigo-500 hover:bg-indigo-600 border-indigo-600'}`}
+                            title="Notificar por WhatsApp manualmente"
+                          >
+                            {notificandoJugador === convocado.id ? (
+                              <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+                            ) : (
+                              <Send className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       )}
                   </div>
                 ))}
