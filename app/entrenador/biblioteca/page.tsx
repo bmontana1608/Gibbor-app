@@ -114,7 +114,7 @@ export default function BibliotecaEntrenador() {
       if (embedUrl) {
         const isMp4 = embedUrl.endsWith('.mp4');
         return (
-          <div className="relative w-full h-40 bg-black rounded-t-2xl overflow-hidden">
+          <div className={`relative w-full bg-black rounded-t-2xl overflow-hidden transition-all duration-300 ${isMp4 ? 'h-[450px]' : 'aspect-video'}`}>
             {isMp4 ? (
               <video 
                 src={embedUrl}
