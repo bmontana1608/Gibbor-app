@@ -39,7 +39,7 @@ export default async function manifest({
     display: 'standalone',
     background_color: '#020617',
     theme_color: clubColor,
-    scope: `/${slug}/`,
+    scope: '/',
     icons: [
       {
         src: clubLogo,

@@ -70,7 +70,7 @@ export async function GET(
     orientation: 'portrait',
     background_color: '#020617',
     theme_color: clubColor,
-    scope: `/${slug}/`,
+    scope: '/',
     lang: 'es',
     icons: [
       {
