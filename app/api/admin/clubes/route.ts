@@ -98,3 +98,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, ...datosParaActualizar } = body;
+    
+    if (!id) return NextResponse.json({ error: 'Falta el ID del club' }, { status: 400 });
+
+    const { data, error } = await supabaseAdmin
+      .from('clubes')
+      .update(datosParaActualizar)
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+    return NextResponse.json({ success: true, data });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}

@@ -27,7 +27,7 @@ export default function SaaSManagementView() {
       if (planesData) setPlanes(planesData);
 
       // Se agrega created_at al select para forzar un nuevo cache key en Next.js
-      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id, estado, created_at').neq('estado', 'Eliminado').order('nombre');
+      const { data: clubesData } = await supabase.from('clubes').select('id, nombre, slug, plan_id, estado, proximo_corte, estado_suscripcion, created_at').neq('estado', 'Eliminado').order('nombre');
       if (clubesData) {
         setClubes(clubesData.filter(c => c.estado !== 'Eliminado' && c.estado !== 'eliminado'));
       }
@@ -61,7 +61,7 @@ export default function SaaSManagementView() {
     }
 
     const toastId = toast.loading("Guardando plan...");
-    const { error } = await supabase.from('planes_saas').upsert({
+    const payload = {
       id: planEnEdicion.id,
       nombre: planEnEdicion.nombre,
       tipo_cobro: planEnEdicion.tipo_cobro || 'mensual',
@@ -70,26 +70,62 @@ export default function SaaSManagementView() {
       precio_jugador_extra: planEnEdicion.precio_jugador_extra || 0,
       precio_por_jugador: planEnEdicion.precio_base || 0, // Fallback para la restricción NOT NULL de la DB
       activo: planEnEdicion.activo ?? true
-    });
+    };
 
-    if (error) {
-      toast.error("Error al guardar: " + error.message, { id: toastId });
-    } else {
+    try {
+      const res = await fetch('/api/admin/planes', {
+        method: planEnEdicion.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      
+      if (result.error) throw new Error(result.error);
+      
       toast.success("Plan actualizado con éxito", { id: toastId });
       setPlanEnEdicion(null);
       cargarDatosGenerales();
+    } catch (error: any) {
+      toast.error("Error al guardar: " + error.message, { id: toastId });
     }
   };
 
   const asignarPlanAClub = async (clubId: string, planId: number) => {
     const toastId = toast.loading("Asignando plan...");
-    const { error } = await supabase.from('clubes').update({ plan_id: planId }).eq('id', clubId);
     
-    if (error) {
-      toast.error("Error al asignar: " + error.message, { id: toastId });
-    } else {
+    try {
+      const res = await fetch('/api/admin/clubes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: clubId, plan_id: planId })
+      });
+      const result = await res.json();
+      
+      if (result.error) throw new Error(result.error);
+      
       toast.success("Plan asignado correctamente", { id: toastId });
       setClubes(clubes.map(c => c.id === clubId ? { ...c, plan_id: planId } : c));
+    } catch (error: any) {
+      toast.error("Error al asignar: " + error.message, { id: toastId });
+    }
+  };
+
+  const registrarPagoMensual = async (clubId: string) => {
+    const toastId = toast.loading("Registrando pago y extendiendo suscripción...");
+    try {
+      const res = await fetch('/api/admin/suscripciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ club_id: clubId, meses: 1 })
+      });
+      const result = await res.json();
+      
+      if (result.error) throw new Error(result.error);
+      
+      toast.success(result.mensaje || "Pago registrado y suscripción extendida", { id: toastId });
+      cargarDatosGenerales();
+    } catch (error: any) {
+      toast.error("Error al registrar pago: " + error.message, { id: toastId });
     }
   };
 
@@ -117,13 +153,16 @@ export default function SaaSManagementView() {
     if (!confirmar) return;
 
     const toastId = toast.loading("Eliminando plan...");
-    const { error } = await supabase.from('planes_saas').delete().eq('id', plan.id);
-
-    if (error) {
-      toast.error("Error al eliminar: " + error.message, { id: toastId });
-    } else {
+    
+    try {
+      const res = await fetch(`/api/admin/planes?id=${plan.id}`, { method: 'DELETE' });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      
       toast.success("Plan eliminado correctamente", { id: toastId });
       cargarDatosGenerales();
+    } catch (error: any) {
+      toast.error("Error al eliminar: " + error.message, { id: toastId });
     }
   };
 
@@ -338,39 +377,73 @@ export default function SaaSManagementView() {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           
           {/* Lista de Clubes y Asignación */}
-          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative">
+          <div className="bg-white rounded-[3rem] border border-gray-200 p-8 shadow-sm relative lg:col-span-2">
             <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-8 flex items-center gap-2 border-b border-gray-100 pb-6">
-              <Building2 className="w-4 h-4 text-lime-500" /> Asignación de Contratos
+              <Building2 className="w-4 h-4 text-lime-500" /> Panel de Control de Suscripciones
             </h2>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Academia Nodo</th>
-                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Subdominio</th>
-                    <th className="pb-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Plan Asignado</th>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="py-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest rounded-tl-xl">Academia Nodo</th>
+                    <th className="py-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Plan Asignado</th>
+                    <th className="py-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Estado</th>
+                    <th className="py-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Próximo Corte</th>
+                    <th className="py-4 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right rounded-tr-xl">Acción de Cobro</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {clubes.map(club => (
-                    <tr key={club.id} className="group hover:bg-gray-50 transition-colors">
-                      <td className="py-5 px-4 font-black text-slate-800 uppercase italic tracking-tighter text-sm">{club.nombre}</td>
-                      <td className="py-5 px-4 font-mono text-xs text-lime-600">/{club.slug}</td>
-                      <td className="py-5 px-4 text-right">
-                        <select 
-                          value={club.plan_id || ''} 
-                          onChange={(e) => asignarPlanAClub(club.id, Number(e.target.value))}
-                          className="bg-white border border-gray-200 text-slate-700 font-bold text-xs rounded-xl px-4 py-3 outline-none focus:border-lime-500 cursor-pointer w-48 transition-colors"
-                        >
-                          <option value="" disabled>Seleccionar Plan...</option>
-                          {planes.map(p => (
-                            <option key={p.id} value={p.id}>{p.nombre} ({formatearDinero(p.precio_por_jugador)})</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {clubes.map(club => {
+                    const isVencido = club.proximo_corte ? new Date(club.proximo_corte) < new Date() : true;
+                    return (
+                      <tr key={club.id} className="group hover:bg-gray-50 transition-colors">
+                        <td className="py-5 px-4">
+                          <p className="font-black text-slate-800 uppercase italic tracking-tighter text-sm">{club.nombre}</p>
+                          <p className="font-mono text-[10px] text-lime-600">/{club.slug}</p>
+                        </td>
+                        <td className="py-5 px-4">
+                          <select 
+                            value={club.plan_id || ''} 
+                            onChange={(e) => asignarPlanAClub(club.id, Number(e.target.value))}
+                            className="bg-white border border-gray-200 text-slate-700 font-bold text-[10px] uppercase rounded-lg px-2 py-2 outline-none focus:border-lime-500 cursor-pointer w-32 transition-colors"
+                          >
+                            <option value="" disabled>Plan...</option>
+                            {planes.map(p => (
+                              <option key={p.id} value={p.id}>{p.nombre}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="py-5 px-4">
+                          <div className="flex flex-col gap-1">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md border w-max ${
+                              club.estado === 'Activo' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'
+                            }`}>
+                              {club.estado}
+                            </span>
+                            {club.estado_suscripcion && (
+                              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{club.estado_suscripcion}</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-5 px-4">
+                          <span className={`text-[11px] font-black px-2 py-1 rounded-md border w-max flex items-center gap-1 ${
+                            isVencido ? 'bg-red-50 text-red-600 border-red-200' : 'bg-lime-50 text-lime-700 border-lime-200'
+                          }`}>
+                            {club.proximo_corte || 'No Definido'}
+                          </span>
+                        </td>
+                        <td className="py-5 px-4 text-right">
+                          <button 
+                            onClick={() => registrarPagoMensual(club.id)}
+                            className="bg-slate-800 hover:bg-lime-500 text-white font-bold py-2 px-4 rounded-xl text-xs transition-all uppercase tracking-widest shadow-sm hover:shadow-lime-200"
+                          >
+                            Registrar Pago (1 Mes)
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
