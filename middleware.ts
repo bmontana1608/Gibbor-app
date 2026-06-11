@@ -63,12 +63,12 @@ export async function middleware(request: NextRequest) {
       // Obtener datos del club
       const { data: clubData } = await supabase
         .from('clubes')
-        .select('id, estado_suscripcion, fecha_fin_prueba, proximo_corte')
+        .select('id, estado, estado_suscripcion, fecha_fin_prueba, proximo_corte')
         .eq('slug', slug)
         .single();
 
       if (clubData) {
-        let isSuspended = clubData.estado_suscripcion === 'Suspendido';
+        let isSuspended = clubData.estado_suscripcion === 'Suspendido' || clubData.estado === 'Suspendido';
         const hoy = new Date();
 
         // 1. Validar por el nuevo sistema de Próximo Corte
