@@ -47,29 +47,14 @@ export default function ConvocatoriasEntrenador() {
       
       setPerfil(usuario);
 
-      // 1. Obtener las categorías reales asignadas a este entrenador
-      let categoriasDelEntrenador: string[] = [];
-      try {
-        const resCat = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
-        const cats = await resCat.json();
-        if (Array.isArray(cats)) {
-          categoriasDelEntrenador = cats.map(c => c.nombre);
+      // Cargar jugadores via API (usa service role, bypassa RLS)
+      // Esto es lo mismo que hace el módulo de Asistencia que sí funciona
+      const resJugadores = await fetch(`/api/entrenador/convocatorias?slug=${tenantSlug}`);
+      if (resJugadores.ok) {
+        const jugadoresData = await resJugadores.json();
+        if (Array.isArray(jugadoresData)) {
+          setJugadores(jugadoresData);
         }
-      } catch (err) {
-        console.error("Error al cargar categorías del entrenador:", err);
-      }
-
-      // 2. Cargar jugadores usando el club_id seguro del usuario
-      const { data: jugadoresData } = await supabase
-        .from('perfiles')
-        .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
-        .eq('club_id', usuario.club_id)
-        .eq('rol', 'Futbolista');
-
-      if (jugadoresData) {
-        // MOSTRAR TODOS LOS JUGADORES PARA EVITAR LISTAS VACÍAS
-        // Ya están organizados por categoría de edad en la interfaz
-        setJugadores(jugadoresData);
       }
       setCargando(false);
     }

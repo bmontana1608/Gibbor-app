@@ -1,10 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getTenant } from '@/lib/tenant';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const slug = searchParams.get('slug');
+  if (!slug) return NextResponse.json({ error: 'Falta slug' }, { status: 400 });
+
+  const tenant = await getTenant(slug) as any;
+  if (!tenant?.id) return NextResponse.json({ error: 'Club no encontrado' }, { status: 404 });
+
+  const { data, error } = await supabaseAdmin
+    .from('perfiles')
+    .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
+    .eq('club_id', tenant.id)
+    .eq('rol', 'Futbolista')
+    .order('nombres', { ascending: true });
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data ?? []);
+}
 
 export async function POST(request: Request) {
   try {
