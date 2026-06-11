@@ -25,7 +25,9 @@ export async function DELETE(request: Request) {
       .single();
 
     if (errC || !convData) throw new Error("Convocatoria no encontrada");
-    if (convData.eventos?.club_id !== tenant.id) throw new Error("No autorizado");
+    const convDataAny = convData as any;
+    const eventoClubId = Array.isArray(convDataAny.eventos) ? convDataAny.eventos[0]?.club_id : convDataAny.eventos?.club_id;
+    if (eventoClubId !== tenant.id) throw new Error("No autorizado");
 
     // Borrar la convocatoria
     const { error: errD } = await supabaseAdmin
