@@ -47,15 +47,19 @@ export default function ConvocatoriasEntrenador() {
       
       setPerfil(usuario);
 
-      // Cargar jugadores via endpoint dedicado con service role
-      // Usa query param para evitar problemas con headers personalizados
+      // Cargar jugadores directamente con el cliente supabase (mismo patrón que Asistencia)
+      // RLS permite al entrenador leer perfiles básicos de su club (sin datos sensibles)
       if (usuario?.club_id) {
-        const resJugadores = await fetch(`/api/jugadores-club?club_id=${usuario.club_id}`);
-        if (resJugadores.ok) {
-          const jugadoresData = await resJugadores.json();
-          if (Array.isArray(jugadoresData)) {
-            setJugadores(jugadoresData);
-          }
+        const { data: jugadoresData, error: jugErr } = await supabase
+          .from('perfiles')
+          .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
+          .eq('club_id', usuario.club_id)
+          .eq('rol', 'Futbolista');
+
+        if (jugErr) {
+          console.error('[Convocatorias] Error cargando jugadores:', jugErr.message);
+        } else if (jugadoresData) {
+          setJugadores(jugadoresData);
         }
       }
       setCargando(false);
