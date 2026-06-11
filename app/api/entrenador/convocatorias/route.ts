@@ -46,6 +46,12 @@ export async function POST(request: Request) {
     }
 
     // 1. Insertar Evento (Estado por defecto 'Pendiente')
+    // El campo fecha viene como "2026-06-15T10:30" (datetime-local), separar en fecha y hora
+    const fechaRaw = evento.fecha || '';
+    const [fechaSolo, horaSolo] = fechaRaw.includes('T')
+      ? fechaRaw.split('T')
+      : [fechaRaw, '00:00'];
+
     const { data: eventoGuardado, error: errorEvento } = await supabaseAdmin
       .from('eventos')
       .insert([{
@@ -54,8 +60,9 @@ export async function POST(request: Request) {
         titulo: evento.titulo,
         descripcion: evento.descripcion || '',
         tipo: evento.tipo_evento,
-        fecha: evento.fecha,
-        lugar: evento.lugar,
+        fecha: fechaSolo,
+        hora: horaSolo || '00:00',
+        lugar: evento.lugar || '',
         estado: 'Pendiente'
       }])
       .select()
