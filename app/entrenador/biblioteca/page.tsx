@@ -129,10 +129,11 @@ export default function BibliotecaEntrenador() {
             ) : isTikTok ? (
               <iframe 
                 src={embedUrl} 
-                className="absolute w-full h-[650px] border-none"
-                style={{ top: '-85px' }}
+                className="absolute w-full h-[650px] border-none max-w-full"
+                style={{ top: '-85px', left: 0 }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
+                scrolling="no"
               ></iframe>
             ) : (
               <iframe 
