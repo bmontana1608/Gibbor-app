@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
+import webpush from 'web-push';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +27,6 @@ export async function POST(request: Request) {
     if (errorEvento) throw errorEvento;
 
     // 2. Obtener los jugadores convocados y sus teléfonos
-    // Necesitamos hacer join con perfiles para obtener el teléfono y el nombre
     const { data: convocados, error: errorConvocados } = await supabaseAdmin
       .from('convocatorias')
       .select(`
@@ -43,43 +43,84 @@ export async function POST(request: Request) {
 
     if (errorConvocados) throw errorConvocados;
 
-    // 3. Enviar WhatsApp a cada jugador
+    // Configurar web-push
+    if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+      webpush.setVapidDetails(
+        process.env.VAPID_EMAIL || 'mailto:admin@efdgibbor.com',
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        process.env.VAPID_PRIVATE_KEY
+      );
+    }
+
     let enviados = 0;
     let fallidos = 0;
 
     for (const convocado of convocados) {
       const perfil = convocado.perfiles as any;
-      if (!perfil || !perfil.telefono) {
-        fallidos++;
-        continue;
-      }
+      if (!perfil) continue;
 
-      // Mensaje cálido y motivador
       const titulo = evento.titulo;
-      const nombre = perfil.nombres.split(' ')[0];
+      const nombreCompleto = `${perfil.nombres} ${perfil.apellidos}`;
       const rol = convocado.rol_partido.toUpperCase();
       
-      const mensaje = `⚽ *¡FELICITACIONES ${nombre}!* 🎉\n\nHas sido convocado oficialmente para formar parte de nuestra plantilla en:\n*🏆 ${titulo}*\n\nTu rol en este encuentro será de: *${rol}*.\n\nPor favor revisa tu plataforma para más detalles de fecha y lugar. ¡Contamos contigo! 💪`;
+      // WhatsApp (si tiene teléfono)
+      if (perfil.telefono) {
+        const mensaje = `⚽ *¡ATENCIÓN FAMILIA!* 🎉\n\nNos complace informarles que *${nombreCompleto}* ha sido oficialmente CONVOCADO para representar al club en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará bien al club. ¡Los esperamos! 💪🔥`;
 
-      // Enviar WhatsApp usando nuestro motor
-      const result = await enviarMensajeWhatsApp(
-        perfil.telefono,
-        mensaje,
-        undefined,
-        'document',
-        '',
-        club_slug
-      );
+        const result = await enviarMensajeWhatsApp(
+          perfil.telefono,
+          mensaje,
+          undefined,
+          'document',
+          '',
+          club_slug
+        );
 
-      if (result.success) {
-        enviados++;
-        // Marcar la notificación como enviada en la base de datos
-        await supabaseAdmin
-          .from('convocatorias')
-          .update({ estado_notificacion: 'Enviada' })
-          .eq('id', convocado.id);
+        if (result.success) {
+          enviados++;
+          await supabaseAdmin
+            .from('convocatorias')
+            .update({ estado_notificacion: 'Enviada' })
+            .eq('id', convocado.id);
+        } else {
+          fallidos++;
+        }
       } else {
         fallidos++;
+      }
+
+      // Notificación App (Dashboard)
+      await supabaseAdmin.from('notificaciones_app').insert({
+        titulo: '¡Convocatoria Confirmada!',
+        mensaje: `Has sido convocado para: ${titulo}`,
+        tipo: 'convocatoria',
+        club_id: evento.club_id,
+        jugador_id: perfil.id
+      });
+
+      // Push Notification Individual
+      const { data: subscripciones } = await supabaseAdmin
+        .from('push_subscriptions')
+        .select('*')
+        .eq('user_id', perfil.id);
+
+      if (subscripciones && subscripciones.length > 0 && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+        for (const sub of subscripciones) {
+          try {
+            await webpush.sendNotification(
+              sub.subscription,
+              JSON.stringify({
+                title: '⚽ ¡Fuiste convocado!',
+                body: `Revisa tu dashboard para ver los detalles de ${titulo}`,
+                url: '/futbolista'
+              })
+            );
+          } catch (err: any) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id);
+            }
+          }
+        }
       }
     }
 

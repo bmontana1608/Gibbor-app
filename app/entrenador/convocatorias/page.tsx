@@ -236,10 +236,10 @@ export default function ConvocatoriasEntrenador() {
                   className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:ring-2"
                   style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
                 >
-                  <option>Torneo Oficial</option>
-                  <option>Amistoso</option>
-                  <option>Entrenamiento Especial</option>
-                  <option>Copa</option>
+                  <option value="Partido">Partido Oficial</option>
+                  <option value="Partido">Partido Amistoso</option>
+                  <option value="Entrenamiento">Entrenamiento Especial</option>
+                  <option value="Evento">Evento Social / Viaje</option>
                 </select>
               </div>
               <div>
