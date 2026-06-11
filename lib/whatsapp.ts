@@ -48,7 +48,7 @@ export async function enviarMensajeWhatsApp(
       instanceName
     };
 
-    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const baseUrl = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://gibbor-app.vercel.app'));
     const fetchUrl = `${baseUrl}/api/whatsapp/send`;
 
     const response = await fetch(fetchUrl, {
