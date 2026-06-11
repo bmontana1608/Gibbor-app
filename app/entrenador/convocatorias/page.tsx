@@ -47,27 +47,43 @@ export default function ConvocatoriasEntrenador() {
       
       setPerfil(usuario);
 
-      // Cargar jugadores filtrando datos sensibles (Seguridad)
-      // Y filtrando SOLO por las categorías asignadas al entrenador
-      const categoriasAsignadas = (usuario.grupos || '').split(', ').map((g: string) => g.trim()).filter(Boolean);
-      
+      // 1. Obtener las categorías reales asignadas a este entrenador
+      let categoriasDelEntrenador: string[] = [];
+      try {
+        const resCat = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
+        const cats = await resCat.json();
+        if (Array.isArray(cats)) {
+          categoriasDelEntrenador = cats.map(c => c.nombre);
+        }
+      } catch (err) {
+        console.error("Error al cargar categorías del entrenador:", err);
+      }
+
+      // 2. Cargar jugadores usando el club_id seguro del usuario
       const { data: jugadoresData } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
-        .eq('club_id', currentTenant.id)
-        .eq('rol', 'Futbolista');
+        .eq('club_id', usuario.club_id)
+        .eq('rol', 'Futbolista')
+        .neq('estado_miembro', 'Inactivo');
 
       if (jugadoresData) {
-        // Si el entrenador no tiene categorías, le mostramos todos (o podrías no mostrar nada)
-        // Pero para evitar el error de "No hay jugadores" si no configuró sus grupos, 
-        // mostraremos todos si es que no tiene, o filtramos si sí tiene.
+        // Filtrar por categorías asignadas si tiene alguna, sino mostrar todos para no dejarlo varado
         let filtrados = jugadoresData;
-        if (categoriasAsignadas.length > 0) {
+        if (categoriasDelEntrenador.length > 0) {
           filtrados = jugadoresData.filter(j => {
              const gruposJugador = j.grupos || '';
-             // Si el jugador pertenece a alguna de las categorías del entrenador
-             return categoriasAsignadas.some((cat: string) => gruposJugador.includes(cat));
+             return categoriasDelEntrenador.some(cat => gruposJugador.includes(cat));
           });
+        } else {
+           // Fallback: tratar de usar usuario.grupos
+           const gruposString = (usuario.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
+           if (gruposString.length > 0) {
+              filtrados = jugadoresData.filter(j => {
+                 const gruposJugador = j.grupos || '';
+                 return gruposString.some((cat: string) => gruposJugador.includes(cat));
+              });
+           }
         }
         setJugadores(filtrados);
       }
