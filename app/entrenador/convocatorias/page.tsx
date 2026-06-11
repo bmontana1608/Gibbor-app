@@ -49,25 +49,27 @@ export default function ConvocatoriasEntrenador() {
 
       // Cargar jugadores filtrando datos sensibles (Seguridad)
       // Y filtrando SOLO por las categorías asignadas al entrenador
-      const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
+      const categoriasAsignadas = (usuario.grupos || '').split(', ').map((g: string) => g.trim()).filter(Boolean);
       
-      let queryJugadores = supabase
+      const { data: jugadoresData } = await supabase
         .from('perfiles')
         .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
         .eq('club_id', currentTenant.id)
         .eq('rol', 'Futbolista');
-        
-      if (categoriasAsignadas.length > 0) {
-        queryJugadores = queryJugadores.in('grupos', categoriasAsignadas);
-      } else {
-        // Si no tiene categorías asignadas, mostramos vacío o permitimos ver 'Ninguna'
-        queryJugadores = queryJugadores.eq('grupos', 'Ninguna');
-      }
-
-      const { data: jugadoresData } = await queryJugadores;
 
       if (jugadoresData) {
-        setJugadores(jugadoresData);
+        // Si el entrenador no tiene categorías, le mostramos todos (o podrías no mostrar nada)
+        // Pero para evitar el error de "No hay jugadores" si no configuró sus grupos, 
+        // mostraremos todos si es que no tiene, o filtramos si sí tiene.
+        let filtrados = jugadoresData;
+        if (categoriasAsignadas.length > 0) {
+          filtrados = jugadoresData.filter(j => {
+             const gruposJugador = j.grupos || '';
+             // Si el jugador pertenece a alguna de las categorías del entrenador
+             return categoriasAsignadas.some((cat: string) => gruposJugador.includes(cat));
+          });
+        }
+        setJugadores(filtrados);
       }
       setCargando(false);
     }
