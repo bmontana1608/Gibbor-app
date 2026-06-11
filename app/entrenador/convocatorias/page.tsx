@@ -50,16 +50,36 @@ export default function ConvocatoriasEntrenador() {
       // Cargar jugadores directamente con el cliente supabase (mismo patrón que Asistencia)
       // RLS permite al entrenador leer perfiles básicos de su club (sin datos sensibles)
       if (usuario?.club_id) {
-        const { data: jugadoresData, error: jugErr } = await supabase
+        // 1. Obtener las categorías asignadas al entrenador desde Supabase
+        const { data: categoriasData } = await supabase
+          .from('categorias')
+          .select('nombre')
+          .eq('club_id', usuario.club_id)
+          .eq('entrenador_id', usuario.id)
+          .eq('estado', 'Activo');
+
+        const nombresCategoriasEntrenador = (categoriasData || []).map((c: any) => c.nombre);
+
+        // 2. Cargar jugadores activos del club
+        const { data: todosJugadores, error: jugErr } = await supabase
           .from('perfiles')
           .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posicion, grupos')
           .eq('club_id', usuario.club_id)
-          .eq('rol', 'Futbolista');
+          .eq('rol', 'Futbolista')
+          .neq('estado_miembro', 'Inactivo'); // Los inactivos son "fantasmas" - no aparecen
 
         if (jugErr) {
           console.error('[Convocatorias] Error cargando jugadores:', jugErr.message);
-        } else if (jugadoresData) {
-          setJugadores(jugadoresData);
+        } else if (todosJugadores) {
+          // 3. Filtrar por categorías del entrenador (si tiene asignadas)
+          let jugadoresFiltrados = todosJugadores;
+          if (nombresCategoriasEntrenador.length > 0) {
+            jugadoresFiltrados = todosJugadores.filter((j: any) => {
+              const grupoJugador = (j.grupos || '').replace('|MANUAL', '').trim();
+              return nombresCategoriasEntrenador.some(cat => grupoJugador === cat || grupoJugador.startsWith(cat));
+            });
+          }
+          setJugadores(jugadoresFiltrados);
         }
       }
       setCargando(false);
