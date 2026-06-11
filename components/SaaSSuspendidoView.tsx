@@ -2,7 +2,7 @@
 
 import { AlertCircle, CheckCircle2, LogOut } from 'lucide-react';
 
-export default function SaaSSuspendidoView({ club, tarifaBase, wppNumber, activeAthletesCount }: { club: any, tarifaBase: number, wppNumber: string, activeAthletesCount: number }) {
+export default function SaaSSuspendidoView({ club, planes, wppNumber, activeAthletesCount }: { club: any, planes: any[], wppNumber: string, activeAthletesCount: number }) {
   const cleanNumber = wppNumber.replace(/[^0-9]/g, '');
 
   return (
@@ -56,88 +56,58 @@ export default function SaaSSuspendidoView({ club, tarifaBase, wppNumber, active
              <p className="text-slate-500 text-sm mt-1">Recomendado para clubs en crecimiento</p>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* PLAN MENSUAL */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 hover:border-slate-300 transition-colors shadow-sm">
-                 <p className="text-slate-800 font-bold text-sm mb-4">Pago Mensual</p>
-                 <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-3xl font-black text-slate-900">COP {tarifaBase.toLocaleString('es-CO')}</span>
-                    <span className="text-slate-500 text-xs">por deportista/mes</span>
-                 </div>
-                 
-                 <p className="text-xs text-slate-400 mb-6">Mínimo COP ${(tarifaBase * 50).toLocaleString('es-CO')}/mes</p>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {planes && planes.length > 0 ? planes.map((plan, index) => {
+                const isPopular = plan.tipo_cobro === 'anual' || index === 1;
+                return (
+                  <div key={plan.id} className={`bg-white rounded-2xl p-6 sm:p-8 relative shadow-sm transition-all ${isPopular ? 'border-2 border-emerald-500 shadow-md' : 'border border-slate-200 hover:border-slate-300'}`}>
+                     {isPopular && (
+                       <div className="absolute -top-3 right-6 bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-wide">
+                         MÁS POPULAR
+                       </div>
+                     )}
+                     
+                     <div className="flex justify-between items-start mb-4">
+                       <p className="text-slate-800 font-bold text-sm">{plan.nombre}</p>
+                       {isPopular && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+                     </div>
 
-                 <ul className="space-y-3 mt-6">
-                    <li className="flex items-start gap-2">
-                       <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                       <span className="text-xs text-slate-600">Flexibilidad total: cancela cuando quieras</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                       <span className="text-xs text-slate-600">Paga solo lo que necesitas ahora</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                       <span className="text-xs text-slate-600">Pásate a anual en cualquier momento</span>
-                    </li>
-                 </ul>
-              </div>
+                     <div className="flex items-baseline gap-2 mb-4">
+                        <span className="text-3xl font-black text-emerald-600">COP {plan.precio_base?.toLocaleString('es-CO')}</span>
+                        <span className="text-slate-500 text-xs">/ {plan.tipo_cobro}</span>
+                     </div>
+                     
+                     <p className="text-xs text-slate-400 mb-6">Límite base: {plan.limite_jugadores_base || 'Ilimitado'} deportistas</p>
 
-              {/* PLAN ANUAL */}
-              <div className="bg-white border-2 border-emerald-500 rounded-2xl p-6 sm:p-8 relative shadow-md">
-                 <div className="absolute -top-3 right-6 bg-emerald-500 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-wide">
-                   MÁS POPULAR
-                 </div>
-                 <div className="absolute -top-3 right-36 bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold">
-                   AHORRA 50%
-                 </div>
-                 
-                 <div className="flex justify-between items-start mb-4">
-                   <p className="text-slate-800 font-bold text-sm">Pago Anual</p>
-                   <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                 </div>
+                     <ul className="space-y-3 mt-6 mb-8">
+                        <li className="flex items-start gap-2">
+                           <CheckCircle2 className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isPopular ? 'text-emerald-500' : 'text-amber-500'}`} />
+                           <span className="text-xs text-slate-600">Acceso completo a la plataforma</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                           <CheckCircle2 className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isPopular ? 'text-emerald-500' : 'text-amber-500'}`} />
+                           <span className="text-xs text-slate-600">Jugador extra: COP {plan.precio_jugador_extra?.toLocaleString('es-CO')}</span>
+                        </li>
+                     </ul>
 
-                 <div className="flex items-baseline gap-2 mb-4">
-                    <span className="text-3xl font-black text-emerald-600">COP {(tarifaBase * 0.5).toLocaleString('es-CO')}</span>
-                    <span className="text-slate-500 text-xs">por deportista/mes</span>
-                 </div>
-                 
-                 <p className="text-xs text-slate-400 mb-6">Mínimo COP ${(tarifaBase * 0.5 * 50 * 12).toLocaleString('es-CO')}/año</p>
-
-                 <ul className="space-y-3 mt-6">
-                    <li className="flex items-start gap-2">
-                       <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                       <span className="text-xs text-slate-600">Congela tu precio: no importa cuántos deportistas crezcas</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                       <span className="text-xs text-slate-600">Ahorro garantizado del 50%</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                       <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                       <span className="text-xs text-slate-600">Renueva solo una vez al año</span>
-                    </li>
-                 </ul>
-              </div>
+                     <a 
+                       href={`https://wa.me/${cleanNumber}?text=Me%20interesa%20el%20plan%20${encodeURIComponent(plan.nombre)}%20para%20el%20club%20${encodeURIComponent(club?.nombre || '')}`}
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       className={`w-full block text-center px-6 py-3 rounded-xl font-bold text-sm transition-colors ${isPopular ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'}`}
+                     >
+                       Elegir plan
+                     </a>
+                  </div>
+                );
+              }) : (
+                <div className="col-span-full text-center py-12 text-slate-500">
+                  Contacta con soporte para conocer nuestros planes disponibles.
+                </div>
+              )}
            </div>
            
-           <div className="mt-6 bg-slate-100 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border border-slate-200">
-              <div>
-                <p className="text-xs text-slate-500 font-medium">Pago Anual</p>
-                <p className="text-lg font-bold text-slate-900">Estimado anual: COP {(tarifaBase * 0.5 * 12 * activeAthletesCount).toLocaleString('es-CO')}</p>
-                <p className="text-[10px] text-slate-400">{activeAthletesCount} deportistas activos</p>
-              </div>
-              <a 
-                href={`https://wa.me/${cleanNumber}?text=Me%20interesa%20el%20plan%20ANUAL%20para%20el%20club%20${encodeURIComponent(club?.nombre || '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-[#16A34A] hover:bg-[#15803d] text-white px-6 py-3 rounded-xl font-bold text-sm transition-colors"
-              >
-                Pagar ahora
-              </a>
-           </div>
-           
-           <p className="text-center text-[10px] text-slate-400 mt-4">Para gestionar tu suscripción, contacta con el equipo de Gibbor App.</p>
+           <p className="text-center text-[10px] text-slate-400 mt-6">Para gestionar tu suscripción o cambiar de plan, contacta con el equipo de Gibbor App.</p>
         </div>
 
         {/* FOOTER WIDGETS */}
