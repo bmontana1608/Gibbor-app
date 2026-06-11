@@ -20,6 +20,7 @@ export default function BibliotecaEntrenador() {
   const [filtroVista, setFiltroVista] = useState<'Todos' | 'Global' | 'Club' | 'Personal'>('Todos');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+  const [resolvedTikTokUrls, setResolvedTikTokUrls] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     titulo: '',
@@ -114,8 +115,25 @@ export default function BibliotecaEntrenador() {
       if (embedUrl) {
         const isMp4 = embedUrl.endsWith('.mp4');
         const isTikTok = embedUrl.includes('tiktok.com');
-        const containerHeightClass = isTikTok ? 'h-[450px]' : isMp4 ? 'h-[450px]' : 'aspect-video';
         
+        if (isTikTok) {
+           const mp4Url = resolvedTikTokUrls[ejercicio.id];
+           if (mp4Url) {
+              return (
+                 <div className="relative w-full h-[450px] bg-black rounded-t-2xl overflow-hidden transition-all duration-300">
+                    <video src={mp4Url} controls autoPlay {...({ referrerPolicy: "no-referrer" } as any)} className="w-full h-full object-contain"></video>
+                 </div>
+              );
+           } else {
+              return (
+                 <div className="relative w-full h-[450px] bg-black rounded-t-2xl overflow-hidden flex items-center justify-center transition-all duration-300">
+                    <Loader2 className="w-8 h-8 animate-spin text-brand" />
+                 </div>
+              );
+           }
+        }
+
+        const containerHeightClass = isMp4 ? 'h-[450px]' : 'aspect-video';
         return (
           <div className={`relative w-full bg-black rounded-t-2xl overflow-hidden transition-all duration-300 ${containerHeightClass}`}>
             {isMp4 ? (
@@ -126,15 +144,6 @@ export default function BibliotecaEntrenador() {
                 {...({ referrerPolicy: "no-referrer" } as any)}
                 className="w-full h-full object-contain"
               ></video>
-            ) : isTikTok ? (
-              <iframe 
-                src={embedUrl} 
-                className="absolute w-full h-[650px] border-none max-w-full"
-                style={{ top: '-85px', left: 0 }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                scrolling="no"
-              ></iframe>
             ) : (
               <iframe 
                 src={embedUrl} 
@@ -191,7 +200,20 @@ export default function BibliotecaEntrenador() {
       return (
         <div 
           className="w-full h-40 bg-black rounded-t-2xl flex items-center justify-center border-b border-zinc-800 group cursor-pointer relative overflow-hidden"
-          onClick={() => setPlayingVideoId(ejercicio.id)}
+          onClick={async () => {
+            setPlayingVideoId(ejercicio.id);
+            if (!resolvedTikTokUrls[ejercicio.id]) {
+               try {
+                 const res = await fetch(`/api/tiktok-video?url=${encodeURIComponent(url)}`);
+                 const data = await res.json();
+                 if (data.playUrl) {
+                    setResolvedTikTokUrls(prev => ({ ...prev, [ejercicio.id]: data.playUrl }));
+                 }
+               } catch (e) {
+                 console.error(e);
+               }
+            }
+          }}
         >
           <img 
             src={`https://www.tikwm.com/video/cover/${tiktokId}.webp`} 
