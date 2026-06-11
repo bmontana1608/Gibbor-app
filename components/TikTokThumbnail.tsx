@@ -13,18 +13,10 @@ export function TikTokThumbnail({ url, tiktokId }: TikTokThumbnailProps) {
   useEffect(() => {
     let isMounted = true;
     
-    // First try the tikwm static url as it's fastest if it works
-    const staticUrl = `https://www.tikwm.com/video/cover/${tiktokId}.webp`;
-    
-    const checkStaticUrl = new Image();
-    checkStaticUrl.src = staticUrl;
-    checkStaticUrl.onload = () => {
-      if (isMounted) setCoverUrl(staticUrl);
-    };
-    checkStaticUrl.onerror = async () => {
-      // Fallback to our oEmbed proxy
+    const fetchThumbnail = async () => {
       try {
         const res = await fetch(`/api/tiktok-oembed?url=${encodeURIComponent(url)}`);
+        if (!res.ok) throw new Error('API error');
         const data = await res.json();
         if (data.thumbnailUrl && isMounted) {
           setCoverUrl(data.thumbnailUrl);
@@ -36,10 +28,12 @@ export function TikTokThumbnail({ url, tiktokId }: TikTokThumbnailProps) {
       }
     };
 
+    fetchThumbnail();
+
     return () => {
       isMounted = false;
     };
-  }, [url, tiktokId]);
+  }, [url]);
 
   if (error || !coverUrl) {
     return (
