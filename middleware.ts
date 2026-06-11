@@ -63,41 +63,48 @@ export async function middleware(request: NextRequest) {
       // Obtener datos del club
       const { data: clubData } = await supabase
         .from('clubes')
-        .select('id, estado_suscripcion, fecha_fin_prueba')
+        .select('id, estado_suscripcion, fecha_fin_prueba, proximo_corte')
         .eq('slug', slug)
         .single();
 
       if (clubData) {
         let isSuspended = clubData.estado_suscripcion === 'Suspendido';
-
-        // LÓGICA INTELIGENTE DE CORTE (1 al 10 = Gracia, 11+ = Posible Suspensión)
         const hoy = new Date();
-        const diaActual = hoy.getDate();
-        const mesActual = hoy.getMonth() + 1;
-        const anioActual = hoy.getFullYear();
 
-        // 1. Validar Periodo de Prueba
-        if (clubData.fecha_fin_prueba) {
-          const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
-          if (fechaFinPrueba < hoy) {
-            // El periodo de prueba expiró
-            isSuspended = true;
-          }
-        }
-
-        // 2. Si no está suspendido por prueba, revisar facturación regular (Corte el día 11)
-        if (!isSuspended && diaActual > 10) {
-          const { data: facturas } = await supabase
-            .from('facturacion_mensual')
-            .select('estado_pago')
-            .eq('club_id', clubData.id)
-            .eq('periodo_mes', mesActual)
-            .eq('periodo_anio', anioActual)
-            .limit(1);
-
-          const facturaMes = facturas?.[0];
-          if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
+        // 1. Validar por el nuevo sistema de Próximo Corte
+        if (clubData.proximo_corte) {
+          const fechaCorte = new Date(clubData.proximo_corte);
+          if (fechaCorte < hoy) {
              isSuspended = true;
+          } else {
+             isSuspended = false;
+          }
+        } else {
+          // 2. Lógica Legacy (si el club aún no tiene un corte asignado)
+          const diaActual = hoy.getDate();
+          const mesActual = hoy.getMonth() + 1;
+          const anioActual = hoy.getFullYear();
+
+          if (clubData.fecha_fin_prueba) {
+            const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
+            if (fechaFinPrueba < hoy) {
+              isSuspended = true;
+            }
+          }
+
+          if (!isSuspended && diaActual > 10) {
+            const { data: facturas } = await supabase
+              .from('facturacion_mensual')
+              .select('estado_pago')
+              .eq('club_id', clubData.id)
+              .eq('periodo_mes', mesActual)
+              .eq('periodo_anio', anioActual)
+              .limit(1);
+
+            const facturaMes = facturas?.[0];
+            if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
+               isSuspended = true;
+            }
           }
         }
 
