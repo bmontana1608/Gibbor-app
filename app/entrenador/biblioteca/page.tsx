@@ -114,7 +114,7 @@ export default function BibliotecaEntrenador() {
       if (embedUrl) {
         const isMp4 = embedUrl.endsWith('.mp4');
         const isTikTok = embedUrl.includes('tiktok.com');
-        const containerHeightClass = isTikTok ? 'h-[550px]' : isMp4 ? 'h-[450px]' : 'aspect-video';
+        const containerHeightClass = isTikTok ? 'h-[450px]' : isMp4 ? 'h-[450px]' : 'aspect-video';
         
         return (
           <div className={`relative w-full bg-black rounded-t-2xl overflow-hidden transition-all duration-300 ${containerHeightClass}`}>
@@ -126,6 +126,14 @@ export default function BibliotecaEntrenador() {
                 {...({ referrerPolicy: "no-referrer" } as any)}
                 className="w-full h-full object-contain"
               ></video>
+            ) : isTikTok ? (
+              <iframe 
+                src={embedUrl} 
+                className="absolute w-full h-[650px] border-none"
+                style={{ top: '-85px' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
             ) : (
               <iframe 
                 src={embedUrl} 
