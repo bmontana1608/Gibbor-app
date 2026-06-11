@@ -87,16 +87,15 @@ export default function ConvocatoriasEntrenador() {
           setJugadores(jugadoresFiltrados);
         }
 
-        // Cargar Historial de Eventos del Entrenador
-        const { data: eventosData } = await supabase
-          .from('eventos')
-          .select('*, convocatorias(jugador_id, rol_partido)')
-          .eq('club_id', usuario.club_id)
-          .eq('creado_por', usuario.id)
-          .order('fecha', { ascending: false });
-        
-        if (eventosData) {
-          setMisEventos(eventosData);
+        // Cargar Historial de Eventos del Entrenador (usando API para saltar RLS en convocatorias)
+        try {
+          const resEventos = await fetch(`/api/entrenador/mis-eventos?clubId=${usuario.club_id}&entrenadorId=${usuario.id}`);
+          if (resEventos.ok) {
+            const eventosData = await resEventos.json();
+            setMisEventos(eventosData);
+          }
+        } catch (error) {
+          console.error('[Convocatorias] Error cargando eventos:', error);
         }
       }
       setCargando(false);
