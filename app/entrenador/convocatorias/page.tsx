@@ -52,7 +52,7 @@ export default function ConvocatoriasEntrenador() {
       if (usuario?.club_id) {
         const { data: jugadoresData, error: jugErr } = await supabase
           .from('perfiles')
-          .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posiciones, grupos')
+          .select('id, nombres, apellidos, fecha_nacimiento, foto_url, posicion, grupos')
           .eq('club_id', usuario.club_id)
           .eq('rol', 'Futbolista');
 
@@ -285,7 +285,7 @@ export default function ConvocatoriasEntrenador() {
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-slate-800 truncate text-sm">{jugador.nombres} {jugador.apellidos}</p>
                           <p className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                            {jugador.posiciones || 'Sin posición'} 
+                            {jugador.posicion || 'Sin posición'} 
                             {jugador.edadFisica !== null && <span className="font-black text-slate-700 ml-1">({jugador.edadFisica} años)</span>}
                           </p>
                           {jugador.diasParaCumple !== null && jugador.diasParaCumple <= 45 && (
