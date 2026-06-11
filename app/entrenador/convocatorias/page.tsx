@@ -70,10 +70,33 @@ export default function ConvocatoriasEntrenador() {
 
     lista.forEach(j => {
       let catNombre = 'Sin Fecha';
+      j.edadFisica = null;
+      j.diasParaCumple = null;
+
       if (j.fecha_nacimiento) {
-        const añoNac = new Date(j.fecha_nacimiento).getFullYear();
-        const edad = añoActual - añoNac;
-        catNombre = `Sub ${edad}`;
+        // En fútbol infantil la categoría se mide solo por el año de nacimiento
+        // (Ej: Nacidos en 2012 son Sub 14 en 2026, sin importar el mes)
+        const fechaNac = new Date(j.fecha_nacimiento);
+        const añoNac = fechaNac.getFullYear();
+        const edadDeportiva = añoActual - añoNac;
+        catNombre = `Sub ${edadDeportiva}`;
+
+        // Calcular edad biológica/física exacta
+        let edadCalculada = añoActual - añoNac;
+        const m = hoy.getMonth() - fechaNac.getMonth();
+        if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) {
+          edadCalculada--;
+        }
+        j.edadFisica = edadCalculada;
+
+        // Calcular días para el próximo cumpleaños
+        const proximoCumple = new Date(añoActual, fechaNac.getMonth(), fechaNac.getDate());
+        if (proximoCumple < hoy) {
+          proximoCumple.setFullYear(añoActual + 1);
+        }
+        const diffTime = proximoCumple.getTime() - hoy.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        j.diasParaCumple = diffDays;
       }
       
       if (!grupos[catNombre]) grupos[catNombre] = [];
@@ -257,7 +280,17 @@ export default function ConvocatoriasEntrenador() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-slate-800 truncate text-sm">{jugador.nombres} {jugador.apellidos}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-widest">{jugador.posiciones || 'Sin posición'}</p>
+                          <p className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                            {jugador.posiciones || 'Sin posición'} 
+                            {jugador.edadFisica !== null && <span className="font-black text-slate-700 ml-1">({jugador.edadFisica} años)</span>}
+                          </p>
+                          {jugador.diasParaCumple !== null && jugador.diasParaCumple <= 45 && (
+                            <div className="mt-1">
+                              <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded uppercase tracking-tighter border border-amber-200 shadow-sm">
+                                ⚠️ Cumple en {jugador.diasParaCumple} días
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
