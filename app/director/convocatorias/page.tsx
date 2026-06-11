@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
-import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
@@ -62,6 +62,46 @@ export default function ConvocatoriasDirector() {
     }
   };
 
+  const eliminarEvento = async (eventoId: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar y rechazar toda esta convocatoria?')) return;
+    const toastId = toast.loading('Eliminando...');
+    try {
+      const res = await fetch(`/api/eventos?slug=${tenantSlug}&id=${eventoId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Convocatoria eliminada', { id: toastId });
+        setEventos(prev => prev.filter(e => e.id !== eventoId));
+      } else {
+        toast.error(data.error || 'Error al eliminar', { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    }
+  };
+
+  const eliminarJugador = async (convocatoriaId: string, eventoId: string) => {
+    if (!confirm('¿Estás seguro de que deseas quitar a este jugador de la lista?')) return;
+    const toastId = toast.loading('Quitando jugador...');
+    try {
+      const res = await fetch(`/api/director/convocatorias/jugador?slug=${tenantSlug}&id=${convocatoriaId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Jugador removido', { id: toastId });
+        setEventos(prev => prev.map(e => {
+          if (e.id === eventoId) {
+            const nuevasConvs = e.convocatorias?.filter((c: any) => c.id !== convocatoriaId) || [];
+            return { ...e, convocatorias: nuevasConvs };
+          }
+          return e;
+        }).filter(e => e.convocatorias && e.convocatorias.length > 0)); 
+      } else {
+        toast.error(data.error || 'Error al remover jugador', { id: toastId });
+      }
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    }
+  };
+
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando convocatorias...</div>;
 
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
@@ -109,12 +149,20 @@ export default function ConvocatoriasDirector() {
               </div>
 
               {evento.estado === 'Pendiente' && (
-                <button 
-                  onClick={() => aprobarEvento(evento.id)}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2 flex-shrink-0"
-                >
-                  <CheckCircle className="w-4 h-4" /> Aprobar y Notificar WPP
-                </button>
+                <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+                  <button 
+                    onClick={() => aprobarEvento(evento.id)}
+                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" /> Aprobar y Notificar WPP
+                  </button>
+                  <button 
+                    onClick={() => eliminarEvento(evento.id)}
+                    className="bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border border-red-200 flex items-center justify-center gap-2"
+                  >
+                    <Trash2 className="w-4 h-4" /> Rechazar
+                  </button>
+                </div>
               )}
             </div>
 
@@ -124,7 +172,7 @@ export default function ConvocatoriasDirector() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {evento.convocatorias?.map((convocado: any) => (
-                  <div key={convocado.id} className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <div key={convocado.id} className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 relative group">
                      <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-white border overflow-hidden">
                         {convocado.perfiles?.foto_url ? (
                           <img src={convocado.perfiles.foto_url} alt="foto" className="w-full h-full object-cover" />
@@ -133,11 +181,21 @@ export default function ConvocatoriasDirector() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="font-bold text-slate-800 text-xs truncate">{convocado.perfiles?.nombres} {convocado.perfiles?.apellidos}</p>
+                        <p className="font-bold text-slate-800 text-xs truncate pr-6">{convocado.perfiles?.nombres} {convocado.perfiles?.apellidos}</p>
                         <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${convocado.rol_partido === 'Titular' ? 'text-indigo-600' : 'text-slate-400'}`}>
                           {convocado.rol_partido}
                         </p>
                       </div>
+                      
+                      {evento.estado === 'Pendiente' && (
+                        <button
+                          onClick={() => eliminarJugador(convocado.id, evento.id)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-red-500 bg-white hover:bg-red-50 rounded-lg shadow-sm border border-slate-200 hover:border-red-200 opacity-0 group-hover:opacity-100 transition-all"
+                          title="Remover de la convocatoria"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                   </div>
                 ))}
               </div>
