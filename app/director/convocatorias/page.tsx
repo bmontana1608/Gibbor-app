@@ -62,6 +62,26 @@ export default function ConvocatoriasDirector() {
     }
   };
 
+  const devolverEvento = async (eventoId: string) => {
+    if (!confirm('¿Estás seguro de devolver esta lista al entrenador para modificaciones?')) return;
+    const toastId = toast.loading('Devolviendo...');
+    try {
+      const res = await fetch('/api/director/devolver-convocatoria', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ evento_id: eventoId, club_slug: tenantSlug })
+      });
+      const data = await res.json();
+      
+      if (data.error) throw new Error(data.error);
+      
+      toast.success(data.mensaje || 'Convocatoria devuelta', { id: toastId });
+      setEventos(prev => prev.map(ev => ev.id === eventoId ? { ...ev, estado: 'Devuelta' } : ev));
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    }
+  };
+
   const eliminarEvento = async (eventoId: string) => {
     if (!confirm('¿Estás seguro de que deseas eliminar y rechazar toda esta convocatoria?')) return;
     const toastId = toast.loading('Eliminando...');
@@ -134,7 +154,7 @@ export default function ConvocatoriasDirector() {
             <div className="flex flex-col md:flex-row justify-between items-start gap-6 ml-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${evento.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${evento.estado === 'Aprobado' ? 'bg-emerald-50 text-emerald-600' : evento.estado === 'Devuelta' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'}`}>
                     {evento.estado}
                   </span>
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{evento.tipo}</span>
@@ -149,19 +169,31 @@ export default function ConvocatoriasDirector() {
               </div>
 
               {evento.estado === 'Pendiente' && (
-                <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-                  <button 
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => devolverEvento(evento.id)}
+                    className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center transition-colors border border-rose-200"
+                  >
+                    <X className="w-6 h-6 mb-1" />
+                    <span className="text-xs">Devolver Lista</span>
+                  </button>
+                  <button
                     onClick={() => aprobarEvento(evento.id)}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2"
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-200 transition-colors"
                   >
-                    <CheckCircle className="w-4 h-4" /> Aprobar y Notificar WPP
+                    <CheckCircle className="w-6 h-6 mb-1" />
+                    <span className="text-xs">Aprobar y Notificar</span>
                   </button>
-                  <button 
-                    onClick={() => eliminarEvento(evento.id)}
-                    className="bg-red-50 hover:bg-red-500 text-red-500 hover:text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all border border-red-200 flex items-center justify-center gap-2"
-                  >
-                    <Trash2 className="w-4 h-4" /> Rechazar
-                  </button>
+                </div>
+              )}
+              {evento.estado === 'Devuelta' && (
+                <div className="text-center p-4 bg-rose-50 text-rose-600 rounded-xl border border-rose-200 font-bold text-sm">
+                  Lista devuelta al entrenador para correcciones.
+                </div>
+              )}
+              {evento.estado === 'Aprobado' && (
+                <div className="text-center p-4 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm">
+                  Convocatoria Aprobada y Notificada
                 </div>
               )}
             </div>
