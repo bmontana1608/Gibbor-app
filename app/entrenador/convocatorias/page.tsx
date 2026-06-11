@@ -283,6 +283,12 @@ export default function ConvocatoriasEntrenador() {
             <div key={categoria} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
               <h2 className="text-lg font-black text-slate-800 uppercase tracking-tighter mb-4 flex items-center gap-2 border-b pb-4">
                 <Users className="w-5 h-5 text-slate-400" /> {categoria}
+                {/* Año de nacimiento correspondiente a la categoría */}
+                {/^Sub \d+$/.test(categoria) && (
+                  <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
+                    Nacidos {new Date().getFullYear() - parseInt(categoria.replace('Sub ', ''), 10)}
+                  </span>
+                )}
                 <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{grupos[categoria].length} Jugadores</span>
               </h2>
               
