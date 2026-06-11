@@ -71,12 +71,14 @@ export default function ConvocatoriasEntrenador() {
         if (jugErr) {
           console.error('[Convocatorias] Error cargando jugadores:', jugErr.message);
         } else if (todosJugadores) {
-          // 3. Filtrar por categorías del entrenador (si tiene asignadas)
           let jugadoresFiltrados = todosJugadores;
           if (nombresCategoriasEntrenador.length > 0) {
             jugadoresFiltrados = todosJugadores.filter((j: any) => {
-              const grupoJugador = (j.grupos || '').replace('|MANUAL', '').trim();
-              return nombresCategoriasEntrenador.some(cat => grupoJugador === cat || grupoJugador.startsWith(cat));
+              const grupoJugador = (j.grupos || '').replace('|MANUAL', '').trim().toLowerCase();
+              return nombresCategoriasEntrenador.some(cat => {
+                const lowerCat = cat.toLowerCase();
+                return grupoJugador === lowerCat || grupoJugador.startsWith(lowerCat);
+              });
             });
           }
           setJugadores(jugadoresFiltrados);
@@ -100,27 +102,42 @@ export default function ConvocatoriasEntrenador() {
       if (j.fecha_nacimiento) {
         // En fútbol infantil la categoría se mide solo por el año de nacimiento
         // (Ej: Nacidos en 2012 son Sub 14 en 2026, sin importar el mes)
-        const fechaNac = new Date(j.fecha_nacimiento);
-        const añoNac = fechaNac.getFullYear();
-        const edadDeportiva = añoActual - añoNac;
-        catNombre = `Sub ${edadDeportiva}`;
+        let fechaNac;
+        if (j.fecha_nacimiento.includes('/')) {
+          const parts = j.fecha_nacimiento.split('/');
+          if (parts.length === 3) {
+             // Asume DD/MM/YYYY
+             fechaNac = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          } else {
+             fechaNac = new Date(j.fecha_nacimiento);
+          }
+        } else {
+          // Asume YYYY-MM-DD
+          fechaNac = new Date(j.fecha_nacimiento + 'T12:00:00');
+        }
 
-        // Calcular edad biológica/física exacta
-        let edadCalculada = añoActual - añoNac;
+        if (!isNaN(fechaNac.getTime())) {
+          const añoNac = fechaNac.getFullYear();
+          const edadDeportiva = añoActual - añoNac;
+          catNombre = `Sub ${edadDeportiva}`;
+
+          // Calcular edad biológica/física exacta
+          let edadCalculada = añoActual - añoNac;
         const m = hoy.getMonth() - fechaNac.getMonth();
         if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) {
           edadCalculada--;
         }
         j.edadFisica = edadCalculada;
 
-        // Calcular días para el próximo cumpleaños
-        const proximoCumple = new Date(añoActual, fechaNac.getMonth(), fechaNac.getDate());
-        if (proximoCumple < hoy) {
-          proximoCumple.setFullYear(añoActual + 1);
+          // Calcular días para el próximo cumpleaños
+          const proximoCumple = new Date(añoActual, fechaNac.getMonth(), fechaNac.getDate());
+          if (proximoCumple < hoy) {
+            proximoCumple.setFullYear(añoActual + 1);
+          }
+          const diffTime = proximoCumple.getTime() - hoy.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          j.diasParaCumple = diffDays;
         }
-        const diffTime = proximoCumple.getTime() - hoy.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        j.diasParaCumple = diffDays;
       }
       
       if (!grupos[catNombre]) grupos[catNombre] = [];
