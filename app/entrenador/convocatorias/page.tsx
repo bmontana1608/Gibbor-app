@@ -16,7 +16,7 @@ export default function ConvocatoriasEntrenador() {
   // Formulario del Evento
   const [evento, setEvento] = useState({
     titulo: '',
-    tipo_evento: 'Torneo',
+    tipo_evento: 'Partido',
     fecha: '',
     lugar: '',
     descripcion: ''
@@ -184,7 +184,7 @@ export default function ConvocatoriasEntrenador() {
       toast.success('Convocatoria enviada para aprobación', { id: toastId });
       
       // Limpiar formulario
-      setEvento({ titulo: '', tipo_evento: 'Torneo', fecha: '', lugar: '', descripcion: '' });
+      setEvento({ titulo: '', tipo_evento: 'Partido', fecha: '', lugar: '', descripcion: '' });
       setSeleccionados({});
     } catch (err: any) {
       toast.error('Error: ' + err.message, { id: toastId });
