@@ -24,6 +24,7 @@ export default function DirectorioMiembros() {
   const [isModalDetallesOpen, setIsModalDetallesOpen] = useState(false);
   const [solicitudSeleccionada, setSolicitudSeleccionada] = useState<any>(null);
   const [emailAcceso, setEmailAcceso] = useState('');
+  const [claveAcceso, setClaveAcceso] = useState('Club2026*');
   const [generandoAcceso, setGenerandoAcceso] = useState(false);
 
   useEffect(() => {
@@ -432,6 +433,7 @@ export default function DirectorioMiembros() {
                             setSolicitudSeleccionada(jugador); 
                             const emailSugerido = jugador.email_contacto || jugador.email || '';
                             setEmailAcceso(emailSugerido); 
+                            setClaveAcceso('Club2026*');
                             setIsModalDetallesOpen(true); 
                           }} className="text-brand hover:bg-brand/10 dark:hover:bg-brand/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
                           {pestaña === 'Registrados' ? (
@@ -593,24 +595,38 @@ export default function DirectorioMiembros() {
               <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-3 mb-6"><div className="bg-brand/20 rounded-xl flex items-center justify-center"><Key className="text-brand w-5 h-5" /></div><h4 className="text-sm font-black uppercase italic tracking-widest">Accesos a Plataforma</h4></div>
                 <div className="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-center">
-                  <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="text-brand" />
+                  
+                  <div className="flex flex-col gap-3 mb-4 text-left">
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Correo de Acceso</label>
+                      <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand transition-all" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Contraseña Temporal</label>
+                      <input type="text" value={claveAcceso} onChange={(e) => setClaveAcceso(e.target.value)} placeholder="Ej: Club2026*" className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand transition-all" />
+                      <p className="text-[9px] text-slate-400 mt-1 ml-1 font-medium">Debe tener al menos 6 caracteres.</p>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col gap-3">
                     {solicitudSeleccionada.email && pestaña === 'Registrados' ? (
                       <button onClick={async () => { 
-                        if(!window.confirm("¿Seguro que deseas resetear la clave de este usuario?")) return; 
+                        if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
+                        if(!window.confirm(`¿Seguro que deseas resetear la clave de este usuario a: ${claveAcceso} ?`)) return; 
                         setGenerandoAcceso(true); 
                         const tid = toast.loading("Reseteando clave..."); 
                         const res = await fetch('/api/admin/reset-password', { 
                           method: 'POST', 
-                          body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: 'Club2026*' }) 
+                          body: JSON.stringify({ userId: solicitudSeleccionada.id, newPassword: claveAcceso }) 
                         }); 
-                        if(res.ok) toast.success("Clave reseteada a Club2026*", {id: tid});
+                        if(res.ok) toast.success(`Clave reseteada a ${claveAcceso}`, {id: tid});
                         else toast.error("Error al resetear clave", {id: tid});
                         setGenerandoAcceso(false); 
                       }} disabled={generandoAcceso} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-[10px]">Resetear Clave</button>
                     ) : (
                       <button onClick={async () => { 
                         if(!emailAcceso) return toast.error("Por favor ingresa un correo"); 
+                        if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
                         setGenerandoAcceso(true); 
                         const tid = toast.loading("Activando acceso...");
                         try {
@@ -618,7 +634,7 @@ export default function DirectorioMiembros() {
                             method: 'POST', 
                             body: JSON.stringify({ 
                               email: emailAcceso, 
-                              password: 'Club2026*', 
+                              password: claveAcceso, 
                               rol: solicitudSeleccionada.rol || 'Futbolista', 
                               perfilId: solicitudSeleccionada.id 
                             }) 
@@ -637,7 +653,10 @@ export default function DirectorioMiembros() {
                         setGenerandoAcceso(false); 
                       }} disabled={generandoAcceso} className="w-full bg-brand text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
                     )}
-                    <button onClick={() => window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=Acceso Activado.`, '_blank')} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
+                    <button onClick={() => {
+                      const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://${tenant?.slug || 'app'}.efdgibbor.com`;
+                      window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+                    }} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
                   </div>
                 </div>
               </div>
