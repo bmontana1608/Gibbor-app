@@ -76,8 +76,8 @@ export async function getTenant(overrideSlug?: string | null) {
     slug: 'master',
     config: {
       nombre: 'Master Club Manager (MCM)',
-      color: '#06b6d4', // Cian vibrante (Logo MCM)
-      logo: 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
+      color: '#10b981', // Verde MCM
+      logo: '/logo_mcm.png'
     }
   };
 
@@ -106,8 +106,8 @@ export async function getTenant(overrideSlug?: string | null) {
     mp_public_key: currentClub.mp_public_key,
     config: {
       nombre: currentClub.nombre,
-      color: currentClub.color_primario || '#06b6d4',
-      logo: currentClub.logo_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'
+      color: currentClub.color_primario || '#10b981',
+      logo: currentClub.logo_url || '/logo_mcm.png'
     }
   };
 }

@@ -19,8 +19,12 @@ export async function generateMetadata() {
     ? `/${tenantSlug}/manifest.json`
     : undefined;
 
+  const titleStr = (tenant as any).isMaster 
+    ? 'Master Club Manager | El corazón de tu formación deportiva' 
+    : `${tenant.config.nombre} | MCM`;
+
   return {
-    title: `${tenant.config.nombre} | MCM`,
+    title: titleStr,
     description: 'Master Club Manager - El corazón de tu formación deportiva',
     ...(manifestUrl ? { manifest: manifestUrl } : {}),
     appleWebApp: {
@@ -30,10 +34,10 @@ export async function generateMetadata() {
     },
     icons: {
       icon: [
-        { url: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'), type: 'image/png', sizes: '512x512' },
+        { url: tenant.config.logo, type: 'image/png', sizes: '512x512' },
       ],
-      apple: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'),
-      shortcut: (tenant as any).isMaster ? '/icon.png' : (tenant.config.logo || '/icon.png'),
+      apple: tenant.config.logo,
+      shortcut: tenant.config.logo,
     },
   };
 }

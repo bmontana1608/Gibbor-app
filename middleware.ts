@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
     if (parts.length > 2 && parts[0] !== 'www') {
       slug = parts[0] === 'portalgibbor' ? 'gibbor' : parts[0];
     } else {
-      slug = 'gibbor'; 
+      slug = 'master'; 
     }
   }
 
