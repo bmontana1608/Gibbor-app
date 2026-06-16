@@ -531,7 +531,6 @@ export default function LandingPage() {
             <Link href="#" className="hover:text-slate-300 transition-colors">Privacidad</Link>
             <Link href="#" className="hover:text-slate-300 transition-colors">Términos</Link>
             <a href="mailto:soporte@masterclubmanager.com" className="hover:text-slate-300 transition-colors">Soporte</a>
-            <Link href="/master" className="hover:text-green-400 transition-colors text-green-600">Admin</Link>
           </div>
         </div>
       </footer>
