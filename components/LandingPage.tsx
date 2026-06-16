@@ -129,7 +129,6 @@ export default function LandingPage() {
             {NAV_LINKS.map(l => (
               <a key={l.href} href={l.href} className="hover:text-slate-900 transition-colors">{l.label}</a>
             ))}
-            <Link href="/master" className="text-green-600 hover:text-green-700 font-bold transition-colors">Admin</Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -404,10 +403,14 @@ export default function LandingPage() {
                         <h3 className={`text-2xl font-black mb-3 ${isPopular ? 'text-white' : 'text-slate-900'}`}>{plan.nombre}</h3>
                         <div className="flex items-end gap-1">
                           <span className={`text-4xl font-black leading-none ${isPopular ? 'text-white' : 'text-slate-900'}`}>
-                            {formatCOP(plan.precio_base)}
+                            {plan.precio_base === 0 && plan.precio_jugador_extra > 0 
+                              ? formatCOP(plan.precio_jugador_extra) 
+                              : formatCOP(plan.precio_base)}
                           </span>
                           <span className={`text-sm font-medium pb-0.5 ${isPopular ? 'text-slate-400' : 'text-slate-400'}`}>
-                            /{plan.tipo_cobro === 'anual' ? 'año' : 'mes'}
+                            {plan.precio_base === 0 && plan.precio_jugador_extra > 0 
+                              ? '/jugador al mes' 
+                              : `/${plan.tipo_cobro === 'anual' ? 'año' : 'mes'}`}
                           </span>
                         </div>
                       </div>
