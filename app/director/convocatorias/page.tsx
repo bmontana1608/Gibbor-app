@@ -225,8 +225,17 @@ export default function ConvocatoriasDirector() {
                 </div>
               )}
               {evento.estado === 'Aprobado' && (
-                <div className="text-center p-4 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm">
-                  Convocatoria Aprobada y Notificada
+                <div className="flex flex-col gap-2">
+                  <div className="text-center p-4 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm">
+                    Convocatoria Aprobada
+                  </div>
+                  <button
+                    onClick={() => devolverEvento(evento.id)}
+                    className="w-full bg-amber-50 hover:bg-amber-100 text-amber-600 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-amber-200"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    <span className="text-xs uppercase tracking-widest">Reabrir para Modificaciones</span>
+                  </button>
                 </div>
               )}
             </div>

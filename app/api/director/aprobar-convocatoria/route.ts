@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       .select(`
         id,
         rol_partido,
+        estado_notificacion,
         perfiles (
           id,
           nombres,
@@ -59,6 +60,11 @@ export async function POST(request: Request) {
     for (const convocado of convocados) {
       const perfil = convocado.perfiles as any;
       if (!perfil) continue;
+
+      // Saltar jugadores que ya fueron notificados en una aprobación previa
+      if (convocado.estado_notificacion === 'Enviada') {
+        continue;
+      }
 
       const titulo = evento.titulo;
       const nombreCompleto = `${perfil.nombres} ${perfil.apellidos}`;
