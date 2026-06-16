@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Calculator, Plus, Trash2, Users, MessageSquare, Copy, CheckCircle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
@@ -33,40 +32,28 @@ export default function CalculadoraCostos() {
     { id: '1', nombre: 'Arbitraje', valor: 0 },
   ]);
 
-  // Cargar convocatorias aprobadas con conteo de jugadores convocados
+  // Cargar convocatorias usando el endpoint admin (evita restricciones RLS)
   useEffect(() => {
     async function cargar() {
       if (!tenantSlug) return;
-      const res = await fetch(`/api/tenant?slug=${tenantSlug}`);
-      const tenant = await res.json();
-      if (!tenant?.id) return;
 
-      // Cargar eventos con sus convocados
-      const { data: eventos } = await supabase
-        .from('eventos')
-        .select(`
-          id,
-          titulo,
-          fecha,
-          tipo,
-          estado,
-          convocatorias (id)
-        `)
-        .eq('club_id', tenant.id)
-        .in('estado', ['Aprobado', 'Pendiente'])
-        .order('fecha', { ascending: false })
-        .limit(20);
+      try {
+        const res = await fetch(`/api/director/convocatorias?slug=${tenantSlug}`);
+        if (!res.ok) throw new Error('Error al cargar convocatorias');
+        const eventos: any[] = await res.json();
 
-      if (eventos) {
         const eventosConConteo = eventos
-          .filter((ev: any) => (ev.convocatorias?.length || 0) > 0)
           .map((ev: any) => ({
             ...ev,
             jugadores: ev.convocatorias?.length || 0,
             label: `${ev.titulo} (${new Date(ev.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })})`
-          }));
+          }))
+          .filter((ev: any) => ev.jugadores > 0);
+
         setCategorias(eventosConConteo);
         if (eventosConConteo.length > 0) setCategoriaSeleccionada(eventosConConteo[0]);
+      } catch (err) {
+        console.error('Error cargando convocatorias:', err);
       }
       setCargando(false);
     }
