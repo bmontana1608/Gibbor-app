@@ -24,6 +24,11 @@ export default function FichaDelJugador() {
   const [planes, setPlanes] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
   const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
+  
+  // Accesos a plataforma
+  const [emailAcceso, setEmailAcceso] = useState('');
+  const [claveAcceso, setClaveAcceso] = useState('Club2026*');
+  const [generandoAcceso, setGenerandoAcceso] = useState(false);
 
   useEffect(() => {
     async function cargarJugador() {
@@ -87,6 +92,8 @@ if (data.fecha_nacimiento) {
           .eq('estado_miembro', 'Activo')
           .order('nombres', { ascending: true });
         if (todosJugadoresBD) setTodosLosJugadores(todosJugadoresBD);
+        
+        setEmailAcceso(data.email_contacto || data.email || '');
       }
       setCargando(false);
     }
@@ -414,6 +421,77 @@ if (data.fecha_nacimiento) {
              <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Plan</span><span className="text-slate-800 font-bold">{jugador.tipo_plan || 'Regular'}</span></div>
              <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Estado Pago</span><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{esAlDia ? 'Al día' : 'Pendiente'}</span></div>
              <div className="flex justify-between"><span className="text-slate-500 text-sm">Puntos</span><span className="text-slate-800 font-bold">{jugador.puntos || 0} GP</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN DE ACCESOS A PLATAFORMA */}
+      <div className="mt-8 bg-white border rounded-2xl p-6 shadow-sm">
+        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
+          <Smartphone className="w-4 h-4 text-brand" /> Accesos a Plataforma
+        </h3>
+        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row gap-6 items-start">
+          <div className="flex-1 w-full space-y-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Correo de Acceso</label>
+              <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand transition-all" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Contraseña Temporal</label>
+              <input type="text" value={claveAcceso} onChange={(e) => setClaveAcceso(e.target.value)} placeholder="Ej: Club2026*" className="w-full bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand transition-all" />
+              <p className="text-[9px] text-slate-400 mt-1 ml-1 font-medium">Debe tener al menos 6 caracteres.</p>
+            </div>
+          </div>
+          
+          <div className="flex-1 w-full flex flex-col gap-3 pt-5">
+            {jugador.email ? (
+              <button onClick={async () => { 
+                if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
+                if(!window.confirm(`¿Seguro que deseas resetear la clave de este usuario a: ${claveAcceso} ?`)) return; 
+                setGenerandoAcceso(true); 
+                const tid = toast.loading("Reseteando clave..."); 
+                const res = await fetch('/api/admin/reset-password', { 
+                  method: 'POST', 
+                  body: JSON.stringify({ userId: jugador.id, newPassword: claveAcceso }) 
+                }); 
+                if(res.ok) toast.success(`Clave reseteada a ${claveAcceso}`, {id: tid});
+                else toast.error("Error al resetear clave", {id: tid});
+                setGenerandoAcceso(false); 
+              }} disabled={generandoAcceso} className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md">Resetear Clave</button>
+            ) : (
+              <button onClick={async () => { 
+                if(!emailAcceso) return toast.error("Por favor ingresa un correo"); 
+                if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
+                setGenerandoAcceso(true); 
+                const tid = toast.loading("Activando acceso...");
+                try {
+                  const res = await fetch('/api/admin/crear-usuario', { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                      email: emailAcceso, 
+                      password: claveAcceso, 
+                      rol: jugador.rol || 'Futbolista', 
+                      perfilId: jugador.id 
+                    }) 
+                  }); 
+                  const data = await res.json();
+                  if(res.ok) { 
+                    toast.success("¡Acceso activado correctamente!", { id: tid }); 
+                    setJugador({...jugador, email: emailAcceso});
+                  } else { 
+                    toast.error("Error: " + (data.error || "Fallo desconocido"), { id: tid }); 
+                  }
+                } catch (err) {
+                   toast.error("Error de conexión", { id: tid });
+                }
+                setGenerandoAcceso(false); 
+              }} disabled={generandoAcceso} className="w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md shadow-brand/20">Activar Acceso</button>
+            )}
+            
+            <button onClick={() => {
+              const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://${tenantSlug || 'app'}.efdgibbor.com`;
+              window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+            }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
           </div>
         </div>
       </div>
