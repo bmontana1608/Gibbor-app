@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload, Wand2 } from 'lucide-react';
+import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital, Users, Phone, Loader, AlertCircle, Wallet, Upload, Wand2, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useTenant } from '@/lib/hooks/useTenant';
