@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import MCMLogo from '@/components/MCMLogo';
+import ClubSelectorModal from '@/components/ClubSelectorModal';
 
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
@@ -94,6 +95,7 @@ export default function LandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [planes, setPlanes] = useState<any[]>([]);
   const [planesLoading, setPlanesLoading] = useState(true);
+  const [showClubSelector, setShowClubSelector] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -116,6 +118,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white font-sans overflow-x-hidden">
+      {showClubSelector && <ClubSelectorModal onClose={() => setShowClubSelector(false)} />}
 
       {/* ── NAVBAR ────────────────────────────────────────────────── */}
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm border-b border-slate-100' : 'bg-transparent'}`}>
@@ -130,9 +133,9 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/gibbor/login" className="hidden sm:block text-slate-600 hover:text-slate-900 text-sm font-bold px-4 py-2 rounded-full hover:bg-slate-100 transition-all">
+            <button onClick={() => setShowClubSelector(true)} className="hidden sm:block text-slate-600 hover:text-slate-900 text-sm font-bold px-4 py-2 rounded-full hover:bg-slate-100 transition-all">
               Ingresar
-            </Link>
+            </button>
             <Link href="/unete-gibbor" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full text-sm font-black transition-all shadow-lg shadow-green-600/20 hover:-translate-y-0.5">
               Empezar gratis
             </Link>
@@ -146,7 +149,7 @@ export default function LandingPage() {
             {NAV_LINKS.map(l => (
               <a key={l.href} href={l.href} className="block py-3 text-sm font-semibold text-slate-700 border-b border-slate-50 last:border-0" onClick={() => setMobileOpen(false)}>{l.label}</a>
             ))}
-            <Link href="/gibbor/login" className="block py-3 text-sm font-bold text-green-600">Ingresar a mi club</Link>
+            <button onClick={() => setShowClubSelector(true)} className="block py-3 text-sm font-bold text-green-600">Ingresar a mi club</button>
           </div>
         )}
       </nav>
@@ -504,12 +507,12 @@ export default function LandingPage() {
             >
               Iniciar Prueba Gratuita <ChevronRight className="w-5 h-5" />
             </Link>
-            <Link
-              href="/gibbor/login"
+            <button
+              onClick={() => setShowClubSelector(true)}
               className="border border-white/20 text-white hover:bg-white/10 px-10 py-5 rounded-full font-bold text-lg flex items-center justify-center gap-2 transition-all"
             >
               Ya tengo mi club
-            </Link>
+            </button>
           </div>
         </div>
       </section>
