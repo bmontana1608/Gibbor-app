@@ -528,8 +528,8 @@ export default function LandingPage() {
             © {new Date().getFullYear()} Master Club Manager. Todos los derechos reservados.
           </p>
           <div className="flex gap-5 text-sm text-slate-500 font-medium">
-            <Link href="#" className="hover:text-slate-300 transition-colors">Privacidad</Link>
-            <Link href="#" className="hover:text-slate-300 transition-colors">Términos</Link>
+            <Link href="/privacidad" className="hover:text-slate-300 transition-colors">Privacidad</Link>
+            <Link href="/terminos" className="hover:text-slate-300 transition-colors">Términos</Link>
             <a href="mailto:soporte@masterclubmanager.com" className="hover:text-slate-300 transition-colors">Soporte</a>
           </div>
         </div>

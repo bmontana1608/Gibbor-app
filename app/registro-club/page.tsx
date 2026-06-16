@@ -312,7 +312,7 @@ export default function RegistroClubPage() {
 
             <p className="text-center text-xs text-slate-400 font-medium">
               Al enviar aceptas nuestros{' '}
-              <Link href="#" className="text-green-400 hover:underline">Términos de Servicio</Link>.
+              <Link href="/terminos" className="text-green-400 hover:underline">Términos de Servicio</Link>.
               No spam, nunca.
             </p>
           </form>
