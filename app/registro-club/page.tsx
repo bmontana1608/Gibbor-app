@@ -168,10 +168,13 @@ export default function RegistroClubPage() {
         </div>
 
         {/* Right: Form */}
-        <div className="bg-white rounded-3xl border-2 border-slate-100 shadow-xl p-8">
-          <h2 className="text-xl font-black text-slate-900 mb-6">Datos de tu academia</h2>
+        <div className="bg-slate-900 rounded-[2.5rem] shadow-2xl p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <h2 className="text-xl font-black text-white mb-6 relative z-10">Datos de tu academia</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
             {/* Nombre academia */}
             <Field label="Nombre de la academia *" icon={<Building2 className="w-4 h-4" />}>
               <div className="flex flex-col sm:flex-row gap-4 items-start">
@@ -189,18 +192,18 @@ export default function RegistroClubPage() {
                 
                 {/* Logo Upload */}
                 <div className="w-full sm:w-auto flex-shrink-0">
-                  <label className="flex flex-col items-center justify-center w-full sm:w-32 h-32 bg-slate-50 border-2 border-dashed border-slate-200 hover:border-green-400 rounded-2xl cursor-pointer overflow-hidden transition-all group">
+                  <label className="flex flex-col items-center justify-center w-full sm:w-32 h-32 bg-slate-800/50 border-2 border-dashed border-slate-700 hover:border-green-400 rounded-2xl cursor-pointer overflow-hidden transition-all group">
                     {logoPreview ? (
                       <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain p-2" />
                     ) : (
-                      <div className="flex flex-col items-center justify-center p-4 text-slate-400 group-hover:text-green-500 transition-colors">
+                      <div className="flex flex-col items-center justify-center p-4 text-slate-400 group-hover:text-green-400 transition-colors">
                         <UploadCloud className="w-6 h-6 mb-2" />
                         <span className="text-[10px] font-bold uppercase tracking-widest text-center">Subir Logo</span>
                       </div>
                     )}
                     <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={handleFileChange} />
                   </label>
-                  <p className="text-center text-[10px] text-slate-400 mt-1 font-medium">PNG/JPG (Máx 2MB)</p>
+                  <p className="text-center text-[10px] text-slate-500 mt-1 font-medium">PNG/JPG (Máx 2MB)</p>
                 </div>
               </div>
             </Field>
@@ -287,7 +290,7 @@ export default function RegistroClubPage() {
             </Field>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm font-semibold px-4 py-3 rounded-2xl">
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold px-4 py-3 rounded-2xl">
                 {error}
               </div>
             )}
@@ -295,11 +298,11 @@ export default function RegistroClubPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-500 disabled:opacity-60 text-white py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-600/20 hover:-translate-y-0.5"
+              className="w-full bg-green-500 hover:bg-green-400 disabled:opacity-60 text-slate-900 py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20 hover:-translate-y-0.5"
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <div className="w-5 h-5 rounded-full border-2 border-slate-900 border-t-transparent animate-spin" />
                   Enviando...
                 </>
               ) : (
@@ -309,7 +312,7 @@ export default function RegistroClubPage() {
 
             <p className="text-center text-xs text-slate-400 font-medium">
               Al enviar aceptas nuestros{' '}
-              <Link href="#" className="text-green-600 hover:underline">Términos de Servicio</Link>.
+              <Link href="#" className="text-green-400 hover:underline">Términos de Servicio</Link>.
               No spam, nunca.
             </p>
           </form>
@@ -319,13 +322,13 @@ export default function RegistroClubPage() {
   );
 }
 
-const INPUT_CLS = 'w-full bg-slate-50 border-2 border-slate-100 focus:border-green-500 rounded-2xl px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400';
+const INPUT_CLS = 'w-full bg-slate-800/50 border-2 border-slate-700 focus:border-green-400 rounded-2xl px-4 py-3 text-sm font-semibold text-white outline-none transition-all placeholder:text-slate-500';
 
 function Field({ label, icon, children }: { label: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
     <div>
-      <label className="flex items-center gap-1.5 text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">
-        <span className="text-slate-400">{icon}</span>
+      <label className="flex items-center gap-1.5 text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">
+        <span className="text-slate-500">{icon}</span>
         {label}
       </label>
       {children}
