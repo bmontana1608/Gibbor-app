@@ -22,9 +22,11 @@ export default function ClubSelectorModal({ onClose }: ClubSelectorModalProps) {
   const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Club | null>(null);
+  const [currentHost, setCurrentHost] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    setCurrentHost(window.location.host);
     inputRef.current?.focus();
     fetch('/api/clubes-publicos')
       .then(r => r.json())
@@ -150,7 +152,7 @@ export default function ClubSelectorModal({ onClose }: ClubSelectorModalProps) {
                     {/* Club info */}
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-slate-900 text-sm truncate">{club.nombre}</p>
-                      <p className="text-xs text-slate-400 font-mono font-medium">{club.slug}.efdgibbor.com</p>
+                      <p className="text-xs text-slate-400 font-mono font-medium">{currentHost}/{club.slug}</p>
                     </div>
 
                     {/* Arrow or spinner */}

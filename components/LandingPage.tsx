@@ -211,7 +211,7 @@ export default function LandingPage() {
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
                 </div>
                 <div className="flex-1 mx-4 bg-slate-700/50 rounded-md h-5 flex items-center px-3">
-                  <span className="text-[10px] text-slate-400 font-mono">app.efdgibbor.com/director</span>
+                  <span className="text-[10px] text-slate-400 font-mono">masterclubmanager.com/director</span>
                 </div>
               </div>
               <Image
