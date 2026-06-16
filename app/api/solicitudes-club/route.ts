@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import webpush from 'web-push';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,8 +10,17 @@ const supabaseAdmin = createClient(
 // POST /api/solicitudes-club — envío público del formulario
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { nombre_academia, nombre_director, email, telefono, ciudad, pais, jugadores_estimados, mensaje } = body;
+    const formData = await request.formData();
+    
+    const nombre_academia = formData.get('nombre_academia') as string;
+    const nombre_director = formData.get('nombre_director') as string;
+    const email = formData.get('email') as string;
+    const telefono = formData.get('telefono') as string;
+    const ciudad = formData.get('ciudad') as string;
+    const pais = formData.get('pais') as string;
+    const jugadores_estimados = formData.get('jugadores_estimados') as string;
+    const mensaje = formData.get('mensaje') as string;
+    const logoFile = formData.get('logo') as File | null;
 
     if (!nombre_academia || !nombre_director || !email) {
       return NextResponse.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
@@ -31,6 +41,22 @@ export async function POST(request: Request) {
       );
     }
 
+    let logo_url = null;
+    if (logoFile && logoFile.size > 0) {
+      const extension = logoFile.name.split('.').pop() || 'png';
+      const fileName = `solicitud-${Date.now()}.${extension}`;
+      const buffer = Buffer.from(await logoFile.arrayBuffer());
+      
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('clubes_logos')
+        .upload(fileName, buffer, { contentType: logoFile.type });
+
+      if (!uploadError && uploadData) {
+        const { data: publicUrlData } = supabaseAdmin.storage.from('clubes_logos').getPublicUrl(uploadData.path);
+        logo_url = publicUrlData.publicUrl;
+      }
+    }
+
     const { data, error } = await supabaseAdmin.from('solicitudes_club').insert({
       nombre_academia: nombre_academia.trim(),
       nombre_director: nombre_director.trim(),
@@ -40,10 +66,61 @@ export async function POST(request: Request) {
       pais: pais || 'Colombia',
       jugadores_estimados: jugadores_estimados ? parseInt(jugadores_estimados) : null,
       mensaje: mensaje?.trim() || null,
+      logo_url,
       estado: 'Pendiente',
     }).select().single();
 
     if (error) throw error;
+
+    // --- NOTIFICACIÓN PUSH A SUPER ADMINS ---
+    try {
+      if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+        webpush.setVapidDetails(
+          process.env.VAPID_EMAIL || 'mailto:admin@masterclubmanager.com',
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+          process.env.VAPID_PRIVATE_KEY
+        );
+
+        // Buscar a todos los SuperAdmin
+        const { data: superAdmins } = await supabaseAdmin
+          .from('perfiles')
+          .select('id')
+          .eq('rol', 'SuperAdmin');
+
+        if (superAdmins && superAdmins.length > 0) {
+          const adminIds = superAdmins.map(sa => sa.id);
+          
+          // Buscar sus suscripciones
+          const { data: subscripciones } = await supabaseAdmin
+            .from('push_subscriptions')
+            .select('*')
+            .in('user_id', adminIds);
+
+          if (subscripciones && subscripciones.length > 0) {
+            const notifications = subscripciones.map(async (sub) => {
+              try {
+                await webpush.sendNotification(
+                  sub.subscription,
+                  JSON.stringify({
+                    title: '¡Nueva solicitud de academia!',
+                    body: `${nombre_director} quiere registrar ${nombre_academia}.`,
+                    url: '/admin'
+                  })
+                );
+              } catch (err: any) {
+                if (err.statusCode === 410 || err.statusCode === 404) {
+                  await supabaseAdmin.from('push_subscriptions').delete().eq('id', sub.id);
+                }
+              }
+            });
+            await Promise.all(notifications);
+          }
+        }
+      }
+    } catch (pushErr) {
+      console.error('Error enviando push a SuperAdmins:', pushErr);
+    }
+    // -----------------------------------------
 
     return NextResponse.json({ success: true, id: data.id });
   } catch (err: any) {

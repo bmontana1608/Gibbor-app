@@ -581,8 +581,19 @@ export default function SuperAdminDashboard() {
                         return (
                           <tr key={s.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
-                              <p className="font-black text-slate-800 text-sm">{s.nombre_academia}</p>
-                              <p className="text-xs text-gray-400 font-medium">{s.ciudad}{s.ciudad && s.pais ? ', ' : ''}{s.pais}</p>
+                              <div className="flex items-center gap-3">
+                                {s.logo_url ? (
+                                  <img src={s.logo_url} alt="Logo" className="w-8 h-8 rounded-lg object-contain bg-white border border-gray-100" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                                    <Building2 size={14} className="text-gray-400" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="font-black text-slate-800 text-sm">{s.nombre_academia}</p>
+                                  <p className="text-xs text-gray-400 font-medium">{s.ciudad}{s.ciudad && s.pais ? ', ' : ''}{s.pais}</p>
+                                </div>
+                              </div>
                             </td>
                             <td className="px-6 py-4 hidden md:table-cell">
                               <p className="text-sm font-semibold text-slate-700">{s.nombre_director}</p>
@@ -622,7 +633,19 @@ export default function SuperAdminDashboard() {
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-end">
                 <div className="bg-white w-full max-w-lg h-full border-l border-gray-200 p-6 flex flex-col shadow-2xl overflow-y-auto">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-black text-slate-800">Solicitud: {solicitudDetalle.nombre_academia}</h3>
+                    <div className="flex items-center gap-4">
+                      {solicitudDetalle.logo_url ? (
+                        <img src={solicitudDetalle.logo_url} alt="Logo" className="w-12 h-12 rounded-xl object-contain bg-white border border-gray-100 shadow-sm" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center border border-gray-200">
+                          <Building2 size={24} className="text-gray-400" />
+                        </div>
+                      )}
+                      <div>
+                        <h3 className="text-lg font-black text-slate-800">{solicitudDetalle.nombre_academia}</h3>
+                        <p className="text-xs text-gray-500 font-medium">Solicitud de registro</p>
+                      </div>
+                    </div>
                     <button onClick={() => setSolicitudDetalle(null)} className="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-xl"><X size={18} /></button>
                   </div>
 

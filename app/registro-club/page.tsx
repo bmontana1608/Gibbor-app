@@ -5,7 +5,7 @@ import Link from 'next/link';
 import MCMLogo from '@/components/MCMLogo';
 import {
   Building2, User, Mail, Phone, MapPin, Users,
-  MessageSquare, ChevronRight, CheckCircle, ArrowLeft, Shield, Zap, Smartphone
+  MessageSquare, ChevronRight, CheckCircle, ArrowLeft, Shield, Zap, Smartphone, Image as ImageIcon, UploadCloud
 } from 'lucide-react';
 
 const JUGADORES_OPCIONES = [
@@ -34,6 +34,8 @@ export default function RegistroClubPage() {
     jugadores_estimados: '',
     mensaje: '',
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,15 +45,32 @@ export default function RegistroClubPage() {
     setError('');
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError('El logo debe pesar máximo 2MB');
+        return;
+      }
+      setLogoFile(file);
+      const url = URL.createObjectURL(file);
+      setLogoPreview(url);
+      setError('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, value]) => formData.append(key, value));
+      if (logoFile) formData.append('logo', logoFile);
+
       const res = await fetch('/api/solicitudes-club', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: formData,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al enviar solicitud');
@@ -155,15 +174,35 @@ export default function RegistroClubPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Nombre academia */}
             <Field label="Nombre de la academia *" icon={<Building2 className="w-4 h-4" />}>
-              <input
-                name="nombre_academia"
-                type="text"
-                required
-                value={form.nombre_academia}
-                onChange={handleChange}
-                placeholder="Ej: Academia Fútbol del Norte"
-                className={INPUT_CLS}
-              />
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <div className="flex-1 w-full">
+                  <input
+                    name="nombre_academia"
+                    type="text"
+                    required
+                    value={form.nombre_academia}
+                    onChange={handleChange}
+                    placeholder="Ej: Academia Fútbol del Norte"
+                    className={INPUT_CLS}
+                  />
+                </div>
+                
+                {/* Logo Upload */}
+                <div className="w-full sm:w-auto flex-shrink-0">
+                  <label className="flex flex-col items-center justify-center w-full sm:w-32 h-32 bg-slate-50 border-2 border-dashed border-slate-200 hover:border-green-400 rounded-2xl cursor-pointer overflow-hidden transition-all group">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo preview" className="w-full h-full object-contain p-2" />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center p-4 text-slate-400 group-hover:text-green-500 transition-colors">
+                        <UploadCloud className="w-6 h-6 mb-2" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-center">Subir Logo</span>
+                      </div>
+                    )}
+                    <input type="file" accept="image/png, image/jpeg, image/webp" className="hidden" onChange={handleFileChange} />
+                  </label>
+                  <p className="text-center text-[10px] text-slate-400 mt-1 font-medium">PNG/JPG (Máx 2MB)</p>
+                </div>
+              </div>
             </Field>
 
             {/* Nombre director */}
