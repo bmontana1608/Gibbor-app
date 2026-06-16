@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Globe, CreditCard, Activity, Megaphone,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy, FileText, Clock, CheckCircle2, XCircle, Eye
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ import ComunicacionAdminView from '@/components/admin/ComunicacionAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +33,11 @@ export default function SuperAdminDashboard() {
   const [selectedClub, setSelectedClub] = useState<any>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [clubAudit, setClubAudit] = useState<any>(null);
+  // Solicitudes de clubs
+  const [solicitudes, setSolicitudes] = useState<any[]>([]);
+  const [solicitudDetalle, setSolicitudDetalle] = useState<any>(null);
+  const [solicitudLoading, setSolicitudLoading] = useState(false);
+  const [notasAdmin, setNotasAdmin] = useState('');
   const [formData, setFormData] = useState({
     nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: ''
   });
@@ -264,6 +269,7 @@ export default function SuperAdminDashboard() {
   );
 
   const navItems = [
+    { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios' },
     { id: 'saas-billing', icon: <CreditCard size={20} />, label: 'Planes' },
@@ -275,6 +281,33 @@ export default function SuperAdminDashboard() {
     { id: 'mi-cuenta', icon: <User size={20} />, label: 'Mi Cuenta' },
     { id: 'configuracion', icon: <Settings size={20} />, label: 'Ajustes' },
   ];
+
+  const cargarSolicitudes = async () => {
+    setSolicitudLoading(true);
+    try {
+      const res = await fetch('/api/solicitudes-club');
+      const data = await res.json();
+      setSolicitudes(Array.isArray(data) ? data : []);
+    } catch {}
+    setSolicitudLoading(false);
+  };
+
+  const actualizarSolicitud = async (id: string, estado: string) => {
+    try {
+      await fetch('/api/solicitudes-club', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, estado, notas_admin: notasAdmin }),
+      });
+      toast.success(`Solicitud marcada como ${estado}`);
+      setSolicitudDetalle(null);
+      cargarSolicitudes();
+    } catch { toast.error('Error al actualizar'); }
+  };
+
+  useEffect(() => {
+    if (vista === 'solicitudes') cargarSolicitudes();
+  }, [vista]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-800 font-sans">
@@ -500,6 +533,155 @@ export default function SuperAdminDashboard() {
         {vista === 'biblioteca' && <BibliotecaAdminView />}
         {vista === 'tickets' && <TicketsAdminView />}
         {vista === 'comunicacion' && <ComunicacionAdminView />}
+
+        {/* ── VISTA SOLICITUDES DE CLUB ── */}
+        {vista === 'solicitudes' && (
+          <div className="animate-in fade-in duration-300">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800">Solicitudes de Academia</h2>
+                <p className="text-sm text-gray-500">Clubs que quieren unirse a la plataforma</p>
+              </div>
+              <button onClick={cargarSolicitudes} className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-all">
+                <History size={14} /> Actualizar
+              </button>
+            </div>
+
+            {solicitudLoading ? (
+              <div className="flex justify-center py-16"><Loader2 className="animate-spin text-lime-500" size={32} /></div>
+            ) : solicitudes.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-16 text-center">
+                <FileText className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-semibold">No hay solicitudes todavía.</p>
+                <p className="text-gray-300 text-sm mt-1">Aparecerán aquí cuando alguien complete el formulario de registro.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="text-left px-6 py-4">Academia</th>
+                        <th className="text-left px-6 py-4 hidden md:table-cell">Director / Email</th>
+                        <th className="text-center px-4 py-4 hidden lg:table-cell">Jugadores</th>
+                        <th className="text-center px-4 py-4">Estado</th>
+                        <th className="text-center px-4 py-4">Fecha</th>
+                        <th className="text-right px-6 py-4">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {solicitudes.map((s: any) => {
+                        const estadoConfig: Record<string, { color: string; icon: React.ReactNode }> = {
+                          'Pendiente':   { color: 'bg-amber-100 text-amber-700',   icon: <Clock size={11} /> },
+                          'En Revisión': { color: 'bg-blue-100 text-blue-700',     icon: <Eye size={11} /> },
+                          'Aprobado':    { color: 'bg-emerald-100 text-emerald-700', icon: <CheckCircle2 size={11} /> },
+                          'Rechazado':   { color: 'bg-red-100 text-red-700',       icon: <XCircle size={11} /> },
+                        };
+                        const ec = estadoConfig[s.estado] || estadoConfig['Pendiente'];
+                        return (
+                          <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-6 py-4">
+                              <p className="font-black text-slate-800 text-sm">{s.nombre_academia}</p>
+                              <p className="text-xs text-gray-400 font-medium">{s.ciudad}{s.ciudad && s.pais ? ', ' : ''}{s.pais}</p>
+                            </td>
+                            <td className="px-6 py-4 hidden md:table-cell">
+                              <p className="text-sm font-semibold text-slate-700">{s.nombre_director}</p>
+                              <p className="text-xs text-gray-400">{s.email}</p>
+                              {s.telefono && <p className="text-xs text-gray-400">{s.telefono}</p>}
+                            </td>
+                            <td className="px-4 py-4 text-center hidden lg:table-cell">
+                              <span className="text-sm font-bold text-slate-700">{s.jugadores_estimados || '—'}</span>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${ec.color}`}>
+                                {ec.icon}{s.estado}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <p className="text-xs text-gray-400 whitespace-nowrap">{new Date(s.created_at).toLocaleDateString('es-CO')}</p>
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => { setSolicitudDetalle(s); setNotasAdmin(s.notas_admin || ''); }}
+                                className="bg-slate-100 hover:bg-lime-50 hover:text-lime-700 text-slate-600 font-bold text-xs px-3 py-2 rounded-xl transition-all"
+                              >
+                                Gestionar
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Detalle / panel lateral */}
+            {solicitudDetalle && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-end">
+                <div className="bg-white w-full max-w-lg h-full border-l border-gray-200 p-6 flex flex-col shadow-2xl overflow-y-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-black text-slate-800">Solicitud: {solicitudDetalle.nombre_academia}</h3>
+                    <button onClick={() => setSolicitudDetalle(null)} className="text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-xl"><X size={18} /></button>
+                  </div>
+
+                  <div className="space-y-4 flex-1">
+                    {[
+                      { label: 'Director', value: solicitudDetalle.nombre_director },
+                      { label: 'Email', value: solicitudDetalle.email },
+                      { label: 'Teléfono', value: solicitudDetalle.telefono || '—' },
+                      { label: 'Ciudad / País', value: `${solicitudDetalle.ciudad || '—'}, ${solicitudDetalle.pais || '—'}` },
+                      { label: 'Jugadores estimados', value: solicitudDetalle.jugadores_estimados || '—' },
+                      { label: 'Fecha solicitud', value: new Date(solicitudDetalle.created_at).toLocaleString('es-CO') },
+                    ].map(f => (
+                      <div key={f.label} className="flex justify-between text-sm border-b border-gray-50 pb-3">
+                        <span className="text-gray-400 font-semibold">{f.label}</span>
+                        <span className="text-slate-800 font-bold text-right max-w-[60%]">{f.value}</span>
+                      </div>
+                    ))}
+
+                    {solicitudDetalle.mensaje && (
+                      <div className="bg-slate-50 rounded-2xl p-4">
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Mensaje del director</p>
+                        <p className="text-sm text-slate-700 font-medium leading-relaxed">{solicitudDetalle.mensaje}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">Notas internas (opcional)</label>
+                      <textarea
+                        rows={3}
+                        value={notasAdmin}
+                        onChange={e => setNotasAdmin(e.target.value)}
+                        placeholder="Observaciones, próximos pasos..."
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-lime-400 resize-none bg-gray-50"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-5 space-y-2">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Cambiar estado</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'En Revisión')} className="bg-blue-50 text-blue-700 font-bold py-2.5 rounded-xl text-sm hover:bg-blue-100 transition-all flex items-center justify-center gap-1"><Eye size={14} /> En Revisión</button>
+                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Aprobado')} className="bg-emerald-50 text-emerald-700 font-bold py-2.5 rounded-xl text-sm hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-1"><CheckCircle2 size={14} /> Aprobar</button>
+                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Pendiente')} className="bg-amber-50 text-amber-700 font-bold py-2.5 rounded-xl text-sm hover:bg-amber-100 transition-all flex items-center justify-center gap-1"><Clock size={14} /> Pendiente</button>
+                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Rechazado')} className="bg-red-50 text-red-600 font-bold py-2.5 rounded-xl text-sm hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-1"><XCircle size={14} /> Rechazar</button>
+                    </div>
+                    {solicitudDetalle.estado !== 'Aprobado' && (
+                      <a
+                        href={`mailto:${solicitudDetalle.email}?subject=Tu solicitud en Master Club Manager&body=Hola ${solicitudDetalle.nombre_director},%0A%0AHemos revisado la solicitud de ${solicitudDetalle.nombre_academia} y queremos avanzar contigo.%0A%0AEquipo MCM`}
+                        className="w-full mt-2 bg-slate-900 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:bg-slate-700 transition-all"
+                      >
+                        <Mail size={14} /> Contactar por Email
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ── VISTA CONFIGURACIÓN ── */}
         {vista === 'configuracion' && (

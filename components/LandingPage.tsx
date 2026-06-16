@@ -136,7 +136,7 @@ export default function LandingPage() {
             <button onClick={() => setShowClubSelector(true)} className="hidden sm:block text-slate-600 hover:text-slate-900 text-sm font-bold px-4 py-2 rounded-full hover:bg-slate-100 transition-all">
               Ingresar
             </button>
-            <Link href="/unete-gibbor" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full text-sm font-black transition-all shadow-lg shadow-green-600/20 hover:-translate-y-0.5">
+            <Link href="/registro-club" className="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full text-sm font-black transition-all shadow-lg shadow-green-600/20 hover:-translate-y-0.5">
               Empezar gratis
             </Link>
             <button className="lg:hidden p-2 text-slate-500 ml-1" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -187,7 +187,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
             <Link
-              href="/unete-gibbor"
+              href="/registro-club"
               className="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-full font-black text-base flex items-center justify-center gap-2 transition-all shadow-2xl shadow-green-500/30 hover:-translate-y-0.5"
             >
               Comenzar Prueba Gratis <ChevronRight className="w-5 h-5" />
@@ -431,7 +431,7 @@ export default function LandingPage() {
                       </ul>
 
                       <Link
-                        href="/unete-gibbor"
+                        href="/registro-club"
                         className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all ${
                           isPopular
                             ? 'bg-green-500 hover:bg-green-400 text-white shadow-lg shadow-green-500/30'
@@ -502,7 +502,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/unete-gibbor"
+              href="/registro-club"
               className="bg-green-500 hover:bg-green-400 text-white px-10 py-5 rounded-full font-black text-lg flex items-center justify-center gap-2 transition-all shadow-2xl shadow-green-500/30 hover:scale-105"
             >
               Iniciar Prueba Gratuita <ChevronRight className="w-5 h-5" />
