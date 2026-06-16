@@ -163,8 +163,16 @@ export default async function SuspendidoPage({ params }: any) {
                      </p>
                      
                      <div className="flex items-baseline gap-2 mb-4">
-                        <span className="text-4xl font-black text-white">${Number(plan.precio_base).toLocaleString()}</span>
-                        <span className="text-slate-500 text-sm">COP {plan.tipo_cobro === 'anual' ? '/año' : '/mes'}</span>
+                        <span className="text-4xl font-black text-white">
+                           {plan.precio_base === 0 && plan.precio_jugador_extra > 0 
+                             ? `$${Number(plan.precio_jugador_extra).toLocaleString('es-CO')}`
+                             : `$${Number(plan.precio_base).toLocaleString('es-CO')}`}
+                        </span>
+                        <span className="text-slate-500 text-sm">
+                           COP {plan.precio_base === 0 && plan.precio_jugador_extra > 0 
+                             ? 'por jugador/mes' 
+                             : (plan.tipo_cobro === 'anual' ? '/año' : '/mes')}
+                        </span>
                      </div>
                      
                      <ul className="space-y-4 mt-8 mb-8">
