@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
-import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck, Trash2, X, Send } from 'lucide-react';
+import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserCheck, Trash2, X, Send, Edit2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
