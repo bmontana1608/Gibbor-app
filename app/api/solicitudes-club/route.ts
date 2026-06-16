@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     const pais = formData.get('pais') as string;
     const jugadores_estimados = formData.get('jugadores_estimados') as string;
     const mensaje = formData.get('mensaje') as string;
+    const codigo_referido = formData.get('codigo_referido') as string;
     const logoFile = formData.get('logo') as File | null;
 
     if (!nombre_academia || !nombre_director || !email) {
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
       pais: pais || 'Colombia',
       jugadores_estimados: jugadores_estimados ? parseInt(jugadores_estimados) : null,
       mensaje: mensaje?.trim() || null,
+      codigo_referido: codigo_referido?.trim().toUpperCase() || null,
       logo_url,
       estado: 'Pendiente',
     }).select().single();

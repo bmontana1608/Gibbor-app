@@ -33,6 +33,7 @@ export default function RegistroClubPage() {
     pais: 'Colombia',
     jugadores_estimados: '',
     mensaje: '',
+    codigo_referido: typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ref') || '' : '',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -286,6 +287,18 @@ export default function RegistroClubPage() {
                 onChange={handleChange}
                 placeholder="¿Cuántas categorías tienes? ¿Qué problema quieres resolver?"
                 className={`${INPUT_CLS} resize-none`}
+              />
+            </Field>
+
+            {/* Código Referido */}
+            <Field label="Código de Referido / Embajador (Opcional)" icon={<Shield className="w-4 h-4" />}>
+              <input
+                name="codigo_referido"
+                type="text"
+                value={form.codigo_referido}
+                onChange={handleChange}
+                placeholder="Ej: UNIFORMESGOMEZ"
+                className={`${INPUT_CLS} uppercase`}
               />
             </Field>
 
