@@ -33,7 +33,7 @@ export default function CalculadoraCostos() {
     { id: '1', nombre: 'Arbitraje', valor: 0 },
   ]);
 
-  // Cargar categorías con conteo de jugadores
+  // Cargar convocatorias aprobadas con conteo de jugadores convocados
   useEffect(() => {
     async function cargar() {
       if (!tenantSlug) return;
@@ -41,29 +41,32 @@ export default function CalculadoraCostos() {
       const tenant = await res.json();
       if (!tenant?.id) return;
 
-      const { data: cats } = await supabase
-        .from('categorias')
-        .select('id, nombre')
+      // Cargar eventos con sus convocados
+      const { data: eventos } = await supabase
+        .from('eventos')
+        .select(`
+          id,
+          titulo,
+          fecha,
+          tipo,
+          estado,
+          convocatorias (id)
+        `)
         .eq('club_id', tenant.id)
-        .eq('estado', 'Activo')
-        .order('nombre');
+        .in('estado', ['Aprobado', 'Pendiente'])
+        .order('fecha', { ascending: false })
+        .limit(20);
 
-      if (cats) {
-        // Para cada categoría, contamos los jugadores activos en ese grupo
-        const categoriasConConteo = await Promise.all(
-          cats.map(async (cat: any) => {
-            const { count } = await supabase
-              .from('perfiles')
-              .select('id', { count: 'exact', head: true })
-              .eq('club_id', tenant.id)
-              .eq('rol', 'Futbolista')
-              .neq('estado_miembro', 'Inactivo')
-              .ilike('grupos', `%${cat.nombre}%`);
-            return { ...cat, jugadores: count || 0, club_id: tenant.id };
-          })
-        );
-        setCategorias(categoriasConConteo);
-        if (categoriasConConteo.length > 0) setCategoriaSeleccionada(categoriasConConteo[0]);
+      if (eventos) {
+        const eventosConConteo = eventos
+          .filter((ev: any) => (ev.convocatorias?.length || 0) > 0)
+          .map((ev: any) => ({
+            ...ev,
+            jugadores: ev.convocatorias?.length || 0,
+            label: `${ev.titulo} (${new Date(ev.fecha).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })})`
+          }));
+        setCategorias(eventosConConteo);
+        if (eventosConConteo.length > 0) setCategoriaSeleccionada(eventosConConteo[0]);
       }
       setCargando(false);
     }
@@ -103,7 +106,7 @@ export default function CalculadoraCostos() {
       .map(c => `   • ${c.nombre}: ${formatCOP(c.valor)}`)
       .join('\n');
 
-    return `⚽ *APORTE CATEGORÍA ${categoriaSeleccionada.nombre.toUpperCase()}*\n\nEstimada familia, compartimos el resumen de costos para el próximo evento:\n\n${desglose}\n\n💰 *Total del evento:* ${formatCOP(totalGeneral)}\n👥 *Jugadores en lista:* ${cantidadJugadores}\n\n✅ *Aporte por jugador: ${formatCOP(Math.ceil(costoPorJugador))}*\n\nAgradecemos su puntual colaboración. ¡Gracias por apoyar a nuestros jugadores! 💪🔥`;
+    return `⚽ *APORTES EVENTO: ${(categoriaSeleccionada.titulo || categoriaSeleccionada.nombre || '').toUpperCase()}*\n\nEstimada familia, compartimos el resumen de costos para el próximo evento:\n\n${desglose}\n\n💰 *Total del evento:* ${formatCOP(totalGeneral)}\n👥 *Jugadores convocados:* ${cantidadJugadores}\n\n✅ *Aporte por jugador: ${formatCOP(Math.ceil(costoPorJugador))}*\n\nAgradecemos su puntual colaboración. ¡Los esperamos! 💪🔥`;
   };
 
   const copiarMensaje = () => {
@@ -124,6 +127,14 @@ export default function CalculadoraCostos() {
     <div className="p-8 text-center text-slate-400 animate-pulse">Cargando calculadora...</div>
   );
 
+  if (categorias.length === 0) return (
+    <div className="p-8 md:p-16 text-center max-w-xl mx-auto">
+      <Calculator className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+      <h2 className="text-xl font-black text-slate-700 mb-2">Sin convocatorias disponibles</h2>
+      <p className="text-slate-500 font-medium">Para usar la calculadora necesitas al menos una convocatoria aprobada o pendiente con jugadores asignados.</p>
+    </div>
+  );
+
   return (
     <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-8">
       {/* Header */}
@@ -133,8 +144,8 @@ export default function CalculadoraCostos() {
             <Calculator className="w-8 h-8 text-brand" />
             Calculadora de Costos
           </h1>
-          <p className="text-slate-500 font-medium mt-1">
-            Divide gastos del evento de forma justa entre los jugadores de la categoría.
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            Divide los gastos del evento entre los jugadores de la lista de convocados.
           </p>
         </div>
       </div>
@@ -146,7 +157,7 @@ export default function CalculadoraCostos() {
           {/* Selector de Categoría */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Users className="w-4 h-4 text-brand" /> Categoría / Grupo
+              <Users className="w-4 h-4 text-brand" /> Lista de Convocados (Evento)
             </h2>
             <div className="relative">
               <select
@@ -157,9 +168,9 @@ export default function CalculadoraCostos() {
                 }}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 appearance-none outline-none focus:ring-2 focus:ring-brand pr-10 cursor-pointer"
               >
-                {categorias.map(cat => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.nombre} ({cat.jugadores} jugadores)
+                {categorias.map(ev => (
+                  <option key={ev.id} value={ev.id}>
+                    {ev.label || ev.titulo} — {ev.jugadores} convocados
                   </option>
                 ))}
               </select>
@@ -168,7 +179,7 @@ export default function CalculadoraCostos() {
             {categoriaSeleccionada && (
               <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 font-medium">
                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                <span><span className="font-black text-slate-700">{cantidadJugadores}</span> jugadores activos en esta categoría</span>
+                <span><span className="font-black text-slate-700">{cantidadJugadores}</span> jugadores en la lista de este evento</span>
               </div>
             )}
           </div>
@@ -278,7 +289,7 @@ export default function CalculadoraCostos() {
                 {formatCOP(Math.ceil(costoPorJugador))}
               </p>
               {cantidadJugadores === 0 && (
-                <p className="text-white/60 text-xs mt-2 font-medium">Sin jugadores en la categoría</p>
+                <p className="text-white/60 text-xs mt-2 font-medium">Sin jugadores en la lista</p>
               )}
             </div>
 
