@@ -26,11 +26,11 @@ export async function POST(request: Request) {
       .from('perfiles')
       .insert({
         id: newUser.user.id,
-        nombres: payload.nombre_completo.split(' ')[0],
-        apellidos: payload.nombre_completo.split(' ').slice(1).join(' '),
-        rol: 'embajador'
-      });
-    if (perfilError) throw perfilError;
+         nombres: payload.nombre_completo.split(' ')[0],
+         apellidos: payload.nombre_completo.split(' ').slice(1).join(' '),
+         rol: 'Embajador'
+       });
+     if (perfilError) throw perfilError;
 
     // 3. Crear el embajador
     payload.user_id = newUser.user.id;
@@ -69,7 +69,7 @@ export async function PUT(request: Request) {
          id: newUser.user.id,
          nombres: updateData.nombre_completo?.split(' ')[0] || '',
          apellidos: updateData.nombre_completo?.split(' ').slice(1).join(' ') || '',
-         rol: 'embajador'
+         rol: 'Embajador'
        });
        if (perfilError) throw perfilError;
        
