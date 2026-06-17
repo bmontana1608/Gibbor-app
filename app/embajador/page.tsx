@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
-import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign } from 'lucide-react';
+import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign, Target, CheckCircle2 } from 'lucide-react';
+import CopyButton from './CopyButton';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default async function EmbajadorDashboard() {
@@ -57,8 +58,17 @@ export default async function EmbajadorDashboard() {
 
   const progreso = nivel === 'Oro' ? 100 : Math.min(100, Math.round((clubesActivos / metaSiguiente) * 100));
 
-  // 5. URL de referido
-  const referralUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.codigo_referido}`;
+  // 5. URLs de referido con fuente
+  const baseUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.codigo_referido}`;
+  const referralUrlLink = `${baseUrl}&src=link`;
+  const referralUrlQr = `${baseUrl}&src=qr`;
+
+  // 6. Tasa de Conversión
+  const leadsTotales = totalClubes;
+  const tasaConversion = leadsTotales > 0 ? Math.round((clubesActivos / leadsTotales) * 100) : 0;
+
+  // 7. Actualizar última actividad
+  await supabase.from('embajadores').update({ ultima_actividad: new Date().toISOString() }).eq('id', embajador.id);
 
   return (
     <div className="space-y-8 pb-20">
@@ -115,36 +125,12 @@ export default async function EmbajadorDashboard() {
         )}
       </div>
 
-      {/* MÉTRICAS PRINCIPALES */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard 
-          title="MRR Generado" 
-          value={`$${mrr.toLocaleString('es-CO')}`}
-          subtitle="Valor recurrente mensual"
-          icon={<Trophy className="w-6 h-6 text-yellow-500" />}
-          bg="bg-yellow-50"
-        />
-        <MetricCard 
-          title="Clubes Activos" 
-          value={clubesActivos.toString()}
-          subtitle={`De ${totalClubes} referidos en total`}
-          icon={<Users className="w-6 h-6 text-blue-500" />}
-          bg="bg-blue-50"
-        />
-        <MetricCard 
-          title="Comisiones Totales" 
-          value={`$${comisionesTotales.toLocaleString('es-CO')}`}
-          subtitle="Histórico generado"
-          icon={<Wallet className="w-6 h-6 text-green-500" />}
-          bg="bg-green-50"
-        />
-        <MetricCard 
-          title="Por Cobrar" 
-          value={`$${comisionesPendientes.toLocaleString('es-CO')}`}
-          subtitle="En proceso de pago"
-          icon={<DollarSign className="w-6 h-6 text-red-500" />}
-          bg="bg-red-50"
-        />
+      {/* MÉTRICAS DE CONVERSIÓN Y FINANCIERAS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard title="Total Leads" value={leadsTotales} subtitle="Academias registradas" icon={<Users className="w-6 h-6 text-blue-500" />} bg="bg-blue-100" />
+        <MetricCard title="Activos" value={clubesActivos} subtitle="Clientes pagando" icon={<CheckCircle2 className="w-6 h-6 text-green-500" />} bg="bg-green-100" />
+        <MetricCard title="Conversión" value={`${tasaConversion}%`} subtitle="Tasa de éxito" icon={<Target className="w-6 h-6 text-orange-500" />} bg="bg-orange-100" />
+        <MetricCard title="MRR Estimado" value={`$${mrr.toLocaleString('es-CO')}`} subtitle="Ingreso recurrente" icon={<DollarSign className="w-6 h-6 text-indigo-500" />} bg="bg-indigo-100" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -158,14 +144,12 @@ export default async function EmbajadorDashboard() {
             Comparte este enlace o el código QR con cualquier academia. Si se registran, quedarán asociados a tu cuenta.
           </p>
 
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6 w-full">
-            <QRCodeSVG value={referralUrl} size={180} className="mx-auto" />
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6 w-full flex justify-center">
+            <QRCodeSVG value={referralUrlQr} size={180} />
           </div>
 
           <div className="w-full space-y-3 mt-auto">
-            <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all">
-              <Copy className="w-4 h-4" /> Copiar Link
-            </button>
+            <CopyButton text={referralUrlLink} />
           </div>
         </div>
 

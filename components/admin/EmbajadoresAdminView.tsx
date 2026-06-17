@@ -5,11 +5,13 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Users, CheckCircle2, XCircle, Plus, Search, DollarSign, ExternalLink, Calendar, Check, X, ShieldCheck } from 'lucide-react';
 
+import { Trophy } from 'lucide-react';
+
 export default function EmbajadoresAdminView() {
   const [embajadores, setEmbajadores] = useState<any[]>([]);
   const [comisiones, setComisiones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'lista' | 'comisiones'>('lista');
+  const [tab, setTab] = useState<'lista' | 'comisiones' | 'ranking'>('lista');
 
   // Formulario de creación
   const [showModal, setShowModal] = useState(false);
@@ -143,6 +145,14 @@ export default function EmbajadoresAdminView() {
       }).eq('id', selectedComision.id);
 
       if (error) throw error;
+
+      // Registrar notificación
+      await supabase.from('notificaciones_embajadores').insert({
+        embajador_id: selectedComision.embajador_id,
+        tipo: 'COMISION_PAGADA',
+        mensaje: `¡Felicidades! Tu comisión de $${Number(selectedComision.monto).toLocaleString('es-CO')} ha sido pagada. Revisa tus comprobantes.`
+      });
+
       toast.success('Comisión marcada como pagada');
       setShowPagoModal(false);
       setPagoData({ comprobante: '', observaciones: '' });
@@ -185,6 +195,12 @@ export default function EmbajadoresAdminView() {
           className={`pb-4 px-4 font-bold text-sm transition-colors border-b-2 ${tab === 'comisiones' ? 'border-lime-500 text-lime-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
           Comisiones Pendientes ({comisiones.length})
+        </button>
+        <button 
+          onClick={() => setTab('ranking')}
+          className={`pb-4 px-4 font-bold text-sm transition-colors border-b-2 ${tab === 'ranking' ? 'border-lime-500 text-lime-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+        >
+          Ranking de Desempeño 🏆
         </button>
       </div>
 
@@ -255,6 +271,48 @@ export default function EmbajadoresAdminView() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* VISTA: RANKING */}
+      {tab === 'ranking' && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <th className="px-6 py-4 font-bold"># Posición</th>
+                <th className="px-6 py-4 font-bold">Embajador</th>
+                <th className="px-6 py-4 font-bold text-center">Clubes Activos</th>
+                <th className="px-6 py-4 font-bold text-right">MRR Generado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {embajadores
+                .sort((a, b) => (b.ingreso_recurrente || 0) - (a.ingreso_recurrente || 0) || (b.clientes_activos || 0) - (a.clientes_activos || 0))
+                .map((emb, index) => (
+                <tr key={emb.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {index === 0 && <span className="text-2xl">🥇</span>}
+                      {index === 1 && <span className="text-2xl">🥈</span>}
+                      {index === 2 && <span className="text-2xl">🥉</span>}
+                      {index > 2 && <span className="text-xl font-black text-slate-400 w-8 text-center">{index + 1}</span>}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-slate-900">{emb.nombre_completo}</p>
+                    <p className="text-xs text-slate-500 mt-1">{emb.empresa || emb.tipo}</p>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="font-black text-blue-600 text-lg">{emb.clientes_activos || 0}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <span className="font-black text-green-600 text-lg">${Number(emb.ingreso_recurrente || 0).toLocaleString('es-CO')}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

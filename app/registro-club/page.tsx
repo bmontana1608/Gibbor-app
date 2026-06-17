@@ -34,6 +34,7 @@ export default function RegistroClubPage() {
     jugadores_estimados: '',
     mensaje: '',
     codigo_referido: typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ref') || '' : '',
+    fuente_referido: typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('src') || 'manual' : 'manual',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);

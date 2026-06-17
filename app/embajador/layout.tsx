@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LogOut, Home, PieChart, Users, DollarSign, Wallet } from 'lucide-react';
 import MCMLogo from '@/components/MCMLogo';
+import CampanitaNotificaciones from './CampanitaNotificaciones';
 
 export default async function EmbajadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -54,12 +55,13 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
           </Link>
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
-          <form action="/api/auth/signout" method="post">
+        <div className="p-4 border-t border-slate-800 flex items-center justify-between">
+          <form action="/api/auth/signout" method="post" className="flex-1">
             <button className="flex items-center gap-3 px-4 py-3 w-full text-left hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
               <LogOut className="w-5 h-5" /> Cerrar sesión
             </button>
           </form>
+          <CampanitaNotificaciones embajadorId={embajador?.id} />
         </div>
       </aside>
 
@@ -68,11 +70,14 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
         {/* Mobile Header */}
         <header className="md:hidden bg-slate-900 p-4 flex items-center justify-between">
           <span className="text-xs font-black uppercase tracking-widest text-green-500 mb-1">Embajador MCM</span>
-          <form action="/api/auth/signout" method="post">
-            <button className="p-2 text-slate-400">
-              <LogOut className="w-5 h-5" />
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <CampanitaNotificaciones embajadorId={embajador?.id} />
+            <form action="/api/auth/signout" method="post">
+              <button className="p-2 text-slate-400">
+                <LogOut className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
         </header>
 
         <div className="p-6 md:p-10 max-w-6xl mx-auto">

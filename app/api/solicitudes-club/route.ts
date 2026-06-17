@@ -21,6 +21,7 @@ export async function POST(request: Request) {
     const jugadores_estimados = formData.get('jugadores_estimados') as string;
     const mensaje = formData.get('mensaje') as string;
     const codigo_referido = formData.get('codigo_referido') as string;
+    const fuente_referido = formData.get('fuente_referido') as string;
     const logoFile = formData.get('logo') as File | null;
 
     if (!nombre_academia || !nombre_director || !email) {
@@ -68,11 +69,35 @@ export async function POST(request: Request) {
       jugadores_estimados: jugadores_estimados ? parseInt(jugadores_estimados) : null,
       mensaje: mensaje?.trim() || null,
       codigo_referido: codigo_referido?.trim().toUpperCase() || null,
+      fuente_referido: fuente_referido?.trim().toLowerCase() || 'manual',
       logo_url,
       estado: 'Pendiente',
     }).select().single();
 
     if (error) throw error;
+
+    // --- NOTIFICACIÓN A EMBAJADOR (Si aplica) ---
+    if (codigo_referido) {
+      const { data: embajador } = await supabaseAdmin
+        .from('embajadores')
+        .select('id')
+        .eq('codigo_referido', codigo_referido.trim().toUpperCase())
+        .single();
+        
+      if (embajador) {
+        // Registrar notificación
+        await supabaseAdmin.from('notificaciones_embajadores').insert({
+          embajador_id: embajador.id,
+          tipo: 'NUEVO_CLUB',
+          mensaje: `¡Excelente! La academia "${nombre_academia.trim()}" se ha registrado usando tu código.`
+        });
+        
+        // Actualizar última actividad del embajador (recibió un referido)
+        await supabaseAdmin.from('embajadores').update({
+          ultima_actividad: new Date().toISOString()
+        }).eq('id', embajador.id);
+      }
+    }
 
     // --- NOTIFICACIÓN PUSH A SUPER ADMINS ---
     try {
