@@ -12,8 +12,11 @@ export default function EmbajadoresAdminView() {
   const [tab, setTab] = useState<'lista' | 'comisiones'>('lista');
 
   // Formulario de creación
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    id: '',
+    user_id: '',
     nombre_completo: '',
     empresa: '',
     tipo: 'Vendedor Independiente',
@@ -64,31 +67,61 @@ export default function EmbajadoresAdminView() {
     cargarDatos();
   }, []);
 
-  const handleCrearEmbajador = async (e: React.FormEvent) => {
+  const handleGuardarEmbajador = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = {
-        ...formData,
-        estado: 'Activo',
-        codigo_referido: formData.nombre_completo.split(' ')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000),
-      };
-      const response = await fetch('/api/admin/embajadores', {
-        method: 'POST',
+      const payload = { ...formData };
+      
+      let url = '/api/admin/embajadores';
+      let method = 'POST';
+
+      if (isEditing) {
+        method = 'PUT';
+      } else {
+        payload.estado = 'Activo';
+        payload.codigo_referido = formData.nombre_completo.split(' ')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+      }
+
+      const response = await fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error al crear embajador');
+      if (!response.ok) throw new Error(data.error || 'Error al guardar embajador');
       
-      toast.success('Embajador creado exitosamente. Contraseña asignada: ' + payload.password);
-      setShowCreateModal(false);
-      setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', password: '', ciudad: '' });
+      toast.success(isEditing ? 'Embajador actualizado' : 'Embajador creado exitosamente');
+      setShowModal(false);
+      setFormData({ id: '', user_id: '', nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', password: '', ciudad: '' });
+      setIsEditing(false);
       cargarDatos();
     } catch (e: any) {
       toast.error(e.message);
     }
     setLoading(false);
+  };
+
+  const abrirModalCrear = () => {
+    setIsEditing(false);
+    setFormData({ id: '', user_id: '', nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', password: '', ciudad: '' });
+    setShowModal(true);
+  };
+
+  const abrirModalEditar = (emb: any) => {
+    setIsEditing(true);
+    setFormData({
+      id: emb.id,
+      user_id: emb.user_id || '',
+      nombre_completo: emb.nombre_completo,
+      empresa: emb.empresa || '',
+      tipo: emb.tipo || 'Vendedor Independiente',
+      telefono: emb.telefono || '',
+      email: emb.email,
+      password: '', // En blanco para no cambiar si no se desea, excepto si no tiene user_id
+      ciudad: emb.ciudad || '',
+    });
+    setShowModal(true);
   };
 
   const toggleEstado = async (id: string, estadoActual: string) => {
@@ -132,7 +165,7 @@ export default function EmbajadoresAdminView() {
           <p className="text-sm text-slate-500 mt-1">Gestiona a tus promotores y paga comisiones.</p>
         </div>
         <button 
-          onClick={() => setShowCreateModal(true)}
+          onClick={abrirModalCrear}
           className="bg-lime-500 hover:bg-lime-600 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-sm"
         >
           <Plus size={18} /> Nuevo Embajador
@@ -197,12 +230,20 @@ export default function EmbajadoresAdminView() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => toggleEstado(emb.id, emb.estado)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${emb.estado === 'Activo' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}
-                      >
-                        {emb.estado === 'Activo' ? 'Suspender' : 'Activar'}
-                      </button>
+                      <div className="flex justify-center gap-2">
+                        <button 
+                          onClick={() => abrirModalEditar(emb)}
+                          className="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button 
+                          onClick={() => toggleEstado(emb.id, emb.estado)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-colors ${emb.estado === 'Activo' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}
+                        >
+                          {emb.estado === 'Activo' ? 'Suspender' : 'Activar'}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -273,15 +314,15 @@ export default function EmbajadoresAdminView() {
         </div>
       )}
 
-      {/* MODAL CREAR EMBAJADOR */}
-      {showCreateModal && (
+      {/* MODAL CREAR / EDITAR EMBAJADOR */}
+      {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-xl font-black text-slate-900">Nuevo Embajador</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-colors"><X size={20}/></button>
+              <h3 className="text-xl font-black text-slate-900">{isEditing ? 'Editar Embajador' : 'Nuevo Embajador'}</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-colors"><X size={20}/></button>
             </div>
-            <form onSubmit={handleCrearEmbajador} className="p-6 space-y-4">
+            <form onSubmit={handleGuardarEmbajador} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Nombre Completo</label>
                 <input required type="text" value={formData.nombre_completo} onChange={e => setFormData({...formData, nombre_completo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all" placeholder="Juan Pérez"/>
@@ -298,8 +339,10 @@ export default function EmbajadoresAdminView() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Contraseña de acceso</label>
-                  <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all" placeholder="Min. 6 caracteres"/>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">
+                    {isEditing && formData.user_id ? 'Cambiar Contraseña (Opcional)' : 'Contraseña de acceso *'}
+                  </label>
+                  <input required={!isEditing || !formData.user_id} type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all" placeholder={isEditing && formData.user_id ? 'Dejar en blanco para mantener' : 'Min. 6 caracteres'}/>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Empresa / Organización</label>
@@ -321,7 +364,7 @@ export default function EmbajadoresAdminView() {
               </div>
               <div className="pt-4">
                 <button type="submit" disabled={loading} className="w-full bg-lime-500 hover:bg-lime-600 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm disabled:opacity-50">
-                  {loading ? 'Creando...' : 'Crear Embajador'}
+                  {loading ? 'Guardando...' : isEditing ? 'Actualizar Embajador' : 'Crear Embajador'}
                 </button>
               </div>
             </form>
