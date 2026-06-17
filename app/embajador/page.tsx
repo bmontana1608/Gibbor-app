@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy } from 'lucide-react';
+import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default async function EmbajadorDashboard() {
