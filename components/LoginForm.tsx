@@ -111,6 +111,8 @@ export default function LoginForm({ tenant }: LoginFormProps) {
       } else {
         router.push('/admin');
       }
+    } else if (rol === 'embajador') {
+      router.push('/embajador');
     } else if (clubSlug) {
       // Redirección dinámica basada en Club y Rol
       const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;

@@ -19,6 +19,7 @@ export default function EmbajadoresAdminView() {
     tipo: 'Vendedor Independiente',
     telefono: '',
     email: '',
+    password: '',
     ciudad: '',
   });
 
@@ -80,9 +81,9 @@ export default function EmbajadoresAdminView() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Error al crear embajador');
       
-      toast.success('Embajador creado exitosamente');
+      toast.success('Embajador creado exitosamente. Contraseña asignada: ' + payload.password);
       setShowCreateModal(false);
-      setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', ciudad: '' });
+      setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', password: '', ciudad: '' });
       cargarDatos();
     } catch (e: any) {
       toast.error(e.message);
@@ -297,9 +298,15 @@ export default function EmbajadoresAdminView() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Contraseña de acceso</label>
+                  <input required type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all" placeholder="Min. 6 caracteres"/>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Empresa / Organización</label>
                   <input type="text" value={formData.empresa} onChange={e => setFormData({...formData, empresa: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all" placeholder="Opcional"/>
                 </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Tipo de Perfil</label>
                   <select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all">
