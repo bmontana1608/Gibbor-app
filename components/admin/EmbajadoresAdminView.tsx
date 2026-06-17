@@ -38,7 +38,7 @@ export default function EmbajadoresAdminView() {
       const resEmb = await supabase.from('vw_embajadores_metricas').select('*').order('clientes_activos', { ascending: false });
       
       // Obtener detalles extras desde la tabla original
-      const resDetalles = await supabase.from('embajadores').select('id, empresa, tipo, email, telefono, estado, created_at');
+      const resDetalles = await supabase.from('embajadores').select('id, user_id, empresa, tipo, email, telefono, estado, created_at');
       
       if (resEmb.data && resDetalles.data) {
         // Unir datos
