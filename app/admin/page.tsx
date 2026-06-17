@@ -323,7 +323,7 @@ export default function SuperAdminDashboard() {
         </div>
 
         <nav className="space-y-1 flex-1">
-          {navItems.slice(0, 7).map(item => (
+          {navItems.slice(0, 10).map(item => (
             <SideNavItem key={item.id} icon={item.icon} label={item.label} active={vista === item.id} onClick={() => setVista(item.id as any)} />
           ))}
         </nav>
