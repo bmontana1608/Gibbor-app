@@ -17,10 +17,11 @@ import TicketsAdminView from '@/components/admin/TicketsAdminView';
 import MCMLogo from '@/components/MCMLogo';
 import MetricsDashboard from '@/components/admin/MetricsDashboard';
 import ComunicacionAdminView from '@/components/admin/ComunicacionAdminView';
+import EmbajadoresAdminView from '@/components/admin/EmbajadoresAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes' | 'embajadores'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -275,6 +276,7 @@ export default function SuperAdminDashboard() {
   const navItems = [
     { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes' },
+    { id: 'embajadores', icon: <ShieldCheck size={20} />, label: 'Embajadores' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios' },
     { id: 'saas-billing', icon: <CreditCard size={20} />, label: 'Planes' },
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas' },
@@ -534,6 +536,7 @@ export default function SuperAdminDashboard() {
         {vista === 'biblioteca' && <BibliotecaAdminView />}
         {vista === 'tickets' && <TicketsAdminView />}
         {vista === 'comunicacion' && <ComunicacionAdminView />}
+        {vista === 'embajadores' && <EmbajadoresAdminView />}
 
         {/* ── VISTA SOLICITUDES DE CLUB ── */}
         {vista === 'solicitudes' && (
