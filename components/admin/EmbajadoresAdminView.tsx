@@ -71,7 +71,7 @@ export default function EmbajadoresAdminView() {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = { ...formData };
+      const payload: any = { ...formData };
       
       let url = '/api/admin/embajadores';
       let method = 'POST';
