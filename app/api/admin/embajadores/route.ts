@@ -19,7 +19,12 @@ export async function POST(request: Request) {
       password: password,
       email_confirm: true
     });
-    if (authError) throw authError;
+    if (authError) {
+      if (authError.message.includes('already been registered')) {
+        throw new Error('Ya existe una cuenta con este correo (quizás estás usando tu propio correo de admin). Por favor, usa un correo diferente para el embajador.');
+      }
+      throw authError;
+    }
 
     // 2. Crear el perfil con rol 'embajador'
     const { error: perfilError } = await supabaseAdmin
@@ -63,7 +68,12 @@ export async function PUT(request: Request) {
          password: password,
          email_confirm: true
        });
-       if (authError) throw authError;
+       if (authError) {
+         if (authError.message.includes('already been registered')) {
+           throw new Error('Ya existe una cuenta con este correo (quizás estás usando tu propio correo de admin). Por favor, usa un correo diferente para el embajador.');
+         }
+         throw authError;
+       }
 
        const { error: perfilError } = await supabaseAdmin.from('perfiles').insert({
          id: newUser.user.id,
