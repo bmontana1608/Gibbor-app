@@ -72,8 +72,14 @@ export default function EmbajadoresAdminView() {
         estado: 'Activo',
         codigo_referido: formData.nombre_completo.split(' ')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000),
       };
-      const { error } = await supabase.from('embajadores').insert(payload);
-      if (error) throw error;
+      const response = await fetch('/api/admin/embajadores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error al crear embajador');
+      
       toast.success('Embajador creado exitosamente');
       setShowCreateModal(false);
       setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor independiente', telefono: '', email: '', ciudad: '' });
