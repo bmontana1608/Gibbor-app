@@ -68,6 +68,10 @@ export default function SuperAdminDashboard() {
     if (vista === 'usuarios') cargarUsuarios();
   }, [vista]);
 
+  useEffect(() => {
+    if (vista === 'solicitudes') cargarSolicitudes();
+  }, [vista]);
+
   const adminTenant = {
     config: { nombre: 'Master Club Manager', color: '#84cc16', logo: '/logo_mcm.png' }
   };
@@ -305,9 +309,6 @@ export default function SuperAdminDashboard() {
     } catch { toast.error('Error al actualizar'); }
   };
 
-  useEffect(() => {
-    if (vista === 'solicitudes') cargarSolicitudes();
-  }, [vista]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-slate-800 font-sans">
