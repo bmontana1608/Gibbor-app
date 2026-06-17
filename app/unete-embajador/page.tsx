@@ -1,4 +1,4 @@
-import { MCMLogo } from '@/components/MCMLogo';
+import MCMLogo from '@/components/MCMLogo';
 import { Shield, Sparkles, Building2, User, Phone, Mail, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
