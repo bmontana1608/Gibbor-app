@@ -16,7 +16,7 @@ export default function EmbajadoresAdminView() {
   const [formData, setFormData] = useState({
     nombre_completo: '',
     empresa: '',
-    tipo: 'Vendedor independiente',
+    tipo: 'Vendedor Independiente',
     telefono: '',
     email: '',
     ciudad: '',
@@ -82,7 +82,7 @@ export default function EmbajadoresAdminView() {
       
       toast.success('Embajador creado exitosamente');
       setShowCreateModal(false);
-      setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor independiente', telefono: '', email: '', ciudad: '' });
+      setFormData({ nombre_completo: '', empresa: '', tipo: 'Vendedor Independiente', telefono: '', email: '', ciudad: '' });
       cargarDatos();
     } catch (e: any) {
       toast.error(e.message);
@@ -303,10 +303,12 @@ export default function EmbajadoresAdminView() {
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Tipo de Perfil</label>
                   <select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all">
-                    <option value="Vendedor independiente">Vendedor</option>
-                    <option value="Proveedor de uniformes">Proveedor</option>
-                    <option value="Organizador de torneos">Torneos</option>
-                    <option value="Entrenador">Entrenador</option>
+                    <option value="Proveedor">Proveedor (Uniformes, Balones, etc.)</option>
+                    <option value="Organizador">Organizador de Torneos</option>
+                    <option value="Entrenador">Entrenador independiente</option>
+                    <option value="Escuela Aliada">Director de Escuela Aliada</option>
+                    <option value="Vendedor Independiente">Vendedor Independiente</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
               </div>
