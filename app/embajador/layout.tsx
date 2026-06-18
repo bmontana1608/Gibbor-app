@@ -27,7 +27,7 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
   // Cargar datos del embajador
   const { data: embajador } = await supabase
     .from('embajadores')
-    .select('nombre_completo, codigo_referido')
+    .select('id, nombre_completo, codigo_referido')
     .eq('user_id', user.id)
     .single();
 
