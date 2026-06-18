@@ -358,12 +358,12 @@ export default function SuperAdminDashboard() {
       </header>
 
       {/* ── BOTTOM NAV (Mobile) ── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex items-center justify-around px-2 py-2 shadow-lg">
-        {navItems.slice(0, 5).map(item => (
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex items-center overflow-x-auto px-4 py-2 shadow-lg gap-6 hide-scrollbar">
+        {navItems.map(item => (
           <button
             key={item.id}
             onClick={() => setVista(item.id as any)}
-            className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${vista === item.id ? 'text-lime-600' : 'text-gray-400'}`}
+            className={`flex flex-col items-center flex-shrink-0 gap-1 px-2 py-1 rounded-xl transition-all ${vista === item.id ? 'text-lime-600' : 'text-gray-400'}`}
           >
             {item.icon}
             <span className="text-[10px] font-bold">{item.label}</span>
@@ -371,7 +371,7 @@ export default function SuperAdminDashboard() {
         ))}
         <button
           onClick={() => setVista('mi-cuenta')}
-          className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${vista === 'mi-cuenta' ? 'text-lime-600' : 'text-gray-400'}`}
+          className={`flex flex-col items-center flex-shrink-0 gap-1 px-2 py-1 rounded-xl transition-all ${vista === 'mi-cuenta' ? 'text-lime-600' : 'text-gray-400'}`}
         >
           <User size={20} />
           <span className="text-[10px] font-bold">Cuenta</span>

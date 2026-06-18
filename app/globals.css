@@ -76,3 +76,12 @@ body {
 html {
   overflow-y: overlay; /* Hace que el scroll flote sobre el contenido en algunos navegadores */
 }
+
+/* Ocultar barra de scroll (útil para menús horizontales) */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
