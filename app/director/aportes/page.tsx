@@ -17,6 +17,8 @@ type EventoDeportivo = {
   fecha: string;
   monto_sugerido: number;
   descripcion: string | null;
+  categorias_destino?: string[];
+  convocatorias?: any[];
   total_pagado?: number;
   total_alumnos?: number;
   total_pagaron?: number;
@@ -50,6 +52,8 @@ export default function AportesPage() {
   const [clubId, setClubId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [eventos, setEventos] = useState<EventoDeportivo[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [perfilesClub, setPerfilesClub] = useState<any[]>([]);
 
   // Vista detalle
   const [eventoSeleccionado, setEventoSeleccionado] = useState<EventoDeportivo | null>(null);
@@ -66,6 +70,7 @@ export default function AportesPage() {
     fecha: new Date().toISOString().split('T')[0],
     monto_sugerido: '',
     descripcion: '',
+    categorias_seleccionadas: [] as string[],
   });
 
   // --- Obtener club_id desde tenant ---
@@ -86,9 +91,24 @@ export default function AportesPage() {
     const id = cId || clubId;
     if (!id) return;
 
+    // Obtener todos los perfiles activos para saber la cantidad de alumnos por categoría
+    const { data: perfilesData } = await supabase
+      .from('perfiles')
+      .select('id, grupos')
+      .eq('club_id', id)
+      .not('rol', 'in', '("Director","Entrenador")')
+      .eq('estado_miembro', 'Activo');
+      
+    const perfilesActivos = perfilesData || [];
+    setPerfilesClub(perfilesActivos);
+
+    // Extraer categorías únicas
+    const cats = Array.from(new Set(perfilesActivos.map(p => p.grupos || 'Sin categoría'))).filter(Boolean).sort();
+    setCategorias(cats as string[]);
+
     const { data, error } = await supabase
       .from('eventos_deportivos')
-      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, aportes_eventos(id, pagado, monto, perfil_id)`)
+      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, categorias_destino, aportes_eventos(id, pagado, monto, perfil_id), convocatorias(id, jugador_id)`)
       .eq('club_id', id)
       .order('fecha', { ascending: false });
 
@@ -97,6 +117,16 @@ export default function AportesPage() {
     const enriched: EventoDeportivo[] = (data || []).map((ev: any) => {
       const apList: any[] = ev.aportes_eventos || [];
       const pagaron = apList.filter((a: any) => a.pagado);
+      
+      let totalEsperado = 0;
+      if (ev.convocatorias && ev.convocatorias.length > 0) {
+        totalEsperado = ev.convocatorias.length;
+      } else if (ev.categorias_destino && ev.categorias_destino.length > 0) {
+        totalEsperado = perfilesActivos.filter(p => ev.categorias_destino.includes(p.grupos || 'Sin categoría')).length;
+      } else {
+        totalEsperado = perfilesActivos.length;
+      }
+
       return {
         id: ev.id,
         nombre: ev.nombre,
@@ -104,7 +134,9 @@ export default function AportesPage() {
         fecha: ev.fecha,
         monto_sugerido: ev.monto_sugerido,
         descripcion: ev.descripcion,
-        total_alumnos: apList.length,
+        categorias_destino: ev.categorias_destino,
+        convocatorias: ev.convocatorias,
+        total_alumnos: totalEsperado,
         total_pagaron: pagaron.length,
         total_pagado: pagaron.reduce((s: number, a: any) => s + (parseFloat(a.monto) || 0), 0),
       };
@@ -144,7 +176,18 @@ export default function AportesPage() {
     const aportesMap: Record<string, any> = {};
     (aportesExistentes || []).forEach((a: any) => { aportesMap[a.perfil_id] = a; });
 
-    const lista: AporteAlumno[] = (perfiles || []).map((p: any) => {
+    let perfilesFiltrados = perfiles || [];
+
+    if (evento.convocatorias && evento.convocatorias.length > 0) {
+      // Filtrar SOLO a los convocados
+      const idsConvocados = evento.convocatorias.map((c: any) => c.jugador_id);
+      perfilesFiltrados = perfilesFiltrados.filter((p: any) => idsConvocados.includes(p.id));
+    } else if (evento.categorias_destino && evento.categorias_destino.length > 0) {
+      // Filtrar por categorías destino seleccionadas
+      perfilesFiltrados = perfilesFiltrados.filter((p: any) => evento.categorias_destino!.includes(p.grupos || 'Sin categoría'));
+    }
+
+    const lista: AporteAlumno[] = perfilesFiltrados.map((p: any) => {
       const ap = aportesMap[p.id];
       return {
         id: ap?.id || null,
@@ -207,6 +250,7 @@ export default function AportesPage() {
       fecha: form.fecha,
       monto_sugerido: parseFloat(form.monto_sugerido) || 0,
       descripcion: form.descripcion || null,
+      categorias_destino: form.categorias_seleccionadas.length > 0 ? form.categorias_seleccionadas : null,
     });
 
     if (error) {
@@ -214,7 +258,7 @@ export default function AportesPage() {
     } else {
       toast.success('¡Evento creado exitosamente!');
       setShowModal(false);
-      setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '' });
+      setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '', categorias_seleccionadas: [] });
       fetchEventos();
     }
     setSaving(false);
@@ -554,6 +598,40 @@ export default function AportesPage() {
                   placeholder="0"
                   className="w-full border border-slate-300 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-amber-400"
                 />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dirigido a (Categorías)</label>
+                <div className="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto p-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={form.categorias_seleccionadas.length === 0}
+                      onChange={() => setForm(f => ({ ...f, categorias_seleccionadas: [] }))}
+                      className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
+                    />
+                    Todas las categorías
+                  </label>
+                  {categorias.map(cat => (
+                    <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={form.categorias_seleccionadas.includes(cat)}
+                        onChange={(e) => {
+                          const isChecked = e.target.checked;
+                          setForm(f => ({
+                            ...f,
+                            categorias_seleccionadas: isChecked
+                              ? [...f.categorias_seleccionadas, cat]
+                              : f.categorias_seleccionadas.filter(c => c !== cat)
+                          }));
+                        }}
+                        className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
+                      />
+                      {cat}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">Si seleccionas "Todas", se aplicará a todos los alumnos del club.</p>
               </div>
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Descripción (opcional)</label>
