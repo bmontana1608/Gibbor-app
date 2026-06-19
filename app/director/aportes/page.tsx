@@ -18,7 +18,7 @@ type EventoDeportivo = {
   monto_sugerido: number;
   descripcion: string | null;
   categorias_destino?: string[];
-  convocatorias?: any[];
+  evento_origen_id?: string;
   total_pagado?: number;
   total_alumnos?: number;
   total_pagaron?: number;
@@ -54,6 +54,7 @@ export default function AportesPage() {
   const [eventos, setEventos] = useState<EventoDeportivo[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [perfilesClub, setPerfilesClub] = useState<any[]>([]);
+  const [convocatoriasClub, setConvocatoriasClub] = useState<any[]>([]);
 
   // Vista detalle
   const [eventoSeleccionado, setEventoSeleccionado] = useState<EventoDeportivo | null>(null);
@@ -71,6 +72,7 @@ export default function AportesPage() {
     monto_sugerido: '',
     descripcion: '',
     categorias_seleccionadas: [] as string[],
+    evento_origen_id: '',
   });
 
   // --- Obtener club_id desde tenant ---
@@ -106,9 +108,19 @@ export default function AportesPage() {
     const cats = Array.from(new Set(perfilesActivos.map(p => p.grupos || 'Sin categoría'))).filter(Boolean).sort();
     setCategorias(cats as string[]);
 
+    // Cargar Partidos/Convocatorias del club
+    const { data: convData } = await supabase
+      .from('eventos')
+      .select('id, tipo, equipo_rival, fecha, convocatorias(id)')
+      .eq('club_id', id)
+      .order('fecha', { ascending: false });
+    
+    const convsValidas = (convData || []).filter(e => e.convocatorias && e.convocatorias.length > 0);
+    setConvocatoriasClub(convsValidas);
+
     const { data, error } = await supabase
       .from('eventos_deportivos')
-      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, categorias_destino, aportes_eventos(id, pagado, monto, perfil_id)`)
+      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, categorias_destino, evento_origen_id, aportes_eventos(id, pagado, monto, perfil_id)`)
       .eq('club_id', id)
       .order('fecha', { ascending: false });
 
@@ -119,8 +131,9 @@ export default function AportesPage() {
       const pagaron = apList.filter((a: any) => a.pagado);
       
       let totalEsperado = 0;
-      if (ev.convocatorias && ev.convocatorias.length > 0) {
-        totalEsperado = ev.convocatorias.length;
+      if (ev.evento_origen_id) {
+        const match = convsValidas.find(c => c.id === ev.evento_origen_id);
+        totalEsperado = match?.convocatorias?.length || 0;
       } else if (ev.categorias_destino && ev.categorias_destino.length > 0) {
         totalEsperado = perfilesActivos.filter(p => ev.categorias_destino.includes(p.grupos || 'Sin categoría')).length;
       } else {
@@ -135,7 +148,7 @@ export default function AportesPage() {
         monto_sugerido: ev.monto_sugerido,
         descripcion: ev.descripcion,
         categorias_destino: ev.categorias_destino,
-        convocatorias: ev.convocatorias,
+        evento_origen_id: ev.evento_origen_id,
         total_alumnos: totalEsperado,
         total_pagaron: pagaron.length,
         total_pagado: pagaron.reduce((s: number, a: any) => s + (parseFloat(a.monto) || 0), 0),
@@ -178,9 +191,14 @@ export default function AportesPage() {
 
     let perfilesFiltrados = perfiles || [];
 
-    if (evento.convocatorias && evento.convocatorias.length > 0) {
-      // Filtrar SOLO a los convocados
-      const idsConvocados = evento.convocatorias.map((c: any) => c.jugador_id);
+    if (evento.evento_origen_id) {
+      // Filtrar SOLO a los convocados de ese partido
+      const { data: convData } = await supabase
+        .from('convocatorias')
+        .select('jugador_id')
+        .eq('evento_id', evento.evento_origen_id);
+        
+      const idsConvocados = (convData || []).map(c => c.jugador_id);
       perfilesFiltrados = perfilesFiltrados.filter((p: any) => idsConvocados.includes(p.id));
     } else if (evento.categorias_destino && evento.categorias_destino.length > 0) {
       // Filtrar por categorías destino seleccionadas
@@ -251,6 +269,7 @@ export default function AportesPage() {
       monto_sugerido: parseFloat(form.monto_sugerido) || 0,
       descripcion: form.descripcion || null,
       categorias_destino: form.categorias_seleccionadas.length > 0 ? form.categorias_seleccionadas : null,
+      evento_origen_id: form.evento_origen_id || null,
     });
 
     if (error) {
@@ -258,7 +277,7 @@ export default function AportesPage() {
     } else {
       toast.success('¡Evento creado exitosamente!');
       setShowModal(false);
-      setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '', categorias_seleccionadas: [] });
+      setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '', categorias_seleccionadas: [], evento_origen_id: '' });
       fetchEventos();
     }
     setSaving(false);
@@ -599,40 +618,65 @@ export default function AportesPage() {
                   className="w-full border border-slate-300 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-amber-400"
                 />
               </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Dirigido a (Categorías)</label>
-                <div className="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto p-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
-                    <input
-                      type="checkbox"
-                      checked={form.categorias_seleccionadas.length === 0}
-                      onChange={() => setForm(f => ({ ...f, categorias_seleccionadas: [] }))}
-                      className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
-                    />
-                    Todas las categorías
+              
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 flex items-center gap-1">
+                    Vincular con Convocatoria (Opcional)
                   </label>
-                  {categorias.map(cat => (
-                    <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
-                      <input
-                        type="checkbox"
-                        checked={form.categorias_seleccionadas.includes(cat)}
-                        onChange={(e) => {
-                          const isChecked = e.target.checked;
-                          setForm(f => ({
-                            ...f,
-                            categorias_seleccionadas: isChecked
-                              ? [...f.categorias_seleccionadas, cat]
-                              : f.categorias_seleccionadas.filter(c => c !== cat)
-                          }));
-                        }}
-                        className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
-                      />
-                      {cat}
-                    </label>
-                  ))}
+                  <select
+                    value={form.evento_origen_id}
+                    onChange={e => setForm(f => ({ ...f, evento_origen_id: e.target.value, categorias_seleccionadas: [] }))}
+                    className="w-full border border-indigo-200 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+                  >
+                    <option value="">-- No vincular (Evento Manual) --</option>
+                    {convocatoriasClub.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.tipo} {c.equipo_rival ? `vs ${c.equipo_rival}` : ''} - {new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CO')} ({c.convocatorias?.length || 0} convocados)
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-400 mt-1">Si seleccionas una convocatoria, se cobrará exclusivamente a esos jugadores.</p>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Si seleccionas "Todas", se aplicará a todos los alumnos del club.</p>
+
+                {!form.evento_origen_id && (
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">O dirigido a (Categorías)</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto p-1 bg-white border border-slate-200 rounded-xl px-4 py-3">
+                      <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={form.categorias_seleccionadas.length === 0}
+                          onChange={() => setForm(f => ({ ...f, categorias_seleccionadas: [] }))}
+                          className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
+                        />
+                        Todas las categorías
+                      </label>
+                      {categorias.map(cat => (
+                        <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={form.categorias_seleccionadas.includes(cat)}
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              setForm(f => ({
+                                ...f,
+                                categorias_seleccionadas: isChecked
+                                  ? [...f.categorias_seleccionadas, cat]
+                                  : f.categorias_seleccionadas.filter(c => c !== cat)
+                              }));
+                            }}
+                            className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
+                          />
+                          {cat}
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">Si seleccionas "Todas", se aplicará a todos los alumnos del club.</p>
+                  </div>
+                )}
               </div>
+
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Descripción (opcional)</label>
                 <textarea
