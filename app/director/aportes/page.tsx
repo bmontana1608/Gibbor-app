@@ -108,7 +108,7 @@ export default function AportesPage() {
 
     const { data, error } = await supabase
       .from('eventos_deportivos')
-      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, categorias_destino, aportes_eventos(id, pagado, monto, perfil_id), convocatorias(id, jugador_id)`)
+      .select(`id, nombre, tipo, fecha, monto_sugerido, descripcion, categorias_destino, aportes_eventos(id, pagado, monto, perfil_id)`)
       .eq('club_id', id)
       .order('fecha', { ascending: false });
 
