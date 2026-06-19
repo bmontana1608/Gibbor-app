@@ -108,14 +108,16 @@ export default function AportesPage() {
     const cats = Array.from(new Set(perfilesActivos.map(p => p.grupos || 'Sin categoría'))).filter(Boolean).sort();
     setCategorias(cats as string[]);
 
-    // Cargar Partidos/Convocatorias del club
-    const { data: convData } = await supabase
-      .from('eventos')
-      .select('id, tipo, equipo_rival, fecha, convocatorias(id)')
-      .eq('club_id', id)
-      .order('fecha', { ascending: false });
-    
-    const convsValidas = (convData || []).filter(e => e.convocatorias && e.convocatorias.length > 0);
+    // Cargar Partidos/Convocatorias del club a través de la API (para evitar bloqueos de RLS)
+    let convsValidas: any[] = [];
+    try {
+      const resConv = await fetch(`/api/director/convocatorias?slug=${tenantSlug}`);
+      if (resConv.ok) {
+        convsValidas = await resConv.json();
+      }
+    } catch (err) {
+      console.error("Error fetching convocatorias:", err);
+    }
     setConvocatoriasClub(convsValidas);
 
     const { data, error } = await supabase
@@ -192,13 +194,9 @@ export default function AportesPage() {
     let perfilesFiltrados = perfiles || [];
 
     if (evento.evento_origen_id) {
-      // Filtrar SOLO a los convocados de ese partido
-      const { data: convData } = await supabase
-        .from('convocatorias')
-        .select('jugador_id')
-        .eq('evento_id', evento.evento_origen_id);
-        
-      const idsConvocados = (convData || []).map(c => c.jugador_id);
+      // Filtrar SOLO a los convocados de ese partido usando los datos en memoria
+      const match = convocatoriasClub.find(c => c.id === evento.evento_origen_id);
+      const idsConvocados = match?.convocatorias?.map((c: any) => c.jugador_id) || [];
       perfilesFiltrados = perfilesFiltrados.filter((p: any) => idsConvocados.includes(p.id));
     } else if (evento.categorias_destino && evento.categorias_destino.length > 0) {
       // Filtrar por categorías destino seleccionadas

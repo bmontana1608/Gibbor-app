@@ -21,9 +21,10 @@ export async function GET(request: Request) {
         perfiles!eventos_creado_por_fkey (nombres, apellidos),
         convocatorias (
           id,
+          jugador_id,
           rol_partido,
           estado_notificacion,
-          perfiles!convocatorias_jugador_id_fkey (nombres, apellidos, foto_url, posicion)
+          perfiles!convocatorias_jugador_id_fkey (id, nombres, apellidos, foto_url, posicion)
         )
       `)
       .eq('club_id', tenant.id)
