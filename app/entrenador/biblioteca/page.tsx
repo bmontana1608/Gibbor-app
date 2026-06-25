@@ -146,12 +146,18 @@ export default function BibliotecaEntrenador() {
                 className="w-full h-full object-contain"
               ></video>
             ) : (
-              <iframe 
-                src={embedUrl} 
-                className="w-full h-full border-none"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
+              <div className="relative w-full h-full">
+                <iframe 
+                  src={embedUrl} 
+                  className="w-full h-full border-none"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                ></iframe>
+                {/* Overlay transparente para bloquear el hover en el título de YouTube */}
+                <div className="absolute top-0 left-0 w-full h-20 z-10 bg-transparent pointer-events-auto"></div>
+                {/* Overlay transparente para bloquear el clic en el logo de YouTube */}
+                <div className="absolute bottom-0 right-0 w-32 h-20 z-10 bg-transparent pointer-events-auto"></div>
+              </div>
             )}
           </div>
         );

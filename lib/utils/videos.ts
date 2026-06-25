@@ -29,8 +29,8 @@ export function getEmbedUrl(url: string): string | null {
   
   const ytId = getYouTubeId(cleanUrl);
   if (ytId) {
-    // color=white makes the progress bar neutral. modestbranding removes the YT logo. rel=0 prevents random recommendations.
-    return `https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0&iv_load_policy=3&color=white&playsinline=1`;
+    // color=white makes the progress bar neutral. modestbranding removes the YT logo. rel=0 prevents random recommendations. controls=0 removes the player UI. disablekb=1 disables keyboard shortcuts.
+    return `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&color=white&playsinline=1&showinfo=0&disablekb=1&fs=0`;
   }
   
   const driveId = getDriveId(cleanUrl);
