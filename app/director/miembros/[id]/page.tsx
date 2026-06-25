@@ -16,10 +16,9 @@ export default function FichaDelJugador() {
   const [jugador, setJugador] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   
-  const [edicion, setEdicion] = useState(false);
-  const [formData, setFormData] = useState<any>({});
   const [guardando, setGuardando] = useState(false);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [subiendoDoc, setSubiendoDoc] = useState<string | null>(null);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
@@ -126,6 +125,41 @@ if (data.fecha_nacimiento) {
       toast.success("Datos actualizados.", { id: toastId });
     }
     setGuardando(false);
+  };
+
+  const handleSubirDocumento = async (e: React.ChangeEvent<HTMLInputElement>, tipoCampo: 'doc_jugador_url' | 'doc_eps_url' | 'doc_acudiente_url', carpeta: string) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      setSubiendoDoc(tipoCampo);
+
+      const toastId = toast.loading('Subiendo documento...');
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${carpeta}/${fileName}`;
+      const { error: uploadError } = await supabase.storage.from('documentos').upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage.from('documentos').getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase
+        .from('perfiles')
+        .update({ [tipoCampo]: publicUrl })
+        .eq('id', jugador.id);
+
+      if (dbError) throw dbError;
+
+      setJugador((prev: any) => ({ ...prev, [tipoCampo]: publicUrl }));
+      setFormData((prev: any) => ({ ...prev, [tipoCampo]: publicUrl }));
+
+      toast.success('Documento subido con éxito', { id: toastId });
+    } catch (err: any) {
+      toast.error('Error al subir documento: ' + err.message);
+    } finally {
+      setSubiendoDoc(null);
+    }
   };
 
   const handleSubirFoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -438,6 +472,11 @@ if (data.fecha_nacimiento) {
             ) : (
               <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
             )}
+            <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
+              {subiendoDoc === 'doc_jugador_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+              {subiendoDoc === 'doc_jugador_url' ? 'Subiendo...' : (jugador.doc_jugador_url ? 'Actualizar' : 'Cargar Documento')}
+              <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_jugador_url', 'jugadores')} disabled={subiendoDoc !== null} />
+            </label>
           </div>
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
             <span className="text-sm font-bold text-slate-700">Certificado Médico / EPS</span>
@@ -446,6 +485,11 @@ if (data.fecha_nacimiento) {
             ) : (
               <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
             )}
+            <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
+              {subiendoDoc === 'doc_eps_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+              {subiendoDoc === 'doc_eps_url' ? 'Subiendo...' : (jugador.doc_eps_url ? 'Actualizar' : 'Cargar Documento')}
+              <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_eps_url', 'eps')} disabled={subiendoDoc !== null} />
+            </label>
           </div>
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
             <span className="text-sm font-bold text-slate-700">Identificación Acudiente</span>
@@ -454,6 +498,11 @@ if (data.fecha_nacimiento) {
             ) : (
               <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
             )}
+            <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
+              {subiendoDoc === 'doc_acudiente_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+              {subiendoDoc === 'doc_acudiente_url' ? 'Subiendo...' : (jugador.doc_acudiente_url ? 'Actualizar' : 'Cargar Documento')}
+              <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_acudiente_url', 'acudientes')} disabled={subiendoDoc !== null} />
+            </label>
           </div>
         </div>
       </div>
