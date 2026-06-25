@@ -16,6 +16,8 @@ export default function FichaDelJugador() {
   const [jugador, setJugador] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   
+  const [edicion, setEdicion] = useState(false);
+  const [formData, setFormData] = useState<any>({});
   const [guardando, setGuardando] = useState(false);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [subiendoDoc, setSubiendoDoc] = useState<string | null>(null);
