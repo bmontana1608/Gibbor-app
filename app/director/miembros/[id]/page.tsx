@@ -425,6 +425,39 @@ if (data.fecha_nacimiento) {
         </div>
       </div>
 
+      {/* SECCIÓN DE DOCUMENTOS */}
+      <div className="mt-6 bg-white border rounded-2xl p-6 shadow-sm">
+        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
+          <FileText className="w-4 h-4 text-amber-500" /> Documentos Adjuntos
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
+            <span className="text-sm font-bold text-slate-700">Identificación Jugador</span>
+            {jugador.doc_jugador_url ? (
+              <a href={jugador.doc_jugador_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+            )}
+          </div>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
+            <span className="text-sm font-bold text-slate-700">Certificado Médico / EPS</span>
+            {jugador.doc_eps_url ? (
+              <a href={jugador.doc_eps_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+            )}
+          </div>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
+            <span className="text-sm font-bold text-slate-700">Identificación Acudiente</span>
+            {jugador.doc_acudiente_url ? (
+              <a href={jugador.doc_acudiente_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* SECCIÓN DE ACCESOS A PLATAFORMA */}
       <div className="mt-8 bg-white border rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
