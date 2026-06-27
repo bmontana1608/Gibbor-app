@@ -18,10 +18,11 @@ import MCMLogo from '@/components/MCMLogo';
 import MetricsDashboard from '@/components/admin/MetricsDashboard';
 import ComunicacionAdminView from '@/components/admin/ComunicacionAdminView';
 import EmbajadoresAdminView from '@/components/admin/EmbajadoresAdminView';
+import PublicidadAdminView from '@/components/admin/PublicidadAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes' | 'embajadores'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes' | 'embajadores' | 'publicidad'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -283,6 +284,7 @@ export default function SuperAdminDashboard() {
     { id: 'biblioteca', icon: <Library size={20} />, label: 'Biblioteca' },
     { id: 'tickets', icon: <LifeBuoy size={20} />, label: 'Tickets' },
     { id: 'comunicacion', icon: <Megaphone size={20} />, label: 'Anuncios' },
+    { id: 'publicidad', icon: <ImageIcon size={20} />, label: 'Publicidad' },
     { id: 'auditoria', icon: <History size={20} />, label: 'Auditoría' },
     { id: 'mi-cuenta', icon: <User size={20} />, label: 'Mi Cuenta' },
     { id: 'configuracion', icon: <Settings size={20} />, label: 'Ajustes' },
@@ -323,7 +325,7 @@ export default function SuperAdminDashboard() {
         </div>
 
         <nav className="space-y-1 flex-1">
-          {navItems.slice(0, 10).map(item => (
+          {navItems.slice(0, 11).map(item => (
             <SideNavItem key={item.id} icon={item.icon} label={item.label} active={vista === item.id} onClick={() => setVista(item.id as any)} />
           ))}
         </nav>
@@ -537,6 +539,7 @@ export default function SuperAdminDashboard() {
         {vista === 'tickets' && <TicketsAdminView />}
         {vista === 'comunicacion' && <ComunicacionAdminView />}
         {vista === 'embajadores' && <EmbajadoresAdminView />}
+        {vista === 'publicidad' && <PublicidadAdminView />}
 
         {/* ── VISTA SOLICITUDES DE CLUB ── */}
         {vista === 'solicitudes' && (
