@@ -110,7 +110,13 @@ export default function DirectorioComercialPage() {
                 )}
                 <div>
                   <h3 className="font-black text-lg text-slate-800 leading-tight">{p.nombre}</h3>
-                  {p.ciudad && <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1"><MapPin size={10}/> {p.ciudad}</span>}
+                  <div className="flex flex-col gap-1 mt-1">
+                    {p.es_fisico && p.direccion ? (
+                      <span className="inline-flex items-start gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight"><Store size={12} className="shrink-0 mt-0.5"/> Tienda Física: {p.direccion} {p.ciudad ? `- ${p.ciudad}` : ''}</span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider"><Globe size={10}/> Tienda Online {p.ciudad ? `- ${p.ciudad}` : ''}</span>
+                    )}
+                  </div>
                 </div>
               </div>
               

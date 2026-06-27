@@ -17,7 +17,7 @@ export default function PublicidadAdminView() {
   const [saving, setSaving] = useState(false);
 
   // Form states
-  const [patroForm, setPatroForm] = useState({ id: '', nombre: '', descripcion: '', telefono: '', sitio_web: '', logo_url: '', pais: '', ciudad: '', activo: true });
+  const [patroForm, setPatroForm] = useState({ id: '', nombre: '', descripcion: '', telefono: '', sitio_web: '', logo_url: '', pais: '', ciudad: '', activo: true, es_fisico: false, direccion: '' });
   const [flyerForm, setFlyerForm] = useState({ id: '', titulo: '', imagen_url: '', link_url: '', pais: '', ciudad: '', frecuencia_horas: 24, activo: true });
   const [uploading, setUploading] = useState(false);
 
@@ -144,7 +144,7 @@ export default function PublicidadAdminView() {
         <div className="flex items-center justify-center p-12"><Loader2 className="w-8 h-8 animate-spin text-slate-300" /></div>
       ) : tab === 'patrocinadores' ? (
         <div className="space-y-4">
-          <button onClick={() => { setPatroForm({ id:'', nombre:'', descripcion:'', telefono:'', sitio_web:'', logo_url:'', pais:'', ciudad:'', activo:true }); setShowModalPatrocinador(true); }} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800">
+          <button onClick={() => { setPatroForm({ id:'', nombre:'', descripcion:'', telefono:'', sitio_web:'', logo_url:'', pais:'', ciudad:'', activo:true, es_fisico: false, direccion: '' }); setShowModalPatrocinador(true); }} className="px-4 py-2 bg-slate-900 text-white rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-slate-800">
             <Plus size={16} /> Nuevo Patrocinador
           </button>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -227,6 +227,22 @@ export default function PublicidadAdminView() {
                   <label className="text-xs font-bold text-slate-500 uppercase">Ciudad Destino (Opcional)</label>
                   <input type="text" placeholder="Ej: Bogota" value={patroForm.ciudad} onChange={e => setPatroForm({...patroForm, ciudad: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-1" />
                 </div>
+                <div className="col-span-2 flex gap-4 my-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="tipoTienda" checked={!patroForm.es_fisico} onChange={() => setPatroForm({...patroForm, es_fisico: false, direccion: ''})} />
+                    <span className="text-sm font-semibold">Tienda Online</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="tipoTienda" checked={patroForm.es_fisico} onChange={() => setPatroForm({...patroForm, es_fisico: true})} />
+                    <span className="text-sm font-semibold">Tienda Física</span>
+                  </label>
+                </div>
+                {patroForm.es_fisico && (
+                  <div className="col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase">Dirección Física</label>
+                    <input type="text" placeholder="Ej: Cra 15 # 90-10, Local 4" value={patroForm.direccion} onChange={e => setPatroForm({...patroForm, direccion: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-1" />
+                  </div>
+                )}
                 <div className="col-span-2">
                   <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Logo</label>
                   <div className="flex gap-4 items-center">
