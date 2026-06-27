@@ -44,17 +44,18 @@ export default function PublicidadAdminView() {
     setUploading(true);
     const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
     
-    // Asumimos que los buckets existen o se usan unos genericos. 
-    // Usaremos 'recursos_publicos' si no existen los específicos.
-    const { data, error } = await supabase.storage.from('recursos_publicos').upload(`${bucket}/${fileName}`, file, { upsert: true });
-    
+    // Subir a storage
+    const { data, error } = await supabase.storage.from('fotos').upload(`publicidad/${bucket}/${fileName}`, file, { upsert: true });
+
     setUploading(false);
-    
+
     if (error) {
       toast.error('Error subiendo imagen: ' + error.message);
       return null;
     }
-    const { data: publicUrlData } = supabase.storage.from('recursos_publicos').getPublicUrl(data.path);
+
+    // Obtener URL publica
+    const { data: publicUrlData } = supabase.storage.from('fotos').getPublicUrl(data.path);
     return publicUrlData.publicUrl;
   };
 
