@@ -61,12 +61,12 @@ export default function GlobalAnnouncementBanner() {
             <span className="flex p-2 rounded-lg bg-white/20 shrink-0">
               {isUrgente || isWarning ? <AlertTriangle className="h-5 w-5 text-white" aria-hidden="true" /> : <Megaphone className="h-5 w-5 text-white" aria-hidden="true" />}
             </span>
-            <p className="font-medium text-white truncate flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
-              <span className="font-black tracking-widest uppercase text-[10px] bg-black/20 px-2 py-0.5 rounded-md w-max">
+            <p className="font-medium text-white flex flex-col md:flex-row md:items-start gap-1 md:gap-3">
+              <span className="font-black tracking-widest uppercase text-[10px] bg-black/20 px-2 py-0.5 rounded-md w-max mt-1">
                  MCM Oficial
               </span>
-              <span className="hidden md:inline font-bold">{anuncio.titulo}:</span>
-              <span className="text-sm text-white/90 truncate">{anuncio.mensaje}</span>
+              <span className="hidden md:inline font-bold mt-0.5">{anuncio.titulo}:</span>
+              <span className="text-sm text-white/90 leading-relaxed">{anuncio.mensaje}</span>
             </p>
           </div>
           <div className="order-2 flex-shrink-0 sm:order-3 sm:ml-3">

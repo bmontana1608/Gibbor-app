@@ -42,19 +42,30 @@ export default function ComunicacionAdminView() {
     e.preventDefault();
     setSaving(true);
 
-    // Si vamos a activar este anuncio, desactivamos todos los demás (solo 1 activo a la vez por simplicidad)
     if (formData.activo) {
-      await supabase.from('anuncios_globales').update({ activo: false }).neq('id', 0); // Desactiva todos
+      await supabase.from('anuncios_globales').update({ activo: false }).neq('id', 0);
     }
 
-    const { error } = await supabase
-      .from('anuncios_globales')
-      .insert([formData]);
+    const { error } = await supabase.from('anuncios_globales').insert([formData]);
 
     if (error) {
       toast.error('Error al guardar: ' + error.message);
     } else {
       toast.success('Anuncio global publicado');
+      
+      // Disparar Notificación Push a TODA la red
+      if (formData.activo) {
+         fetch('/api/admin/broadcast-global', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+               titulo: `[${formData.tipo}] ${formData.titulo}`,
+               mensaje: formData.mensaje,
+               url: '/'
+            })
+         }).catch(e => console.error("Error trigger push:", e));
+      }
+
       setShowModal(false);
       setFormData({ titulo: '', mensaje: '', tipo: 'Info', activo: true });
       cargarAnuncios();
