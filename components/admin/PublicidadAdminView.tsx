@@ -61,8 +61,8 @@ export default function PublicidadAdminView() {
   const guardarPatrocinador = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...patroForm };
-    delete payload.id;
+    const { id, ...restPayload } = patroForm;
+    let payload: any = { ...restPayload };
     if (!payload.pais) payload.pais = null;
     if (!payload.ciudad) payload.ciudad = null;
 
@@ -85,8 +85,8 @@ export default function PublicidadAdminView() {
   const guardarFlyer = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const payload = { ...flyerForm };
-    delete payload.id;
+    const { id, ...restPayload } = flyerForm;
+    let payload: any = { ...restPayload };
     if (!payload.pais) payload.pais = null;
     if (!payload.ciudad) payload.ciudad = null;
 

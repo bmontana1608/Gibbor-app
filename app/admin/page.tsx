@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Globe, CreditCard, Activity, Megaphone,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy, FileText, Clock, CheckCircle2, XCircle, Eye
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy, FileText, Clock, CheckCircle2, XCircle, Eye, Image as ImageIcon
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';

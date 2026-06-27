@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-// @ts-ignore
-import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseAdmin = createClient(
@@ -27,15 +25,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'El club no tiene Mercado Pago configurado' }, { status: 400 });
     }
 
-    // 2. Inicializar Mercado Pago CON EL TOKEN DEL CLUB (El dinero va directo a ellos)
-    const client = new MercadoPagoConfig({ accessToken: club.mp_access_token });
-    const preference = new Preference(client);
-
     const origin = dominioOrigen || req.headers.get('origin') || 'http://localhost:3000';
 
-    // 3. Crear la preferencia de pago
-    const result = await preference.create({
-      body: {
+    // 2. Crear la preferencia de pago vía fetch nativo
+    const preferenceResponse = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${club.mp_access_token}`
+      },
+      body: JSON.stringify({
         items: [
           {
             id: `MENSUALIDAD-${jugadorId}`,
@@ -58,15 +57,21 @@ export async function POST(req: Request) {
         },
         auto_return: 'approved',
         notification_url: `https://masterclubmanager.com/api/mercadopago/webhook?clubId=${clubId}`,
-        external_reference: `${clubId}_${jugadorId}_${monto}`, // Guardamos metadatos para el webhook
-        statement_descriptor: 'MENSUALIDAD MCM',
-      }
+        statement_descriptor: 'ACADEMIA',
+        external_reference: `${jugadorId}_${Date.now()}`
+      })
     });
 
-    // 4. Retornar la URL de Checkout (init_point)
+    const result = await preferenceResponse.json();
+
+    if (!preferenceResponse.ok) {
+      console.error('Error MP:', result);
+      return NextResponse.json({ error: 'Error al generar link de pago en Mercado Pago' }, { status: 500 });
+    }
+
     return NextResponse.json({ url: result.init_point });
   } catch (error: any) {
-    console.error('Mercado Pago Checkout Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Error creando preferencia MP:', error);
+    return NextResponse.json({ error: error.message || 'Error interno' }, { status: 500 });
   }
 }
