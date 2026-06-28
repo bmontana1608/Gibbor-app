@@ -25,11 +25,8 @@ export default function ConfiguracionGeneral() {
   const [config, setConfig] = useState({
     api_url: '', api_key: '', instance_name: 'Club_App',
     direccion: '', ciudad: '', nequi: '', daviplata: '',
-    bre_b: '', banco_nombre: '', banco_numero: '',
+    bre_b: '', banco_nombre: '', banco_numero: '', link_pago: '',
     hijos_config: '',
-    cobranza_auto_activa: false,
-    cobranza_dias_previos: 3,
-    cobranza_metodo_pago: 'Puedes pagarla en efectivo en la academia o solicitando el link de pago.',
     nombre_club: 'TU CLUB',
     temporada_actual: 'TEMPORADA 2024'
   });
@@ -75,9 +72,7 @@ export default function ConfiguracionGeneral() {
             nombre_club: data.nombre_club || tenantData.config?.nombre || 'MI CLUB',
             temporada_actual: data.temporada_actual || `TEMPORADA ${añoActual}`,
             hijos_config: data.hijos_config || '',
-            cobranza_auto_activa: data.cobranza_auto_activa || false,
-            cobranza_dias_previos: data.cobranza_dias_previos || 3,
-            cobranza_metodo_pago: data.cobranza_metodo_pago || 'Puedes pagarla en efectivo en la academia o solicitando el link de pago.'
+            link_pago: data.link_pago || ''
           }));
           if (data.hijos_config) setHijosIds(data.hijos_config.split(','));
         } else {
@@ -532,6 +527,10 @@ export default function ConfiguracionGeneral() {
                   <input type="text" placeholder="Nombre Banco" value={config.banco_nombre} onChange={(e) => setConfig({...config, banco_nombre: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold mb-2" />
                   <input type="text" placeholder="Nº Cuenta" value={config.banco_numero} onChange={(e) => setConfig({...config, banco_numero: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold" />
                 </div>
+                <div className="col-span-1 md:col-span-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><CreditCard className="w-3 h-3 text-emerald-500" /> Link de Pago (MercadoPago, Bold, Wompi)</label>
+                  <input type="text" placeholder="https://link.mercadopago.com/..." value={config.link_pago} onChange={(e) => setConfig({...config, link_pago: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-medium text-sm text-emerald-700" />
+                </div>
               </div>
             </div>
 
@@ -597,58 +596,6 @@ export default function ConfiguracionGeneral() {
                   </div>
                 )}
               </div>
-
-              {/* COBRANZA AUTOMATIZADA */}
-              <div className="mt-8 border-t border-slate-100 pt-8">
-                <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2"><CreditCard className="w-4 h-4 text-brand" /> Cobranza Automatizada</h3>
-                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-6">
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">Motor de Cobranza (Bot)</p>
-                      <p className="text-xs text-slate-500 max-w-sm">Si está activo, el sistema enviará recordatorios de pago automáticamente cada mañana (9:00 AM) a los alumnos en mora o próximos a vencer.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={config.cobranza_auto_activa}
-                        onChange={(e) => setConfig({...config, cobranza_auto_activa: e.target.checked})}
-                      />
-                      <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  {config.cobranza_auto_activa && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
-                      <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-2">Días de Aviso Preventivo</label>
-                        <input 
-                          type="number" 
-                          min="1" max="15"
-                          value={config.cobranza_dias_previos}
-                          onChange={(e) => setConfig({...config, cobranza_dias_previos: Number(e.target.value)})}
-                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none text-sm font-bold"
-                        />
-                        <p className="text-[10px] text-slate-500 mt-2">Ej: Si pones 3, el bot enviará un mensaje 3 días antes de la fecha de corte.</p>
-                      </div>
-                      
-                      <div>
-                        <label className="text-xs font-bold text-slate-700 block mb-2">Instrucciones de Pago (Mensaje WhatsApp)</label>
-                        <textarea 
-                          rows={3}
-                          value={config.cobranza_metodo_pago}
-                          onChange={(e) => setConfig({...config, cobranza_metodo_pago: e.target.value})}
-                          placeholder="Ej: Transfiere a Nequi 3001234567 o usa este link de MercadoPago..."
-                          className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none text-sm font-medium resize-none"
-                        ></textarea>
-                        <p className="text-[10px] text-slate-500 mt-2">Este texto se inyectará en el mensaje automático para que el cliente sepa cómo pagar.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
             </div>
 
             {/* GESTIÓN DE PLANES MULTICLUB */}

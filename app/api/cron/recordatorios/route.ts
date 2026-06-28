@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     // 1. Obtener clubes con webhook activo y sus configuraciones de días
     const { data: configsWA, error: waError } = await supabaseAdmin
       .from('configuracion_wa')
-      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, recordatorio_1, recordatorio_2, recordatorio_3')
+      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, link_pago, recordatorio_1, recordatorio_2, recordatorio_3')
       .eq('active_webhook', true);
 
     if (waError || !configsWA || configsWA.length === 0) {
@@ -108,7 +108,8 @@ export async function GET(request: Request) {
         configClub.nequi ? `Nequi: *${configClub.nequi}*` : '',
         configClub.daviplata ? `Daviplata: *${configClub.daviplata}*` : '',
         configClub.bre_b ? `Bre-B: *${configClub.bre_b}*` : '',
-        configClub.banco_nombre && configClub.banco_numero ? `${configClub.banco_nombre}: *${configClub.banco_numero}*` : ''
+        configClub.banco_nombre && configClub.banco_numero ? `${configClub.banco_nombre}: *${configClub.banco_numero}*` : '',
+        configClub.link_pago ? `Link de Pago (MercadoPago/Bold): *${configClub.link_pago}*` : ''
       ].filter(Boolean).join('\n');
 
       const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
