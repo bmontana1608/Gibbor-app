@@ -10,9 +10,11 @@ export default function CampanitaNotificaciones({ embajadorId }: { embajadorId: 
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!embajadorId) return;
+    
     cargarNotificaciones();
     // Suscripción en tiempo real a nuevas notificaciones
-    const channel = supabase.channel('notificaciones_channel')
+    const channel = supabase.channel(`notificaciones_${embajadorId}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
