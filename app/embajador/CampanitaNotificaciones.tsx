@@ -14,7 +14,7 @@ export default function CampanitaNotificaciones({ embajadorId }: { embajadorId: 
     
     cargarNotificaciones();
     // Suscripción en tiempo real a nuevas notificaciones
-    const channel = supabase.channel(`notificaciones_${embajadorId}`)
+    const channel = supabase.channel(`notificaciones_${embajadorId}_${Math.random()}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
