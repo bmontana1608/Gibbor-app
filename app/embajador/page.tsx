@@ -38,25 +38,8 @@ export default async function EmbajadorDashboard() {
   const comisionesPagadas = comisiones?.filter(c => c.estado === 'Pagada').reduce((sum, c) => sum + Number(c.monto), 0) || 0;
   const comisionesPendientes = comisionesTotales - comisionesPagadas;
 
-  // 4. Calcular Nivel de Gamificación (basado en clubes ACTIVOS)
-  let nivel = 'Bronce';
-  let porcentaje = 10;
-  let siguienteNivel = 'Plata';
-  let metaSiguiente = 3;
-
-  if (clubesActivos >= 6) {
-    nivel = 'Oro';
-    porcentaje = 20;
-    siguienteNivel = 'MAX';
-    metaSiguiente = clubesActivos;
-  } else if (clubesActivos >= 3) {
-    nivel = 'Plata';
-    porcentaje = 15;
-    siguienteNivel = 'Oro';
-    metaSiguiente = 6;
-  }
-
-  const progreso = nivel === 'Oro' ? 100 : Math.min(100, Math.round((clubesActivos / metaSiguiente) * 100));
+  // 4. Comisión
+  const porcentaje = 10;
 
   // 5. URLs de referido con fuente
   const baseUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.codigo_referido}`;
@@ -87,42 +70,24 @@ export default async function EmbajadorDashboard() {
         </div>
       </div>
 
-      {/* GAMIFICACIÓN BANNER */}
+      {/* COMISIÓN BANNER */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 shadow-lg text-white flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
-            <Trophy className={`w-8 h-8 ${nivel === 'Oro' ? 'text-yellow-400' : nivel === 'Plata' ? 'text-slate-300' : 'text-amber-600'}`} />
+            <Trophy className="w-8 h-8 text-lime-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Nivel Actual</p>
+            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Tu Comisión</p>
             <div className="flex items-end gap-3">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">{nivel}</h2>
-              <span className="text-lime-400 font-bold mb-1">({porcentaje}% comisión)</span>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight">{porcentaje}%</h2>
+              <span className="text-lime-400 font-bold mb-1">recurrente</span>
             </div>
           </div>
         </div>
 
-        {nivel !== 'Oro' && (
-          <div className="w-full md:w-1/3 bg-black/30 rounded-2xl p-4 border border-white/10">
-            <div className="flex justify-between text-sm font-medium text-slate-300 mb-2">
-              <span>{clubesActivos} Activos</span>
-              <span>Faltan {metaSiguiente - clubesActivos} para {siguienteNivel}</span>
-            </div>
-            <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-lime-500 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${progreso}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-        
-        {nivel === 'Oro' && (
-          <div className="w-full md:w-1/3 bg-yellow-500/10 rounded-2xl p-4 border border-yellow-500/20 text-center">
-            <p className="text-yellow-400 font-bold text-sm">🏆 ¡Alcanzaste el nivel máximo!</p>
-            <p className="text-xs text-yellow-500/80 mt-1">Ganas la comisión tope en todos tus referidos.</p>
-          </div>
-        )}
+        <div className="w-full md:w-1/2 bg-black/30 rounded-2xl p-4 border border-white/10 text-sm text-slate-300">
+          Ganas el <strong className="text-white">{porcentaje}% mensual</strong> de la suscripción de cada academia que se registre con tu código, mientras se mantengan activos.
+        </div>
       </div>
 
       {/* MÉTRICAS DE CONVERSIÓN Y FINANCIERAS */}
