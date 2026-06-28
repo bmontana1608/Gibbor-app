@@ -40,18 +40,18 @@ export default async function EmbajadorDashboard() {
 
   // 4. Calcular Nivel de Gamificación (basado en clubes ACTIVOS)
   let nivel = 'Bronce';
-  let porcentaje = 20;
+  let porcentaje = 10;
   let siguienteNivel = 'Plata';
   let metaSiguiente = 3;
 
   if (clubesActivos >= 6) {
     nivel = 'Oro';
-    porcentaje = 30;
+    porcentaje = 20;
     siguienteNivel = 'MAX';
     metaSiguiente = clubesActivos;
   } else if (clubesActivos >= 3) {
     nivel = 'Plata';
-    porcentaje = 25;
+    porcentaje = 15;
     siguienteNivel = 'Oro';
     metaSiguiente = 6;
   }
