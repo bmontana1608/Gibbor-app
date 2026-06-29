@@ -302,15 +302,33 @@ export default function SuperAdminDashboard() {
 
   const actualizarSolicitud = async (id: string, estado: string) => {
     try {
-      await fetch('/api/solicitudes-club', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, estado, notas_admin: notasAdmin }),
-      });
-      toast.success(`Solicitud marcada como ${estado}`);
+      if (estado === 'Aprobado') {
+        // Nueva lógica de aprobación y creación de academia en 1 clic
+        const res = await fetch('/api/solicitudes-club/aprobar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ solicitudId: id }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al aprobar y crear el club');
+        toast.success('¡Club creado exitosamente con contraseña Master2026*!');
+      } else {
+        // Lógica tradicional para Pendiente, Rechazado o En Revisión
+        const res = await fetch('/api/solicitudes-club', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, estado, notas_admin: notasAdmin }),
+        });
+        if (!res.ok) throw new Error('Error al actualizar el estado');
+        toast.success(`Solicitud marcada como ${estado}`);
+      }
+      
       setSolicitudDetalle(null);
       cargarSolicitudes();
-    } catch { toast.error('Error al actualizar'); }
+      cargarTodo(); // Recargar clubes
+    } catch (err: any) { 
+      toast.error(err.message || 'Error al procesar la solicitud'); 
+    }
   };
 
 
@@ -694,7 +712,7 @@ export default function SuperAdminDashboard() {
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Cambiar estado</p>
                     <div className="grid grid-cols-2 gap-2">
                       <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'En Revisión')} className="bg-blue-50 text-blue-700 font-bold py-2.5 rounded-xl text-sm hover:bg-blue-100 transition-all flex items-center justify-center gap-1"><Eye size={14} /> En Revisión</button>
-                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Aprobado')} className="bg-emerald-50 text-emerald-700 font-bold py-2.5 rounded-xl text-sm hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-1"><CheckCircle2 size={14} /> Aprobar</button>
+                      <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Aprobado')} className="bg-emerald-50 text-emerald-700 font-bold py-2.5 rounded-xl text-sm hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-1"><CheckCircle2 size={14} /> Aprobar y Crear Club</button>
                       <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Pendiente')} className="bg-amber-50 text-amber-700 font-bold py-2.5 rounded-xl text-sm hover:bg-amber-100 transition-all flex items-center justify-center gap-1"><Clock size={14} /> Pendiente</button>
                       <button onClick={() => actualizarSolicitud(solicitudDetalle.id, 'Rechazado')} className="bg-red-50 text-red-600 font-bold py-2.5 rounded-xl text-sm hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-1"><XCircle size={14} /> Rechazar</button>
                     </div>
