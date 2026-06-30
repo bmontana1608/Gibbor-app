@@ -2,22 +2,29 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Map, Search, Filter, ArrowUpDown, ExternalLink, MapPin, Phone, Globe, Star, ShieldAlert, Loader2 } from 'lucide-react';
+import { Map, Search, Filter, ArrowUpDown, ExternalLink, MapPin, Phone, Globe, Star, ShieldAlert, Loader2, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AtlasLeadsView() {
   const [leads, setLeads] = useState<any[]>([]);
+  const [embajadores, setEmbajadores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [estadoFilter, setEstadoFilter] = useState('Todos');
 
   useEffect(() => {
-    fetchLeads();
+    fetchData();
   }, [estadoFilter]);
 
-  const fetchLeads = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    let query = supabase.from('atlas_academias').select('*').order('score', { ascending: false });
+    
+    // Fetch embajadores
+    const { data: embData } = await supabase.from('embajadores').select('id, nombres, apellidos');
+    if (embData) setEmbajadores(embData);
+
+    // Fetch leads
+    let query = supabase.from('atlas_academias').select('*, embajadores(nombres, apellidos)').order('score', { ascending: false });
 
     if (estadoFilter !== 'Todos') {
       query = query.eq('estado', estadoFilter);
@@ -30,6 +37,28 @@ export default function AtlasLeadsView() {
       setLeads(data || []);
     }
     setLoading(false);
+  };
+
+  const handleAssign = async (leadId: string, embajadorId: string) => {
+    const value = embajadorId === '' ? null : embajadorId;
+    
+    // Optimistic UI update
+    setLeads(prev => prev.map(l => {
+      if (l.id === leadId) {
+        const emb = embajadores.find(e => e.id === value);
+        return { ...l, embajador_id: value, embajadores: emb ? { nombres: emb.nombres, apellidos: emb.apellidos } : null };
+      }
+      return l;
+    }));
+
+    const { error } = await supabase.from('atlas_academias').update({ embajador_id: value }).eq('id', leadId);
+    
+    if (error) {
+      toast.error('Error al asignar embajador');
+      fetchData(); // Revert on error
+    } else {
+      toast.success(value ? 'Lead asignado exitosamente' : 'Asignación removida');
+    }
   };
 
   const filteredLeads = leads.filter(lead => 
@@ -81,20 +110,19 @@ export default function AtlasLeadsView() {
                 <th className="py-4 px-6">Academia</th>
                 <th className="py-4 px-6">Ubicación</th>
                 <th className="py-4 px-6">Contacto</th>
-                <th className="py-4 px-6">Rating</th>
-                <th className="py-4 px-6">Score</th>
-                <th className="py-4 px-6">Prioridad</th>
+                <th className="py-4 px-6">Score/Prio</th>
                 <th className="py-4 px-6">Estado</th>
+                <th className="py-4 px-6">Asignado a</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={7} className="py-12 text-center text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />Cargando datos...</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />Cargando datos...</td></tr>
               ) : filteredLeads.length === 0 ? (
-                <tr><td colSpan={7} className="py-12 text-center text-slate-400">No se encontraron academias. Importa una base de datos.</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-slate-400">No se encontraron academias. Importa una base de datos.</td></tr>
               ) : (
                 filteredLeads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50 transition-colors group cursor-pointer">
+                  <tr key={lead.id} className="hover:bg-slate-50 transition-colors group">
                     <td className="py-4 px-6">
                       <div className="font-bold text-slate-900">{lead.nombre}</div>
                       <div className="text-xs text-slate-400 truncate max-w-[200px]">{lead.categoria}</div>
@@ -120,30 +148,39 @@ export default function AtlasLeadsView() {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <div className="flex items-center gap-1 text-sm font-bold text-slate-700">
-                        <Star className={`w-4 h-4 ${lead.rating >= 4.5 ? 'text-amber-400 fill-amber-400' : 'text-slate-300'}`} />
-                        {lead.rating || '-'} <span className="text-xs text-slate-400 font-normal">({lead.reviews || 0})</span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-xs font-black text-slate-900 border border-slate-200">
+                          {lead.score}
+                        </div>
+                        <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
+                          lead.prioridad === 'Muy Alta' ? 'bg-purple-100 text-purple-700' :
+                          lead.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
+                          lead.prioridad === 'Media' ? 'bg-orange-100 text-orange-700' :
+                          'bg-slate-100 text-slate-500'
+                        }`}>
+                          {lead.prioridad}
+                        </span>
                       </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 text-sm font-black text-slate-900 border border-slate-200">
-                        {lead.score}
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2 py-1 text-xs font-black uppercase tracking-wider rounded-lg ${
-                        lead.prioridad === 'Muy Alta' ? 'bg-purple-100 text-purple-700' :
-                        lead.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
-                        lead.prioridad === 'Media' ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-500'
-                      }`}>
-                        {lead.prioridad}
-                      </span>
                     </td>
                     <td className="py-4 px-6">
                       <span className="px-2 py-1 text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg">
                         {lead.estado}
                       </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="w-4 h-4 text-slate-400" />
+                        <select
+                          value={lead.embajador_id || ''}
+                          onChange={(e) => handleAssign(lead.id, e.target.value)}
+                          className="border border-slate-200 rounded-lg text-xs py-1.5 px-2 focus:ring-1 focus:ring-lime-500 outline-none bg-slate-50 hover:bg-white transition-colors cursor-pointer w-36"
+                        >
+                          <option value="">Sin asignar</option>
+                          {embajadores.map(e => (
+                            <option key={e.id} value={e.id}>{e.nombres} {e.apellidos}</option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                   </tr>
                 ))
