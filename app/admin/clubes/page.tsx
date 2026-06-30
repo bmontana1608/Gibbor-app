@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings } from 'lucide-react';
+import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MetricCard = ({ label, value, icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) => (
@@ -13,6 +13,20 @@ const MetricCard = ({ label, value, icon, sub, color }: { label: string, value: 
       <h3 className="text-2xl font-black text-gray-800">{value}</h3>
       <p className={`text-[10px] font-bold text-${color}-500 mt-1 uppercase tracking-wider`}>{sub}</p>
     </div>
+  </div>
+);
+
+const InputField = ({ label, value, onChange, type = "text", placeholder = "", required = false, mono = false }: any) => (
+  <div>
+    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{label}</label>
+    <input 
+      type={type} 
+      value={value} 
+      onChange={(e) => onChange(e.target.value)} 
+      className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50 ${mono ? 'font-mono' : ''}`}
+      placeholder={placeholder}
+      required={required}
+    />
   </div>
 );
 
@@ -56,7 +70,7 @@ const ClubRow = ({ club, count, onToggle, onAudit, onEdit, onDelete }: any) => {
         </span>
       </td>
       <td className="px-6 py-4 text-right">
-        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center justify-end gap-2 transition-opacity">
           <button onClick={() => onEdit(club)} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Editar Club"><Settings size={18} /></button>
           <button onClick={() => onAudit(club)} className="p-2 text-gray-400 hover:text-violet-500 hover:bg-violet-50 rounded-lg transition-colors" title="Ver Auditoría"><History size={18} /></button>
           <button onClick={() => onToggle(club.id, club.estado)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" title={club.estado === 'Activo' ? 'Suspender' : 'Activar'}>
@@ -223,8 +237,148 @@ export default function ClubesPage() {
         )}
       </div>
 
-      {/* MODAL CREACIÓN OMITIDO POR BREVEDAD PARA EL DEMO, USAR EL MISMO COMPONENTE QUE YA TIENEN */}
-      {/* ... (Se asume que los modales están implementados. Por cuestiones de espacio en la migración se simplifica si no lo envuelve en un componente separado) ... */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800">Nueva Academia</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleCrearClub} className="space-y-4">
+              <InputField label="Nombre Comercial" value={formData.nombre} onChange={(v: string) => setFormData({ ...formData, nombre: v })} required />
+              <InputField label="Subdominio (Slug)" value={formData.slug} onChange={(v: string) => setFormData({ ...formData, slug: v.toLowerCase().replace(/\s/g, '-') })} placeholder="eagles-fc" required mono />
+              <InputField label="URL Logo" value={formData.logo_url} onChange={(v: string) => setFormData({ ...formData, logo_url: v })} placeholder="https://..." required />
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Color de Marca</label>
+                <input value={formData.color_primario} onChange={e => setFormData({ ...formData, color_primario: e.target.value })} type="color" className="w-full border border-gray-200 rounded-xl h-12 p-1.5 cursor-pointer" />
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <h4 className="text-xs font-bold text-lime-600 uppercase tracking-widest mb-3">Credenciales del Director</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <InputField label="Correo" value={formData.correo_director} onChange={(v: string) => setFormData({ ...formData, correo_director: v })} placeholder="admin@club.com" required type="email" />
+                  <InputField label="Contraseña Temporal" value={formData.password_director} onChange={(v: string) => setFormData({ ...formData, password_director: v })} placeholder="Pass1234!" required />
+                </div>
+              </div>
+              <button type="submit" disabled={fetching} className="w-full bg-lime-500 hover:bg-lime-400 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-lime-200">
+                {fetching ? <Loader2 className="animate-spin" size={18} /> : <><Check size={18} /> Confirmar Registro</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800">Editar Club</h3>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-700 p-1"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleEditClub} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Nombre Comercial" value={editFormData.nombre} onChange={(v: string) => setEditFormData({ ...editFormData, nombre: v })} />
+                <InputField label="Nombre Legal" value={editFormData.nombre_legal} onChange={(v: string) => setEditFormData({ ...editFormData, nombre_legal: v })} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <InputField label="Correo Administrativo" value={editFormData.correo_administrativo} onChange={(v: string) => setEditFormData({ ...editFormData, correo_administrativo: v })} type="email" />
+                <InputField label="Teléfono" value={editFormData.telefono_contacto} onChange={(v: string) => setEditFormData({ ...editFormData, telefono_contacto: v })} />
+              </div>
+              <InputField label="Dirección" value={editFormData.direccion} onChange={(v: string) => setEditFormData({ ...editFormData, direccion: v })} />
+
+              <div className="border-t border-gray-100 pt-4 pb-2">
+                <h4 className="text-xs font-bold text-lime-600 uppercase tracking-widest mb-3">Facturación SaaS</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1 block">Fin Periodo Prueba</label>
+                    <input 
+                      type="date" 
+                      value={editFormData.fecha_fin_prueba} 
+                      onChange={e => setEditFormData({...editFormData, fecha_fin_prueba: e.target.value})}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-gray-50"
+                    />
+                  </div>
+                </div>
+                  <div className="bg-gray-50 p-4 rounded-xl space-y-3 mt-3">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Facturación SaaS</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Plan de Suscripción</label>
+                        <select 
+                          value={editFormData.plan_id} 
+                          onChange={e => setEditFormData({...editFormData, plan_id: e.target.value})}
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-white"
+                        >
+                          <option value="">Sin plan (Personalizado)</option>
+                          {planesSaaS.map(p => (
+                            <option key={p.id} value={p.id}>{p.nombre} ({p.tipo_cobro})</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-500 mb-1">Tarifa Custom (Solo si no hay plan)</label>
+                        <input 
+                          type="number" 
+                          value={editFormData.tarifa_por_jugador} 
+                          onChange={e => setEditFormData({...editFormData, tarifa_por_jugador: Number(e.target.value)})}
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:border-lime-400 outline-none bg-white"
+                          disabled={!!editFormData.plan_id}
+                        />
+                      </div>
+                    </div>
+                  </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div>
+                  <p className="text-sm font-bold text-amber-700">Sincronizar email del Director</p>
+                  <p className="text-xs text-amber-600">¿Actualizar email de login del Director?</p>
+                </div>
+                <button type="button" onClick={() => setEditFormData({ ...editFormData, sync_director_email: !editFormData.sync_director_email })} className={`w-11 h-6 rounded-full transition-colors relative ${editFormData.sync_director_email ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                  <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow ${editFormData.sync_director_email ? 'right-1' : 'left-1'}`} />
+                </button>
+              </div>
+
+              {editFormData.sync_director_email && (
+                <InputField label="Nueva Contraseña del Director (opcional)" value={editFormData.director_password} onChange={(v: string) => setEditFormData({ ...editFormData, director_password: v })} placeholder="Dejar vacío para no cambiar" />
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 py-3 text-sm font-bold text-gray-500 bg-gray-100 rounded-xl">Cancelar</button>
+                <button type="submit" disabled={fetching} className="flex-[2] py-3 text-sm font-bold text-white bg-lime-500 rounded-xl shadow-lg shadow-lime-200">
+                  {fetching ? <Loader2 className="animate-spin mx-auto" size={16} /> : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL AUDITORÍA */}
+      {clubAudit && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black text-slate-800 flex items-center gap-2"><History className="text-violet-500" /> Auditoría del Club</h3>
+              <button onClick={() => setClubAudit(null)} className="text-gray-400 hover:text-gray-700 p-1"><X size={20} /></button>
+            </div>
+            <div className="space-y-4">
+              {clubAudit.logs && clubAudit.logs.length > 0 ? (
+                <div className="space-y-3">
+                  {clubAudit.logs.map((log: any) => (
+                    <div key={log.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-sm">
+                      <p className="font-bold text-slate-800">{log.accion}</p>
+                      <p className="text-xs text-gray-500">{new Date(log.fecha).toLocaleString()}</p>
+                      <p className="text-xs text-gray-600 mt-1">{log.detalles}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-gray-400 p-6">No hay logs de auditoría registrados.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
