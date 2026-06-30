@@ -101,6 +101,8 @@ export default function EmbajadoresAdminView() {
       if (isEditing) {
         method = 'PUT';
       } else {
+        delete payload.id;
+        delete payload.user_id;
         payload.estado = 'Activo';
         payload.codigo_referido = formData.nombre_completo.split(' ')[0].toUpperCase() + Math.floor(1000 + Math.random() * 9000);
       }
