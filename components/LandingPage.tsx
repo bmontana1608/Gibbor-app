@@ -121,19 +121,72 @@ export default function LandingPage() {
       {/* ── IDENTIDAD MÓVIL (NUEVA SECCIÓN) ────────────────────────────────────────────────── */}
       <section className="py-20 relative overflow-hidden bg-[#0B101E]">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="w-full rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)] border border-emerald-500/10 relative"
-          >
-            <img 
-              src="/landing/mobile-identity.jpg" 
-              alt="Tu app, tu identidad, tu escuela - MCM" 
-              className="w-full h-auto object-cover"
-            />
-          </motion.div>
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* TEXTO NATIVO (ALTA CALIDAD) */}
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="space-y-10"
+            >
+              <div>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight mb-6">
+                  Tu app.<br/>
+                  <span className="text-emerald-500">Tu identidad.</span><br/>
+                  Tu escuela.
+                </h2>
+                <p className="text-lg text-slate-400 leading-relaxed max-w-lg">
+                  Con la app de <span className="text-emerald-500 font-semibold">tu escuela</span>, llevas la gestión de tu club a donde vayas, con el logo, los colores y la identidad que los representa.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {[
+                  { icon: <Shield className="w-6 h-6 text-emerald-500" />, title: 'Tu marca, siempre presente', desc: 'Tu logo, tus colores, tu esencia. Una app que fortalece la identidad de tu escuela en cada detalle.' },
+                  { icon: <Users className="w-6 h-6 text-emerald-500" />, title: 'Todo tu club en tu bolsillo', desc: 'Comunicación, entrenamientos, asistencia, pagos, finanzas y mucho más. Siempre contigo.' },
+                  { icon: <BarChart className="w-6 h-6 text-emerald-500" />, title: 'Gestiona y toma mejores decisiones', desc: 'Accede a reportes y métricas en tiempo real para hacer crecer tu escuela.' },
+                  { icon: <CheckCircle2 className="w-6 h-6 text-emerald-500" />, title: 'Conectado con tu comunidad', desc: 'Notificaciones inteligentes para mantener a tu equipo siempre informado.' },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-lg mb-1">{item.title}</h4>
+                      <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+                
+                <div className="flex gap-4 items-center bg-white/[0.02] border border-white/5 p-4 rounded-xl">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                      <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-lg">Hecha para tu escuela.</h4>
+                      <p className="text-emerald-500 text-sm font-semibold">Pensada para tu éxito.</p>
+                    </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* IMAGEN RECORTADA PARA MOSTRAR SOLO LOS TELÉFONOS */}
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.15)] border border-emerald-500/20"
+            >
+              <img 
+                src="/landing/mobile-identity.jpg" 
+                alt="Mockup App Móvil MCM" 
+                className="absolute inset-0 w-[200%] h-full max-w-none object-cover object-right"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0B101E] via-transparent to-transparent opacity-80 pointer-events-none"></div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
