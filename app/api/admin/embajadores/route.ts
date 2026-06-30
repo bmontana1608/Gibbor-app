@@ -12,6 +12,10 @@ export async function POST(request: Request) {
     const payload = await request.json();
     const password = payload.password;
     delete payload.password; // Remove password from payload before inserting into embajadores
+    
+    // Safety check to prevent UUID cast errors if frontend sends empty strings
+    if (payload.id === '') delete payload.id;
+    if (payload.user_id === '') delete payload.user_id;
 
     // 1. Crear el usuario en Supabase Auth
     const { data: newUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
