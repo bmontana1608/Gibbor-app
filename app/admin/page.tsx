@@ -340,7 +340,7 @@ export default function SuperAdminDashboard() {
       {/* ── SIDEBAR (Desktop) ── */}
       <aside className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 p-6 hidden md:flex flex-col z-50 shadow-sm">
         <div className="mb-8">
-          <MCMLogo width={180} height={48} />
+          <MCMLogo width={180} height={48} variant="dark" />
           <p className="text-xs text-gray-400 font-semibold mt-3 ml-1">Panel SuperAdmin</p>
         </div>
 
@@ -370,7 +370,7 @@ export default function SuperAdminDashboard() {
 
       {/* ── TOPBAR (Mobile) ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <MCMLogo width={140} height={38} />
+        <MCMLogo width={140} height={38} variant="dark" />
         <button
           onClick={async () => { await supabase.auth.signOut(); setIsAdmin(false); router.refresh(); }}
           className="p-2 text-gray-400 hover:text-red-500 transition-colors"
