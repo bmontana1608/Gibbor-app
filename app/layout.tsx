@@ -15,13 +15,17 @@ export async function generateMetadata() {
 
   // Inyectar manifest en TODAS las páginas (director, futbolista, entrenador, login, etc.)
   // El [tenant]/layout.tsx solo cubre /login y /unete; el root layout cubre TODO lo demás
-  const manifestUrl = tenantSlug && tenantSlug !== 'master'
-    ? `/${tenantSlug}/manifest.json`
-    : undefined;
+  const isMaster = (tenant as any).isMaster || tenantSlug === 'master';
 
-  const titleStr = (tenant as any).isMaster 
+  const manifestUrl = !isMaster
+    ? `/${tenantSlug}/manifest.json`
+    : '/manifest-admin.json';
+
+  const titleStr = isMaster 
     ? 'Master Club Manager | El corazón de tu formación deportiva' 
     : `${tenant.config.nombre} | MCM`;
+
+  const appIcon = isMaster ? '/admin-pwa-icon.png' : tenant.config.logo;
 
   return {
     title: titleStr,
@@ -30,14 +34,14 @@ export async function generateMetadata() {
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
-      title: tenant.config.nombre,
+      title: isMaster ? 'MCM SuperAdmin' : tenant.config.nombre,
     },
     icons: {
       icon: [
-        { url: tenant.config.logo, type: 'image/png', sizes: '512x512' },
+        { url: appIcon, type: 'image/png', sizes: '512x512' },
       ],
-      apple: tenant.config.logo,
-      shortcut: tenant.config.logo,
+      apple: appIcon,
+      shortcut: appIcon,
     },
   };
 }
