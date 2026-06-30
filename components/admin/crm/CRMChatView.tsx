@@ -99,7 +99,11 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       }, {});
 
       let chatList = Object.keys(grouped).map(num => {
-        const lead = leads?.find(l => l.telefono?.includes(num) || num.includes(l.telefono));
+        const numNorm = num.replace(/\D/g, '');
+        const lead = leads?.find(l => {
+          const lNum = l.telefono ? l.telefono.replace(/\D/g, '') : '';
+          return lNum && numNorm && (lNum.includes(numNorm) || numNorm.includes(lNum));
+        });
         return {
           numero_telefono: num,
           lastMessage: grouped[num].mensaje,
@@ -118,12 +122,27 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
       // Check URL for phone param to auto-select
       const params = new URLSearchParams(window.location.search);
-      const phoneParam = params.get('phone');
+      let phoneParam = params.get('phone');
       
       if (phoneParam) {
-        let existing = chatList.find(c => c.numero_telefono.includes(phoneParam) || phoneParam.includes(c.numero_telefono));
+        // Restore '+' if it was converted to space by URLSearchParams
+        if (phoneParam.startsWith(' ')) {
+          phoneParam = '+' + phoneParam.slice(1);
+        }
+        
+        const pNum = phoneParam.replace(/\D/g, '');
+        
+        let existing = chatList.find(c => {
+          const cNum = c.numero_telefono.replace(/\D/g, '');
+          return cNum && pNum && (cNum.includes(pNum) || pNum.includes(cNum));
+        });
+        
         if (!existing) {
-          const lead = leads?.find(l => l.telefono?.includes(phoneParam) || phoneParam.includes(l.telefono));
+          const lead = leads?.find(l => {
+            const lNum = l.telefono ? l.telefono.replace(/\D/g, '') : '';
+            return lNum && pNum && (lNum.includes(pNum) || pNum.includes(lNum));
+          });
+          
           existing = {
             numero_telefono: phoneParam,
             lastMessage: '',
