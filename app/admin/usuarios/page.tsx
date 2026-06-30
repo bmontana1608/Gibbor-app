@@ -99,7 +99,7 @@ export default function UsuariosPage() {
                 {usuariosGlobales.map(u => (
                   <tr key={u.id} className="hover:bg-red-50/30 transition-colors group">
                     <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900">{u.nombre_completo || 'Sin Nombre'}</p>
+                      <p className="font-bold text-slate-900">{u.nombres ? `${u.nombres} ${u.apellidos || ''}` : 'Sin Nombre'}</p>
                       <p className="text-xs text-gray-400 font-mono mt-1" title={u.id}>ID: {u.id.split('-')[0]}...</p>
                     </td>
                     <td className="px-6 py-4">
@@ -140,7 +140,7 @@ export default function UsuariosPage() {
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-red-200">
             <div className="bg-red-500 p-6 text-white">
               <h3 className="text-xl font-black flex items-center gap-2"><ShieldAlert /> Gobernanza de Identidad</h3>
-              <p className="text-red-100 text-sm mt-1">Modificando credenciales de: {selectedUser.nombre_completo}</p>
+              <p className="text-red-100 text-sm mt-1">Modificando credenciales de: {selectedUser.nombres ? `${selectedUser.nombres} ${selectedUser.apellidos || ''}` : 'Sin Nombre'}</p>
             </div>
             <div className="p-6 space-y-6">
               <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl flex items-start gap-3">
