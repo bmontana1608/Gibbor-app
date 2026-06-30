@@ -25,8 +25,14 @@ export default async function EmbajadorDashboard() {
   const totalClubes = clubes?.length || 0;
   const clubesActivos = clubes?.filter(c => c.estado_referido === 'Cliente Activo').length || 0;
   
-  // Calcular MRR aproximado (Basado en tarifa por jugador o suscripciones si estuviera)
-  const mrr = clubes?.filter(c => c.estado_referido === 'Cliente Activo').reduce((sum, club) => sum + (club.tarifa_por_jugador || 0), 0) || 0;
+  // Calcular MRR generado por el embajador (10% de los ingresos de sus clubes)
+  const mrr = clubes?.filter(c => c.estado_referido === 'Cliente Activo').reduce((sum, club) => {
+    const basePlan = 100000; // Base de 100,000 COP
+    const totalJugadores = club.perfiles && club.perfiles[0] ? club.perfiles[0].count : 0;
+    const jugadoresExtra = Math.max(0, totalJugadores - 60); // A partir de 60
+    const mrrDelClub = basePlan + (jugadoresExtra * 2000); // + 2,000 COP por extra
+    return sum + (mrrDelClub * 0.10); // El embajador gana el 10%
+  }, 0) || 0;
 
   // 3. Obtener comisiones
   const { data: comisiones } = await supabase

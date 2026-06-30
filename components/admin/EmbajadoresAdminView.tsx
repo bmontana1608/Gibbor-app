@@ -42,11 +42,31 @@ export default function EmbajadoresAdminView() {
       // Obtener detalles extras desde la tabla original
       const resDetalles = await supabase.from('embajadores').select('id, user_id, empresa, tipo, email, telefono, estado, created_at');
       
+      // Obtener los clubes activos para calcular el MRR generado por cada embajador (10% de comisión)
+      const resClubes = await supabase.from('clubes')
+        .select('embajador_id, perfiles(count)')
+        .eq('estado_referido', 'Cliente Activo')
+        .not('embajador_id', 'is', null);
+
       if (resEmb.data && resDetalles.data) {
+        // Calcular ingresos por embajador
+        const ingresosMap: Record<string, number> = {};
+        if (resClubes.data) {
+          resClubes.data.forEach((club: any) => {
+            const basePlan = 100000; // Base de 100,000 COP
+            const totalJugadores = club.perfiles && club.perfiles[0] ? club.perfiles[0].count : 0;
+            const jugadoresExtra = Math.max(0, totalJugadores - 60); // A partir de 60
+            const mrrDelClub = basePlan + (jugadoresExtra * 2000); // + 2,000 COP por extra
+            
+            if (!ingresosMap[club.embajador_id]) ingresosMap[club.embajador_id] = 0;
+            ingresosMap[club.embajador_id] += mrrDelClub * 0.10; // El embajador genera/gana el 10%
+          });
+        }
+
         // Unir datos
         const fusionados = resEmb.data.map(m => {
           const det = resDetalles.data.find(d => d.id === m.embajador_id);
-          return { ...m, ...det };
+          return { ...m, ...det, ingreso_recurrente: ingresosMap[m.embajador_id] || 0 };
         });
         setEmbajadores(fusionados);
       }
