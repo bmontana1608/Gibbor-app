@@ -38,7 +38,8 @@ export default function ClientesView() {
 
   const assignEmbajador = async (clubId: string, embajadorId: string) => {
     const val = embajadorId === 'none' ? null : embajadorId;
-    const { error } = await supabase.from('clubes').update({ embajador_id: val }).eq('id', clubId);
+    const estadoRef = val ? 'Cliente Activo' : null;
+    const { error } = await supabase.from('clubes').update({ embajador_id: val, estado_referido: estadoRef }).eq('id', clubId);
     if (error) {
       toast.error('Error asignando embajador', { description: error.message });
     } else {
