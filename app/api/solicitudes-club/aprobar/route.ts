@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // 2. Obtener el plan SaaS por defecto
     const { data: planes, error: planError } = await supabaseAdmin
       .from('planes_saas')
-      .select('id')
+      .select('id, dias_prueba')
       .order('created_at', { ascending: true })
       .limit(1);
 
@@ -40,6 +40,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No existe ningún plan SaaS configurado en el sistema.' }, { status: 400 });
     }
     const planId = planes[0].id;
+    const diasPrueba = planes[0].dias_prueba || 14;
+
+    // Calcular fecha de fin de prueba
+    const fechaFinPrueba = new Date();
+    fechaFinPrueba.setDate(fechaFinPrueba.getDate() + diasPrueba);
 
     // 3. Buscar Embajador si hay código de referido
     let embajador_id = null;
@@ -77,6 +82,7 @@ export async function POST(request: Request) {
         estado: 'Activo',
         plan: 'Premium',
         plan_id: planId,
+        fecha_fin_prueba: fechaFinPrueba.toISOString(),
         embajador_id: embajador_id,
         color_primario: '#84cc16'
       }])

@@ -83,14 +83,17 @@ export async function middleware(request: NextRequest) {
           const mesActual = hoy.getMonth() + 1;
           const anioActual = hoy.getFullYear();
 
+          let enPrueba = false;
           if (clubData.fecha_fin_prueba) {
             const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
-            if (fechaFinPrueba < hoy) {
+            if (fechaFinPrueba >= hoy) {
+              enPrueba = true;
+            } else {
               isSuspended = true;
             }
           }
 
-          if (!isSuspended && diaActual > 10) {
+          if (!isSuspended && !enPrueba && diaActual > 10) {
             const { data: facturas } = await supabase
               .from('facturacion_mensual')
               .select('estado_pago')

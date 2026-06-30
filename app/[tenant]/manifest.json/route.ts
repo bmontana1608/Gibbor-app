@@ -19,8 +19,8 @@ export async function GET(
   const requestUrl = new URL(request.url);
   const origin = requestUrl.origin;
 
-  // Icono de respaldo local — mismo origen, Chrome confía en él
-  const LOCAL_FALLBACK_ICON = `${origin}/logo.png`;
+  // Icono genérico neutral de respaldo — mismo origen
+  const LOCAL_FALLBACK_ICON = `${origin}/fallback-logo.svg`;
 
   let clubName = slug.toUpperCase(); // Fallback inteligente: el slug mismo
   let clubColor = '#06b6d4';

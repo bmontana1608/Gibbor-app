@@ -101,6 +101,7 @@ export default function SuperAdminDashboard() {
     precio_base: 0,
     limite_jugadores_base: 120,
     precio_jugador_extra: 0,
+    dias_prueba: 14,
     activo: true
   });
 
@@ -137,6 +138,7 @@ export default function SuperAdminDashboard() {
         precio_base: planFormData.precio_base,
         limite_jugadores_base: planFormData.limite_jugadores_base,
         precio_jugador_extra: planFormData.precio_jugador_extra,
+        dias_prueba: planFormData.dias_prueba,
         activo: planFormData.activo
       };
       
@@ -1001,6 +1003,11 @@ export default function SuperAdminDashboard() {
                 <label className="block text-sm font-bold text-gray-700 mb-1">Límite de Jugadores Base</label>
                 <input type="number" required min="0" value={planFormData.limite_jugadores_base} onChange={e => setPlanFormData({...planFormData, limite_jugadores_base: Number(e.target.value)})} className="w-full border rounded-xl px-4 py-2" placeholder="120" />
                 <p className="text-xs text-gray-500 mt-1">Cuántos jugadores incluye el Precio Base. (0 = ilimitados).</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">Días de Prueba Gratuitos</label>
+                <input type="number" required min="0" value={planFormData.dias_prueba} onChange={e => setPlanFormData({...planFormData, dias_prueba: Number(e.target.value)})} className="w-full border rounded-xl px-4 py-2" placeholder="14" />
+                <p className="text-xs text-gray-500 mt-1">Días que tendrán antes de requerir pago.</p>
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">Precio por Jugador Extra (COP)</label>
