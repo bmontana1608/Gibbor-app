@@ -20,11 +20,11 @@ export default function AtlasLeadsView() {
     setLoading(true);
     
     // Fetch embajadores
-    const { data: embData } = await supabase.from('embajadores').select('id, nombres, apellidos');
+    const { data: embData } = await supabase.from('embajadores').select('id, nombre_completo');
     if (embData) setEmbajadores(embData);
 
     // Fetch leads
-    let query = supabase.from('atlas_academias').select('*, embajadores(nombres, apellidos)').order('score', { ascending: false });
+    let query = supabase.from('atlas_academias').select('*, embajadores(nombre_completo)').order('score', { ascending: false });
 
     if (estadoFilter !== 'Todos') {
       query = query.eq('estado', estadoFilter);
@@ -46,7 +46,7 @@ export default function AtlasLeadsView() {
     setLeads(prev => prev.map(l => {
       if (l.id === leadId) {
         const emb = embajadores.find(e => e.id === value);
-        return { ...l, embajador_id: value, embajadores: emb ? { nombres: emb.nombres, apellidos: emb.apellidos } : null };
+        return { ...l, embajador_id: value, embajadores: emb ? { nombre_completo: emb.nombre_completo } : null };
       }
       return l;
     }));
@@ -177,7 +177,7 @@ export default function AtlasLeadsView() {
                         >
                           <option value="">Sin asignar</option>
                           {embajadores.map(e => (
-                            <option key={e.id} value={e.id}>{e.nombres} {e.apellidos}</option>
+                            <option key={e.id} value={e.id}>{e.nombre_completo}</option>
                           ))}
                         </select>
                       </div>
