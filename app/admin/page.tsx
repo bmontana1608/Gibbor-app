@@ -75,7 +75,7 @@ export default function SuperAdminDashboard() {
   }, [vista]);
 
   const adminTenant = {
-    config: { nombre: 'Master Club Manager', color: '#84cc16', logo: '/logo_mcm.png' }
+    config: { nombre: 'Master Club Manager', color: '#84cc16', logo: '/mcm-logo.png' }
   };
 
   const auditClub = async (club: any) => {

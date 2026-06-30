@@ -77,7 +77,7 @@ export async function getTenant(overrideSlug?: string | null) {
     config: {
       nombre: 'Master Club Manager (MCM)',
       color: '#10b981', // Verde MCM
-      logo: '/logo_mcm.png'
+      logo: '/mcm-logo.png'
     }
   };
 
