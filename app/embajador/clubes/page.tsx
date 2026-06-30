@@ -18,7 +18,7 @@ export default async function MisClubesPage() {
 
   const { data: clubes } = await supabase
     .from('clubes')
-    .select('id, nombre, estado_referido, tarifa_por_jugador, created_at, ciudad')
+    .select('id, nombre, estado_referido, tarifa_por_jugador, created_at, ciudad, perfiles(count)')
     .eq('embajador_id', embajador.id)
     .order('created_at', { ascending: false });
 
@@ -69,7 +69,14 @@ export default async function MisClubesPage() {
                        </span>
                      </td>
                      <td className="py-4 text-right font-black text-slate-900">
-                       ${(club.tarifa_por_jugador || 0).toLocaleString('es-CO')}
+                       ${(() => {
+                         if (club.estado_referido !== 'Cliente Activo') return 0;
+                         const basePlan = 100000;
+                         const totalJugadores = club.perfiles && club.perfiles[0] ? club.perfiles[0].count : 0;
+                         const jugadoresExtra = Math.max(0, totalJugadores - 60);
+                         const mrrDelClub = basePlan + (jugadoresExtra * 2000);
+                         return (mrrDelClub * 0.10).toLocaleString('es-CO');
+                       })()}
                      </td>
                    </tr>
                  ))}
