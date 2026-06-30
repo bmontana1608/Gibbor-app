@@ -102,73 +102,13 @@ export default function LandingPage() {
             className="relative lg:h-[600px] flex items-center justify-center"
           >
             {/* Mockup Dashboard Base */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 shadow-2xl overflow-hidden backdrop-blur-xl z-10 flex flex-col">
-              {/* Header Falso */}
-              <div className="h-12 border-b border-white/5 flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-rose-500"></div>
-                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-              </div>
-              <div className="flex-1 p-6 flex gap-6">
-                <div className="w-1/4 space-y-4">
-                  <div className="h-6 w-3/4 bg-white/5 rounded-md"></div>
-                  <div className="h-4 w-full bg-white/5 rounded-md"></div>
-                  <div className="h-4 w-5/6 bg-white/5 rounded-md"></div>
-                  <div className="h-4 w-full bg-white/5 rounded-md"></div>
-                </div>
-                <div className="w-3/4 space-y-6">
-                  <div className="flex gap-4">
-                    <div className="h-24 flex-1 bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 rounded-xl"></div>
-                    <div className="h-24 flex-1 bg-white/5 border border-white/5 rounded-xl"></div>
-                    <div className="h-24 flex-1 bg-white/5 border border-white/5 rounded-xl"></div>
-                  </div>
-                  <div className="h-48 w-full bg-white/5 rounded-xl border border-white/5"></div>
-                </div>
-              </div>
+            <div className="relative w-full z-10 flex flex-col items-center justify-center">
+              <img 
+                src="/landing/dashboard.png" 
+                alt="MCM Dashboard" 
+                className="w-[120%] max-w-none sm:w-full h-auto object-contain drop-shadow-2xl"
+              />
             </div>
-
-            {/* Tarjetas Flotantes Animadas */}
-            <motion.div 
-              animate={{ y: [0, -10, 0] }} 
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="absolute -left-12 top-20 z-20 bg-[#121827]/90 backdrop-blur-xl border border-emerald-500/30 p-4 rounded-2xl shadow-xl flex items-center gap-4"
-            >
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">Pago recibido</p>
-                <p className="text-xs text-slate-400">Hace 2 minutos</p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              animate={{ y: [0, 15, 0] }} 
-              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
-              className="absolute -right-8 bottom-32 z-20 bg-[#121827]/90 backdrop-blur-xl border border-blue-500/30 p-4 rounded-2xl shadow-xl flex items-center gap-4"
-            >
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                <Users className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">Asistencia: 95%</p>
-                <p className="text-xs text-slate-400">Categoría Sub-15</p>
-              </div>
-            </motion.div>
-
-            <motion.div 
-              animate={{ y: [0, -15, 0] }} 
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 2 }}
-              className="absolute left-10 -bottom-6 z-20 bg-[#121827]/90 backdrop-blur-xl border border-amber-500/30 p-4 rounded-2xl shadow-xl flex items-center gap-4"
-            >
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
-                <Trophy className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-white">Nueva Convocatoria</p>
-                <p className="text-xs text-slate-400">Partido vs Juventus</p>
-              </div>
-            </motion.div>
 
           </motion.div>
         </div>
