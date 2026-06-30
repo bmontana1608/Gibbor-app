@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Building2, Users, CreditCard, TrendingUp, Library, LifeBuoy, 
-  Megaphone, History, User, Settings, LogOut, Loader2, FileText, Image as ImageIcon, Rocket 
+  Megaphone, History, User, Settings, LogOut, Loader2, FileText, Image as ImageIcon, Rocket, MessageSquare 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import MCMLogo from '@/components/MCMLogo';
@@ -40,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes', path: '/admin/solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes', path: '/admin/clubes' },
     { id: 'crm', icon: <Rocket size={20} />, label: 'CRM', path: '/admin/crm' },
+    { id: 'chat', icon: <MessageSquare size={20} />, label: 'WhatsApp CRM', path: '/admin/crm/chat' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios', path: '/admin/usuarios' },
     { id: 'planes', icon: <CreditCard size={20} />, label: 'Planes', path: '/admin/planes' },
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas', path: '/admin/metricas' },

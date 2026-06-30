@@ -29,6 +29,26 @@ export async function POST(req: NextRequest) {
     const remoteJid = body.data?.key?.remoteJid;
     const fromMe = body.data?.key?.fromMe;
 
+    if (instance === 'mcm-ventas') {
+      if (!remoteJid || !message) return NextResponse.json({ ok: true });
+      const phone = remoteJid.split('@')[0];
+      
+      // Look up lead by phone
+      const { data: leads } = await supabaseAdmin.from('atlas_academias').select('id').like('telefono', `%${phone}%`).limit(1);
+      const leadId = leads && leads.length > 0 ? leads[0].id : null;
+
+      await supabaseAdmin.from('crm_whatsapp_messages').insert({
+        lead_id: leadId,
+        numero_telefono: phone,
+        mensaje: message,
+        es_saliente: fromMe,
+        instancia: instance,
+        leido: fromMe
+      });
+
+      return NextResponse.json({ ok: true });
+    }
+
     if (!fromMe || !message.startsWith('!')) {
       return NextResponse.json({ ok: true });
     }

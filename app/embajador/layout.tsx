@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-import { LogOut, Home, PieChart, Users, DollarSign, Wallet, Target } from 'lucide-react';
+import { LogOut, Home, PieChart, Users, DollarSign, Wallet, Target, MessageSquare } from 'lucide-react';
 import MCMLogo from '@/components/MCMLogo';
 import CampanitaNotificaciones from './CampanitaNotificaciones';
 
@@ -55,6 +55,9 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
           </Link>
           <Link href="/embajador/clubes" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
             <Users className="w-5 h-5" /> Mis Referidos
+          </Link>
+          <Link href="/embajador/chat" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
+            <MessageSquare className="w-5 h-5" /> Chat CRM
           </Link>
         </nav>
 
