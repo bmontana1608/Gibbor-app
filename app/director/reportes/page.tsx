@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import * as XLSX from 'xlsx';
 
 export default function ModuloReportes() {
   const router = useRouter();
@@ -160,34 +161,74 @@ export default function ModuloReportes() {
     return coincideBusqueda && coincideGrupo;
   });
 
-  // --- FUNCIÓN EXPORTAR ---
-  const exportarCSV = () => {
+  // --- FUNCIÓN EXPORTAR A EXCEL MULTI-HOJA ---
+  const exportarExcel = () => {
     if (miembrosFiltrados.length === 0) return toast.error("No hay datos para exportar");
-    
-    const cabeceras = ['Miembro', 'Grupo', 'Asistencia', 'Fecha Inscripcion', 'Estado Pago', 'Total Pagado'];
-    const filas = miembrosFiltrados.map(j => {
+
+    const wb = XLSX.utils.book_new();
+    const mesActual = new Date().getMonth();
+
+    // 1. HOJA DE RESUMEN FINANCIERO Y OPERATIVO
+    const bajasDelMes = jugadores.filter(j => 
+      j.estado_miembro === 'Inactivo' && 
+      j.updated_at && 
+      new Date(j.updated_at).getMonth() === mesActual
+    ).length;
+
+    const resumenData = [
+      { Metrica: "Ingresos Esperados (Proyección)", Valor: ingresosEsperados },
+      { Metrica: "Ingresos Recaudados (Real)", Valor: ingresosRecaudados },
+      { Metrica: "Dinero por Cobrar (Deuda)", Valor: deudaPendiente },
+      { Metrica: "Tasa de Cobro Efectivo", Valor: `${tasaCobro}%` },
+      { Metrica: "Total Miembros Activos", Valor: jugadores.filter(j => j.estado_miembro === 'Activo').length },
+      { Metrica: "Bajas Registradas este Mes", Valor: bajasDelMes },
+      { Metrica: "Promedio Asistencia Global", Valor: `${tasaAsistenciaGlobal}%` }
+    ];
+    const wsResumen = XLSX.utils.json_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen General");
+
+    // 2. HOJA DE LISTADO DETALLADO DE MIEMBROS
+    const filasMiembros = miembrosFiltrados.map(j => {
       const plan = planes.find(p => p.nombre === j.tipo_plan);
       const tarifa = plan?.precio_base || 0;
       const pagado = (pagos.find(p => p.jugador_id === j.id) || tarifa === 0) ? tarifa : 0;
       const asisIndividual = obtenerAsistenciaGrupo(j.grupos);
       const labelEstado = tarifa === 0 ? 'Becado' : (j.estado_pago || 'Pendiente');
       
-      return [
-        `"${j.nombres} ${j.apellidos}"`, `"${j.grupos || 'Sin grupo'}"`, `"${asisIndividual}%"`, 
-        `"${new Date(j.created_at).toLocaleDateString('es-ES')}"`, `"${labelEstado}"`, `"${pagado}"`
-      ];
+      return {
+        "Miembro": `${j.nombres} ${j.apellidos}`,
+        "Grupo/Categoría": j.grupos || 'Sin grupo',
+        "Estado Sistema": j.estado_miembro === 'Inactivo' ? 'Inactivo' : 'Activo',
+        "Plan Asignado": j.tipo_plan || 'Ninguno',
+        "Tarifa Base": tarifa,
+        "Estado Financiero": labelEstado,
+        "Total Pagado": pagado,
+        "Asistencia %": `${asisIndividual}%`,
+        "Fecha Registro": new Date(j.created_at).toLocaleDateString('es-ES')
+      };
     });
-    // Se usa el separador ; para compatibilidad directa con el Excel de LATAM/España
-    const contenidoCSV = [cabeceras.join(';'), ...filas.map(f => f.join(';'))].join('\n');
-    const blob = new Blob(['\uFEFF' + contenidoCSV], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a'); 
-    link.href = url; 
-    link.setAttribute('download', `Reporte_${tenant?.config?.nombre || 'Club'}_${pestañaActiva}.csv`);
-    document.body.appendChild(link); 
-    link.click(); 
-    document.body.removeChild(link);
-    toast.success("Reporte descargado correctamente");
+    const wsMiembros = XLSX.utils.json_to_sheet(filasMiembros);
+    XLSX.utils.book_append_sheet(wb, wsMiembros, "Listado de Miembros");
+
+    // 3. HOJA DE RESUMEN POR CATEGORÍAS
+    const filasCategorias = categorias.map(c => {
+      const jugadoresCat = jugadores.filter(j => j.grupos === c.nombre);
+      const asistenciaCat = obtenerAsistenciaGrupo(c.nombre);
+      const recaudoCat = pagos.filter(p => jugadoresCat.some(j => j.id === p.jugador_id)).reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
+      
+      return {
+        "Categoría": c.nombre,
+        "Total Jugadores": jugadoresCat.length,
+        "Asistencia Promedio": `${asistenciaCat}%`,
+        "Recaudo Total": recaudoCat
+      };
+    });
+    const wsCategorias = XLSX.utils.json_to_sheet(filasCategorias);
+    XLSX.utils.book_append_sheet(wb, wsCategorias, "Rendimiento Categorías");
+
+    // Descargar archivo
+    XLSX.writeFile(wb, `Reporte_Avanzado_${tenant?.config?.nombre || 'Club'}.xlsx`);
+    toast.success("Reporte Excel descargado correctamente");
   };
 
   if (cargando) {
@@ -254,7 +295,7 @@ export default function ModuloReportes() {
             {pestañaActiva === 'Financiero' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Reporte Financiero</>}
             {pestañaActiva === 'Miembros' && <><Users className="w-5 h-5 text-blue-500" /> Reporte de Miembros</>}
           </h2>
-          <button onClick={exportarCSV} className="bg-brand/10 text-brand border border-brand/40 hover:bg-brand/10 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
+          <button onClick={exportarExcel} className="bg-brand/10 text-brand border border-brand/40 hover:bg-brand/10 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
             <Download className="w-4 h-4" /> Exportar a Excel
           </button>
         </div>
