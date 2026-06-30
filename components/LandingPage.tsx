@@ -180,20 +180,23 @@ export default function LandingPage() {
               className="relative w-full aspect-[4/5] lg:aspect-[3/4] flex items-center justify-center"
             >
               {/* Teléfono 2 (Atrás, Rotado): Screenshot plano estilizado como teléfono */}
-              <div className="absolute left-[15%] top-[10%] h-[75%] aspect-[1/2.16] rounded-[2rem] border-[6px] border-slate-800 overflow-hidden shadow-2xl -rotate-6 opacity-80 hover:opacity-100 transition-all hover:scale-105 hover:-rotate-2 duration-500 z-10">
+              <div className="absolute left-[15%] top-[10%] h-[75%] aspect-[1/2.16] rounded-[2rem] border-[6px] border-slate-800 overflow-hidden shadow-2xl -rotate-6 opacity-80 hover:opacity-100 transition-all hover:scale-105 hover:-rotate-2 duration-500 z-10 bg-black">
                 <img 
                   src="/landing/app-mockup-2.jpg" 
                   alt="Login El Edén F.C" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover opacity-90"
                 />
               </div>
 
-              {/* Teléfono 1 (Frente): Mockup con marco pero fondo blanco enmascarado */}
-              <div className="absolute right-[10%] bottom-[5%] h-[85%] aspect-[1/2.02] z-20 transition-transform hover:scale-105 hover:-translate-y-4 duration-500 rounded-[2.5rem] overflow-hidden drop-shadow-2xl bg-white">
+              {/* Teléfono 1 (Frente): Screenshot plano con marco simulado y Dynamic Island */}
+              <div className="absolute right-[10%] bottom-[5%] h-[85%] aspect-[1/2.16] z-20 transition-transform hover:scale-105 hover:-translate-y-4 duration-500 rounded-[2.5rem] overflow-hidden drop-shadow-[0_25px_35px_rgba(0,0,0,0.5)] border-[8px] border-slate-900 bg-white">
+                {/* Dynamic Island simulada */}
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[35%] h-7 bg-slate-900 rounded-full z-30"></div>
+                
                 <img 
                   src="/landing/app-mockup-1.png" 
                   alt="Cobranza y Finanzas Gibbor F.C" 
-                  className="w-full h-full object-cover scale-[1.08] origin-center"
+                  className="w-full h-full object-cover"
                 />
               </div>
             </motion.div>
