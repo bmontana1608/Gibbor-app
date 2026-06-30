@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Map, Search, Filter, ArrowUpDown, ExternalLink, MapPin, Phone, Globe, Star, ShieldAlert, Loader2, UserPlus } from 'lucide-react';
+import { Map, Search, Filter, ArrowUpDown, ExternalLink, MapPin, Phone, Globe, Star, ShieldAlert, Loader2, UserPlus, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function AtlasLeadsView() {
@@ -137,8 +137,17 @@ export default function AtlasLeadsView() {
                     <td className="py-4 px-6">
                       <div className="flex flex-col gap-1">
                         {lead.telefono ? (
-                          <div className="flex items-center gap-1 text-xs font-medium text-slate-700">
-                            <Phone className="w-3 h-3 text-slate-400" /> {lead.telefono}
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 text-xs font-medium text-slate-700">
+                              <Phone className="w-3 h-3 text-slate-400" /> {lead.telefono}
+                            </div>
+                            <a 
+                              href={`/admin/crm/chat?phone=${lead.telefono}`}
+                              className="text-green-600 hover:bg-green-50 p-1 rounded transition-colors"
+                              title="Abrir chat en CRM"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </a>
                           </div>
                         ) : <span className="text-xs text-slate-300">Sin teléfono</span>}
                         {lead.website ? (

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Phone, MapPin, Target, Handshake } from 'lucide-react';
+import { Loader2, Phone, MapPin, Target, Handshake, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ESTADOS = ['Prospecto', 'Primer contacto', 'Seguimiento', 'Demo', 'Negociación', 'Cliente', 'Perdido'];
@@ -162,8 +162,17 @@ export default function MisLeadsPage() {
                           </div>
                         )}
                         {lead.telefono && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                            <Phone className="w-3.5 h-3.5 text-slate-400" /> {lead.telefono}
+                          <div className="flex items-center justify-between mt-1">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" /> {lead.telefono}
+                            </div>
+                            <a 
+                              href={`/embajador/chat?phone=${lead.telefono}`}
+                              className="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition-colors shadow-sm"
+                              title="Abrir chat en CRM"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
                           </div>
                         )}
                       </div>

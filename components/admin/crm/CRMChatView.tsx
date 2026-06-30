@@ -107,7 +107,30 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         chatList = chatList.filter(c => c.lead);
       }
 
-      setChats(chatList.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime()));
+      chatList = chatList.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+
+      // Check URL for phone param to auto-select
+      const params = new URLSearchParams(window.location.search);
+      const phoneParam = params.get('phone');
+      
+      if (phoneParam) {
+        let existing = chatList.find(c => c.numero_telefono.includes(phoneParam) || phoneParam.includes(c.numero_telefono));
+        if (!existing) {
+          const lead = leads?.find(l => l.telefono?.includes(phoneParam) || phoneParam.includes(l.telefono));
+          existing = {
+            numero_telefono: phoneParam,
+            lastMessage: '',
+            lastMessageTime: new Date().toISOString(),
+            unread: 0,
+            lead: lead || ({ nombre: 'Prospecto' } as any)
+          };
+          chatList = [existing, ...chatList];
+        }
+        setActiveChat((prev: any) => prev ? prev : existing);
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
+      setChats(chatList);
     }
     
     setLoading(false);
