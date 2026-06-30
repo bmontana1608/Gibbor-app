@@ -19,14 +19,14 @@ export default async function EmbajadorDashboard() {
   // 2. Obtener estadísticas (Clubes Referidos)
   const { data: clubes } = await supabase
     .from('clubes')
-    .select('id, nombre, estado_referido, tarifa_por_jugador, cuota_fija, perfiles(count)')
+    .select('id, nombre, estado_referido, tarifa_por_jugador, perfiles(count)')
     .eq('embajador_id', embajador.id);
 
   const totalClubes = clubes?.length || 0;
   const clubesActivos = clubes?.filter(c => c.estado_referido === 'Cliente Activo').length || 0;
   
-  // Calcular MRR aproximado (Suma de cuota_fija de clientes activos)
-  const mrr = clubes?.filter(c => c.estado_referido === 'Cliente Activo').reduce((sum, club) => sum + (club.cuota_fija || 0), 0) || 0;
+  // Calcular MRR aproximado (Basado en tarifa por jugador o suscripciones si estuviera)
+  const mrr = clubes?.filter(c => c.estado_referido === 'Cliente Activo').reduce((sum, club) => sum + (club.tarifa_por_jugador || 0), 0) || 0;
 
   // 3. Obtener comisiones
   const { data: comisiones } = await supabase
@@ -151,7 +151,7 @@ export default async function EmbajadorDashboard() {
                         </span>
                       </td>
                       <td className="py-4 text-right font-medium text-slate-500">
-                        ${(club.cuota_fija || 0).toLocaleString('es-CO')}
+                        ${(club.tarifa_por_jugador || 0).toLocaleString('es-CO')}
                       </td>
                     </tr>
                   ))}
