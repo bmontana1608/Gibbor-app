@@ -188,12 +188,12 @@ export default function LandingPage() {
                 />
               </div>
 
-              {/* Teléfono 1 (Frente): Mockup con marco */}
-              <div className="absolute right-[10%] bottom-[5%] h-[85%] z-20 transition-transform hover:scale-105 hover:-translate-y-4 duration-500">
+              {/* Teléfono 1 (Frente): Mockup con marco pero fondo blanco enmascarado */}
+              <div className="absolute right-[10%] bottom-[5%] h-[85%] aspect-[1/2.02] z-20 transition-transform hover:scale-105 hover:-translate-y-4 duration-500 rounded-[2.5rem] overflow-hidden drop-shadow-2xl bg-white">
                 <img 
                   src="/landing/app-mockup-1.png" 
                   alt="Cobranza y Finanzas Gibbor F.C" 
-                  className="h-full w-auto object-contain drop-shadow-2xl"
+                  className="w-full h-full object-cover scale-[1.08] origin-center"
                 />
               </div>
             </motion.div>
