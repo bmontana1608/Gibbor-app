@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Search, Send, User, MessageSquare, Clock, Phone } from 'lucide-react';
+import { Loader2, Search, Send, User, MessageSquare, Clock, Phone, Sparkles, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CRMChatViewProps {
@@ -18,6 +18,8 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const [sending, setSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -167,6 +169,30 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setSending(false);
   };
 
+  const askCopilot = async () => {
+    if (!activeChat || messages.length === 0) return;
+    setLoadingAI(true);
+    setAiSuggestion('');
+    try {
+      // Get last 10 messages for context
+      const history = messages.slice(-10);
+      const res = await fetch('/api/admin/crm/ai-copilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history,
+          leadName: activeChat.lead ? activeChat.lead.nombre : 'Prospecto'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error AI');
+      setAiSuggestion(data.reply);
+    } catch (e) {
+      toast.error('No se pudo generar la sugerencia IA');
+    }
+    setLoadingAI(false);
+  };
+
   const filteredChats = chats.filter(c => 
     c.numero_telefono.includes(searchTerm) || 
     (c.lead && c.lead.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -260,8 +286,50 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* AI Copilot Box */}
+            {(aiSuggestion || loadingAI) && (
+              <div className="mx-4 mt-2 mb-0 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-bold text-indigo-900">Copiloto IA sugiere:</span>
+                </div>
+                {loadingAI ? (
+                  <div className="flex items-center gap-2 text-indigo-400 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Analizando conversación...
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-indigo-800 whitespace-pre-wrap mb-3">{aiSuggestion}</p>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => { setNewMessage(aiSuggestion); setAiSuggestion(''); }}
+                        className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-700 transition"
+                      >
+                        Usar esta respuesta
+                      </button>
+                      <button 
+                        onClick={() => setAiSuggestion('')}
+                        className="text-xs bg-white text-indigo-600 px-3 py-1.5 rounded-lg font-medium border border-indigo-200 hover:bg-indigo-50 transition"
+                      >
+                        Descartar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Input */}
             <div className="p-4 bg-white border-t border-slate-200">
+              <div className="flex justify-between mb-2">
+                <button 
+                  onClick={askCopilot}
+                  disabled={loadingAI || messages.length === 0}
+                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> ✨ Sugerir Respuesta IA
+                </button>
+              </div>
               <form onSubmit={sendMessage} className="flex gap-2">
                 <input
                   type="text"
