@@ -118,6 +118,25 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── IDENTIDAD MÓVIL (NUEVA SECCIÓN) ────────────────────────────────────────────────── */}
+      <section className="py-20 relative overflow-hidden bg-[#0B101E]">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="w-full rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)] border border-emerald-500/10 relative"
+          >
+            <img 
+              src="/landing/mobile-identity.jpg" 
+              alt="Tu app, tu identidad, tu escuela - MCM" 
+              className="w-full h-auto object-cover"
+            />
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── ROLES (SECCIÓN 2) ────────────────────────────────────────────────── */}
       <section id="roles" className="py-24 relative border-t border-white/5 bg-[#0B101E]/50">
         <div className="max-w-7xl mx-auto px-6">
