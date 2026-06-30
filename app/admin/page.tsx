@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { 
   ShieldCheck, Users, Building2, TrendingUp, 
   Settings, LogOut, Plus, Globe, CreditCard, Activity, Megaphone,
-  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy, FileText, Clock, CheckCircle2, XCircle, Eye, Image as ImageIcon
+  X, Check, Loader2, ArrowRightLeft, Trash2, History, Lock, Mail, AlertTriangle, Library, KeyRound, User, Bot, LifeBuoy, FileText, Clock, CheckCircle2, XCircle, Eye, Image as ImageIcon, Rocket
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -19,10 +19,11 @@ import MetricsDashboard from '@/components/admin/MetricsDashboard';
 import ComunicacionAdminView from '@/components/admin/ComunicacionAdminView';
 import EmbajadoresAdminView from '@/components/admin/EmbajadoresAdminView';
 import PublicidadAdminView from '@/components/admin/PublicidadAdminView';
+import CRMAdminView from '@/components/admin/CRMAdminView';
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
-  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes' | 'embajadores' | 'publicidad'>('clubes');
+  const [vista, setVista] = useState<'clubes' | 'usuarios' | 'suscripciones' | 'metricas' | 'configuracion' | 'auditoria' | 'saas-billing' | 'biblioteca' | 'mi-cuenta' | 'tickets' | 'comunicacion' | 'solicitudes' | 'embajadores' | 'publicidad' | 'crm'>('clubes');
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -279,7 +280,7 @@ export default function SuperAdminDashboard() {
   const navItems = [
     { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes' },
-    { id: 'embajadores', icon: <ShieldCheck size={20} />, label: 'Embajadores' },
+    { id: 'crm', icon: <Rocket size={20} />, label: 'CRM' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios' },
     { id: 'saas-billing', icon: <CreditCard size={20} />, label: 'Planes' },
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas' },
@@ -558,7 +559,7 @@ export default function SuperAdminDashboard() {
         {vista === 'biblioteca' && <BibliotecaAdminView />}
         {vista === 'tickets' && <TicketsAdminView />}
         {vista === 'comunicacion' && <ComunicacionAdminView />}
-        {vista === 'embajadores' && <EmbajadoresAdminView />}
+        {vista === 'crm' && <CRMAdminView />}
         {vista === 'publicidad' && <PublicidadAdminView />}
 
         {/* ── VISTA SOLICITUDES DE CLUB ── */}
