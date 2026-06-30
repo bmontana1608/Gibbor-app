@@ -64,7 +64,14 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     // Fetch leads based on role
     let leadsQuery = supabase.from('atlas_academias').select('id, nombre, telefono, embajador_id');
     if (role === 'embajador' && user) {
-      leadsQuery = leadsQuery.eq('embajador_id', user.id);
+      // Get the embajador id for this user
+      const { data: embajador } = await supabase.from('embajadores').select('id').eq('user_id', user.id).maybeSingle();
+      if (embajador) {
+        leadsQuery = leadsQuery.eq('embajador_id', embajador.id);
+      } else {
+        // Fallback to prevent fetching all
+        leadsQuery = leadsQuery.eq('embajador_id', '00000000-0000-0000-0000-000000000000');
+      }
     }
     const { data: leads } = await leadsQuery;
 
