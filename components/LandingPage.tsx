@@ -46,7 +46,7 @@ export default function LandingPage() {
       {/* ── NAVBAR ────────────────────────────────────────────────── */}
       <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0B101E]/80 backdrop-blur-xl border-b border-white/5 py-4' : 'bg-transparent py-6'}`}>
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <MCMLogo width={160} height={42} />
+          <MCMLogo width={240} height={64} />
 
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#roles" className="hover:text-white transition-colors">Para quién</a>
@@ -429,7 +429,7 @@ export default function LandingPage() {
 
         <div className="max-w-7xl mx-auto px-6 border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
           <div className="flex items-center gap-2">
-            <MCMLogo width={120} height={32} />
+            <MCMLogo width={180} height={48} />
           </div>
           <p>© {new Date().getFullYear()} Master Club Manager. Todos los derechos reservados.</p>
           <div className="flex gap-4">
