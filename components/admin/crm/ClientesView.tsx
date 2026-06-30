@@ -7,19 +7,25 @@ import { toast } from 'sonner';
 
 export default function ClientesView() {
   const [clientes, setClientes] = useState<any[]>([]);
+  const [embajadores, setEmbajadores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchClientes();
+    fetchEmbajadores();
   }, []);
+
+  const fetchEmbajadores = async () => {
+    const { data } = await supabase.from('embajadores').select('id, nombre_completo').order('nombre_completo');
+    if (data) setEmbajadores(data);
+  };
 
   const fetchClientes = async () => {
     setLoading(true);
-    // Asumimos que los clientes activos están en la tabla 'clubes'
     const { data, error } = await supabase
       .from('clubes')
-      .select('id, nombre, estado_suscripcion, ciudad, plan, created_at')
+      .select('id, nombre, estado_suscripcion, ciudad, plan, created_at, embajador_id')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -28,6 +34,17 @@ export default function ClientesView() {
       setClientes(data || []);
     }
     setLoading(false);
+  };
+
+  const assignEmbajador = async (clubId: string, embajadorId: string) => {
+    const val = embajadorId === 'none' ? null : embajadorId;
+    const { error } = await supabase.from('clubes').update({ embajador_id: val }).eq('id', clubId);
+    if (error) {
+      toast.error('Error asignando embajador', { description: error.message });
+    } else {
+      toast.success('Embajador actualizado correctamente');
+      setClientes(clientes.map(c => c.id === clubId ? { ...c, embajador_id: val } : c));
+    }
   };
 
   const filteredClientes = clientes.filter(cliente => 
@@ -65,14 +82,15 @@ export default function ClientesView() {
                 <th className="py-4 px-6">Ubicación</th>
                 <th className="py-4 px-6">Plan</th>
                 <th className="py-4 px-6">Estado Suscripción</th>
+                <th className="py-4 px-6">Embajador Asignado</th>
                 <th className="py-4 px-6 text-right">Fecha Registro</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={5} className="py-12 text-center text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />Cargando clientes...</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />Cargando clientes...</td></tr>
               ) : filteredClientes.length === 0 ? (
-                <tr><td colSpan={5} className="py-12 text-center text-slate-400">No hay clientes que coincidan con la búsqueda.</td></tr>
+                <tr><td colSpan={6} className="py-12 text-center text-slate-400">No hay clientes que coincidan con la búsqueda.</td></tr>
               ) : (
                 filteredClientes.map((cliente) => (
                   <tr key={cliente.id} className="hover:bg-slate-50 transition-colors">
@@ -101,6 +119,18 @@ export default function ClientesView() {
                       }`}>
                         {cliente.estado_suscripcion || 'Registrado'}
                       </span>
+                    </td>
+                    <td className="py-4 px-6">
+                      <select
+                        value={cliente.embajador_id || 'none'}
+                        onChange={(e) => assignEmbajador(cliente.id, e.target.value)}
+                        className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-lime-500 w-[140px]"
+                      >
+                        <option value="none">Sin embajador</option>
+                        {embajadores.map(e => (
+                          <option key={e.id} value={e.id}>{e.nombre_completo}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="py-4 px-6 text-right text-sm text-slate-500 font-medium">
                       {new Date(cliente.created_at).toLocaleDateString('es-CO')}
@@ -147,8 +177,22 @@ export default function ClientesView() {
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-400 text-right">
-                  Registrado el {new Date(cliente.created_at).toLocaleDateString('es-CO')}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <select
+                      value={cliente.embajador_id || 'none'}
+                      onChange={(e) => assignEmbajador(cliente.id, e.target.value)}
+                      className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-lime-500 w-full"
+                    >
+                      <option value="none">Sin embajador</option>
+                      {embajadores.map(e => (
+                        <option key={e.id} value={e.id}>{e.nombre_completo}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="text-xs text-slate-400 text-right shrink-0">
+                    Reg. {new Date(cliente.created_at).toLocaleDateString('es-CO')}
+                  </div>
                 </div>
               </div>
             ))
