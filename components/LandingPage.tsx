@@ -171,20 +171,19 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* IMAGEN RECORTADA PARA MOSTRAR SOLO LOS TELÉFONOS */}
+            {/* IMAGEN DEL MOCKUP MÓVIL GENERADA */}
             <motion.div 
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.15)] border border-emerald-500/20"
+              className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.15)] border border-emerald-500/20 flex items-center justify-center bg-[#0B101E]"
             >
               <img 
-                src="/landing/mobile-identity.jpg" 
+                src="/landing/mobile-identity.png" 
                 alt="Mockup App Móvil MCM" 
-                className="absolute inset-0 w-full h-full object-cover object-center"
+                className="w-full h-auto max-h-full object-contain drop-shadow-2xl"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0B101E] via-transparent to-transparent opacity-80 pointer-events-none"></div>
             </motion.div>
           </div>
         </div>
