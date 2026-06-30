@@ -29,8 +29,8 @@ export async function generateMetadata() {
     : `${tenant.config.nombre} | MCM`;
   if (isEmbajador) titleStr = 'Embajador MCM | Panel de Socios';
 
-  let appIcon = isMaster ? '/admin-pwa-icon.png' : tenant.config.logo;
-  if (isEmbajador) appIcon = '/embajador-pwa-icon.png';
+  let appIcon = isMaster ? '/mcm-favicon.png' : tenant.config.logo;
+  if (isEmbajador) appIcon = '/mcm-favicon.png';
 
   let appTitle = isMaster ? 'MCM SuperAdmin' : tenant.config.nombre;
   if (isEmbajador) appTitle = 'Embajador MCM';
