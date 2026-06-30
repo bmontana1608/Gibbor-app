@@ -171,19 +171,31 @@ export default function LandingPage() {
               </div>
             </motion.div>
 
-            {/* IMAGEN DEL MOCKUP MÓVIL GENERADA */}
+            {/* IMÁGENES REALES DE LA APP */}
             <motion.div 
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className="relative w-full aspect-[4/5] lg:aspect-[3/4] rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.15)] border border-emerald-500/20 flex items-center justify-center bg-[#0B101E]"
+              className="relative w-full aspect-[4/5] lg:aspect-[3/4] flex items-center justify-center"
             >
-              <img 
-                src="/landing/mobile-identity.png" 
-                alt="Mockup App Móvil MCM" 
-                className="w-full h-auto max-h-full object-contain drop-shadow-2xl"
-              />
+              {/* Teléfono 2 (Atrás, Rotado): Screenshot plano estilizado como teléfono */}
+              <div className="absolute left-[5%] top-[10%] w-[60%] aspect-[1/2.16] rounded-[2.5rem] border-[8px] border-slate-800 overflow-hidden shadow-2xl -rotate-6 opacity-80 hover:opacity-100 transition-all hover:scale-105 hover:-rotate-2 duration-500 z-10">
+                <img 
+                  src="/landing/app-mockup-2.jpg" 
+                  alt="Login El Edén F.C" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              {/* Teléfono 1 (Frente): Mockup con marco */}
+              <div className="absolute right-[0%] bottom-[5%] w-[75%] z-20 transition-transform hover:scale-105 hover:-translate-y-4 duration-500">
+                <img 
+                  src="/landing/app-mockup-1.png" 
+                  alt="Cobranza y Finanzas Gibbor F.C" 
+                  className="w-full h-auto drop-shadow-2xl"
+                />
+              </div>
             </motion.div>
           </div>
         </div>
