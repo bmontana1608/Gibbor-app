@@ -107,6 +107,10 @@ export default function LandingPage() {
                 src="/landing/dashboard.png" 
                 alt="MCM Dashboard" 
                 className="w-[120%] max-w-none sm:w-full h-auto object-contain drop-shadow-2xl"
+                style={{
+                  maskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)',
+                  WebkitMaskImage: 'radial-gradient(ellipse at center, black 65%, transparent 100%)'
+                }}
               />
             </div>
 
