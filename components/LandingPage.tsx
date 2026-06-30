@@ -182,7 +182,7 @@ export default function LandingPage() {
               <img 
                 src="/landing/mobile-identity.jpg" 
                 alt="Mockup App Móvil MCM" 
-                className="absolute inset-0 w-[200%] h-full max-w-none object-cover object-right"
+                className="absolute inset-0 w-full h-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#0B101E] via-transparent to-transparent opacity-80 pointer-events-none"></div>
             </motion.div>
