@@ -9,32 +9,40 @@ export const viewport = {
   themeColor: '#0a0a0a',
 };
 
+import { headers } from 'next/headers';
+
 export async function generateMetadata() {
   const tenant = await getTenant();
   const tenantSlug = (tenant as any).slug;
-
-  // Inyectar manifest en TODAS las páginas (director, futbolista, entrenador, login, etc.)
-  // El [tenant]/layout.tsx solo cubre /login y /unete; el root layout cubre TODO lo demás
   const isMaster = (tenant as any).isMaster || tenantSlug === 'master';
+  
+  const headersList = await headers();
+  const referer = headersList.get('referer') || '';
+  const currentPath = headersList.get('x-invoke-path') || '';
+  const isEmbajador = referer.includes('/embajador') || currentPath.includes('/embajador');
 
-  const manifestUrl = !isMaster
-    ? `/${tenantSlug}/manifest.json`
-    : '/manifest-admin.json';
+  let manifestUrl = !isMaster ? `/${tenantSlug}/manifest.json` : '/manifest-admin.json';
+  if (isEmbajador) manifestUrl = '/manifest-embajador.json';
 
-  const titleStr = isMaster 
+  let titleStr = isMaster 
     ? 'Master Club Manager | El corazón de tu formación deportiva' 
     : `${tenant.config.nombre} | MCM`;
+  if (isEmbajador) titleStr = 'Embajador MCM | Panel de Socios';
 
-  const appIcon = isMaster ? '/admin-pwa-icon.png' : tenant.config.logo;
+  let appIcon = isMaster ? '/admin-pwa-icon.png' : tenant.config.logo;
+  if (isEmbajador) appIcon = '/embajador-pwa-icon.png';
+
+  let appTitle = isMaster ? 'MCM SuperAdmin' : tenant.config.nombre;
+  if (isEmbajador) appTitle = 'Embajador MCM';
 
   return {
     title: titleStr,
-    description: 'Master Club Manager - El corazón de tu formación deportiva',
+    description: isEmbajador ? 'Panel de Embajadores MCM' : 'Master Club Manager - El corazón de tu formación deportiva',
     ...(manifestUrl ? { manifest: manifestUrl } : {}),
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
-      title: isMaster ? 'MCM SuperAdmin' : tenant.config.nombre,
+      title: appTitle,
     },
     icons: {
       icon: [
