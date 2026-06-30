@@ -103,7 +103,8 @@ export default function AtlasLeadsView() {
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
+        {/* Desktop View */}
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -187,6 +188,72 @@ export default function AtlasLeadsView() {
               )}
             </tbody>
           </table>
+        </div>
+        
+        {/* Mobile View */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {loading ? (
+            <div className="py-12 text-center text-slate-400"><Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />Cargando datos...</div>
+          ) : filteredLeads.length === 0 ? (
+            <div className="py-12 text-center text-slate-400">No se encontraron academias. Importa una base de datos.</div>
+          ) : (
+            filteredLeads.map((lead) => (
+              <div key={lead.id} className="p-4 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-bold text-slate-900">{lead.nombre}</h3>
+                    <p className="text-xs text-slate-500">{lead.categoria}</p>
+                  </div>
+                  <span className="px-2 py-1 text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100 rounded-lg">
+                    {lead.estado}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    {lead.ciudad || 'N/A'}
+                  </div>
+                  {lead.telefono ? (
+                    <div className="flex items-center gap-1">
+                      <Phone className="w-4 h-4 text-slate-400" /> {lead.telefono}
+                    </div>
+                  ) : <span className="text-xs text-slate-300">Sin teléfono</span>}
+                </div>
+
+                <div className="flex items-center gap-3 py-2 border-t border-slate-100">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-xs font-black text-slate-900 border border-slate-200">
+                    {lead.score}
+                  </div>
+                  <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
+                    lead.prioridad === 'Muy Alta' ? 'bg-purple-100 text-purple-700' :
+                    lead.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
+                    lead.prioridad === 'Media' ? 'bg-orange-100 text-orange-700' :
+                    'bg-slate-100 text-slate-500'
+                  }`}>
+                    {lead.prioridad}
+                  </span>
+                </div>
+
+                <div className="flex flex-col gap-1 pt-2 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Asignado a:</span>
+                  <div className="flex items-center gap-2">
+                    <UserPlus className="w-4 h-4 text-slate-400" />
+                    <select
+                      value={lead.embajador_id || ''}
+                      onChange={(e) => handleAssign(lead.id, e.target.value)}
+                      className="flex-1 border border-slate-200 rounded-lg text-sm py-2 px-3 focus:ring-1 focus:ring-lime-500 outline-none bg-slate-50"
+                    >
+                      <option value="">Sin asignar</option>
+                      {embajadores.map(e => (
+                        <option key={e.id} value={e.id}>{e.nombre_completo}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

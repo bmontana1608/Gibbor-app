@@ -207,7 +207,7 @@ export default function EmbajadoresAdminView() {
       {/* VISTA: DIRECTORIO DE EMBAJADORES */}
       {tab === 'lista' && (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto hidden md:block">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
@@ -271,48 +271,132 @@ export default function EmbajadoresAdminView() {
               </tbody>
             </table>
           </div>
+
+          <div className="md:hidden divide-y divide-slate-100">
+            {embajadores.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 font-medium">No hay embajadores registrados.</div>
+            ) : (
+              embajadores.map(emb => (
+                <div key={emb.id} className="p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-bold text-slate-900">{emb.nombre_completo}</h3>
+                      <div className="text-xs text-slate-500 mt-1">{emb.email}</div>
+                      {emb.empresa && <div className="text-xs text-lime-600 font-semibold mt-1">{emb.empresa}</div>}
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${emb.estado === 'Activo' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {emb.estado}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{emb.tipo}</span>
+                    <span className="text-xs text-slate-600 font-medium">{emb.clientes_activos || 0} de {emb.total_referidos || 0} referidos</span>
+                  </div>
+
+                  <div className="bg-slate-50 rounded-xl p-3 flex justify-between items-center">
+                    <div>
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pagadas</div>
+                      <div className="font-bold text-slate-900">${(emb.comisiones_pagadas || 0).toLocaleString('es-CO')}</div>
+                    </div>
+                    {emb.comisiones_pendientes > 0 && (
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-amber-500 uppercase tracking-widest">Pendiente</div>
+                        <div className="font-bold text-amber-600">${(emb.comisiones_pendientes).toLocaleString('es-CO')}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-slate-100">
+                    <button 
+                      onClick={() => abrirModalEditar(emb)}
+                      className="flex-1 text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-center"
+                    >
+                      Editar
+                    </button>
+                    <button 
+                      onClick={() => toggleEstado(emb.id, emb.estado)}
+                      className={`flex-1 text-xs font-bold px-3 py-2 rounded-lg border transition-colors text-center ${emb.estado === 'Activo' ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'}`}
+                    >
+                      {emb.estado === 'Activo' ? 'Suspender' : 'Activar'}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
 
       {/* VISTA: RANKING */}
       {tab === 'ranking' && (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                <th className="px-6 py-4 font-bold"># Posición</th>
-                <th className="px-6 py-4 font-bold">Embajador</th>
-                <th className="px-6 py-4 font-bold text-center">Clubes Activos</th>
-                <th className="px-6 py-4 font-bold text-right">MRR Generado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {embajadores
-                .sort((a, b) => (b.ingreso_recurrente || 0) - (a.ingreso_recurrente || 0) || (b.clientes_activos || 0) - (a.clientes_activos || 0))
-                .map((emb, index) => (
-                <tr key={emb.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {index === 0 && <span className="text-2xl">🥇</span>}
-                      {index === 1 && <span className="text-2xl">🥈</span>}
-                      {index === 2 && <span className="text-2xl">🥉</span>}
-                      {index > 2 && <span className="text-xl font-black text-slate-400 w-8 text-center">{index + 1}</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-bold text-slate-900">{emb.nombre_completo}</p>
-                    <p className="text-xs text-slate-500 mt-1">{emb.empresa || emb.tipo}</p>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="font-black text-blue-600 text-lg">{emb.clientes_activos || 0}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="font-black text-green-600 text-lg">${Number(emb.ingreso_recurrente || 0).toLocaleString('es-CO')}</span>
-                  </td>
+          <div className="overflow-x-auto hidden md:block">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                  <th className="px-6 py-4 font-bold"># Posición</th>
+                  <th className="px-6 py-4 font-bold">Embajador</th>
+                  <th className="px-6 py-4 font-bold text-center">Clubes Activos</th>
+                  <th className="px-6 py-4 font-bold text-right">MRR Generado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {embajadores
+                  .sort((a, b) => (b.ingreso_recurrente || 0) - (a.ingreso_recurrente || 0) || (b.clientes_activos || 0) - (a.clientes_activos || 0))
+                  .map((emb, index) => (
+                  <tr key={emb.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {index === 0 && <span className="text-2xl">🥇</span>}
+                        {index === 1 && <span className="text-2xl">🥈</span>}
+                        {index === 2 && <span className="text-2xl">🥉</span>}
+                        {index > 2 && <span className="text-xl font-black text-slate-400 w-8 text-center">{index + 1}</span>}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold text-slate-900">{emb.nombre_completo}</p>
+                      <p className="text-xs text-slate-500 mt-1">{emb.empresa || emb.tipo}</p>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="font-black text-blue-600 text-lg">{emb.clientes_activos || 0}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="font-black text-green-600 text-lg">${Number(emb.ingreso_recurrente || 0).toLocaleString('es-CO')}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="md:hidden divide-y divide-slate-100">
+            {embajadores
+              .sort((a, b) => (b.ingreso_recurrente || 0) - (a.ingreso_recurrente || 0) || (b.clientes_activos || 0) - (a.clientes_activos || 0))
+              .map((emb, index) => (
+              <div key={emb.id} className="p-4 flex items-center gap-4">
+                <div className="shrink-0 flex items-center justify-center w-10">
+                  {index === 0 && <span className="text-3xl">🥇</span>}
+                  {index === 1 && <span className="text-3xl">🥈</span>}
+                  {index === 2 && <span className="text-3xl">🥉</span>}
+                  {index > 2 && <span className="text-xl font-black text-slate-400">{index + 1}</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-slate-900 truncate">{emb.nombre_completo}</h3>
+                  <p className="text-xs text-slate-500 truncate">{emb.empresa || emb.tipo}</p>
+                  <div className="flex gap-4 mt-2">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Clubes</p>
+                      <p className="font-black text-blue-600">{emb.clientes_activos || 0}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">MRR</p>
+                      <p className="font-black text-green-600">${Number(emb.ingreso_recurrente || 0).toLocaleString('es-CO')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -328,46 +412,73 @@ export default function EmbajadoresAdminView() {
               <p className="text-slate-500 text-sm mt-1">No hay comisiones pendientes por pagar.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Fecha Gen.</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Embajador</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Club Referido</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Monto</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {comisiones.map(c => (
-                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">
-                        {new Date(c.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 font-bold text-slate-900">
-                        {c.embajadores?.nombre_completo}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {c.clubes?.nombre}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="font-black text-lime-600 text-lg">${Number(c.monto).toLocaleString('es-CO')}</div>
-                        <div className="text-xs font-medium text-slate-400 mt-1">{Number(c.porcentaje_aplicado || 0)}% aplicado</div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button 
-                          onClick={() => { setSelectedComision(c); setShowPagoModal(true); }}
-                          className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1 mx-auto"
-                        >
-                          <DollarSign size={14} /> Pagar
-                        </button>
-                      </td>
+            <>
+              <div className="overflow-x-auto hidden md:block">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200">
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Fecha Gen.</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Embajador</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Club Referido</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Monto</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {comisiones.map(c => (
+                      <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-6 py-4 text-sm text-slate-600 font-medium">
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-slate-900">
+                          {c.embajadores?.nombre_completo}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-600">
+                          {c.clubes?.nombre}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="font-black text-lime-600 text-lg">${Number(c.monto).toLocaleString('es-CO')}</div>
+                          <div className="text-xs font-medium text-slate-400 mt-1">{Number(c.porcentaje_aplicado || 0)}% aplicado</div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button 
+                            onClick={() => { setSelectedComision(c); setShowPagoModal(true); }}
+                            className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors flex items-center gap-1 mx-auto"
+                          >
+                            <DollarSign size={14} /> Pagar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="md:hidden divide-y divide-slate-100">
+                {comisiones.map(c => (
+                  <div key={c.id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-slate-900 leading-tight">{c.embajadores?.nombre_completo}</h3>
+                      <div className="text-xs text-slate-400">{new Date(c.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <div className="text-sm text-slate-600">
+                      Ref: <span className="font-medium text-slate-800">{c.clubes?.nombre}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Comisión</div>
+                        <div className="font-black text-lime-600 text-xl">${Number(c.monto).toLocaleString('es-CO')}</div>
+                      </div>
+                      <button 
+                        onClick={() => { setSelectedComision(c); setShowPagoModal(true); }}
+                        className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                      >
+                        <DollarSign size={16} /> Pagar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       )}
