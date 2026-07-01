@@ -107,7 +107,7 @@ export default function BrandBookPage() {
             </div>
           </div>
           <div className="w-1/2 relative h-full">
-            <img src="/mcm_brandbook_cover_1782916558494.png" alt="MCM Cover" className="absolute inset-0 w-full h-full object-cover" />
+            <img src="/brand-book/mcm_brandbook_cover_1782916558494.png" alt="MCM Cover" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-[#0B101E] to-transparent w-1/3"></div>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function BrandBookPage() {
         {/* SLIDE 3: CARTA DEL FUNDADOR */}
         <div className="slide flex">
           <div className="w-5/12 relative h-full">
-            <img src="/mcm_brandbook_founder_1782916574844.png" alt="Founder" className="absolute inset-0 w-full h-full object-cover" />
+            <img src="/brand-book/mcm_brandbook_founder_1782916574844.png" alt="Founder" className="absolute inset-0 w-full h-full object-cover" />
           </div>
           <div className="w-7/12 p-24 flex flex-col justify-center">
             <h2 className="text-5xl font-black text-slate-900 mb-12">La visión detrás de MCM</h2>
@@ -227,7 +227,7 @@ export default function BrandBookPage() {
 
         {/* SLIDE 6: EL SIGNIFICADO DE GIBBOR */}
         <div className="slide flex flex-col justify-center items-center text-center p-32 relative">
-          <img src="/mcm_brandbook_community_1782916566694.png" alt="Community" className="absolute inset-0 w-full h-full object-cover opacity-10" />
+          <img src="/brand-book/mcm_brandbook_community_1782916566694.png" alt="Community" className="absolute inset-0 w-full h-full object-cover opacity-10" />
           
           <div className="relative z-10 max-w-5xl">
             <h2 className="text-8xl font-black text-emerald-600 mb-16 tracking-tight uppercase">GIBBOR</h2>
@@ -334,9 +334,111 @@ export default function BrandBookPage() {
           </div>
         </div>
 
+        {/* SLIDE 10.5: PERSONALIDAD DE MARCA */}
+        <div className="slide flex flex-col justify-center p-32 bg-white">
+          <h2 className="text-6xl font-black text-slate-900 mb-16 text-center">Nuestra Personalidad</h2>
+          <div className="flex justify-center mb-16">
+            <div className="grid grid-cols-2 gap-16 max-w-5xl">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold text-emerald-600 border-b-4 border-emerald-500 pb-4 inline-block">Somos</h3>
+                <ul className="space-y-4 text-2xl text-slate-700">
+                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Cercanos y Empáticos</li>
+                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Valientes (Gibbor)</li>
+                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Inspiradores</li>
+                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Profesionales</li>
+                </ul>
+              </div>
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold text-red-500 border-b-4 border-red-500 pb-4 inline-block">No Somos</h3>
+                <ul className="space-y-4 text-2xl text-slate-500">
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Fríos o Corporativos</li>
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Un software genérico</li>
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Exclusivos o distantes</li>
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Complicados</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* PARTE III: FUTURO Y VISIÓN */}
 
-        {/* SLIDE 11: ROADMAP A 5 AÑOS */}
+        {/* SLIDE 11: EL PRODUCTO */}
+        <div className="slide flex">
+          <div className="w-1/2 bg-[#0B101E] relative flex flex-col justify-center p-20">
+            <h2 className="text-6xl font-black text-white mb-8">El Producto</h2>
+            <p className="text-3xl text-emerald-400 font-light mb-12">Una plataforma, cuatro roles.</p>
+            <div className="space-y-8">
+              <div className="bg-white/10 p-6 rounded-2xl flex items-center gap-6">
+                <LayoutDashboard className="w-12 h-12 text-emerald-500" />
+                <div>
+                  <h4 className="text-2xl font-bold text-white">Director</h4>
+                  <p className="text-slate-300 text-lg">Control total de la academia, finanzas y reportes.</p>
+                </div>
+              </div>
+              <div className="bg-white/10 p-6 rounded-2xl flex items-center gap-6">
+                <ClipboardList className="w-12 h-12 text-blue-400" />
+                <div>
+                  <h4 className="text-2xl font-bold text-white">Entrenador</h4>
+                  <p className="text-slate-300 text-lg">Asistencias, evaluaciones, pizarra táctica y convocatorias.</p>
+                </div>
+              </div>
+              <div className="bg-white/10 p-6 rounded-2xl flex items-center gap-6">
+                <UserCheck className="w-12 h-12 text-amber-400" />
+                <div>
+                  <h4 className="text-2xl font-bold text-white">Jugador / Padre</h4>
+                  <p className="text-slate-300 text-lg">Carnet digital, historial deportivo, pagos y notificaciones.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="w-1/2 p-24 flex flex-col justify-center bg-slate-50">
+            <h3 className="text-5xl font-black text-slate-900 mb-12">Marca Blanca Absoluta</h3>
+            <p className="text-2xl text-slate-700 leading-relaxed mb-12">
+              Entendemos que el escudo de cada club es sagrado. Por eso MCM se instala y configura con los colores y el logo de cada academia.
+            </p>
+            <div className="relative h-96 w-full flex items-center justify-center">
+              <img src="/landing/dashboard.png" alt="Dashboard" className="absolute inset-0 w-full h-full object-cover rounded-3xl shadow-2xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 12: MODELO DE EMBAJADORES */}
+        <div className="slide flex flex-col justify-center p-32 relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
+          <h2 className="text-6xl font-black text-slate-900 mb-8 text-center">Modelo de Embajadores</h2>
+          <p className="text-3xl text-emerald-600 font-bold mb-16 text-center">Ayudando a otros a crecer, mientras creces tú.</p>
+          
+          <div className="grid grid-cols-2 gap-16">
+            <div className="text-2xl text-slate-700 leading-relaxed space-y-6">
+              <p>MCM no es solo un software para escuelas. Es un motor de oportunidad económica.</p>
+              <p>A través de nuestro programa de embajadores, permitimos que personas apasionadas por el fútbol generen un <strong>ingreso recurrente</strong>.</p>
+              <div className="bg-emerald-50 p-8 rounded-2xl border-l-8 border-emerald-500 mt-8">
+                <p className="font-bold text-emerald-800">Al recomendar MCM, no solo solucionas el caos administrativo de otras escuelas, sino que construyes tu propia estabilidad financiera, llevando un sustento digno a tu hogar.</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-8">
+              <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 flex flex-col items-center text-center justify-center">
+                <div className="text-5xl font-black text-emerald-500 mb-4">100%</div>
+                <p className="text-lg text-slate-600">Del primer mes del club referido</p>
+              </div>
+              <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 flex flex-col items-center text-center justify-center">
+                <div className="text-5xl font-black text-emerald-500 mb-4">10%</div>
+                <p className="text-lg text-slate-600">Comisión mensual recurrente de por vida</p>
+              </div>
+              <div className="col-span-2 bg-[#0B101E] text-white p-8 rounded-3xl flex items-center justify-between">
+                <div>
+                  <h4 className="text-2xl font-bold mb-2">Panel de Embajador</h4>
+                  <p className="text-slate-400">Control total de referidos y comisiones</p>
+                </div>
+                <Zap className="w-12 h-12 text-emerald-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* SLIDE 13: ROADMAP A 5 AÑOS */}
         <div className="slide flex flex-col justify-center p-32 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[100px] -z-10"></div>
           
@@ -396,7 +498,7 @@ export default function BrandBookPage() {
             </div>
           </div>
           <div className="w-1/2 relative h-full">
-            <img src="/mcm_brandbook_vision_1782916584571.png" alt="Sports Complex Vision" className="absolute inset-0 w-full h-full object-cover" />
+            <img src="/brand-book/mcm_brandbook_vision_1782916584571.png" alt="Sports Complex Vision" className="absolute inset-0 w-full h-full object-cover" />
           </div>
         </div>
 
