@@ -52,6 +52,7 @@ export default function LandingPage() {
             <a href="#roles" className="hover:text-white transition-colors">Para quién</a>
             <a href="#ecosistema" className="hover:text-white transition-colors">Ecosistema</a>
             <a href="#diferencias" className="hover:text-white transition-colors">Por qué MCM</a>
+            <a href="#precios" className="hover:text-white transition-colors">Precios</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
           </div>
 
@@ -395,6 +396,122 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRECIOS ────────────────────────────────────────────────── */}
+      <section id="precios" className="py-24 relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-emerald-500/10 rounded-full blur-[100px] -z-10"></div>
+        
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-6">
+              Planes diseñados para el <span className="text-emerald-500">crecimiento</span> de tu club
+            </h2>
+            <p className="text-slate-400 text-lg">
+              Elige el plan que mejor se adapte a las necesidades de tu academia deportiva. Sin contratos a largo plazo, cancela cuando quieras.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Plan Starter */}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="bg-[#111727] rounded-3xl p-8 border border-white/5 flex flex-col"
+            >
+              <h3 className="text-xl font-bold text-white mb-2">Starter</h3>
+              <p className="text-slate-400 text-sm mb-6">Perfecto para clubes nuevos o en crecimiento</p>
+              <div className="mb-8">
+                <span className="text-4xl font-black text-white">Consultar</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'Gestión de hasta 100 jugadores',
+                  'Control de asistencia básico',
+                  'Gestión de pagos y cuotas',
+                  'Soporte por email'
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-center transition-colors border border-white/10">
+                Solicitar Info
+              </Link>
+            </motion.div>
+
+            {/* Plan Pro */}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="bg-gradient-to-b from-[#152033] to-[#111727] rounded-3xl p-8 border border-emerald-500/30 flex flex-col relative shadow-[0_0_40px_rgba(16,185,129,0.1)] transform md:-translate-y-4"
+            >
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-[#0B101E] px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                Recomendado
+              </div>
+              <h3 className="text-xl font-bold text-emerald-400 mb-2">Pro</h3>
+              <p className="text-slate-400 text-sm mb-6">Para academias establecidas que buscan profesionalizarse</p>
+              <div className="mb-8">
+                <span className="text-4xl font-black text-white">Consultar</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'Gestión de jugadores ilimitados',
+                  'Control de asistencia avanzado con reportes',
+                  'Pasarela de pagos integrada',
+                  'Módulo de comunicación (Notificaciones)',
+                  'Soporte prioritario por WhatsApp'
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#0B101E] font-bold text-center transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                Empezar Ahora
+              </Link>
+            </motion.div>
+
+            {/* Plan Elite */}
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-[#111727] rounded-3xl p-8 border border-white/5 flex flex-col"
+            >
+              <h3 className="text-xl font-bold text-white mb-2">Premium</h3>
+              <p className="text-slate-400 text-sm mb-6">Para redes de clubes y franquicias multisede</p>
+              <div className="mb-8">
+                <span className="text-4xl font-black text-white">A Medida</span>
+              </div>
+              <ul className="space-y-4 mb-8 flex-1">
+                {[
+                  'Múltiples sedes y filiales',
+                  'App móvil personalizada con marca blanca',
+                  'API y acceso a datos crudos',
+                  'Roles y permisos granulares',
+                  'Ejecutivo de cuenta dedicado'
+                ].map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-center transition-colors border border-white/10">
+                Contactar Ventas
+              </Link>
+            </motion.div>
           </div>
         </div>
       </section>
