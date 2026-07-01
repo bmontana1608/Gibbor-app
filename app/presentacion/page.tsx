@@ -20,7 +20,8 @@ import {
   RefreshCw,
   Clock,
   Briefcase,
-  Smartphone
+  Smartphone,
+  Mail
 } from 'lucide-react';
 import MCMLogo from '@/components/MCMLogo';
 
@@ -302,7 +303,7 @@ export default function PresentacionMCM() {
           </div>
           <div className="w-1/2 relative h-full flex items-center justify-center">
             <div className="relative w-[450px] h-[900px] bg-[#0B101E] rounded-[60px] p-4 shadow-2xl border-[12px] border-slate-800 flex flex-col items-center overflow-hidden">
-               <img src="/landing/fifa_card.png" className="w-full scale-105 translate-y-4" alt="" />
+               <img src="/landing/mobile-identity.png" className="w-full scale-105 translate-y-4" alt="" />
             </div>
           </div>
         </div>
@@ -372,8 +373,11 @@ export default function PresentacionMCM() {
             <div className="flex gap-12 w-full justify-center">
               {planes.slice(0,3).map((plan, idx) => {
                 const isPro = idx === 1 || plan.nombre.toLowerCase().includes('pro');
-                // Conversión aproximada a dólares redondeada
-                const precioUSD = Math.round(plan.precio_base / 4000);
+                
+                // Forzar precios 30 USD mensual y 300 USD anual
+                const isAnual = plan.nombre.toLowerCase().includes('anual') || plan.precio_base > 200000;
+                const precioUSD = isAnual ? 300 : 30;
+                const sufijoPago = isAnual ? 'año' : 'mes';
 
                 return (
                   <div key={plan.id} className={`w-[450px] rounded-[40px] p-12 flex flex-col shadow-2xl relative ${isPro ? 'bg-[#0B101E] text-white border-4 border-emerald-500 scale-105' : 'bg-white border-2 border-slate-200 text-slate-900'}`}>
@@ -381,7 +385,7 @@ export default function PresentacionMCM() {
                     <div className="text-center mb-8">
                       <span className="text-6xl font-black">${precioUSD}</span>
                       <br/>
-                      <span className={`text-xl ${isPro ? 'text-slate-400' : 'text-slate-500'}`}>USD/{plan.tipo_cobro === 'FIJO' ? 'mes' : 'jugador'}</span>
+                      <span className={`text-xl ${isPro ? 'text-slate-400' : 'text-slate-500'}`}>USD/{plan.tipo_cobro === 'FIJO' ? sufijoPago : 'jugador'}</span>
                     </div>
                     {plan.limite_jugadores_base > 0 ? (
                       <p className={`text-center text-xl mb-4`}>
@@ -393,7 +397,7 @@ export default function PresentacionMCM() {
                     
                     {plan.tipo_cobro === 'FIJO' && (
                        <p className={`text-center text-lg mb-8 pb-8 border-b font-medium ${isPro ? 'text-emerald-400 border-white/10' : 'text-emerald-600 border-slate-200'}`}>
-                         Jugador adicional: $2.000 COP
+                         Jugador adicional: $0.50 USD
                        </p>
                     )}
                     
@@ -536,7 +540,7 @@ export default function PresentacionMCM() {
                 </div>
                 
                 <div className="flex items-center gap-12">
-                  <div className="w-20 h-20 border-4 border-emerald-500 rounded-full flex items-center justify-center text-emerald-500"><MessageCircle className="w-10 h-10"/></div>
+                  <div className="w-20 h-20 border-4 border-emerald-500 rounded-full flex items-center justify-center text-emerald-500"><Mail className="w-10 h-10"/></div>
                   <div>
                     <p className="text-white font-bold text-3xl">Correo</p>
                     <p className="text-slate-400 text-3xl">ventas@masterclubmanager.com</p>
