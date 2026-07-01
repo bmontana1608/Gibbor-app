@@ -187,7 +187,7 @@ export default function PresentacionMCM() {
         <div className="slide flex flex-col justify-center items-center relative">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">5</div>
           <div className="w-full max-w-6xl flex justify-between items-center mb-32">
-            <div>
+            <div className="w-[60%]">
               <h2 className="text-6xl font-black text-slate-900 mb-4">¿QUÉ ES<br/><span className="text-emerald-600">MASTER CLUB MANAGER?</span></h2>
               <p className="text-3xl text-slate-600 mt-12 mb-8 max-w-2xl">
                 Master Club Manager es una plataforma diseñada <strong>exclusivamente para escuelas de fútbol.</strong>
@@ -196,8 +196,10 @@ export default function PresentacionMCM() {
                 Centraliza toda la operación del club en un solo lugar.
               </p>
             </div>
-            <div className="scale-[2.5] origin-right">
-              <MCMLogo />
+            <div className="w-[40%] flex justify-end">
+              <div className="scale-[2.0] origin-right">
+                <MCMLogo variant="dark" />
+              </div>
             </div>
           </div>
           <div className="w-full max-w-6xl flex justify-start gap-32">
@@ -300,7 +302,7 @@ export default function PresentacionMCM() {
           </div>
           <div className="w-1/2 relative h-full flex items-center justify-center">
             <div className="relative w-[450px] h-[900px] bg-[#0B101E] rounded-[60px] p-4 shadow-2xl border-[12px] border-slate-800 flex flex-col items-center overflow-hidden">
-               <img src="/landing/mobile-identity.png" className="w-full scale-105 translate-y-4" alt="" />
+               <img src="/landing/fifa_card.png" className="w-full scale-105 translate-y-4" alt="" />
             </div>
           </div>
         </div>
@@ -370,20 +372,33 @@ export default function PresentacionMCM() {
             <div className="flex gap-12 w-full justify-center">
               {planes.slice(0,3).map((plan, idx) => {
                 const isPro = idx === 1 || plan.nombre.toLowerCase().includes('pro');
+                // Conversión aproximada a dólares redondeada
+                const precioUSD = Math.round(plan.precio_base / 4000);
+
                 return (
                   <div key={plan.id} className={`w-[450px] rounded-[40px] p-12 flex flex-col shadow-2xl relative ${isPro ? 'bg-[#0B101E] text-white border-4 border-emerald-500 scale-105' : 'bg-white border-2 border-slate-200 text-slate-900'}`}>
                     <h3 className={`text-2xl font-bold mb-10 uppercase text-center ${isPro ? 'text-white' : 'text-slate-900'}`}>{plan.nombre}</h3>
                     <div className="text-center mb-8">
-                      <span className="text-6xl font-black">${plan.precio_base.toLocaleString('es-CO')}</span>
+                      <span className="text-6xl font-black">${precioUSD}</span>
                       <br/>
-                      <span className={`text-xl ${isPro ? 'text-slate-400' : 'text-slate-500'}`}>COP/{plan.tipo_cobro === 'FIJO' ? 'mes' : 'jugador'}</span>
+                      <span className={`text-xl ${isPro ? 'text-slate-400' : 'text-slate-500'}`}>USD/{plan.tipo_cobro === 'FIJO' ? 'mes' : 'jugador'}</span>
                     </div>
                     {plan.limite_jugadores_base > 0 ? (
-                      <p className={`text-center text-xl mb-12 pb-12 border-b ${isPro ? 'border-white/10' : 'border-slate-200'}`}>
+                      <p className={`text-center text-xl mb-4`}>
                         Hasta {plan.limite_jugadores_base} jugadores
                       </p>
                     ) : (
-                      <div className="mb-12 pb-12 border-b border-white/10"></div>
+                      <div className="mb-4"></div>
+                    )}
+                    
+                    {plan.tipo_cobro === 'FIJO' && (
+                       <p className={`text-center text-lg mb-8 pb-8 border-b font-medium ${isPro ? 'text-emerald-400 border-white/10' : 'text-emerald-600 border-slate-200'}`}>
+                         Jugador adicional: $2.000 COP
+                       </p>
+                    )}
+                    
+                    {plan.tipo_cobro !== 'FIJO' && (
+                       <div className="mb-8 pb-8 border-b border-white/10"></div>
                     )}
                     
                     <div className="flex-1 space-y-8">
@@ -524,7 +539,7 @@ export default function PresentacionMCM() {
                   <div className="w-20 h-20 border-4 border-emerald-500 rounded-full flex items-center justify-center text-emerald-500"><MessageCircle className="w-10 h-10"/></div>
                   <div>
                     <p className="text-white font-bold text-3xl">Correo</p>
-                    <p className="text-slate-400 text-3xl">hola@mcm.com.co</p>
+                    <p className="text-slate-400 text-3xl">ventas@masterclubmanager.com</p>
                   </div>
                 </div>
                 
@@ -532,7 +547,7 @@ export default function PresentacionMCM() {
                   <div className="w-20 h-20 border-4 border-emerald-500 rounded-full flex items-center justify-center text-emerald-500"><LayoutDashboard className="w-10 h-10"/></div>
                   <div>
                     <p className="text-white font-bold text-3xl">Sitio web</p>
-                    <p className="text-slate-400 text-3xl">www.mcm.com.co</p>
+                    <p className="text-slate-400 text-3xl">www.masterclubmanager.com</p>
                   </div>
                 </div>
                 
