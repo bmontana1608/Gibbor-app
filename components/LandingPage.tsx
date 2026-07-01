@@ -32,6 +32,18 @@ export default function LandingPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showClubSelector, setShowClubSelector] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [planes, setPlanes] = useState<any[]>([]);
+  const [loadingPlanes, setLoadingPlanes] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/planes-publicos')
+      .then(res => res.json())
+      .then(data => {
+        setPlanes(data);
+        setLoadingPlanes(false);
+      })
+      .catch(() => setLoadingPlanes(false));
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 30);
@@ -414,105 +426,80 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Plan Starter */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="bg-[#111727] rounded-3xl p-8 border border-white/5 flex flex-col"
-            >
-              <h3 className="text-xl font-bold text-white mb-2">Starter</h3>
-              <p className="text-slate-400 text-sm mb-6">Perfecto para clubes nuevos o en crecimiento</p>
-              <div className="mb-8">
-                <span className="text-4xl font-black text-white">Consultar</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'Gestión de hasta 100 jugadores',
-                  'Control de asistencia básico',
-                  'Gestión de pagos y cuotas',
-                  'Soporte por email'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
-                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-center transition-colors border border-white/10">
-                Solicitar Info
-              </Link>
-            </motion.div>
-
-            {/* Plan Pro */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="bg-gradient-to-b from-[#152033] to-[#111727] rounded-3xl p-8 border border-emerald-500/30 flex flex-col relative shadow-[0_0_40px_rgba(16,185,129,0.1)] transform md:-translate-y-4"
-            >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-[#0B101E] px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
-                Recomendado
-              </div>
-              <h3 className="text-xl font-bold text-emerald-400 mb-2">Pro</h3>
-              <p className="text-slate-400 text-sm mb-6">Para academias establecidas que buscan profesionalizarse</p>
-              <div className="mb-8">
-                <span className="text-4xl font-black text-white">Consultar</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'Gestión de jugadores ilimitados',
-                  'Control de asistencia avanzado con reportes',
-                  'Pasarela de pagos integrada',
-                  'Módulo de comunicación (Notificaciones)',
-                  'Soporte prioritario por WhatsApp'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
-                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#0B101E] font-bold text-center transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                Empezar Ahora
-              </Link>
-            </motion.div>
-
-            {/* Plan Elite */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-[#111727] rounded-3xl p-8 border border-white/5 flex flex-col"
-            >
-              <h3 className="text-xl font-bold text-white mb-2">Premium</h3>
-              <p className="text-slate-400 text-sm mb-6">Para redes de clubes y franquicias multisede</p>
-              <div className="mb-8">
-                <span className="text-4xl font-black text-white">A Medida</span>
-              </div>
-              <ul className="space-y-4 mb-8 flex-1">
-                {[
-                  'Múltiples sedes y filiales',
-                  'App móvil personalizada con marca blanca',
-                  'API y acceso a datos crudos',
-                  'Roles y permisos granulares',
-                  'Ejecutivo de cuenta dedicado'
-                ].map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
-                    <Check className="w-5 h-5 text-emerald-500 shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/registro-club" className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-center transition-colors border border-white/10">
-                Contactar Ventas
-              </Link>
-            </motion.div>
-          </div>
+          {loadingPlanes ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : planes.length === 0 ? (
+            <div className="text-center text-slate-400 py-10">
+              No hay planes disponibles en este momento.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto justify-center">
+              {planes.map((plan, idx) => {
+                const isPro = idx === 1 || plan.nombre.toLowerCase().includes('pro');
+                return (
+                  <motion.div 
+                    key={plan.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: idx * 0.1 }}
+                    className={`rounded-3xl p-8 border flex flex-col relative ${isPro ? 'bg-gradient-to-b from-[#152033] to-[#111727] border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] transform md:-translate-y-4' : 'bg-[#111727] border-white/5'}`}
+                  >
+                    {isPro && (
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-[#0B101E] px-4 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                        Recomendado
+                      </div>
+                    )}
+                    <h3 className={`text-xl font-bold mb-2 ${isPro ? 'text-emerald-400' : 'text-white'}`}>{plan.nombre}</h3>
+                    <p className="text-slate-400 text-sm mb-6">
+                      {plan.tipo_cobro === 'FIJO' 
+                        ? `Gestión integral de tu club deportivo.`
+                        : `Paga solo por lo que usas en tu academia.`}
+                    </p>
+                    <div className="mb-8 flex items-end gap-2">
+                      <span className="text-4xl font-black text-white">
+                        ${plan.precio_base.toLocaleString('es-CO')}
+                      </span>
+                      <span className="text-slate-500 mb-1">/mes</span>
+                    </div>
+                    
+                    <ul className="space-y-4 flex-1 mb-8">
+                      {plan.limite_jugadores_base > 0 && (
+                        <li className="flex items-start gap-3 text-sm text-slate-300">
+                          <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                          <span>Hasta <strong>{plan.limite_jugadores_base}</strong> jugadores base</span>
+                        </li>
+                      )}
+                      {plan.precio_jugador_extra > 0 && (
+                        <li className="flex items-start gap-3 text-sm text-slate-300">
+                          <Users className="w-5 h-5 text-emerald-500 shrink-0" />
+                          <span>+ ${plan.precio_jugador_extra.toLocaleString('es-CO')} por jugador extra</span>
+                        </li>
+                      )}
+                      <li className="flex items-start gap-3 text-sm text-slate-300">
+                        <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <span>Pasarela de pagos integrada</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-sm text-slate-300">
+                        <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <span>Control de asistencia y finanzas</span>
+                      </li>
+                      <li className="flex items-start gap-3 text-sm text-slate-300">
+                        <Check className="w-5 h-5 text-emerald-500 shrink-0" />
+                        <span>Soporte dedicado</span>
+                      </li>
+                    </ul>
+                    
+                    <Link href="/registro-club" className={`w-full py-3 rounded-xl font-bold text-center transition-colors ${isPro ? 'bg-emerald-500 hover:bg-emerald-400 text-[#0B101E] shadow-[0_0_20px_rgba(16,185,129,0.3)]' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
+                      {isPro ? 'Empezar Ahora' : 'Elegir Plan'}
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
