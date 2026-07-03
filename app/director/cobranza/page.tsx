@@ -1142,6 +1142,8 @@ export default function ModuloCobranza() {
     );
   }
 
+  const tarifaBaseActual = jugadorSeleccionado ? (conceptoCobro === 'Mensualidad' ? (jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) : Number(conceptos.find(c => c.nombre === conceptoCobro)?.precio_sugerido || 0)) : 0;
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
       
