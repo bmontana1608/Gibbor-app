@@ -167,7 +167,7 @@ export default function ModuloReportes() {
     // Ingresos
     if (ingresosMes.length > 0) {
       const dataIn = ingresosMes.map(i => ({
-        Fecha: i.fecha, Jugador: \`\${i.nombres} \${i.apellidos}\`, Concepto: i.concepto || 'Mensualidad', Monto: i.total, Método: i.metodo_pago
+        Fecha: i.fecha, Jugador: `${i.nombres} ${i.apellidos}`, Concepto: i.concepto || 'Mensualidad', Monto: i.total, Método: i.metodo_pago
       }));
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataIn), "Ingresos");
     }
@@ -180,7 +180,7 @@ export default function ModuloReportes() {
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataOut), "Egresos");
     }
 
-    XLSX.writeFile(wb, \`Reporte_Financiero_\${mesesAbreviados[mesSeleccionado]}_\${anioSeleccionado}.xlsx\`);
+    XLSX.writeFile(wb, `Reporte_Financiero_${mesesAbreviados[mesSeleccionado]}_${anioSeleccionado}.xlsx`);
   };
 
   return (
@@ -234,7 +234,7 @@ export default function ModuloReportes() {
               className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors"
               title="Actualizar Datos"
             >
-              <RefreshCw className={\`w-4 h-4 \${cargando ? 'animate-spin text-brand' : ''}\`} />
+              <RefreshCw className={`w-4 h-4 \${cargando ? 'animate-spin text-brand' : ''}`} />
             </button>
           </div>
         </div>
@@ -266,15 +266,15 @@ export default function ModuloReportes() {
           </div>
 
           {/* Flujo Neto */}
-          <div className={\`bg-white rounded-2xl border \${flujoCaja >= 0 ? 'border-emerald-200' : 'border-rose-200'} p-5 shadow-sm relative overflow-hidden group\`}>
-            <div className={\`absolute -right-4 -top-4 w-24 h-24 \${flujoCaja >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-full group-hover:scale-110 transition-transform\`}></div>
+          <div className={`bg-white rounded-2xl border \${flujoCaja >= 0 ? 'border-emerald-200' : 'border-rose-200'} p-5 shadow-sm relative overflow-hidden group`}>
+            <div className={`absolute -right-4 -top-4 w-24 h-24 \${flujoCaja >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-full group-hover:scale-110 transition-transform`}></div>
             <div className="relative z-10 flex items-center justify-between mb-4">
-              <div className={\`w-10 h-10 \${flujoCaja >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} rounded-xl flex items-center justify-center\`}>
+              <div className={`w-10 h-10 \${flujoCaja >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} rounded-xl flex items-center justify-center`}>
                 <Wallet className="w-5 h-5" />
               </div>
             </div>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Flujo de Caja</p>
-            <h3 className={\`text-2xl font-black mt-1 \${flujoCaja >= 0 ? 'text-emerald-600' : 'text-rose-600'}\`}>
+            <h3 className={`text-2xl font-black mt-1 \${flujoCaja >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {flujoCaja > 0 ? '+' : ''}{formatearDinero(flujoCaja)}
             </h3>
           </div>
@@ -303,10 +303,10 @@ export default function ModuloReportes() {
                 <BarChart data={flujoAnual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => \`\${val / 1000}k\`} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => `\${val / 1000}k`} />
                   <RechartsTooltip 
                     cursor={{ fill: '#f1f5f9' }}
-                    formatter={(value: number) => formatearDinero(value)}
+                    formatter={(value: any) => formatearDinero(Number(value))}
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
@@ -328,9 +328,9 @@ export default function ModuloReportes() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={dataPieIngresos} innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value" stroke="none">
-                        {dataPieIngresos.map((entry, index) => <Cell key={\`cell-\${index}\`} fill={COLORS_IN[index % COLORS_IN.length]} />)}
+                        {dataPieIngresos.map((entry, index) => <Cell key={`cell-\${index}`} fill={COLORS_IN[index % COLORS_IN.length]} />)}
                       </Pie>
-                      <RechartsTooltip formatter={(value: number) => formatearDinero(value)} />
+                      <RechartsTooltip formatter={(value: any) => formatearDinero(Number(value))} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
@@ -351,9 +351,9 @@ export default function ModuloReportes() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={dataPieEgresos} innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value" stroke="none">
-                        {dataPieEgresos.map((entry, index) => <Cell key={\`cell-\${index}\`} fill={COLORS_OUT[index % COLORS_OUT.length]} />)}
+                        {dataPieEgresos.map((entry, index) => <Cell key={`cell-\${index}`} fill={COLORS_OUT[index % COLORS_OUT.length]} />)}
                       </Pie>
-                      <RechartsTooltip formatter={(value: number) => formatearDinero(value)} />
+                      <RechartsTooltip formatter={(value: any) => formatearDinero(Number(value))} />
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
@@ -375,19 +375,19 @@ export default function ModuloReportes() {
           <div className="flex border-b border-slate-200">
             <button 
               onClick={() => setPestañaTabla('Ingresos')}
-              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Ingresos' ? 'border-b-2 border-emerald-500 text-emerald-600 bg-emerald-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+              className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Ingresos' ? 'border-b-2 border-emerald-500 text-emerald-600 bg-emerald-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
               Historial de Ingresos
             </button>
             <button 
               onClick={() => setPestañaTabla('Egresos')}
-              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Egresos' ? 'border-b-2 border-rose-500 text-rose-600 bg-rose-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+              className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Egresos' ? 'border-b-2 border-rose-500 text-rose-600 bg-rose-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
               Historial de Egresos
             </button>
             <button 
               onClick={() => setPestañaTabla('Cartera')}
-              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Cartera' ? 'border-b-2 border-amber-500 text-amber-600 bg-amber-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+              className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Cartera' ? 'border-b-2 border-amber-500 text-amber-600 bg-amber-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
               Cartera Morosos
             </button>
