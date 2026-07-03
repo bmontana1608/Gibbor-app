@@ -93,10 +93,10 @@ export default function LandingPage() {
               Plataforma Deportiva All-in-One
             </motion.div>
             <motion.h1 variants={fadeInUp} className="text-5xl lg:text-6xl font-black text-white leading-[1.1] tracking-tight mb-6">
-              Todo tu club deportivo, conectado en una sola <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">plataforma.</span>
+              Aumenta el recaudo y automatiza todo tu <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">club deportivo.</span>
             </motion.h1>
             <motion.p variants={fadeInUp} className="text-lg text-slate-400 leading-relaxed mb-10">
-              Administra tu academia, organiza entrenamientos, controla pagos, realiza seguimientos y ofrece una experiencia moderna para entrenadores, jugadores y padres de familia.
+              Recordatorios automáticos por WhatsApp, control de miembros, reportes financieros y una experiencia deportiva Premium 360° para entrenadores, jugadores y padres de familia.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center gap-4">
               <Link href="/registro-club" className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-[#0B101E] px-8 py-4 rounded-full text-base font-bold transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] flex items-center justify-center gap-2">
@@ -218,11 +218,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── ROLES (SECCIÓN 2) ────────────────────────────────────────────────── */}
-      <section id="roles" className="py-24 relative border-t border-white/5 bg-[#0B101E]/50">
+      <section id="roles" className="py-24 relative bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Una plataforma diseñada <span className="text-emerald-400">para todos.</span></h2>
-            <p className="text-lg text-slate-400">MCM no es solo para la oficina. Es una herramienta colaborativa donde cada miembro del club tiene un rol específico y herramientas únicas.</p>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Una plataforma diseñada <span className="text-emerald-500">para todos.</span></h2>
+            <p className="text-lg text-slate-600">MCM no es solo para la oficina. Es una herramienta colaborativa donde cada miembro del club tiene un rol específico y herramientas únicas.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -238,17 +238,17 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group p-8 rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 hover:bg-white/[0.04] transition-all relative overflow-hidden"
+                className="group p-8 rounded-3xl bg-white border border-slate-200 hover:border-emerald-200 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all relative overflow-hidden"
               >
-                <div className={`absolute top-0 right-0 w-32 h-32 bg-${role.color}-500/10 rounded-full blur-3xl group-hover:bg-${role.color}-500/20 transition-all`}></div>
-                <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-${role.color}-400 mb-6 border border-white/5`}>
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-${role.color}-500/5 rounded-full blur-3xl group-hover:bg-${role.color}-500/10 transition-all`}></div>
+                <div className={`w-14 h-14 rounded-2xl bg-${role.color}-50 flex items-center justify-center text-${role.color}-500 mb-6 border border-${role.color}-100`}>
                   {role.icon}
                 </div>
-                <h3 className="text-2xl font-bold text-white mb-6">{role.title}</h3>
+                <h3 className="text-2xl font-bold text-slate-900 mb-6">{role.title}</h3>
                 <ul className="space-y-3">
                   {role.items.map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm text-slate-400">
-                      <Check className={`w-4 h-4 text-${role.color}-400/70`} /> {item}
+                    <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
+                      <Check className={`w-4 h-4 text-${role.color}-500/70`} /> {item}
                     </li>
                   ))}
                 </ul>
@@ -259,11 +259,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── MÓDULOS (SECCIÓN 3) ────────────────────────────────────────────────── */}
-      <section id="ecosistema" className="py-24 relative">
+      <section id="ecosistema" className="py-24 relative bg-slate-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Todo lo que necesitas para <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">crecer.</span></h2>
-            <p className="text-lg text-slate-400">Un conjunto de herramientas poderosas interconectadas para automatizar el 100% de la operación de tu academia.</p>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Todo lo que necesitas para <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-600">crecer.</span></h2>
+            <p className="text-lg text-slate-600">Un conjunto de herramientas poderosas interconectadas para automatizar el 100% de la operación de tu academia.</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -287,10 +287,10 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05 }}
-                className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors flex flex-col items-center text-center gap-3"
+                className="group p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-200 shadow-md hover:shadow-lg hover:-translate-y-1 transition-all flex flex-col items-center text-center gap-3"
               >
-                <div className="text-emerald-400/80 mb-2">{mod.icon}</div>
-                <h4 className="text-white font-bold">{mod.name}</h4>
+                <div className="text-emerald-500 mb-2 group-hover:scale-110 transition-transform">{mod.icon}</div>
+                <h4 className="text-slate-900 font-bold">{mod.name}</h4>
                 <p className="text-xs text-slate-500">{mod.desc}</p>
               </motion.div>
             ))}
@@ -381,33 +381,179 @@ export default function LandingPage() {
       </section>
 
       {/* ── TESTIMONIOS (SECCIÓN 8) ────────────────────────────────────────────────── */}
-      <section className="py-24 bg-[#0B101E]/50 border-t border-white/5">
+      <section className="py-24 bg-slate-50 border-t border-slate-200 overflow-hidden relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight">Academias que ya dieron el salto.</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Academias que ya dieron el salto.</h2>
           </div>
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Solo tenemos una academia piloto real, usaremos ese testimonio y placeholders de calidad */}
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl flex flex-col justify-between">
+        {/* Carousel Container */}
+        <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+          <div className="flex gap-6 w-max animate-scroll hover:[animation-play-state:paused] py-4 px-6">
+            
+            {/* Original Items (4) */}
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
               <div>
                 <div className="flex gap-1 text-amber-400 mb-6">
-                  <Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" /><Star className="w-5 h-5 fill-current" />
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
                 </div>
-                <p className="text-slate-300 text-lg leading-relaxed mb-8">
-                  "MCM cambió por completo la forma en que administramos Tabogo FC. La comunicación con los padres ahora es profesional y el control de cobros nos ahorra horas cada semana."
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Desde que usamos MCM, nuestra organización y comunicación con los padres es de otro nivel. El control es absoluto."
                 </p>
               </div>
-              <div className="flex items-center gap-4 border-t border-white/5 pt-6">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center font-bold text-emerald-400 border border-emerald-500/30">
-                  TFC
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center font-bold text-emerald-500 border border-emerald-100 shrink-0">
+                  GIB
                 </div>
                 <div>
-                  <h4 className="text-white font-bold">Director General</h4>
-                  <p className="text-slate-500 text-sm">Tabogo FC</p>
+                  <h4 className="text-slate-900 font-bold text-sm">Gerardo</h4>
+                  <p className="text-slate-500 text-xs">Entrenador - EFD Gibbor</p>
                 </div>
               </div>
             </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "El control financiero y los recordatorios por WhatsApp nos han ayudado a incrementar el recaudo un 40% en el primer mes."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-500 border border-blue-100 shrink-0">
+                  EDE
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Camilo S.</h4>
+                  <p className="text-slate-500 text-xs">Director - El Edén F.C</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Me encanta poder ver el desarrollo deportivo de mi hijo desde el celular y pagar la mensualidad sin hacer filas."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center font-bold text-purple-500 border border-purple-100 shrink-0">
+                  SIK
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Andrea V.</h4>
+                  <p className="text-slate-500 text-xs">Madre - Ac Sikuani FDS</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Las convocatorias automáticas y el control de asistencia digital nos ahorran muchísimas horas de trabajo en la cancha."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center font-bold text-rose-500 border border-rose-100 shrink-0">
+                  TFC
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Felipe M.</h4>
+                  <p className="text-slate-500 text-xs">Entrenador - tabogo fc</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Duplicated Items (4) para efecto infinito */}
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Desde que usamos MCM, nuestra organización y comunicación con los padres es de otro nivel. El control es absoluto."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center font-bold text-emerald-500 border border-emerald-100 shrink-0">
+                  GIB
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Gerardo</h4>
+                  <p className="text-slate-500 text-xs">Entrenador - EFD Gibbor</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "El control financiero y los recordatorios por WhatsApp nos han ayudado a incrementar el recaudo un 40% en el primer mes."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-500 border border-blue-100 shrink-0">
+                  EDE
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Camilo S.</h4>
+                  <p className="text-slate-500 text-xs">Director - El Edén F.C</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Me encanta poder ver el desarrollo deportivo de mi hijo desde el celular y pagar la mensualidad sin hacer filas."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center font-bold text-purple-500 border border-purple-100 shrink-0">
+                  SIK
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Andrea V.</h4>
+                  <p className="text-slate-500 text-xs">Madre - Ac Sikuani FDS</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-[300px] md:w-[350px] bg-white border border-slate-200 p-8 rounded-3xl flex flex-col justify-between shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:-translate-y-2 transition-all">
+              <div>
+                <div className="flex gap-1 text-amber-400 mb-6">
+                  <Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" /><Star className="w-4 h-4 fill-current" />
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                  "Las convocatorias automáticas y el control de asistencia digital nos ahorran muchísimas horas de trabajo en la cancha."
+                </p>
+              </div>
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
+                <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center font-bold text-rose-500 border border-rose-100 shrink-0">
+                  TFC
+                </div>
+                <div>
+                  <h4 className="text-slate-900 font-bold text-sm">Felipe M.</h4>
+                  <p className="text-slate-500 text-xs">Entrenador - tabogo fc</p>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
