@@ -137,13 +137,13 @@ export default function ModuloReportes() {
   };
 
   const calcularCarteraExacta = () => {
-    if (!perfiles.length || !planes.length) return 0;
-    const hoyDate = new Date();
-    // Mes actual para pendiente
+    if (!perfiles.length || !planes.length) return { deudaTotalGlobal: 0, morososFiltrados: [] };
+    
+    // Mes actual para pendiente según el filtro
     const periodoActual = `${anioSeleccionado}-${String(mesSeleccionado + 1).padStart(2, '0')}`;
-    const periodoDate = new Date(periodoActual + '-01T12:00:00');
 
-    let deudaTotalGlobal = 0;
+    let deudaTotalMes = 0;
+    const morososList: any[] = [];
 
     const jugadoresActivos = perfiles.filter(p => p.estado_miembro === 'Activo' && p.rol === 'Futbolista');
 
@@ -155,7 +155,7 @@ export default function ModuloReportes() {
       const tarifaActual = j.tarifa || calcularTarifa(j.tipo_plan);
       if (esBeca100 || tarifaActual === 0) return;
 
-      // 1. Pendiente Mes Actual
+      // Pendiente del mes seleccionado
       const pagadoEsteMes = ingresos
         .filter(p => {
           const concepto = String(p.concepto || '').toLowerCase();
@@ -174,61 +174,13 @@ export default function ModuloReportes() {
       const totalMesActual = pagadoEsteMes + abonosEsteMes;
       const pendienteActual = totalMesActual < tarifaActual ? (tarifaActual - totalMesActual) : 0;
 
-      // 2. Mora Histórica
-      let deudaAcumulada = 0;
-      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
-      let primerMesValido = new Date(periodoDate.getFullYear(), periodoDate.getMonth(), 1);
-
-      if (fechaIngresoExplicita) {
-        const fechaIngreso = new Date(fechaIngresoExplicita);
-        const inicioJugador = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), 1);
-        const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
-        const inicioClub = tenantCreatedAt
-          ? new Date(tenantCreatedAt.getFullYear(), tenantCreatedAt.getMonth(), 1)
-          : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
-        primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
+      if (pendienteActual > 0) {
+        deudaTotalMes += pendienteActual;
+        morososList.push({ ...j, deudaTotal: pendienteActual, tarifa: tarifaActual });
       }
-
-      for (let i = 1; i <= 6; i++) {
-        const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
-        const mesStr = mesAnterior.toISOString().substring(0, 7);
-        if (mesAnterior > hoyDate) break;
-        if (mesAnterior < primerMesValido) break;
-
-        const pagosDelMes = ingresos
-          .filter(p => {
-            if (p.jugador_id !== j.id || !p.fecha) return false;
-            return normalizeDate(p.fecha).startsWith(mesStr);
-          })
-          .reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
-
-        const abonosMes = abonos
-          .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(mesStr))
-          .reduce((acc, a) => acc + parseFloat(a.monto || 0), 0);
-
-        const totalMes = pagosDelMes + abonosMes;
-
-        const hayReinicio = ingresos.some(p => {
-          if (p.jugador_id !== j.id || !p.fecha) return false;
-          return normalizeDate(p.fecha).startsWith(mesStr) && String(p.notas || '').includes('REINICIO DE DEUDA');
-        });
-
-        if (hayReinicio) break;
-
-        if (totalMes < tarifaActual) {
-          deudaAcumulada += (tarifaActual - totalMes);
-        }
-      }
-
-      j.deudaTotal = pendienteActual + deudaAcumulada;
-      deudaTotalGlobal += j.deudaTotal;
     });
 
-    const morososList = jugadoresActivos
-      .filter(j => j.deudaTotal > 0)
-      .map(j => ({ ...j, tarifa: j.tarifa || calcularTarifa(j.tipo_plan) }));
-
-    return { deudaTotalGlobal, morososFiltrados: morososList };
+    return { deudaTotalGlobal: deudaTotalMes, morososFiltrados: morososList };
   };
 
   const carteraData = calcularCarteraExacta();
