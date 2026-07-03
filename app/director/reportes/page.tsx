@@ -26,6 +26,7 @@ export default function ModuloReportes() {
   const [egresos, setEgresos] = useState<any[]>([]);
   const [perfiles, setPerfiles] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
+  const [abonos, setAbonos] = useState<any[]>([]);
   
   // Filter State
   const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
@@ -87,6 +88,9 @@ export default function ModuloReportes() {
     const { data: planesData } = await supabase.from('planes').select('*').eq('club_id', clubId);
     if (planesData) setPlanes(planesData);
 
+      const { data: abonosData } = await supabase.from('abonos').select('*').eq('club_id', clubId);
+      if (abonosData) setAbonos(abonosData);
+
     setCargando(false);
   };
 
@@ -119,9 +123,117 @@ export default function ModuloReportes() {
   const totalEgresosMes = egresosMes.reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
   const flujoCaja = totalIngresosMes - totalEgresosMes;
 
-  // Cartera (Deuda en la calle)
-  const morosos = perfiles.filter(p => p.estado_miembro === 'Activo' && p.estado_pago !== 'Al día');
-  const deudaPendiente = morosos.reduce((acc, p) => acc + (p.tarifa || calcularTarifa(p.tipo_plan)), 0);
+  // Cartera (Deuda en la calle) - Lógica exacta copiada de Cobranza
+  const normalizeDate = (d: string) => {
+    if (!d) return '';
+    const base = d.split(' ')[0];
+    const separator = base.includes('-') ? '-' : '/';
+    const parts = base.split(separator);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+      if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    return base;
+  };
+
+  const calcularCarteraExacta = () => {
+    if (!perfiles.length || !planes.length) return 0;
+    const hoyDate = new Date();
+    // Mes actual para pendiente
+    const periodoActual = `${anioSeleccionado}-${String(mesSeleccionado + 1).padStart(2, '0')}`;
+    const periodoDate = new Date(periodoActual + '-01T12:00:00');
+
+    let deudaTotalGlobal = 0;
+
+    const jugadoresActivos = perfiles.filter(p => p.estado_miembro === 'Activo' && p.rol === 'Futbolista');
+
+    jugadoresActivos.forEach(j => {
+      const currentPlanName = (j.tipo_plan || 'Regular').toLowerCase();
+      const planBuscado = planes.find(p => p.nombre.toLowerCase() === currentPlanName);
+      const esBeca100 = (planBuscado?.precio_base === 0) || currentPlanName.includes('100');
+      
+      const tarifaActual = j.tarifa || calcularTarifa(j.tipo_plan);
+      if (esBeca100 || tarifaActual === 0) return;
+
+      // 1. Pendiente Mes Actual
+      const pagadoEsteMes = ingresos
+        .filter(p => {
+          const concepto = String(p.concepto || '').toLowerCase();
+          if (concepto.startsWith('aporte:') || concepto.includes('aporte extra')) return false;
+          const notas = String(p.notas || '').toLowerCase();
+          if (notas.startsWith('aporte extra')) return false;
+          if (p.jugador_id === j.id && String(p.fecha).startsWith(periodoActual)) return true;
+          return false;
+        })
+        .reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
+      
+      const abonosEsteMes = abonos
+        .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(periodoActual))
+        .reduce((acc, a) => acc + parseFloat(a.monto || 0), 0);
+
+      const totalMesActual = pagadoEsteMes + abonosEsteMes;
+      const pendienteActual = totalMesActual < tarifaActual ? (tarifaActual - totalMesActual) : 0;
+
+      // 2. Mora Histórica
+      let deudaAcumulada = 0;
+      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
+      let primerMesValido = new Date(periodoDate.getFullYear(), periodoDate.getMonth(), 1);
+
+      if (fechaIngresoExplicita) {
+        const fechaIngreso = new Date(fechaIngresoExplicita);
+        const inicioJugador = new Date(fechaIngreso.getFullYear(), fechaIngreso.getMonth(), 1);
+        const tenantCreatedAt = tenant?.created_at ? new Date(tenant.created_at) : null;
+        const inicioClub = tenantCreatedAt
+          ? new Date(tenantCreatedAt.getFullYear(), tenantCreatedAt.getMonth(), 1)
+          : new Date(hoyDate.getFullYear(), hoyDate.getMonth() - 6, 1);
+        primerMesValido = inicioJugador > inicioClub ? inicioJugador : inicioClub;
+      }
+
+      for (let i = 1; i <= 6; i++) {
+        const mesAnterior = new Date(periodoDate.getFullYear(), periodoDate.getMonth() - i, 1);
+        const mesStr = mesAnterior.toISOString().substring(0, 7);
+        if (mesAnterior > hoyDate) break;
+        if (mesAnterior < primerMesValido) break;
+
+        const pagosDelMes = ingresos
+          .filter(p => {
+            if (p.jugador_id !== j.id || !p.fecha) return false;
+            return normalizeDate(p.fecha).startsWith(mesStr);
+          })
+          .reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
+
+        const abonosMes = abonos
+          .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(mesStr))
+          .reduce((acc, a) => acc + parseFloat(a.monto || 0), 0);
+
+        const totalMes = pagosDelMes + abonosMes;
+
+        const hayReinicio = ingresos.some(p => {
+          if (p.jugador_id !== j.id || !p.fecha) return false;
+          return normalizeDate(p.fecha).startsWith(mesStr) && String(p.notas || '').includes('REINICIO DE DEUDA');
+        });
+
+        if (hayReinicio) break;
+
+        if (totalMes < tarifaActual) {
+          deudaAcumulada += (tarifaActual - totalMes);
+        }
+      }
+
+      j.deudaTotal = pendienteActual + deudaAcumulada;
+      deudaTotalGlobal += j.deudaTotal;
+    });
+
+    const morososList = jugadoresActivos
+      .filter(j => j.deudaTotal > 0)
+      .map(j => ({ ...j, tarifa: j.tarifa || calcularTarifa(j.tipo_plan) }));
+
+    return { deudaTotalGlobal, morososFiltrados: morososList };
+  };
+
+  const carteraData = calcularCarteraExacta();
+  const deudaPendiente = carteraData ? carteraData.deudaTotalGlobal : 0;
+  const morosos = carteraData ? carteraData.morososFiltrados : [];
 
   // --- DATOS PARA GRÁFICOS ---
   // 1. Ingresos por Concepto (Pie Chart)
