@@ -47,6 +47,20 @@ export default function ModuloReportes() {
         return;
       }
 
+      // SEGURIDAD: Verificar que el usuario pertenece al club logueado
+      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
+      
+      if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
+        toast.error("No tienes permiso para acceder a los reportes de este club.");
+        if (perfil?.club_id) {
+          const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
+          if (c) router.push(`/${c.slug}/director/reportes`);
+        } else {
+          router.push('/login');
+        }
+        return;
+      }
+
       if (tenantData.id) {
         cargarDatos(tenantData.id);
       }
