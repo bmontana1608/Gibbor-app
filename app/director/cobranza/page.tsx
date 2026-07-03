@@ -810,9 +810,22 @@ export default function ModuloCobranza() {
   const utilidadNeta = ingresosRecaudados - egresosTotales;
   
   // 👥 ESTADO DE JUGADORES (Solo mes actual para mora, pero lista filtrada por fechas para recibos)
-  const idsPagadosEsteMes = new Set(pagosFiltradosPorFecha.map(p => p.jugador_id));
+    const idsPagadosEsteMes = new Set(pagosFiltradosPorFecha.map(p => p.jugador_id));
 
-  const jugadoresFin = jugadores.map(j => {
+    // Filtro para excluir jugadores que se inscribieron después del mes seleccionado
+    const [anioSelCobranza, mesSelCobranza] = fechaInicio.split('-').map(Number);
+    const jugadoresParaMes = jugadores.filter(j => {
+      const fechaIng = new Date(j.fecha_ingreso_club || j.fecha_ingreso || tenant?.created_at || j.created_at || new Date());
+      const anioIngreso = fechaIng.getFullYear();
+      const mesIngreso = fechaIng.getMonth() + 1;
+      
+      if (anioIngreso > anioSelCobranza || (anioIngreso === anioSelCobranza && mesIngreso > mesSelCobranza)) {
+        return false;
+      }
+      return true;
+    });
+  
+    const jugadoresFin = jugadoresParaMes.map(j => {
     const currentPlanName = (j.tipo_plan || 'Regular').toLowerCase();
     const planBuscado = planes.find(p => p.nombre.toLowerCase() === currentPlanName);
     const esBeca100 = (planBuscado?.precio_base === 0) || currentPlanName.includes('100');
