@@ -1407,7 +1407,12 @@ export default function ModuloCobranza() {
                             <td className="p-4 md:px-6 text-right">
                               <div className="flex justify-end gap-2">
                                 {jugador.tarifa === 0 ? (
-                                  <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
+                                  <div className="flex items-center justify-end gap-2">
+                                    <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar cobro de otro concepto">
+                                      <PlusCircle className="w-3.5 h-3.5" /> Cobrar Extra
+                                    </button>
+                                  </div>
                                 ) : !esAlDia ? (
                                   <>
                                     <button 
