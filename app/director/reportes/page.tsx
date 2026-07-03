@@ -148,7 +148,10 @@ export default function ModuloReportes() {
         if (p.estado_miembro !== 'Activo' || p.rol !== 'Futbolista') return false;
 
         // Ignorar jugadores que entraron después del mes que estamos consultando
-        const fechaIng = new Date(p.fecha_ingreso_club || p.fecha_ingreso || tenant?.created_at || p.created_at || new Date());
+        const fechaIngresoExplicita = p.fecha_ingreso_club || p.fecha_ingreso;
+        if (!fechaIngresoExplicita) return true;
+
+        const fechaIng = new Date(fechaIngresoExplicita);
         const anioIngreso = fechaIng.getFullYear();
         const mesIngreso = fechaIng.getMonth() + 1;
         

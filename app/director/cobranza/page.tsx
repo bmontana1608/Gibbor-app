@@ -815,7 +815,10 @@ export default function ModuloCobranza() {
     // Filtro para excluir jugadores que se inscribieron después del mes seleccionado
     const [anioSelCobranza, mesSelCobranza] = fechaInicio.split('-').map(Number);
     const jugadoresParaMes = jugadores.filter(j => {
-      const fechaIng = new Date(j.fecha_ingreso_club || j.fecha_ingreso || tenant?.created_at || j.created_at || new Date());
+      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
+      if (!fechaIngresoExplicita) return true;
+
+      const fechaIng = new Date(fechaIngresoExplicita);
       const anioIngreso = fechaIng.getFullYear();
       const mesIngreso = fechaIng.getMonth() + 1;
       
