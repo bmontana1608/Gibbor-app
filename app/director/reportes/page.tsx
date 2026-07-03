@@ -88,9 +88,11 @@ export default function ModuloReportes() {
   };
 
   // --- FILTROS DE FECHA ---
+  const parseFechaSegura = (f: string) => new Date(f.includes('T') ? f : f + 'T00:00:00');
+
   const esDelMes = (fechaStr: string) => {
     if (!fechaStr) return false;
-    const d = new Date(fechaStr + 'T00:00:00');
+    const d = parseFechaSegura(fechaStr);
     return d.getMonth() === mesSeleccionado && d.getFullYear() === anioSeleccionado;
   };
 
@@ -132,8 +134,8 @@ export default function ModuloReportes() {
   // 3. Flujo Anual (Bar Chart)
   const mesesAbreviados = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   const flujoAnual = Array.from({ length: 12 }).map((_, idx) => {
-    const isThisYear = (f: string) => new Date(f + 'T00:00:00').getFullYear() === anioSeleccionado;
-    const isThisMonth = (f: string) => new Date(f + 'T00:00:00').getMonth() === idx;
+    const isThisYear = (f: string) => parseFechaSegura(f).getFullYear() === anioSeleccionado;
+    const isThisMonth = (f: string) => parseFechaSegura(f).getMonth() === idx;
 
     const inM = ingresos.filter(i => isThisYear(i.fecha) && isThisMonth(i.fecha)).reduce((sum, curr) => sum + Number(curr.total || 0), 0);
     const outM = egresos.filter(e => isThisYear(e.fecha) && isThisMonth(e.fecha)).reduce((sum, curr) => sum + Number(curr.monto || 0), 0);
