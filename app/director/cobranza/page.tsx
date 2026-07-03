@@ -1650,8 +1650,8 @@ export default function ModuloCobranza() {
                 <p className="font-black text-slate-800 text-sm">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Plan</p></div>
-                <p className="text-sm font-bold text-slate-800">${(jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)).toLocaleString('es-CO')}</p>
+                <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Monto Base</p></div>
+                <p className="text-sm font-bold text-slate-800">${tarifaBaseActual.toLocaleString('es-CO')}</p>
               </div>
             </div>
             <div className="flex-1 p-6 md:p-8 overflow-y-auto">
@@ -1706,7 +1706,7 @@ export default function ModuloCobranza() {
               </div>
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-8 flex justify-between items-center">
                  <p className="text-emerald-800 font-black text-lg">Total a Cobrar:</p>
-                 <p className="text-3xl font-black text-emerald-600">${((jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) - descuento + recargo).toLocaleString('es-CO')}</p>
+                 <p className="text-3xl font-black text-emerald-600">${(tarifaBaseActual - descuento + recargo).toLocaleString('es-CO')}</p>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={() => setIsModalPagoOpen(false)} className="px-8 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">Cancelar</button>
