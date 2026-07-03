@@ -117,7 +117,8 @@ export default function NuevoMiembro() {
       club_id: tenant?.id
     };
     
-    // Remove the override_categoria and fecha_ingreso fields as they don't exist in DB
+    // Renombrar fecha_ingreso a fecha_ingreso_club para la BD
+    (payload as any).fecha_ingreso_club = formData.fecha_ingreso;
     delete (payload as any).override_categoria;
     delete (payload as any).fecha_ingreso;
 
