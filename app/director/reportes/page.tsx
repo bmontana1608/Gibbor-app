@@ -142,10 +142,25 @@ export default function ModuloReportes() {
     // Mes actual para pendiente según el filtro
     const periodoActual = `${anioSeleccionado}-${String(mesSeleccionado + 1).padStart(2, '0')}`;
 
+      const [anioSel, mesSel] = periodoActual.split('-').map(Number);
+
+      const jugadoresActivos = perfiles.filter(p => {
+        if (p.estado_miembro !== 'Activo' || p.rol !== 'Futbolista') return false;
+
+        // Ignorar jugadores que entraron después del mes que estamos consultando
+        const fechaIng = new Date(p.fecha_ingreso_club || p.fecha_ingreso || tenant?.created_at || p.created_at || new Date());
+        const anioIngreso = fechaIng.getFullYear();
+        const mesIngreso = fechaIng.getMonth() + 1;
+        
+        if (anioIngreso > anioSel || (anioIngreso === anioSel && mesIngreso > mesSel)) {
+          return false;
+        }
+        
+        return true;
+      });
+
     let deudaTotalMes = 0;
     const morososList: any[] = [];
-
-    const jugadoresActivos = perfiles.filter(p => p.estado_miembro === 'Activo' && p.rol === 'Futbolista');
 
     jugadoresActivos.forEach(j => {
       const currentPlanName = (j.tipo_plan || 'Regular').toLowerCase();
