@@ -116,6 +116,8 @@ export default function ModuloCobranza() {
   // Historial de Pagos (Ingresos)
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
   const [planes, setPlanes] = useState<any[]>([]);
+  const [conceptos, setConceptos] = useState<any[]>([]);
+  const [conceptoCobro, setConceptoCobro] = useState('Mensualidad');
 
   // Sistema de Abonos
   const [abonos, setAbonos] = useState<any[]>([]);
@@ -253,6 +255,8 @@ export default function ModuloCobranza() {
     }
     
     const { data: planesData } = await supabase.from('planes').select('*').eq('club_id', tenantData.id);
+    const { data: conceptosData } = await supabase.from('conceptos_cobro').select('*').eq('club_id', tenantData.id);
+    if (conceptosData) setConceptos(conceptosData);
     if (planesData) setPlanes(planesData);
 
     const { data: histData } = await supabase
@@ -412,8 +416,14 @@ export default function ModuloCobranza() {
   const confirmarPago = async () => {
     if (!jugadorSeleccionado) return;
     
-    // Usar la tarifa inteligente precalculada para el período seleccionado
-    const tarifaBase = jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan);
+    // Determinar la tarifa base según el concepto
+    let tarifaBase = 0;
+    if (conceptoCobro === 'Mensualidad') {
+      tarifaBase = jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan);
+    } else {
+      const conc = conceptos.find(c => c.nombre === conceptoCobro);
+      tarifaBase = conc ? Number(conc.precio_sugerido) : 0;
+    }
     const total = tarifaBase - descuento + recargo;
 
     const toastId = toast.loading(`Confirmando pago de ${jugadorSeleccionado.nombres}...`);
@@ -432,6 +442,7 @@ export default function ModuloCobranza() {
         apellidos: jugadorSeleccionado.apellidos,
         grupo: jugadorSeleccionado.grupos || 'Sin grupo',
         monto_base: tarifaBase,
+        concepto: conceptoCobro,
         descuento,
         recargo,
         total,
@@ -1648,6 +1659,30 @@ export default function ModuloCobranza() {
                 <div>
                   <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Fecha de Pago</label>
                   <input type="date" value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Concepto a Cobrar</label>
+                  <select 
+                    value={conceptoCobro} 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setConceptoCobro(val);
+                      if (val !== 'Mensualidad') {
+                        const conc = conceptos.find(c => c.nombre === val);
+                        if (conc) {
+                           // Set the discount and recargo to 0 when selecting a different concept
+                           setDescuento(0);
+                           setRecargo(0);
+                        }
+                      }
+                    }}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold bg-white"
+                  >
+                    <option value="Mensualidad">Mensualidad (Plan)</option>
+                    {conceptos.map(c => (
+                      <option key={c.id} value={c.nombre}>{c.nombre} (${parseFloat(c.precio_sugerido).toLocaleString('es-CO')})</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Método de Pago</label>
