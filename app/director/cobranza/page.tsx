@@ -1429,8 +1429,8 @@ export default function ModuloCobranza() {
                                     <span className="text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 flex items-center gap-1.5">
                                       <CheckCircle className="w-4 h-4" /> Pagado
                                     </span>
-                                    <button onClick={() => abrirModalPago(jugador)} className="text-slate-300 hover:text-emerald-500 transition-colors p-1" title="Registrar otro pago">
-                                      <PlusCircle className="w-4 h-4" />
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar cobro de otro concepto">
+                                      <PlusCircle className="w-3.5 h-3.5" /> Cobrar Extra
                                     </button>
                                   </div>
                                 )}
