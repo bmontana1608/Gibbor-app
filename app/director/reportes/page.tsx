@@ -191,11 +191,14 @@ export default function ModuloReportes() {
         .reduce((acc, a) => acc + parseFloat(a.monto || 0), 0);
 
       const totalMesActual = pagadoEsteMes + abonosEsteMes;
-      const pendienteActual = totalMesActual < tarifaActual ? (tarifaActual - totalMesActual) : 0;
+      const esAlDia = totalMesActual >= (tarifaFinal - 100) || totalMesActual >= (precioConDescuento - 100);
+
+      // Si están al día (incluso si pagaron con descuento), no deben nada.
+      const pendienteActual = esAlDia ? 0 : Math.max(0, tarifaFinal - totalMesActual);
 
       if (pendienteActual > 0) {
         deudaTotalMes += pendienteActual;
-        morososList.push({ ...j, deudaTotal: pendienteActual, tarifa: tarifaActual });
+        morososList.push({ ...j, deudaTotal: pendienteActual, tarifa: tarifaFinal });
       }
     });
 
