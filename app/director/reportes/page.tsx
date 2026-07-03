@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
-  PieChart, ClipboardCheck, DollarSign, Users, 
-  Download, Search, RefreshCw, TrendingUp, 
-  BarChart, AlertCircle, Calendar, Target,
-  ArrowUpRight, ArrowDownRight, CreditCard, UserPlus, UserMinus
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts';
+import { 
+  TrendingUp, TrendingDown, DollarSign, AlertCircle, Calendar, 
+  ArrowUpRight, ArrowDownRight, CreditCard, RefreshCw, Wallet, Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
@@ -16,56 +18,35 @@ import * as XLSX from 'xlsx';
 export default function ModuloReportes() {
   const router = useRouter();
   const [cargando, setCargando] = useState(true);
-  const [jugadores, setJugadores] = useState<any[]>([]);
-  const [categorias, setCategorias] = useState<any[]>([]);
-  const [planes, setPlanes] = useState<any[]>([]);
-  const [asistencias, setAsistencias] = useState<any[]>([]);
-  const [pagos, setPagos] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const { slug: tenantSlug } = useTenant();
   
-  // Pestaña activa
-  const [pestañaActiva, setPestañaActiva] = useState<'Resumen' | 'Asistencia' | 'Financiero' | 'Miembros'>('Resumen');
+  // Data State
+  const [ingresos, setIngresos] = useState<any[]>([]);
+  const [egresos, setEgresos] = useState<any[]>([]);
+  const [perfiles, setPerfiles] = useState<any[]>([]);
+  const [planes, setPlanes] = useState<any[]>([]);
   
-  // Filtros superiores
-  const [filtroTiempo, setFiltroTiempo] = useState('Últimos 30 días');
-  const [filtroGrupo, setFiltroGrupo] = useState('Todos los grupos');
-  const [busquedaMiembro, setBusquedaMiembro] = useState('');
+  // Filter State
+  const [mesSeleccionado, setMesSeleccionado] = useState<number>(new Date().getMonth());
+  const [anioSeleccionado, setAnioSeleccionado] = useState<number>(new Date().getFullYear());
+  const [pestañaTabla, setPestañaTabla] = useState<'Ingresos' | 'Egresos' | 'Cartera'>('Ingresos');
 
   useEffect(() => {
     async function init() {
       setCargando(true);
-      
-      // 1. Obtener Tenant
       if (!tenantSlug) return;
+      
       const resTenant = await fetch(`/api/tenant?slug=${tenantSlug}`);
       const tenantData = await resTenant.json();
       setTenant(tenantData);
 
-      // 2. Obtener Sesión y Perfil
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push('/login');
         return;
       }
 
-      const { data: perfil } = await supabase.from('perfiles').select('*').eq('id', session.user.id).single();
-      setUserProfile(perfil);
-
-      // 3. SEGURIDAD
-      if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
-        toast.error("No tienes permiso para acceder a este club.");
-        if (perfil?.club_id) {
-          const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
-          if (c) router.push(`/${c.slug}/director`);
-        } else {
-          router.push('/login');
-        }
-        return;
-      }
-
-      // 4. Cargar datos filtrados
       if (tenantData.id) {
         cargarDatos(tenantData.id);
       }
@@ -76,41 +57,21 @@ export default function ModuloReportes() {
   const cargarDatos = async (clubId: string) => {
     setCargando(true);
     
-    // 1. Jugadores (FILTRADO)
-    const { data: jugData } = await supabase.from('perfiles')
-      .select('*')
-      .eq('club_id', clubId)
-      .eq('rol', 'Futbolista')
-      .neq('estado_miembro', 'Pendiente')
-      .order('nombres', { ascending: true });
-    if (jugData) setJugadores(jugData);
+    // Obtener todos los ingresos
+    const { data: ingresosData } = await supabase.from('pagos_ingresos').select('*').eq('club_id', clubId).order('fecha', { ascending: false });
+    if (ingresosData) setIngresos(ingresosData);
 
-    // 2. Categorías (FILTRADO)
-    const { data: catData } = await supabase.from('categorias')
-      .select('*')
-      .eq('club_id', clubId);
-    if (catData) setCategorias(catData);
+    // Obtener todos los egresos
+    const { data: egresosData } = await supabase.from('pagos_egresos').select('*').eq('club_id', clubId).order('fecha', { ascending: false });
+    if (egresosData) setEgresos(egresosData);
 
-    // 3. Planes (FILTRADO)
-    const { data: planesData } = await supabase.from('planes')
-      .select('*')
-      .eq('club_id', clubId);
+    // Obtener perfiles para cartera
+    const { data: perfilesData } = await supabase.from('perfiles').select('*').eq('club_id', clubId).eq('rol', 'Futbolista');
+    if (perfilesData) setPerfiles(perfilesData);
+
+    // Obtener planes
+    const { data: planesData } = await supabase.from('planes').select('*').eq('club_id', clubId);
     if (planesData) setPlanes(planesData);
-
-    // 4. Asistencias (FILTRADO)
-    const { data: asisData } = await supabase.from('asistencias')
-      .select('*')
-      .eq('club_id', clubId);
-    if (asisData) setAsistencias(asisData);
-
-    // 5. Pagos Reales (FILTRADO)
-    const primerDiaMes = new Date();
-    primerDiaMes.setDate(1);
-    const { data: pagosData } = await supabase.from('pagos_ingresos')
-      .select('*')
-      .eq('club_id', clubId)
-      .gte('fecha', primerDiaMes.toISOString());
-    if (pagosData) setPagos(pagosData);
 
     setCargando(false);
   };
@@ -118,7 +79,7 @@ export default function ModuloReportes() {
   const actualizarDatos = async () => {
     const toastId = toast.loading("Actualizando métricas...");
     if (tenant?.id) await cargarDatos(tenant.id);
-    toast.success("Métricas actualizadas", { id: toastId });
+    toast.success("Métricas financieras actualizadas", { id: toastId });
   };
 
   const calcularTarifa = (planId: string) => {
@@ -126,391 +87,399 @@ export default function ModuloReportes() {
     return plan ? Number(plan.precio_base) : 0;
   };
 
-  // --- CÁLCULOS DINÁMICOS ---
-  
-  // 1. Ingresos Esperados (según planes asignados)
-  const ingresosEsperados = jugadores.reduce((acc, jug) => {
-    const plan = planes.find(p => p.nombre === jug.tipo_plan);
-    return acc + (plan?.precio_base || 0);
-  }, 0);
-
-  // 2. Ingresos Recaudados (Real de la tabla pagos_ingresos)
-  const ingresosRecaudados = pagos.reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
-
-  // 3. Deuda y Gestión
-  const deudaPendiente = Math.max(0, ingresosEsperados - ingresosRecaudados);
-  const tasaCobro = ingresosEsperados > 0 ? Math.round((ingresosRecaudados / ingresosEsperados) * 100) : 0;
-
-  // 4. Asistencia Real (Global)
-  const totalAsistenciasPosibles = asistencias.length;
-  const presentes = asistencias.filter(a => a.estado === 'Presente').length;
-  const tasaAsistenciaGlobal = totalAsistenciasPosibles > 0 ? Math.round((presentes / totalAsistenciasPosibles) * 100) : 0;
-
-  // 5. Asistencia por Categoría
-  const obtenerAsistenciaGrupo = (nombreGrupo: string) => {
-    const asisGrupo = asistencias.filter(a => a.grupo === nombreGrupo);
-    if (asisGrupo.length === 0) return 0;
-    const presentesGrupo = asisGrupo.filter(a => a.estado === 'Presente').length;
-    return Math.round((presentesGrupo / asisGrupo.length) * 100);
+  // --- FILTROS DE FECHA ---
+  const esDelMes = (fechaStr: string) => {
+    if (!fechaStr) return false;
+    const d = new Date(fechaStr + 'T00:00:00');
+    return d.getMonth() === mesSeleccionado && d.getFullYear() === anioSeleccionado;
   };
 
-  // --- FILTRAR MIEMBROS PARA LA TABLA ---
-  const miembrosFiltrados = jugadores.filter(j => {
-    const coincideBusqueda = `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaMiembro.toLowerCase());
-    const coincideGrupo = filtroGrupo === 'Todos los grupos' || j.grupos === filtroGrupo;
-    return coincideBusqueda && coincideGrupo;
+  const ingresosMes = ingresos.filter(i => esDelMes(i.fecha));
+  const egresosMes = egresos.filter(e => esDelMes(e.fecha));
+
+  // --- KPIs FINANCIEROS ---
+  const totalIngresosMes = ingresosMes.reduce((acc, curr) => acc + Number(curr.total || 0), 0);
+  const totalEgresosMes = egresosMes.reduce((acc, curr) => acc + Number(curr.monto || 0), 0);
+  const flujoCaja = totalIngresosMes - totalEgresosMes;
+
+  // Cartera (Deuda en la calle)
+  const morosos = perfiles.filter(p => p.estado_miembro === 'Activo' && p.estado_pago !== 'Al día');
+  const deudaPendiente = morosos.reduce((acc, p) => acc + (p.tarifa || calcularTarifa(p.tipo_plan)), 0);
+
+  // --- DATOS PARA GRÁFICOS ---
+  // 1. Ingresos por Concepto (Pie Chart)
+  const ingresosPorConcepto = ingresosMes.reduce((acc: any, curr) => {
+    const concepto = curr.concepto || 'Mensualidad';
+    acc[concepto] = (acc[concepto] || 0) + Number(curr.total || 0);
+    return acc;
+  }, {});
+  
+  const dataPieIngresos = Object.keys(ingresosPorConcepto).map(k => ({
+    name: k, value: ingresosPorConcepto[k]
+  })).sort((a, b) => b.value - a.value);
+
+  // 2. Egresos por Categoría (Pie Chart)
+  const egresosPorCategoria = egresosMes.reduce((acc: any, curr) => {
+    const cat = curr.categoria || 'Otros';
+    acc[cat] = (acc[cat] || 0) + Number(curr.monto || 0);
+    return acc;
+  }, {});
+  
+  const dataPieEgresos = Object.keys(egresosPorCategoria).map(k => ({
+    name: k, value: egresosPorCategoria[k]
+  })).sort((a, b) => b.value - a.value);
+
+  // 3. Flujo Anual (Bar Chart)
+  const mesesAbreviados = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  const flujoAnual = Array.from({ length: 12 }).map((_, idx) => {
+    const isThisYear = (f: string) => new Date(f + 'T00:00:00').getFullYear() === anioSeleccionado;
+    const isThisMonth = (f: string) => new Date(f + 'T00:00:00').getMonth() === idx;
+
+    const inM = ingresos.filter(i => isThisYear(i.fecha) && isThisMonth(i.fecha)).reduce((sum, curr) => sum + Number(curr.total || 0), 0);
+    const outM = egresos.filter(e => isThisYear(e.fecha) && isThisMonth(e.fecha)).reduce((sum, curr) => sum + Number(curr.monto || 0), 0);
+
+    return {
+      mes: mesesAbreviados[idx],
+      Ingresos: inM,
+      Egresos: outM,
+      Flujo: inM - outM
+    };
   });
 
-  // --- FUNCIÓN EXPORTAR A EXCEL MULTI-HOJA ---
+  const COLORS_IN = ['#10b981', '#34d399', '#6ee7b7', '#059669', '#a7f3d0'];
+  const COLORS_OUT = ['#ef4444', '#f87171', '#fca5a5', '#dc2626', '#fecaca'];
+
+  const formatearDinero = (valor: number) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+
+  // --- EXPORTAR A EXCEL ---
   const exportarExcel = () => {
-    if (miembrosFiltrados.length === 0) return toast.error("No hay datos para exportar");
-
     const wb = XLSX.utils.book_new();
-    const mesActual = new Date().getMonth();
-
-    // 1. HOJA DE RESUMEN FINANCIERO Y OPERATIVO
-    const bajasDelMes = jugadores.filter(j => 
-      j.estado_miembro === 'Inactivo' && 
-      j.updated_at && 
-      new Date(j.updated_at).getMonth() === mesActual
-    ).length;
-
+    
+    // Resumen
     const resumenData = [
-      { Metrica: "Ingresos Esperados (Proyección)", Valor: ingresosEsperados },
-      { Metrica: "Ingresos Recaudados (Real)", Valor: ingresosRecaudados },
-      { Metrica: "Dinero por Cobrar (Deuda)", Valor: deudaPendiente },
-      { Metrica: "Tasa de Cobro Efectivo", Valor: `${tasaCobro}%` },
-      { Metrica: "Total Miembros Activos", Valor: jugadores.filter(j => j.estado_miembro === 'Activo').length },
-      { Metrica: "Bajas Registradas este Mes", Valor: bajasDelMes },
-      { Metrica: "Promedio Asistencia Global", Valor: `${tasaAsistenciaGlobal}%` }
+      { Métrica: "Ingresos del Mes", Valor: totalIngresosMes },
+      { Métrica: "Egresos del Mes", Valor: totalEgresosMes },
+      { Métrica: "Flujo de Caja", Valor: flujoCaja },
+      { Métrica: "Deuda Pendiente", Valor: deudaPendiente }
     ];
-    const wsResumen = XLSX.utils.json_to_sheet(resumenData);
-    XLSX.utils.book_append_sheet(wb, wsResumen, "Resumen General");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumenData), "Resumen Financiero");
 
-    // 2. HOJA DE LISTADO DETALLADO DE MIEMBROS
-    const filasMiembros = miembrosFiltrados.map(j => {
-      const plan = planes.find(p => p.nombre === j.tipo_plan);
-      const tarifa = plan?.precio_base || 0;
-      const pagado = (pagos.find(p => p.jugador_id === j.id) || tarifa === 0) ? tarifa : 0;
-      const asisIndividual = obtenerAsistenciaGrupo(j.grupos);
-      const labelEstado = tarifa === 0 ? 'Becado' : (j.estado_pago || 'Pendiente');
-      
-      return {
-        "Miembro": `${j.nombres} ${j.apellidos}`,
-        "Grupo/Categoría": j.grupos || 'Sin grupo',
-        "Estado Sistema": j.estado_miembro === 'Inactivo' ? 'Inactivo' : 'Activo',
-        "Plan Asignado": j.tipo_plan || 'Ninguno',
-        "Tarifa Base": tarifa,
-        "Estado Financiero": labelEstado,
-        "Total Pagado": pagado,
-        "Asistencia %": `${asisIndividual}%`,
-        "Fecha Registro": new Date(j.created_at).toLocaleDateString('es-ES')
-      };
-    });
-    const wsMiembros = XLSX.utils.json_to_sheet(filasMiembros);
-    XLSX.utils.book_append_sheet(wb, wsMiembros, "Listado de Miembros");
+    // Ingresos
+    if (ingresosMes.length > 0) {
+      const dataIn = ingresosMes.map(i => ({
+        Fecha: i.fecha, Jugador: \`\${i.nombres} \${i.apellidos}\`, Concepto: i.concepto || 'Mensualidad', Monto: i.total, Método: i.metodo_pago
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataIn), "Ingresos");
+    }
 
-    // 3. HOJA DE RESUMEN POR CATEGORÍAS
-    const filasCategorias = categorias.map(c => {
-      const jugadoresCat = jugadores.filter(j => j.grupos === c.nombre);
-      const asistenciaCat = obtenerAsistenciaGrupo(c.nombre);
-      const recaudoCat = pagos.filter(p => jugadoresCat.some(j => j.id === p.jugador_id)).reduce((acc, p) => acc + parseFloat(p.total || 0), 0);
-      
-      return {
-        "Categoría": c.nombre,
-        "Total Jugadores": jugadoresCat.length,
-        "Asistencia Promedio": `${asistenciaCat}%`,
-        "Recaudo Total": recaudoCat
-      };
-    });
-    const wsCategorias = XLSX.utils.json_to_sheet(filasCategorias);
-    XLSX.utils.book_append_sheet(wb, wsCategorias, "Rendimiento Categorías");
+    // Egresos
+    if (egresosMes.length > 0) {
+      const dataOut = egresosMes.map(e => ({
+        Fecha: e.fecha, Descripción: e.descripcion, Categoría: e.categoria, Monto: e.monto
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(dataOut), "Egresos");
+    }
 
-    // Descargar archivo
-    XLSX.writeFile(wb, `Reporte_Avanzado_${tenant?.config?.nombre || 'Club'}.xlsx`);
-    toast.success("Reporte Excel descargado correctamente");
+    XLSX.writeFile(wb, \`Reporte_Financiero_\${mesesAbreviados[mesSeleccionado]}_\${anioSeleccionado}.xlsx\`);
   };
 
-  if (cargando) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando métricas...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6 font-sans text-slate-800 dark:text-slate-100 relative transition-colors">
-      
-      {/* CABECERA */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <BarChart className="text-brand" /> Reportes y Análisis
-        </h1>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+      <div className="p-4 md:p-6 pb-24">
         
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex gap-4 w-full md:w-auto">
-            <select value={filtroTiempo} onChange={(e) => setFiltroTiempo(e.target.value)} className="text-brand">
-              <option>Últimos 7 días</option>
-              <option>Últimos 30 días</option>
-              <option>Este año</option>
-            </select>
-            <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="text-brand">
-              <option>Todos los grupos</option>
-              {categorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
-            </select>
+        {/* CABECERA Y FILTROS */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+              <TrendingUp className="w-8 h-8 text-emerald-500" />
+              Reportes Financieros
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">Visión general del estado económico y flujo de caja del club.</p>
           </div>
-          
-          <button onClick={actualizarDatos} className="w-full md:w-auto bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm transition-colors flex items-center justify-center gap-2">
-            <RefreshCw className="w-4 h-4" /> Actualizar Datos
-          </button>
-        </div>
-      </div>
 
-      {/* PESTAÑAS DE NAVEGACIÓN */}
-      <div className="bg-white rounded-t-2xl border-b border-slate-200 flex overflow-x-auto custom-scrollbar">
-        <button onClick={() => setPestañaActiva('Resumen')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Resumen' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
-          <PieChart className="w-4 h-4" /> Resumen
-        </button>
-        <button onClick={() => setPestañaActiva('Asistencia')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Asistencia' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
-          <ClipboardCheck className="w-4 h-4" /> Asistencia
-        </button>
-        <button onClick={() => setPestañaActiva('Financiero')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Financiero' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
-          <DollarSign className="w-4 h-4" /> Financiero
-        </button>
-        <button onClick={() => setPestañaActiva('Miembros')} className={`px-6 py-4 text-sm font-bold border-b-2 whitespace-nowrap flex items-center gap-2 transition-colors ${pestañaActiva === 'Miembros' ? 'text-brand text-brand bg-brand/10/50' : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}>
-          <Users className="w-4 h-4" /> Miembros
-        </button>
-      </div>
-
-      {/* CONTENEDOR PRINCIPAL */}
-      <div className="bg-white rounded-b-2xl border border-t-0 border-slate-200 shadow-sm p-6 min-h-[500px]">
-        
-        {/* BOTÓN EXPORTAR */}
-        <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-          <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
-            {pestañaActiva === 'Resumen' && <><PieChart className="w-5 h-5 text-slate-400" /> Resumen General</>}
-            {pestañaActiva === 'Asistencia' && <><ClipboardCheck className="w-5 h-5 text-emerald-500" /> Reporte de Asistencia</>}
-            {pestañaActiva === 'Financiero' && <><DollarSign className="w-5 h-5 text-emerald-500" /> Reporte Financiero</>}
-            {pestañaActiva === 'Miembros' && <><Users className="w-5 h-5 text-blue-500" /> Reporte de Miembros</>}
-          </h2>
-          <button onClick={exportarExcel} className="bg-brand/10 text-brand border border-brand/40 hover:bg-brand/10 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:scale-105 flex items-center gap-2 shadow-sm">
-            <Download className="w-4 h-4" /> Exportar a Excel
-          </button>
-        </div>
-
-        {cargando ? (
-          /* SKELETON LOADER PARA PESTAÑAS DENTRO DEL CONTENEDOR */
-          <div className="animate-pulse flex flex-col gap-8">
-            <div className="h-8 bg-slate-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="h-32 bg-slate-200 rounded-xl"></div>
-              <div className="h-32 bg-slate-200 rounded-xl"></div>
-              <div className="h-32 bg-slate-200 rounded-xl"></div>
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 flex-1 lg:flex-none">
+              <Calendar className="w-4 h-4 text-slate-400" />
+              <select 
+                value={mesSeleccionado} 
+                onChange={(e) => setMesSeleccionado(Number(e.target.value))}
+                className="bg-transparent text-sm font-bold text-slate-700 outline-none w-full"
+              >
+                {mesesAbreviados.map((m, idx) => (
+                  <option key={idx} value={idx}>{m}</option>
+                ))}
+              </select>
             </div>
-            <div className="h-64 bg-slate-200 rounded-xl w-full"></div>
+            <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 flex items-center gap-2 w-24">
+              <select 
+                value={anioSeleccionado} 
+                onChange={(e) => setAnioSeleccionado(Number(e.target.value))}
+                className="bg-transparent text-sm font-bold text-slate-700 outline-none w-full"
+              >
+                {[2024, 2025, 2026, 2027].map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            
+            <button 
+              onClick={exportarExcel} 
+              className="bg-slate-900 hover:bg-slate-800 text-white p-2.5 rounded-lg transition-colors shadow-sm"
+              title="Exportar Reporte a Excel"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={actualizarDatos} 
+              className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors"
+              title="Actualizar Datos"
+            >
+              <RefreshCw className={\`w-4 h-4 \${cargando ? 'animate-spin text-brand' : ''}\`} />
+            </button>
           </div>
-        ) : (
-          <>
-            {/* --- PESTAÑA: RESUMEN --- */}
-            {pestañaActiva === 'Resumen' && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {/* Tendencia de Ingresos */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-500" /> Tendencia de Ingresos</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-500 mb-1"><span>Cobranza del Mes</span><span className="font-bold text-slate-800">${ingresosRecaudados.toLocaleString('es-CO')}</span></div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50"><div className="bg-emerald-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${Math.min(tasaCobro, 100)}%` }}></div></div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-500 mb-1"><span>Proyección (Esperados)</span><span className="font-bold text-slate-800">${ingresosEsperados.toLocaleString('es-CO')}</span></div>
-                      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50"><div className="bg-blue-300 h-2 rounded-full transition-all" style={{ width: '100%' }}></div></div>
-                    </div>
-                  </div>
-                </div>
+        </div>
 
-                {/* Promedio de Asistencia */}
-                <div className="space-y-4 border-l border-slate-100 pl-8">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Calendar className="w-4 h-4 text-blue-500" /> Promedio de Asistencia por Día</h3>
-                  <ul className="space-y-2.5 text-sm text-slate-600">
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-slate-300"></span>Domingo</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-400"></span>Lunes</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-400"></span>Martes</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-400"></span>Miércoles</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-400"></span>Jueves</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-rose-400"></span>Viernes</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                    <li className="flex justify-between items-center"><span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-indigo-400"></span>Sábado</span><span className="font-bold text-slate-800 bg-slate-100 px-2 rounded">0</span></li>
-                  </ul>
-                </div>
-
-                {/* Grupos con Mejor Asistencia */}
-                <div className="space-y-4 border-l border-slate-100 pl-8">
-                  <h3 className="text-sm font-bold text-slate-700 flex items-center gap-2"><Target className="text-brand" /> Grupos con Mejor Asistencia</h3>
-                  <div className="space-y-3">
-                    {categorias.length === 0 ? <p className="text-sm text-slate-400 italic">No hay grupos.</p> : categorias.map(cat => (
-                      <div key={cat.id} className="flex justify-between items-center p-2 rounded-lg hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{cat.nombre}</p>
-                          <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">{cat.deporte}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-slate-800">{obtenerAsistenciaGrupo(cat.nombre)}%</p>
-                          <p className="text-[10px] text-slate-400 font-bold">promedio</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        {/* --- TARJETAS KPIs --- */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Ingresos */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div className="relative z-10 flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                <ArrowUpRight className="w-5 h-5 text-emerald-600" />
               </div>
-            )}
+            </div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Ingresos del Mes</p>
+            <h3 className="text-2xl font-black text-slate-800 mt-1">{formatearDinero(totalIngresosMes)}</h3>
+          </div>
 
-            {/* --- PESTAÑA: ASISTENCIA --- */}
-            {pestañaActiva === 'Asistencia' && (
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-4 px-4 rounded-tl-lg">Grupo</th>
-                      <th className="py-4 px-4">Deporte</th>
-                      <th className="py-4 px-4 text-center">Sesiones</th>
-                      <th className="py-4 px-4 text-center">Asistencia Prom.</th>
-                      <th className="py-4 px-4 text-center">Tasa Global</th>
-                      <th className="py-4 px-4 text-center rounded-tr-lg">Tendencia</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
-                    {categorias.length === 0 ? <tr><td colSpan={6} className="py-8 text-center text-slate-500 font-medium">No hay grupos creados en la plataforma.</td></tr> : categorias.map(cat => (
-                      <tr key={cat.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4 font-bold text-slate-800">{cat.nombre}</td>
-                        <td className="py-3 px-4 text-slate-600 flex items-center gap-1.5"><Target className="w-3 h-3 text-slate-400" /> {cat.deporte}</td>
-                        <td className="py-3 px-4 text-center font-medium text-slate-700">{asistencias.filter(a => a.grupo === cat.nombre).length}</td>
-                        <td className="py-3 px-4 text-center font-medium text-slate-700">{asistencias.filter(a => a.grupo === cat.nombre && a.estado === 'Presente').length} / {cat.capacidad_maxima || 0}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`px-2 py-1 rounded text-xs font-bold border ${obtenerAsistenciaGrupo(cat.nombre) >= 70 ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>{obtenerAsistenciaGrupo(cat.nombre)}%</span>
-                        </td>
-                        <td className="py-3 px-4 text-center text-slate-400 font-bold">{obtenerAsistenciaGrupo(cat.nombre) >= 50 ? 'Stable' : 'Unstable'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="mt-8 bg-blue-50/50 border border-blue-100/50 p-5 rounded-2xl flex gap-4 items-start">
-                  <AlertCircle className="w-6 h-6 text-blue-500 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-blue-800 text-sm font-bold mb-1">Métricas de asistencia no disponibles</p>
-                    <p className="text-blue-600 text-xs">Las métricas se encuentran en 0% porque aún no se han registrado asistencias mediante el panel de entrenadores. Una vez comiencen las clases, estos datos se poblarán en tiempo real.</p>
-                  </div>
-                </div>
+          {/* Egresos */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div className="relative z-10 flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center">
+                <ArrowDownRight className="w-5 h-5 text-rose-600" />
               </div>
-            )}
+            </div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Egresos del Mes</p>
+            <h3 className="text-2xl font-black text-slate-800 mt-1">{formatearDinero(totalEgresosMes)}</h3>
+          </div>
 
-            {/* --- PESTAÑA: FINANCIERO --- */}
-            {pestañaActiva === 'Financiero' && (
-              <div className="overflow-x-auto custom-scrollbar">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                      <th className="py-4 px-4 rounded-tl-lg">Periodo</th>
-                      <th className="py-4 px-4">Ingresos Recaudados</th>
-                      <th className="py-4 px-4">Cartera Pendiente</th>
-                      <th className="py-4 px-4 text-center">Tasa Cobro Efectiva</th>
-                      <th className="py-4 px-4 text-center">Altas</th>
-                      <th className="py-4 px-4 text-center rounded-tr-lg">Bajas</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
-                    <tr className="hover:bg-slate-50 transition-colors">
-                      <td className="py-5 px-4 font-bold text-slate-800 flex items-center gap-2"><Calendar className="w-4 h-4 text-blue-500" /> Mes Actual</td>
-                      <td className="py-5 px-4 font-bold text-emerald-600 flex items-center gap-1"><ArrowUpRight className="w-4 h-4" /> ${ingresosRecaudados.toLocaleString('es-CO')}</td>
-                      <td className="py-5 px-4 font-bold text-red-500 flex items-center gap-1"><CreditCard className="w-4 h-4" /> ${deudaPendiente.toLocaleString('es-CO')}</td>
-                      <td className="py-5 px-4 text-center">
-                        <span className={`px-2.5 py-1 rounded-md text-xs font-bold border ${tasaCobro >= 80 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                          {tasaCobro}%
-                        </span>
-                      </td>
-                      <td className="py-5 px-4 text-center text-emerald-600 font-bold flex items-center justify-center gap-1"><UserPlus className="w-4 h-4" /> +{jugadores.length}</td>
-                      <td className="py-5 px-4 text-center text-rose-500 font-bold flex items-center justify-center gap-1"><UserMinus className="w-4 h-4" /> -0</td>
-                    </tr>
-                  </tbody>
-                </table>
+          {/* Flujo Neto */}
+          <div className={\`bg-white rounded-2xl border \${flujoCaja >= 0 ? 'border-emerald-200' : 'border-rose-200'} p-5 shadow-sm relative overflow-hidden group\`}>
+            <div className={\`absolute -right-4 -top-4 w-24 h-24 \${flujoCaja >= 0 ? 'bg-emerald-50' : 'bg-rose-50'} rounded-full group-hover:scale-110 transition-transform\`}></div>
+            <div className="relative z-10 flex items-center justify-between mb-4">
+              <div className={\`w-10 h-10 \${flujoCaja >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} rounded-xl flex items-center justify-center\`}>
+                <Wallet className="w-5 h-5" />
               </div>
-            )}
+            </div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Flujo de Caja</p>
+            <h3 className={\`text-2xl font-black mt-1 \${flujoCaja >= 0 ? 'text-emerald-600' : 'text-rose-600'}\`}>
+              {flujoCaja > 0 ? '+' : ''}{formatearDinero(flujoCaja)}
+            </h3>
+          </div>
 
-            {/* --- PESTAÑA: MIEMBROS --- */}
-            {pestañaActiva === 'Miembros' && (
-              <div>
-                <div className="relative mb-6">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <input 
-                    type="text" 
-                    placeholder="Buscar métricas de un miembro por nombre o apellido..." 
-                    value={busquedaMiembro}
-                    onChange={(e) => setBusquedaMiembro(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl outline-none text-sm focus:ring-2 focus:text-brand shadow-sm" 
+          {/* Deuda Pendiente */}
+          <div className="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div className="relative z-10 flex items-center justify-between mb-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+              </div>
+            </div>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Cartera por Cobrar</p>
+            <h3 className="text-2xl font-black text-amber-600 mt-1">{formatearDinero(deudaPendiente)}</h3>
+          </div>
+        </div>
+
+        {/* --- GRÁFICOS --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          
+          {/* Gráfico Barras Flujo Anual */}
+          <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-6">Flujo de Caja Anual ({anioSeleccionado})</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={flujoAnual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(val) => \`\${val / 1000}k\`} />
+                  <RechartsTooltip 
+                    cursor={{ fill: '#f1f5f9' }}
+                    formatter={(value: number) => formatearDinero(value)}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
-                </div>
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold' }} />
+                  <Bar dataKey="Ingresos" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                  <Bar dataKey="Egresos" fill="#ef4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
 
-                <div className="overflow-x-auto custom-scrollbar">
-                  <table className="w-full text-left border-collapse whitespace-nowrap">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider bg-slate-50/50">
-                        <th className="py-4 px-4 rounded-tl-lg">Atleta / Miembro</th>
-                        <th className="py-4 px-4">Grupo Base</th>
-                        <th className="py-4 px-4 text-center">Asistencia %</th>
-                        <th className="py-4 px-4">Fecha Inscripción</th>
-                        <th className="py-4 px-4 text-center">Estado Financiero</th>
-                        <th className="py-4 px-4 text-right rounded-tr-lg">Total Pagado</th>
+          {/* Pie Charts */}
+          <div className="grid grid-rows-2 gap-6">
+            
+            {/* Pie: Ingresos por Concepto */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Ingresos por Concepto</h3>
+              {dataPieIngresos.length > 0 ? (
+                <div className="h-[140px] w-full flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={dataPieIngresos} innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value" stroke="none">
+                        {dataPieIngresos.map((entry, index) => <Cell key={\`cell-\${index}\`} fill={COLORS_IN[index % COLORS_IN.length]} />)}
+                      </Pie>
+                      <RechartsTooltip formatter={(value: number) => formatearDinero(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                    <span className="text-[10px] font-bold text-slate-400">Total</span>
+                    <span className="text-sm font-black text-slate-800">${(totalIngresosMes / 1000).toFixed(0)}k</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">Sin ingresos registrados</div>
+              )}
+            </div>
+
+            {/* Pie: Egresos por Categoría */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Egresos por Categoría</h3>
+              {dataPieEgresos.length > 0 ? (
+                <div className="h-[140px] w-full flex items-center justify-center relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={dataPieEgresos} innerRadius={45} outerRadius={65} paddingAngle={2} dataKey="value" stroke="none">
+                        {dataPieEgresos.map((entry, index) => <Cell key={\`cell-\${index}\`} fill={COLORS_OUT[index % COLORS_OUT.length]} />)}
+                      </Pie>
+                      <RechartsTooltip formatter={(value: number) => formatearDinero(value)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
+                    <span className="text-[10px] font-bold text-slate-400">Total</span>
+                    <span className="text-sm font-black text-slate-800">${(totalEgresosMes / 1000).toFixed(0)}k</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">Sin egresos registrados</div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* --- TABLAS SEPARADAS --- */}
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          
+          <div className="flex border-b border-slate-200">
+            <button 
+              onClick={() => setPestañaTabla('Ingresos')}
+              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Ingresos' ? 'border-b-2 border-emerald-500 text-emerald-600 bg-emerald-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+            >
+              Historial de Ingresos
+            </button>
+            <button 
+              onClick={() => setPestañaTabla('Egresos')}
+              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Egresos' ? 'border-b-2 border-rose-500 text-rose-600 bg-rose-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+            >
+              Historial de Egresos
+            </button>
+            <button 
+              onClick={() => setPestañaTabla('Cartera')}
+              className={\`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Cartera' ? 'border-b-2 border-amber-500 text-amber-600 bg-amber-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}\`}
+            >
+              Cartera Morosos
+            </button>
+          </div>
+
+          <div className="p-0 overflow-x-auto">
+            {pestañaTabla === 'Ingresos' && (
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-black">
+                  <tr>
+                    <th className="px-6 py-4">Fecha</th>
+                    <th className="px-6 py-4">Jugador</th>
+                    <th className="px-6 py-4">Concepto</th>
+                    <th className="px-6 py-4">Método</th>
+                    <th className="px-6 py-4 text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {ingresosMes.length === 0 ? (
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">No hay ingresos este mes.</td></tr>
+                  ) : (
+                    ingresosMes.map(i => (
+                      <tr key={i.id} className="hover:bg-slate-50">
+                        <td className="px-6 py-3 font-medium text-slate-800">{i.fecha}</td>
+                        <td className="px-6 py-3 font-bold">{i.nombres} {i.apellidos}</td>
+                        <td className="px-6 py-3"><span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">{i.concepto || 'Mensualidad'}</span></td>
+                        <td className="px-6 py-3 text-xs">{i.metodo_pago}</td>
+                        <td className="px-6 py-3 text-right font-black text-emerald-600">{formatearDinero(Number(i.total))}</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
-                      {miembrosFiltrados.length === 0 ? (
-                        <tr><td colSpan={6} className="py-12 text-center text-slate-500 font-medium">Ningún miembro coincide con tu búsqueda o filtros.</td></tr>
-                      ) : (
-                        miembrosFiltrados.map(j => {
-                          const tarifa = calcularTarifa(j.tipo_plan);
-                          const estado = (j.estado_pago || '').trim().toLowerCase();
-                          // Becados o marcados manualmente
-                          const esAlDia = estado === 'al día' || estado === 'al dia' || tarifa === 0;
-                          const fechaCorta = new Date(j.created_at).toLocaleDateString('es-ES');
-
-                          return (
-                            <tr key={j.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="py-3 px-4">
-                                <p className="font-bold text-slate-800 tracking-tight">{j.nombres} {j.apellidos}</p>
-                                <p className="text-[10px] text-slate-400 tracking-wider uppercase font-bold">{j.email_contacto || 'Sin email registrado'}</p>
-                              </td>
-                              <td className="py-3 px-4 text-slate-600 font-medium flex items-center gap-1.5"><Target className="w-3 h-3 text-slate-400 shrink-0" /> {j.grupos || 'Agente libre'}</td>
-                              <td className="py-3 px-4 text-center">
-                                <span className="bg-slate-50 text-slate-600 px-2 py-1 rounded text-xs font-bold border border-slate-100">{obtenerAsistenciaGrupo(j.grupos)}%</span>
-                              </td>
-                              <td className="py-3 px-4 text-slate-600 font-medium flex items-center gap-1.5"><Calendar className="w-3 h-3 text-slate-400" /> {fechaCorta}</td>
-                              <td className="py-3 px-4 text-center">
-                                <span className={`px-2.5 py-1 rounded-[4px] text-[10px] font-bold uppercase tracking-wider border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
-                                  {tarifa === 0 ? 'Becado' : (esAlDia ? 'Al día' : 'En Mora')}
-                                </span>
-                              </td>
-                              <td className={`py-3 px-4 text-right font-bold ${esAlDia ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                ${esAlDia ? tarifa.toLocaleString('es-CO') : '0'}
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             )}
-          </>
-        )}
-      </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-      `}} />
+            {pestañaTabla === 'Egresos' && (
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-black">
+                  <tr>
+                    <th className="px-6 py-4">Fecha</th>
+                    <th className="px-6 py-4">Descripción</th>
+                    <th className="px-6 py-4">Categoría</th>
+                    <th className="px-6 py-4 text-right">Monto</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {egresosMes.length === 0 ? (
+                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">No hay egresos este mes.</td></tr>
+                  ) : (
+                    egresosMes.map(e => (
+                      <tr key={e.id} className="hover:bg-slate-50">
+                        <td className="px-6 py-3 font-medium text-slate-800">{e.fecha}</td>
+                        <td className="px-6 py-3">{e.descripcion}</td>
+                        <td className="px-6 py-3"><span className="px-2 py-1 bg-rose-50 text-rose-600 rounded text-xs font-bold">{e.categoria}</span></td>
+                        <td className="px-6 py-3 text-right font-black text-rose-600">{formatearDinero(Number(e.monto))}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {pestañaTabla === 'Cartera' && (
+              <table className="w-full text-left text-sm text-slate-600">
+                <thead className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs uppercase font-black">
+                  <tr>
+                    <th className="px-6 py-4">Jugador</th>
+                    <th className="px-6 py-4">Grupo</th>
+                    <th className="px-6 py-4">Plan Actual</th>
+                    <th className="px-6 py-4 text-right">Monto Adeudado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-amber-100">
+                  {morosos.length === 0 ? (
+                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Excelente, no hay cartera pendiente.</td></tr>
+                  ) : (
+                    morosos.map(m => (
+                      <tr key={m.id} className="hover:bg-amber-50/30">
+                        <td className="px-6 py-3 font-bold text-slate-800">{m.nombres} {m.apellidos}</td>
+                        <td className="px-6 py-3 text-xs">{m.grupos || 'N/A'}</td>
+                        <td className="px-6 py-3"><span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold">{m.tipo_plan}</span></td>
+                        <td className="px-6 py-3 text-right font-black text-amber-600">{formatearDinero(m.tarifa || calcularTarifa(m.tipo_plan))}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
