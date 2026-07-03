@@ -117,8 +117,9 @@ export default function NuevoMiembro() {
       club_id: tenant?.id
     };
     
-    // Remove the override_categoria field as it doesn't exist in DB
+    // Remove the override_categoria and fecha_ingreso fields as they don't exist in DB
     delete (payload as any).override_categoria;
+    delete (payload as any).fecha_ingreso;
 
     const { error } = await supabase
       .from('perfiles')
