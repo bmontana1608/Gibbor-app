@@ -355,7 +355,15 @@ export default function GestionCategorias() {
                   <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="text-brand outline-none text-sm" placeholder="Ej: Élite Sub-15" /></div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1">Deporte *</label>
-                    <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer"><option value="Fútbol">Fútbol</option><option value="Futsal">Futsal</option></select>
+                    <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer">
+                      <option value="Fútbol">Fútbol</option>
+                      <option value="Futsal">Futsal</option>
+                      <option value="Fútbol de Salón">Fútbol de Salón (Microfútbol)</option>
+                      <option value="Fútbol 7">Fútbol 7</option>
+                      <option value="Fútbol 8">Fútbol 8</option>
+                      <option value="Fútbol 9">Fútbol 9</option>
+                      <option value="Fútbol Playa">Fútbol Playa</option>
+                    </select>
                   </div>
                   <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="text-brand outline-none text-sm" placeholder="Detalles u objetivos de este grupo..."></textarea></div>
                 </div>
