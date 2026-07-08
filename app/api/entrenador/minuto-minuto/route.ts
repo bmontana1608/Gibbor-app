@@ -31,17 +31,17 @@ export async function POST(request: Request) {
     if (error) throw error;
 
     // Si es gol, actualizamos el marcador en eventos
-    if (tipo_accion === 'Gol') {
+    if (tipo_accion === 'Gol' || tipo_accion === 'Gol Contra') {
        // El parámetro es_local nos indica si nuestro club juega de local o de visitante.
        const esLocalBool = es_local !== false;
        let campoActualizar = 'marcador_local';
        
        if (esLocalBool) {
            // Somos el Local. Gol a favor -> marcador_local, Gol rival -> marcador_visitante
-           campoActualizar = jugador_id ? 'marcador_local' : 'marcador_visitante';
+           campoActualizar = (tipo_accion === 'Gol') ? 'marcador_local' : 'marcador_visitante';
        } else {
            // Somos el Visitante. Gol a favor -> marcador_visitante, Gol rival -> marcador_local
-           campoActualizar = jugador_id ? 'marcador_visitante' : 'marcador_local';
+           campoActualizar = (tipo_accion === 'Gol') ? 'marcador_visitante' : 'marcador_local';
        }
        
        await supabaseAdmin.rpc('incrementar_marcador', { 
@@ -82,14 +82,13 @@ export async function DELETE(request: Request) {
     if (error) throw error;
 
     // Si borramos un gol, restar del marcador
-    if (tipo_accion === 'Gol' && evento_id) {
+    if ((tipo_accion === 'Gol' || tipo_accion === 'Gol Contra') && evento_id) {
        let campoActualizar = 'marcador_local';
-       const golAFavor = (jugador_id && jugador_id !== 'null');
        
        if (es_local) {
-           campoActualizar = golAFavor ? 'marcador_local' : 'marcador_visitante';
+           campoActualizar = (tipo_accion === 'Gol') ? 'marcador_local' : 'marcador_visitante';
        } else {
-           campoActualizar = golAFavor ? 'marcador_visitante' : 'marcador_local';
+           campoActualizar = (tipo_accion === 'Gol') ? 'marcador_visitante' : 'marcador_local';
        }
 
        const { data: evData } = await supabaseAdmin.from('eventos').select(campoActualizar).eq('id', evento_id).single();
