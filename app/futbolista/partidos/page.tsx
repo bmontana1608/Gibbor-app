@@ -14,10 +14,13 @@ export default function FutbolistaPartidosLive() {
   useEffect(() => {
     async function loadData() {
       if (!tenantSlug) return;
+      const { data: tenantData } = await supabase.from('clubes').select('id').eq('slug', tenantSlug).single();
+      if (!tenantData) return;
+
       const { data: ev } = await supabase
         .from('eventos')
         .select('*')
-        .eq('tenant_slug', tenantSlug)
+        .eq('club_id', tenantData.id)
         .order('fecha', { ascending: false });
       
       if (ev) setEventos(ev);
