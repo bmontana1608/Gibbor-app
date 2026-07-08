@@ -28,6 +28,8 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
   // Modal actions
   const [modalAbierto, setModalAbierto] = useState(false);
   const [accionSeleccionada, setAccionSeleccionada] = useState('');
+  const [equipoAccion, setEquipoAccion] = useState<'A Favor' | 'En Contra'>('A Favor');
+  const [coordenada, setCoordenada] = useState<{x: number, y: number} | null>(null);
   
   // Settings modal
   const [configAbierto, setConfigAbierto] = useState(false);
@@ -178,6 +180,8 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
     setJugadorEntra('');
     setJugadorSale('');
     setJugadorAsistencia('');
+    setEquipoAccion('A Favor');
+    setCoordenada(null);
     setModalAbierto(true);
   };
 
@@ -189,6 +193,18 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
        const asisName = jugadores.find(j=>j.id===jugadorAsistencia)?.nombres || '';
        comentarioFinal = `Asistencia: ${asisName}`;
     }
+    
+    // Si la acción requiere especificar pertenencia (no es Inicio, Fin, ni Cambio)
+    let tipoFinal = tipo;
+    if (['Gol', 'Tarjeta Amarilla', 'Tarjeta Roja', 'Tiro al Arco', 'Atajada', 'Tiro de Esquina', 'Falta'].includes(tipo)) {
+       if (equipoAccion === 'En Contra') {
+          if (tipo === 'Gol') tipoFinal = 'Gol Contra';
+          comentarioFinal = `(En Contra) ${comentarioFinal}`.trim();
+       }
+       if (coordenada) {
+          comentarioFinal = `${comentarioFinal} | pos:${coordenada.x},${coordenada.y}`.trim();
+       }
+    }
 
     try {
       const res = await fetch('/api/entrenador/minuto-minuto', {
@@ -197,7 +213,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
         body: JSON.stringify({
           evento_id: matchId,
           minuto: Math.floor(segundosActuales / 60),
-          tipo_accion: tipo,
+          tipo_accion: tipoFinal,
           jugador_id: jugId,
           jugador_sale_id: saleId,
           comentario: comentarioFinal,
@@ -392,11 +408,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
          <button onClick={() => abrirModalAccion('Gol')} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
             <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md">⚽</div>
-            <span className="font-black text-[10px] uppercase tracking-widest">Gol Club</span>
-         </button>
-         <button onClick={() => registrarAccion('Gol Contra', null, null, 'Gol del equipo rival')} className="bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
-            <div className="w-10 h-10 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-xl shadow-md">🥅</div>
-            <span className="font-black text-[10px] uppercase tracking-widest">Gol Rival</span>
+            <span className="font-black text-[10px] uppercase tracking-widest">Gol</span>
          </button>
          <button onClick={() => abrirModalAccion('Tarjeta Amarilla')} className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 border border-yellow-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
             <div className="w-8 h-10 rounded bg-yellow-400 text-white flex items-center justify-center shadow-md"></div>
@@ -522,12 +534,23 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
                   </div>
                 </>
               ) : (
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Protagonista</label>
-                  <select value={jugadorEntra} onChange={e => setJugadorEntra(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
-                    <option value="">Seleccionar Jugador (Opcional)</option>
-                    {actoresPrincipales.map((j: any) => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
-                  </select>
+                <div className="space-y-4">
+                  
+                  {/* Selector A Favor / En Contra */}
+                  <div className="flex bg-slate-100 rounded-xl p-1">
+                     <button onClick={() => setEquipoAccion('A Favor')} className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-colors ${equipoAccion === 'A Favor' ? 'bg-white shadow-sm text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}>A Favor (Club)</button>
+                     <button onClick={() => setEquipoAccion('En Contra')} className={`flex-1 py-2 text-xs font-black uppercase rounded-lg transition-colors ${equipoAccion === 'En Contra' ? 'bg-white shadow-sm text-red-600' : 'text-slate-500 hover:text-slate-700'}`}>En Contra (Rival)</button>
+                  </div>
+
+                  {equipoAccion === 'A Favor' && (
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Protagonista</label>
+                      <select value={jugadorEntra} onChange={e => setJugadorEntra(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
+                        <option value="">Seleccionar Jugador (Opcional)</option>
+                        {actoresPrincipales.map((j: any) => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
+                      </select>
+                    </div>
+                  )}
                   
                   {accionSeleccionada === 'Gol' && (
                     <div className="mt-4">
@@ -536,6 +559,40 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
                         <option value="">Sin asistencia</option>
                         {actoresPrincipales.filter((j:any) => j.id !== jugadorEntra).map((j:any) => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
                       </select>
+                    </div>
+                  )}
+                  
+                  {/* Cancha Interactiva para coordenadas */}
+                  {['Tiro al Arco', 'Gol', 'Falta', 'Tiro de Esquina'].includes(accionSeleccionada) && (
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex justify-between">
+                        <span>Lugar de la acción (Opcional)</span>
+                        {coordenada && <span className="text-emerald-500">Marcado ✓</span>}
+                      </label>
+                      <div className="relative w-full aspect-[2/1] bg-emerald-600 border border-emerald-700 rounded-lg cursor-crosshair overflow-hidden shadow-inner"
+                           onClick={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const x = Math.round(((e.clientX - rect.left) / rect.width) * 100);
+                              const y = Math.round(((e.clientY - rect.top) / rect.height) * 100);
+                              setCoordenada({x, y});
+                           }}>
+                        {/* Líneas de la cancha */}
+                        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white/70 -ml-[1px]" />
+                        <div className="absolute top-1/2 left-1/2 w-12 h-12 border-2 border-white/70 rounded-full -mt-6 -ml-6" />
+                        <div className="absolute top-1/2 left-0 w-10 h-20 border-2 border-white/70 -mt-10 -ml-[2px]" />
+                        <div className="absolute top-1/2 right-0 w-10 h-20 border-2 border-white/70 -mt-10 -mr-[2px]" />
+                        
+                        {/* Punto marcado */}
+                        {coordenada && (
+                          <div className="absolute w-4 h-4 bg-yellow-400 rounded-full border-2 border-white shadow-md transition-all pointer-events-none" 
+                               style={{left: `${coordenada.x}%`, top: `${coordenada.y}%`, transform: 'translate(-50%, -50%)'}} />
+                        )}
+                        {!coordenada && (
+                          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20 pointer-events-none text-white text-xs font-bold uppercase tracking-widest">
+                            Toca para marcar
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
