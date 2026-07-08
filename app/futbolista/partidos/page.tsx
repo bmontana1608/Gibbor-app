@@ -9,13 +9,17 @@ import Link from 'next/link';
 export default function FutbolistaPartidosLive() {
   const { slug: tenantSlug } = useTenant();
   const [eventos, setEventos] = useState<any[]>([]);
+  const [tenant, setTenant] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
+
+  const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
 
   useEffect(() => {
     async function loadData() {
       if (!tenantSlug) return;
-      const { data: tenantData } = await supabase.from('clubes').select('id').eq('slug', tenantSlug).single();
+      const { data: tenantData } = await supabase.from('clubes').select('*').eq('slug', tenantSlug).single();
       if (!tenantData) return;
+      setTenant(tenantData);
 
       const { data: ev } = await supabase
         .from('eventos')
@@ -47,7 +51,7 @@ export default function FutbolistaPartidosLive() {
           return (
             <Link 
               key={ev.id} 
-              href={`/futbolista/partidos/${ev.id}/en-vivo`}
+              href={`${basePath}/futbolista/partidos/${ev.id}/en-vivo`}
               className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-xl transition-all group flex flex-col justify-between"
             >
               <div className="flex items-center justify-between mb-4">
@@ -71,10 +75,10 @@ export default function FutbolistaPartidosLive() {
               <div className="flex items-center justify-between gap-4 flex-1">
                 <div className="flex-1 flex flex-col items-center gap-2">
                   <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center p-2 border border-slate-100">
-                     <Trophy className="w-8 h-8 text-slate-300" />
+                     <img src={tenant?.config?.logo || tenant?.logo_url || '/logo.png'} className="w-full h-full object-contain" />
                   </div>
                   <span className="text-xs font-black uppercase text-center text-slate-700 leading-tight h-8">
-                     Club
+                     {tenant?.config?.nombre_corto || 'Club'}
                   </span>
                 </div>
                 

@@ -71,6 +71,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
   );
 
   const brandColor = tenant?.config?.color || '#06b6d4';
+  const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
 
   const getMarcador = () => {
     if (evento?.es_local === false) return `${evento?.marcador_visitante || 0} - ${evento?.marcador_local || 0}`;
@@ -83,7 +84,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
       {/* Header Sticky Marcador */}
       <div className="sticky top-0 z-50 bg-[#020617]/90 backdrop-blur-xl border-b border-white/10 p-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <Link href="/futbolista" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+          <Link href={`${basePath}/futbolista/partidos`} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors">
              <ArrowRightLeft className="w-5 h-5 rotate-180" />
           </Link>
           <div className="flex flex-col items-center">
@@ -107,7 +108,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
             <div className="flex flex-col items-center gap-3 w-1/3">
               <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center p-3 backdrop-blur-md border border-white/20 shadow-xl">
                  {evento?.es_local ? (
-                    <img src={tenant?.config?.logo || '/icon.png'} className="w-full h-full object-contain drop-shadow-lg" />
+                    <img src={tenant?.config?.logo || tenant?.logo_url || '/logo.png'} className="w-full h-full object-contain drop-shadow-lg" />
                  ) : (
                     <img src={evento?.escudo_rival_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'} className="w-full h-full object-contain drop-shadow-lg" />
                  )}
@@ -126,7 +127,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
                  {evento?.es_local ? (
                     <img src={evento?.escudo_rival_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'} className="w-full h-full object-contain drop-shadow-lg" />
                  ) : (
-                    <img src={tenant?.config?.logo || '/icon.png'} className="w-full h-full object-contain drop-shadow-lg" />
+                    <img src={tenant?.config?.logo || tenant?.logo_url || '/logo.png'} className="w-full h-full object-contain drop-shadow-lg" />
                  )}
               </div>
                <span className="font-black text-xs text-center uppercase tracking-widest text-slate-200 leading-tight">
