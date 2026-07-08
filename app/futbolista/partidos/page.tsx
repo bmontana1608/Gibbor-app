@@ -23,16 +23,22 @@ export default function FutbolistaPartidosLive() {
 
       const unMesAtras = new Date();
       unMesAtras.setMonth(unMesAtras.getMonth() - 1);
-      const isoUnMesAtras = unMesAtras.toISOString();
 
       const { data: ev } = await supabase
         .from('eventos')
         .select('*')
         .eq('club_id', tenantData.id)
-        .or(`fecha.gte.${isoUnMesAtras},estado_partido.in.("1er Tiempo","2do Tiempo","Descanso")`)
-        .order('fecha', { ascending: false });
+        .order('fecha', { ascending: false })
+        .limit(100);
       
-      if (ev) setEventos(ev);
+      if (ev) {
+        const filtered = ev.filter(e => {
+          const isReciente = new Date(e.fecha) >= unMesAtras;
+          const isActivo = ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(e.estado_partido);
+          return isReciente || isActivo;
+        });
+        setEventos(filtered);
+      }
       setCargando(false);
     }
     loadData();
