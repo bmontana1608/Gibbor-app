@@ -21,7 +21,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
   const [cargando, setCargando] = useState(true);
   
   // Cronómetro
-  const [minutoActual, setMinutoActual] = useState(0);
+  const [segundosActuales, setSegundosActuales] = useState(0);
   const [cronometroActivo, setCronometroActivo] = useState(false);
   const intervalRef = useRef<any>(null);
 
@@ -111,8 +111,8 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
   useEffect(() => {
     if (cronometroActivo) {
       intervalRef.current = setInterval(() => {
-        setMinutoActual(m => m + 1);
-      }, 60000);
+        setSegundosActuales(s => s + 1);
+      }, 1000);
     } else {
       clearInterval(intervalRef.current);
     }
@@ -141,7 +141,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
     }
     if (nuevoEstado === '2do Tiempo') {
       registrarAccion('Inicio', null, null, 'Inicia el 2do Tiempo');
-      setMinutoActual(45);
+      setSegundosActuales(45 * 60);
       setCronometroActivo(true);
     }
     if (nuevoEstado === 'Finalizado') {
@@ -196,7 +196,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           evento_id: matchId,
-          minuto: minutoActual,
+          minuto: Math.floor(segundosActuales / 60),
           tipo_accion: tipo,
           jugador_id: jugId,
           jugador_sale_id: saleId,
@@ -356,7 +356,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
                {evento?.estado_partido}
              </div>
              <div className="mt-2 text-3xl font-mono font-black text-slate-100">
-                {minutoActual}'
+                {Math.floor(segundosActuales / 60).toString().padStart(2, '0')}:{(segundosActuales % 60).toString().padStart(2, '0')}
              </div>
           </div>
 
@@ -381,8 +381,8 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
            <div className="flex flex-col">
              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Cronómetro</span>
              <div className="flex items-center gap-3 mt-1">
-               <button onClick={() => setMinutoActual(m => Math.max(0, m - 1))} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">-</button>
-               <button onClick={() => setMinutoActual(m => m + 1)} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">+</button>
+               <button onClick={() => setSegundosActuales(s => Math.max(0, s - 60))} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">-</button>
+               <button onClick={() => setSegundosActuales(s => s + 60)} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">+</button>
              </div>
            </div>
         </div>
