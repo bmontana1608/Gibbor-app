@@ -39,6 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = [
     { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes', path: '/admin/solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes', path: '/admin/clubes' },
+    { id: 'cobranza', icon: <DollarSign size={20} />, label: 'Cobranza', path: '/admin/cobranza' },
     { id: 'crm', icon: <Rocket size={20} />, label: 'CRM', path: '/admin/crm' },
     { id: 'chat', icon: <MessageSquare size={20} />, label: 'WhatsApp CRM', path: '/admin/crm/chat' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios', path: '/admin/usuarios' },
