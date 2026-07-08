@@ -208,10 +208,10 @@ export default function SaasCobranzaPage() {
         const totalAtletas = activosPorClub[club.id] || 0;
         
         // Calcular tarifa según plan
-        const plan = club.planes_saas || { precio_base: 100000, limite_jugadores_base: 60, precio_jugador_extra: 2000 };
-        const precioBase = Number(plan.precio_base || 100000);
-        const limiteBase = Number(plan.limite_jugadores_base || 60);
-        const precioExtra = Number(plan.precio_jugador_extra || 2000);
+        const plan = club.planes_saas;
+        const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+        const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+        const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
         
         const extras = Math.max(0, totalAtletas - limiteBase);
         const total = precioBase + (extras * precioExtra);
@@ -264,10 +264,10 @@ export default function SaasCobranzaPage() {
   // --- CÁLCULO DE MÉTRICAS GLOBALES ---
   const mrrTotal = clubes.reduce((sum, club) => {
     const totalAtletas = activosPorClub[club.id] || 0;
-    const plan = club.planes_saas || { precio_base: 100000, limite_jugadores_base: 60, precio_jugador_extra: 2000 };
-    const precioBase = Number(plan.precio_base || 100000);
-    const limiteBase = Number(plan.limite_jugadores_base || 60);
-    const precioExtra = Number(plan.precio_jugador_extra || 2000);
+    const plan = club.planes_saas;
+    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
     
     const extras = Math.max(0, totalAtletas - limiteBase);
     return sum + precioBase + (extras * precioExtra);
@@ -450,9 +450,13 @@ export default function SaasCobranzaPage() {
               <tbody className="divide-y divide-slate-100">
                 {clubesFiltrados.map(club => {
                   const atletas = activosPorClub[club.id] || 0;
-                  const plan = club.planes_saas || { precio_base: 100000, limite_jugadores_base: 60, precio_jugador_extra: 2000 };
-                  const extras = Math.max(0, atletas - plan.limite_jugadores_base);
-                  const mrrEstimado = Number(plan.precio_base) + (extras * Number(plan.precio_jugador_extra));
+                  const plan = club.planes_saas;
+                  const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+                  const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+                  const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+                  
+                  const extras = Math.max(0, atletas - limiteBase);
+                  const mrrEstimado = precioBase + (extras * precioExtra);
                   
                   // Calcular deuda pendiente
                   const deuda = facturas
