@@ -6,7 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { 
   Building2, Users, CreditCard, TrendingUp, Library, LifeBuoy, 
-  Megaphone, History, User, Settings, LogOut, Loader2, FileText, Image as ImageIcon, Rocket, MessageSquare 
+  Megaphone, History, User, Settings, LogOut, Loader2, FileText, Image as ImageIcon, Rocket, MessageSquare,
+  DollarSign
 } from 'lucide-react';
 import { toast } from 'sonner';
 import MCMLogo from '@/components/MCMLogo';
