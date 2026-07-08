@@ -1,0 +1,265 @@
+'use client';
+
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Calendar, Clock, MapPin, Users, Tag, Trophy as TrophyIcon } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useTenant } from "@/lib/hooks/useTenant";
+
+export default function GestionEventos() {
+  const [eventos, setEventos] = useState<any[]>([]);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [nuevoEvento, setNuevoEvento] = useState({
+    titulo: '',
+    tipo: 'Entrenamiento',
+    fecha: '',
+    hora: '',
+    lugar: '',
+    categoria_id: ''
+  });
+
+  const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+  const { slug: tenantSlug } = useTenant();
+
+  const fetchDatos = async () => {
+    if (!tenantSlug) return;
+    const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
+    const tenantData = await tenantRes.json();
+
+    const [resEv, resCat] = await Promise.all([
+      fetch(`/api/eventos?slug=${tenantSlug}`).then(r => r.json()),
+      supabase.from('categorias').select('nombre').eq('club_id', tenantData.id).order('nombre')
+    ]);
+    setEventos(resEv || []);
+    if (resCat.data) setCategorias(resCat.data);
+    setCargando(false);
+  };
+
+  useEffect(() => {
+    fetchDatos();
+  }, [tenantSlug]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevoEvento.titulo || !nuevoEvento.fecha || !nuevoEvento.hora) {
+      return toast.error("Por favor completa los campos básicos");
+    }
+
+    const toastId = toast.loading("Guardando evento...");
+    try {
+      const res = await fetch(`/api/eventos?slug=${tenantSlug}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoEvento)
+      });
+
+      if (res.ok) {
+        toast.success("¡Evento publicado con éxito!", { id: toastId });
+        setNuevoEvento({ titulo: '', tipo: 'Entrenamiento', fecha: '', hora: '', lugar: '', categoria_id: '' });
+        fetchDatos();
+      } else {
+        toast.error("Error al guardar el evento", { id: toastId });
+      }
+    } catch (err) {
+      toast.error("Fallo de conexión", { id: toastId });
+    }
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!showConfirmModal) return;
+    
+    const res = await fetch(`/api/eventos?id=${showConfirmModal}&slug=${tenantSlug}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast.success("Evento eliminado");
+      setShowConfirmModal(null);
+      fetchDatos();
+    }
+  };
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="text-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando agenda...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-brand">Agenda</span></h1>
+          <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* FORMULARIO */}
+        <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit">
+          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="text-brand" /> Nuevo Evento</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Título</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Final de Torneo"
+                className="text-brand outline-none transition-all"
+                value={nuevoEvento.titulo}
+                onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Tipo</label>
+                <select 
+                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none cursor-pointer"
+                  value={nuevoEvento.tipo}
+                  onChange={e => setNuevoEvento({...nuevoEvento, tipo: e.target.value})}
+                >
+                  <option value="Entrenamiento">Entrenamiento</option>
+                  <option value="Partido">Partido</option>
+                  <option value="Evento">Evento Social</option>
+                  <option value="Pago">Recordatorio Pago</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Fecha</label>
+                <input 
+                  type="date" 
+                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
+                  value={nuevoEvento.fecha}
+                  onChange={e => setNuevoEvento({...nuevoEvento, fecha: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Hora</label>
+                <input 
+                  type="time" 
+                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
+                  value={nuevoEvento.hora}
+                  onChange={e => setNuevoEvento({...nuevoEvento, hora: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Lugar</label>
+                <input 
+                  type="text" 
+                  placeholder="Sede Norte"
+                  className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
+                  value={nuevoEvento.lugar}
+                  onChange={e => setNuevoEvento({...nuevoEvento, lugar: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-2 block flex items-center gap-1.5">
+                <Tag className="w-3 h-3" /> Categoría Destino
+              </label>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
+                <button
+                  type="button"
+                  onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: ''})}
+                  className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all ${
+                    nuevoEvento.categoria_id === '' 
+                    ? 'bg-brand text-white border-brand shadow-lg' 
+                    : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
+                  }`}
+                >
+                  Global (Todos)
+                </button>
+                {categorias.map((cat) => (
+                  <button
+                    key={cat.nombre}
+                    type="button"
+                    onClick={() => setNuevoEvento({...nuevoEvento, categoria_id: cat.nombre})}
+                    className={`p-3 rounded-xl border text-[10px] font-black uppercase transition-all truncate ${
+                      nuevoEvento.categoria_id === cat.nombre 
+                      ? 'bg-brand text-white border-brand shadow-lg' 
+                      : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
+                    }`}
+                  >
+                    {cat.nombre}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button type="submit" className="w-full bg-brand text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
+              <Plus className="w-4 h-4" /> Publicar Evento
+            </button>
+          </form>
+        </div>
+
+        {/* LISTADO PRÓXIMOS */}
+        <div className="lg:col-span-2 space-y-6">
+          <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-2">Próximos en Agenda</h2>
+          {eventos.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {eventos.map((evento) => (
+                <div key={evento.id} className="text-brand transition-all">
+                  <div className="flex items-center gap-6">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${
+                      evento.tipo === 'Partido' ? 'bgtext-brand' : 
+                      evento.tipo === 'Entrenamiento' ? 'bg-blue-500' : 'bg-purple-500'
+                    }`}>
+                      {evento.tipo === 'Partido' ? <TrophyIcon className="w-7 h-7" /> : <Calendar className="w-7 h-7" />}
+                    </div>
+                    <div>
+                      <h3 className="font-black text-slate-800 text-lg uppercase leading-none">{evento.titulo}</h3>
+                      <div className="flex flex-wrap items-center gap-4 mt-2">
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <Clock className="text-brand" /> 
+                          {evento.fecha} | {(() => {
+                            const [h, m] = (evento.hora || '12:00').split(':');
+                            let hour = parseInt(h);
+                            const ampm = hour >= 12 ? 'PM' : 'AM';
+                            hour = hour % 12 || 12;
+                            return `${hour}:${m} ${ampm}`;
+                          })()}
+                        </span>
+                        {evento.lugar && <span className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest"><MapPin className="text-brand" /> {evento.lugar}</span>}
+                        {evento.categoria_id && <span className="text-brand uppercase tracking-widest bg-brand/10 p-1 px-2 rounded-lg"><Users className="w-3 h-3" /> {evento.categoria_id}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowConfirmModal(evento.id)} className="p-3 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"><Trash2 className="w-5 h-5" /></button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+               <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No hay eventos próximos.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* MODAL DE CONFIRMACIÓN */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowConfirmModal(null)}></div>
+          <div className="relative bg-white rounded-[3rem] p-8 max-w-sm w-full shadow-2xl border border-slate-100 animate-in zoom-in duration-300 text-center">
+             <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-10 h-10 text-rose-500" />
+             </div>
+             <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-tight">¿Eliminar este<br/>evento?</h3>
+             <p className="text-slate-500 text-sm font-medium mt-3 px-4">Esta acción no se puede deshacer y el evento desaparecerá de la agenda de los alumnos.</p>
+             
+             <div className="grid grid-cols-2 gap-3 mt-8">
+                <button onClick={() => setShowConfirmModal(null)} className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all">Cancelar</button>
+                <button onClick={confirmarEliminacion} className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all">Sí, Eliminar</button>
+             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

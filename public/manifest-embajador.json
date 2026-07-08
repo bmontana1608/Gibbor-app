@@ -1,0 +1,24 @@
+{
+  "name": "Embajador MCM",
+  "short_name": "Embajador",
+  "description": "Master Club Manager - Panel Embajador",
+  "start_url": "/embajador/clubes",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "scope": "/embajador",
+  "icons": [
+    {
+      "src": "/embajador-pwa-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/embajador-pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
