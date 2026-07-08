@@ -151,7 +151,17 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
               const isAmarilla = evm.tipo_accion === 'Tarjeta Amarilla';
               const isRoja = evm.tipo_accion === 'Tarjeta Roja';
               const isCambio = evm.tipo_accion === 'Cambio';
+              const isTiro = evm.tipo_accion === 'Tiro al Arco';
+              const isFalta = evm.tipo_accion === 'Falta';
+              const isEsquina = evm.tipo_accion === 'Tiro de Esquina';
               
+              const isEnContra = evm.comentario?.includes('(En Contra)') || isGolRival;
+              const cleanComentario = evm.comentario?.replace('(En Contra)', '')?.split('| pos:')[0]?.trim();
+              const rawPos = evm.comentario?.split('| pos:')[1]?.trim();
+              const [posX, posY] = rawPos ? rawPos.split(',').map(Number) : [null, null];
+              
+              const isBadAction = isRoja || (isFalta && isEnContra) || isGolRival;
+
               return (
                 <div key={evm.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                   
@@ -162,20 +172,24 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
                       isAmarilla ? 'bg-yellow-400 text-white' : 
                       isRoja ? 'bg-red-500 text-white' : 
                       isCambio ? 'bg-indigo-500 text-white' : 
+                      isTiro ? 'bg-blue-500 text-white' :
+                      isFalta ? 'bg-orange-500 text-white' :
+                      isEsquina ? 'bg-purple-500 text-white' :
                       'bg-slate-800 text-slate-300'}`}
                   >
-                    {isGol ? '⚽' : isGolRival ? '🥅' : isCambio ? <ArrowRightLeft className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                    {isGol ? '⚽' : isGolRival ? '🥅' : isCambio ? <ArrowRightLeft className="w-4 h-4" /> : isTiro ? '🎯' : isFalta ? '⚠️' : isEsquina ? '🚩' : <Clock className="w-4 h-4" />}
                   </div>
 
                   {/* Card */}
                   <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded-2xl border border-white/5 shadow-lg backdrop-blur-md transition-all
                     ${isGol ? 'bg-emerald-500/10 border-emerald-500/20' : 
-                      isRoja ? 'bg-red-500/10 border-red-500/20' : 
+                      isBadAction ? 'bg-red-500/10 border-red-500/20' : 
                       'bg-white/5 hover:bg-white/10'}`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs font-black uppercase tracking-widest ${isGol ? 'text-emerald-400' : isRoja ? 'text-red-400' : isAmarilla ? 'text-yellow-400' : 'text-slate-400'}`}>
-                         {evm.tipo_accion}
+                      <span className={`text-xs font-black uppercase tracking-widest flex items-center gap-2 ${isGol ? 'text-emerald-400' : isBadAction ? 'text-red-400' : isAmarilla ? 'text-yellow-400' : 'text-slate-400'}`}>
+                         {evm.tipo_accion} 
+                         {isEnContra && !isGolRival && <span className="bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[9px]">(En Contra)</span>}
                       </span>
                       <span className="text-xs font-bold text-slate-500">{evm.minuto}'</span>
                     </div>
@@ -200,7 +214,20 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
                       </div>
                     )}
 
-                    {evm.comentario && <p className="text-xs text-slate-400 mt-2 italic">{evm.comentario}</p>}
+                    {cleanComentario && <p className="text-xs text-slate-400 mt-2 italic">{cleanComentario}</p>}
+
+                    {/* Mini Cancha Renderizada */}
+                    {posX !== null && posY !== null && (
+                      <div className="mt-3 relative w-full aspect-[2/1] bg-emerald-600/20 border border-emerald-500/30 rounded-lg overflow-hidden">
+                        <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white/20 -ml-[1px]" />
+                        <div className="absolute top-1/2 left-1/2 w-8 h-8 border border-white/20 rounded-full -mt-4 -ml-4" />
+                        <div className="absolute top-1/2 left-0 w-6 h-12 border border-white/20 -mt-6 -ml-[1px]" />
+                        <div className="absolute top-1/2 right-0 w-6 h-12 border border-white/20 -mt-6 -mr-[1px]" />
+                        
+                        <div className="absolute w-3 h-3 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.8)] animate-pulse" 
+                             style={{left: `${posX}%`, top: `${posY}%`, transform: 'translate(-50%, -50%)'}} />
+                      </div>
+                    )}
                   </div>
 
                 </div>
