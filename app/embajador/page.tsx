@@ -6,7 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 export default async function EmbajadorDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }> | { id?: string };
+  searchParams: any;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

@@ -5,7 +5,7 @@ import { Wallet, CheckCircle2, Clock } from 'lucide-react';
 export default async function ComisionesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }> | { id?: string };
+  searchParams: any;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

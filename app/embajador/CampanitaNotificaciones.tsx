@@ -3,7 +3,7 @@ import { Bell } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-export default function CampanitaNotificaciones({ embajadorId }: { embajadorId: string }) {
+export default function CampanitaNotificaciones({ embajadorId }: { embajadorId?: string | null }) {
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   const [abierto, setAbierto] = useState(false);
   const supabase = createClient();

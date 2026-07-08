@@ -14,7 +14,7 @@ interface Message {
   isTyping?: boolean;
 }
 
-export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId: string; role?: string }) {
+export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId?: string | null; role?: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
