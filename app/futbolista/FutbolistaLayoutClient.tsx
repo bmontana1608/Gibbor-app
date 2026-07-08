@@ -231,7 +231,6 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{usuario?.nombres ? `Jugador: ${usuario.nombres}` : 'Cargando...'}</p>
            </div>
            <div className="flex items-center gap-3">
-              <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Futbolista'} />
               <ThemeToggle />
               <NotificationBell clubId={tenant?.id} />
            </div>
@@ -240,6 +239,9 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
           {children}
         </div>
       </main>
+      <div className="fixed bottom-6 right-6 z-50">
+        <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Futbolista'} />
+      </div>
     </div>
   );
 }
