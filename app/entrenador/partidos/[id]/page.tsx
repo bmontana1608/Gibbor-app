@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
-import { Play, Square, Settings, Shield, Clock, ArrowRightLeft, Target, Hand, Flag, AlertTriangle } from 'lucide-react';
+import { Play, Square, Settings, Shield, Clock, ArrowRightLeft, Target, Hand, Flag, AlertTriangle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PartidoEnVivo({ params }: { params: Promise<{ id: string }> }) {
