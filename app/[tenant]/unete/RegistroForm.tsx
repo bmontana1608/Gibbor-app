@@ -44,7 +44,13 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
       const monthDiff = today.getMonth() - birthDate.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
       setIsMinor(age < 18);
-      const match = categorias.find(cat => age >= (cat.edad_minima || 0) && age <= (cat.edad_maxima || 99));
+      const birthYear = birthDate.getFullYear();
+      const match = categorias.find(cat => {
+        if (cat.edad_minima > 100) {
+          return birthYear >= cat.edad_minima && birthYear <= cat.edad_maxima;
+        }
+        return age >= (cat.edad_minima || 0) && age <= (cat.edad_maxima || 99);
+      });
       if (match) {
         setCategoriaAsignada(match);
         setFormData(prev => ({ ...prev, grupos: match.nombre }));

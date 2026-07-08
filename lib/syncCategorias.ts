@@ -53,10 +53,18 @@ export async function syncCategoriasInteligentes(club_id: string) {
       }
 
       const edad = calcularEdad(jug.fecha_nacimiento);
+      const anioNacimiento = jug.fecha_nacimiento ? new Date(jug.fecha_nacimiento).getFullYear() : 0;
       
-      // Buscar la categoría adecuada para esta edad
-      // Si coincide con varias, tomará la primera (podríamos ajustar la lógica si hay solapes)
-      const categoriaIdeal = categorias.find(c => edad >= c.edad_minima && edad <= c.edad_maxima);
+      // Buscar la categoría adecuada para esta edad o año de nacimiento
+      const categoriaIdeal = categorias.find(c => {
+        if (c.edad_minima > 100) {
+          // Clasificación por Año de Nacimiento (ej. 2014 a 2016)
+          return anioNacimiento >= c.edad_minima && anioNacimiento <= c.edad_maxima;
+        } else {
+          // Clasificación por edad en años
+          return edad >= c.edad_minima && edad <= c.edad_maxima;
+        }
+      });
 
       if (categoriaIdeal) {
         // Si no tiene grupo, o el grupo actual es distinto a su categoría ideal, lo actualizamos

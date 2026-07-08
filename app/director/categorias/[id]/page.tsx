@@ -166,7 +166,16 @@ export default function DetalleCategoria() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div><p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Deporte</p><p className="text-slate-800 font-bold">{categoria.deporte}</p></div>
                 <div><p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nivel de Habilidad</p><p className="text-slate-800 font-bold">{categoria.nivel}</p></div>
-                <div><p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Rango de Edad</p><p className="text-slate-800 font-bold">{categoria.edad_minima} a {categoria.edad_maxima} años</p></div>
+                <div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    {categoria.edad_minima > 100 ? 'Año de Nacimiento' : 'Rango de Edad'}
+                  </p>
+                  <p className="text-slate-800 font-bold">
+                    {categoria.edad_minima > 100 
+                      ? (categoria.edad_minima === categoria.edad_maxima ? `Año ${categoria.edad_minima}` : `Años ${categoria.edad_minima} a ${categoria.edad_maxima}`)
+                      : `${categoria.edad_minima} a ${categoria.edad_maxima} años`}
+                  </p>
+                </div>
                 <div><p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estado Actual</p><p className="text-emerald-600 font-bold">{categoria.estado}</p></div>
               </div>
             </div>

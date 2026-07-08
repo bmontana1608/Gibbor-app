@@ -297,7 +297,14 @@ export default function GestionCategorias() {
                 
                 <div className="space-y-3 mt-5">
                   <div className="flex items-start gap-3 text-sm"><Users className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-700 font-medium leading-tight">{grupo.entrenadores || 'Sin cuerpo técnico asignado'}</span></div>
-                  <div className="flex items-center gap-3 text-sm"><GraduationCap className="w-4 h-4 text-slate-400 shrink-0" /><span className="text-slate-600 font-medium">{grupo.edad_minima} - {grupo.edad_maxima} años</span></div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <GraduationCap className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span className="text-slate-600 font-medium">
+                      {grupo.edad_minima > 100 
+                        ? (grupo.edad_minima === grupo.edad_maxima ? `Año ${grupo.edad_minima}` : `Años ${grupo.edad_minima} - ${grupo.edad_maxima}`)
+                        : `${grupo.edad_minima} - ${grupo.edad_maxima} años`}
+                    </span>
+                  </div>
                   <div className="flex items-start gap-3 text-sm"><CalendarDays className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-600 font-medium leading-tight whitespace-pre-wrap">{grupo.horarios?.replace(/ \| /g, '\n') || 'Horario no definido'}</span></div>
                 </div>
 
@@ -380,10 +387,82 @@ export default function GestionCategorias() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Criterio de Clasificación *</label>
+                  <div className="flex gap-4 mb-3">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="criterio_clasificacion" 
+                        checked={formData.edad_minima <= 100} 
+                        onChange={() => {
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            edad_minima: 5,
+                            edad_maxima: 18
+                          }));
+                        }} 
+                        className="text-brand focus:ring-brand" 
+                      />
+                      Por Rango de Edad
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="criterio_clasificacion" 
+                        checked={formData.edad_minima > 100} 
+                        onChange={() => {
+                          const currentYear = new Date().getFullYear();
+                          setFormData((prev: any) => ({
+                            ...prev,
+                            edad_minima: currentYear - 10,
+                            edad_maxima: currentYear - 10
+                          }));
+                        }} 
+                        className="text-brand focus:ring-brand" 
+                      />
+                      Por Año de Nacimiento
+                    </label>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-4">
-                  <div><label className="block text-xs font-bold text-slate-700 mb-1">Edad Mín.</label><input type="number" name="edad_minima" value={formData.edad_minima} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" /></div>
-                  <div><label className="block text-xs font-bold text-slate-700 mb-1">Edad Máx.</label><input type="number" name="edad_maxima" value={formData.edad_maxima} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" /></div>
-                  <div><label className="block text-xs font-bold text-slate-700 mb-1">Cupo Máx.</label><input type="number" name="capacidad_maxima" value={formData.capacidad_maxima} onChange={handleChange} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" /></div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {formData.edad_minima > 100 ? 'Año Mín.' : 'Edad Mín.'}
+                    </label>
+                    <input 
+                      type="number" 
+                      name="edad_minima" 
+                      value={formData.edad_minima} 
+                      onChange={handleChange} 
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" 
+                      placeholder={formData.edad_minima > 100 ? '2014' : '5'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {formData.edad_minima > 100 ? 'Año Máx.' : 'Edad Máx.'}
+                    </label>
+                    <input 
+                      type="number" 
+                      name="edad_maxima" 
+                      value={formData.edad_maxima} 
+                      onChange={handleChange} 
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" 
+                      placeholder={formData.edad_minima > 100 ? '2014' : '18'}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Cupo Máx.</label>
+                    <input 
+                      type="number" 
+                      name="capacidad_maxima" 
+                      value={formData.capacidad_maxima} 
+                      onChange={handleChange} 
+                      className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-center" 
+                    />
+                  </div>
                 </div>
 
                 <div className="pt-2">
