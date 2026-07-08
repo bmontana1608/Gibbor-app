@@ -342,7 +342,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
         <div className="flex items-center justify-between w-full max-w-lg mb-6 relative z-10">
           <div className="flex flex-col items-center gap-2 w-1/3">
              {evento?.es_local ? (
-                <img src={tenant?.config?.logo || '/icon.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
+                <img src={tenant?.config?.logo || tenant?.logo_url || '/logo.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
              ) : (
                 <img src={evento?.escudo_rival_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
              )}
@@ -364,7 +364,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
              {evento?.es_local ? (
                 <img src={evento?.escudo_rival_url || 'https://cdn-icons-png.flaticon.com/512/1162/1162815.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
              ) : (
-                <img src={tenant?.config?.logo || '/icon.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
+                <img src={tenant?.config?.logo || tenant?.logo_url || '/logo.png'} className="w-16 h-16 object-contain drop-shadow-lg" />
              )}
              <span className="font-bold text-sm text-center uppercase tracking-widest">{evento?.es_local ? (evento?.equipo_rival || 'Rival') : tenant?.config?.nombre_corto}</span>
           </div>
