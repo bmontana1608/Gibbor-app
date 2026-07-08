@@ -21,10 +21,15 @@ export default function FutbolistaPartidosLive() {
       if (!tenantData) return;
       setTenant(tenantData);
 
+      const unMesAtras = new Date();
+      unMesAtras.setMonth(unMesAtras.getMonth() - 1);
+      const isoUnMesAtras = unMesAtras.toISOString();
+
       const { data: ev } = await supabase
         .from('eventos')
         .select('*')
         .eq('club_id', tenantData.id)
+        .or(`fecha.gte.${isoUnMesAtras},estado_partido.in.("1er Tiempo","2do Tiempo","Descanso")`)
         .order('fecha', { ascending: false });
       
       if (ev) setEventos(ev);
