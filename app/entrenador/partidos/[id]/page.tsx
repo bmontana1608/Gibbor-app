@@ -1,17 +1,22 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
-import { Play, Square, Settings, Shield, Clock, Plus, Trash2, ArrowRightLeft } from 'lucide-react';
+import { Play, Square, Settings, Shield, Clock, ArrowRightLeft, Target, Hand, Flag, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
-export default function PartidoEnVivo({ params }: { params: { id: string } }) {
+export default function PartidoEnVivo({ params }: { params: Promise<{ id: string }> }) {
+  const unwrappedParams = use(params);
+  const matchId = unwrappedParams.id;
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
   const [evento, setEvento] = useState<any>(null);
   const [jugadores, setJugadores] = useState<any[]>([]);
+  const [titulares, setTitulares] = useState<any[]>([]);
+  const [suplentes, setSuplentes] = useState<any[]>([]);
+  const [alineacionConfirmada, setAlineacionConfirmada] = useState(false);
   const [eventosMinuto, setEventosMinuto] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   
@@ -30,9 +35,10 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
   const [escudoRival, setEscudoRival] = useState('');
   const [esLocal, setEsLocal] = useState(true);
 
-  // Selección de cambios
+  // Selección
   const [jugadorEntra, setJugadorEntra] = useState('');
   const [jugadorSale, setJugadorSale] = useState('');
+  const [jugadorAsistencia, setJugadorAsistencia] = useState('');
 
   useEffect(() => {
     async function loadData() {
@@ -41,14 +47,13 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
       const { data: tenantData } = await supabase.from('clubes').select('*').eq('slug', tenantSlug).single();
       setTenant(tenantData);
 
-      // Cargar Evento
       const { data: ev } = await supabase.from('eventos').select(`
         *,
         convocatorias (
           id,
           perfiles!convocatorias_jugador_id_fkey (id, nombres, apellidos, foto_url, posicion, numero)
         )
-      `).eq('id', params.id).single();
+      `).eq('id', matchId).single();
 
       if (ev) {
         setEvento(ev);
@@ -56,49 +61,21 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
         setEscudoRival(ev.escudo_rival_url || '');
         setEsLocal(ev.es_local !== false);
         
-        // Jugadores de la convocatoria
         if (ev.convocatorias) {
           const jug = ev.convocatorias.map((c: any) => c.perfiles).filter(Boolean);
           setJugadores(jug);
+          setSuplentes(jug);
+        }
+        if (ev.estado_partido !== 'No Iniciado') {
+          setAlineacionConfirmada(true);
         }
       }
 
-      // Cargar minuto a minuto
-      const { data: minEvents } = await supabase.from('eventos_minuto_minuto')
-        .select(`
-          *,
-          jugador:perfiles!eventos_minuto_minuto_jugador_id_fkey (nombres, apellidos),
-          jugador_sale:perfiles!eventos_minuto_minuto_jugador_sale_id_fkey (nombres, apellidos)
-        `)
-        .eq('evento_id', params.id)
-        .order('created_at', { ascending: false });
-        
-      if (minEvents) setEventosMinuto(minEvents);
+      fetchEventosMinuto();
       setCargando(false);
     }
     loadData();
-  }, [params.id, tenantSlug]);
-
-  useEffect(() => {
-    // Suscripción Realtime para actualizar si hay cambios
-    const channel = supabase.channel('eventos_minuto_minuto')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'eventos_minuto_minuto', filter: `evento_id=eq.${params.id}` }, (payload) => {
-        // En lugar de actualizar manualmente, recargamos la lista para traer los nombres (joins)
-        fetchEventosMinuto();
-      })
-      .subscribe();
-
-    const channelEvento = supabase.channel('eventos_update')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'eventos', filter: `id=eq.${params.id}` }, (payload) => {
-         setEvento((prev: any) => ({ ...prev, ...payload.new }));
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-      supabase.removeChannel(channelEvento);
-    };
-  }, [params.id]);
+  }, [matchId, tenantSlug]);
 
   const fetchEventosMinuto = async () => {
     const { data } = await supabase.from('eventos_minuto_minuto')
@@ -107,16 +84,35 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
           jugador:perfiles!eventos_minuto_minuto_jugador_id_fkey (nombres, apellidos),
           jugador_sale:perfiles!eventos_minuto_minuto_jugador_sale_id_fkey (nombres, apellidos)
         `)
-        .eq('evento_id', params.id)
+        .eq('evento_id', matchId)
         .order('created_at', { ascending: false });
     if (data) setEventosMinuto(data);
   };
 
   useEffect(() => {
+    const channel = supabase.channel('eventos_minuto_minuto')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'eventos_minuto_minuto', filter: `evento_id=eq.${matchId}` }, () => {
+        fetchEventosMinuto();
+      })
+      .subscribe();
+
+    const channelEvento = supabase.channel('eventos_update')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'eventos', filter: `id=eq.${matchId}` }, (payload) => {
+         setEvento((prev: any) => ({ ...prev, ...payload.new }));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(channelEvento);
+    };
+  }, [matchId]);
+
+  useEffect(() => {
     if (cronometroActivo) {
       intervalRef.current = setInterval(() => {
         setMinutoActual(m => m + 1);
-      }, 60000); // 1 minuto real
+      }, 60000);
     } else {
       clearInterval(intervalRef.current);
     }
@@ -126,17 +122,39 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
   const toggleCronometro = () => {
     setCronometroActivo(!cronometroActivo);
     if (!cronometroActivo && evento?.estado_partido === 'No Iniciado') {
-      actualizarEstadoPartido('En Juego');
-      registrarAccion('Inicio', null, null, 'Inicia el partido');
+      cambiarPeriodo('1er Tiempo');
     }
   };
 
-  const actualizarEstadoPartido = async (estado: string) => {
+  const cambiarPeriodo = async (nuevoEstado: string) => {
     await fetch('/api/entrenador/eventos/rival', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: params.id, estado_partido: estado })
+      body: JSON.stringify({ id: matchId, estado_partido: nuevoEstado })
     });
+    setEvento((prev: any) => ({...prev, estado_partido: nuevoEstado}));
+    
+    if (nuevoEstado === '1er Tiempo') registrarAccion('Inicio', null, null, 'Inicia el 1er Tiempo');
+    if (nuevoEstado === 'Descanso') {
+      registrarAccion('Fin', null, null, 'Fin del 1er Tiempo');
+      setCronometroActivo(false);
+    }
+    if (nuevoEstado === '2do Tiempo') {
+      registrarAccion('Inicio', null, null, 'Inicia el 2do Tiempo');
+      setMinutoActual(45);
+      setCronometroActivo(true);
+    }
+    if (nuevoEstado === 'Finalizado') {
+      registrarAccion('Fin', null, null, 'Final del Partido');
+      setCronometroActivo(false);
+    }
+  };
+
+  const getSiguientePeriodo = () => {
+    if (evento?.estado_partido === 'No Iniciado') return '1er Tiempo';
+    if (evento?.estado_partido === '1er Tiempo') return 'Descanso';
+    if (evento?.estado_partido === 'Descanso') return '2do Tiempo';
+    return 'Finalizado';
   };
 
   const guardarConfiguracion = async () => {
@@ -144,7 +162,7 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
     const res = await fetch('/api/entrenador/eventos/rival', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: params.id, equipo_rival: equipoRival, escudo_rival_url: escudoRival, es_local: esLocal })
+      body: JSON.stringify({ id: matchId, equipo_rival: equipoRival, escudo_rival_url: escudoRival, es_local: esLocal })
     });
     if (res.ok) {
       toast.success('Configuración guardada', { id: toastId });
@@ -159,30 +177,47 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
     setAccionSeleccionada(accion);
     setJugadorEntra('');
     setJugadorSale('');
+    setJugadorAsistencia('');
     setModalAbierto(true);
   };
 
   const registrarAccion = async (tipo: string, jugId?: string | null, saleId?: string | null, comentarioStr?: string) => {
     const toastId = toast.loading('Registrando...');
-    try {
-      const body = {
-        evento_id: params.id,
-        minuto: minutoActual,
-        tipo_accion: tipo,
-        jugador_id: jugId,
-        jugador_sale_id: saleId,
-        comentario: comentarioStr,
-        tenantSlug
-      };
+    
+    let comentarioFinal = comentarioStr || '';
+    if (tipo === 'Gol' && jugadorAsistencia) {
+       const asisName = jugadores.find(j=>j.id===jugadorAsistencia)?.nombres || '';
+       comentarioFinal = `Asistencia: ${asisName}`;
+    }
 
+    try {
       const res = await fetch('/api/entrenador/minuto-minuto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          evento_id: matchId,
+          minuto: minutoActual,
+          tipo_accion: tipo,
+          jugador_id: jugId,
+          jugador_sale_id: saleId,
+          comentario: comentarioFinal,
+          tenantSlug,
+          es_local: esLocal
+        })
       });
       if (res.ok) {
         toast.success('Registrado', { id: toastId });
         setModalAbierto(false);
+        
+        // Actualizar listas si es un cambio
+        if (tipo === 'Cambio' && jugId && saleId) {
+          const jSale = titulares.find(t => t.id === saleId);
+          const jEntra = suplentes.find(s => s.id === jugId);
+          if (jSale && jEntra) {
+            setTitulares(prev => [...prev.filter(t => t.id !== saleId), jEntra]);
+            setSuplentes(prev => [...prev.filter(s => s.id !== jugId), jSale]);
+          }
+        }
       } else {
         toast.error('Error al registrar', { id: toastId });
       }
@@ -194,22 +229,15 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
   const eliminarEventoMinuto = async (id: string, tipo: string, jugId: string) => {
     if(!confirm('¿Eliminar evento?')) return;
     const toastId = toast.loading('Eliminando...');
-    const res = await fetch(`/api/entrenador/minuto-minuto?id=${id}&evento_id=${params.id}&tipo_accion=${tipo}&jugador_id=${jugId}`, {
+    const res = await fetch(`/api/entrenador/minuto-minuto?id=${id}&evento_id=${matchId}&tipo_accion=${tipo}&jugador_id=${jugId}&es_local=${esLocal}`, {
       method: 'DELETE'
     });
     if (res.ok) {
       toast.success('Eliminado', { id: toastId });
-      setEventosMinuto(prev => prev.filter(e => e.id !== id));
+      fetchEventosMinuto();
     } else {
       toast.error('Error al eliminar', { id: toastId });
     }
-  };
-
-  const getTeamNames = () => {
-    const club = tenant?.config?.nombre_corto || tenant?.config?.nombre || 'Club';
-    const rival = evento?.equipo_rival || 'Rival';
-    if (evento?.es_local === false) return `${rival} vs ${club}`;
-    return `${club} vs ${rival}`;
   };
 
   const getMarcador = () => {
@@ -217,12 +245,83 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
     return `${evento?.marcador_local || 0} - ${evento?.marcador_visitante || 0}`;
   };
 
+  const moverAJugador = (jugador: any, aTitulares: boolean) => {
+    if (aTitulares) {
+      if (titulares.length >= 11) {
+        toast.error('Ya tienes 11 titulares.');
+        return;
+      }
+      setSuplentes(prev => prev.filter(s => s.id !== jugador.id));
+      setTitulares(prev => [...prev, jugador]);
+    } else {
+      setTitulares(prev => prev.filter(t => t.id !== jugador.id));
+      setSuplentes(prev => [...prev, jugador]);
+    }
+  };
+
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando tablero...</div>;
 
   const brandColor = tenant?.config?.color || '#06b6d4';
 
+  // Vista de Alineación
+  if (!alineacionConfirmada) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 pb-12">
+        <h1 className="text-3xl font-black text-slate-800 uppercase italic">Confirmar Alineación</h1>
+        <p className="text-slate-500">Selecciona los 11 titulares antes de iniciar el partido.</p>
+        
+        <div className="grid md:grid-cols-2 gap-8">
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+            <h3 className="font-bold text-slate-800 mb-4 flex items-center justify-between">
+              Suplentes / Convocados
+              <span className="text-sm font-normal text-slate-500">{suplentes.length} jugadores</span>
+            </h3>
+            <div className="space-y-2">
+              {suplentes.map(j => (
+                <div key={j.id} onClick={() => moverAJugador(j, true)} className="bg-white p-3 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-500 transition-colors">
+                  <div className="font-bold text-sm text-slate-700">{j.nombres} {j.apellidos}</div>
+                  <div className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">Mover a Titular ➡️</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200">
+            <h3 className="font-bold text-emerald-800 mb-4 flex items-center justify-between">
+              11 Titular
+              <span className="text-sm font-black text-emerald-600">{titulares.length}/11</span>
+            </h3>
+            <div className="space-y-2">
+              {titulares.map(j => (
+                <div key={j.id} onClick={() => moverAJugador(j, false)} className="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-red-500 transition-colors">
+                  <div className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">⬅️ Quitar</div>
+                  <div className="font-bold text-sm text-emerald-700">{j.nombres} {j.apellidos}</div>
+                </div>
+              ))}
+              {titulares.length === 0 && <p className="text-center text-emerald-600/50 text-sm py-4 italic">No hay titulares seleccionados</p>}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end mt-8">
+          <button 
+            onClick={() => {
+              setAlineacionConfirmada(true);
+            }}
+            className="bg-slate-900 text-white font-black uppercase tracking-widest px-8 py-4 rounded-xl shadow-lg hover:bg-slate-800 transition-colors"
+          >
+            Confirmar y Ver Tablero
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Actores disponibles para el partido (idealmente mostramos solo titulares para acciones normales, excepto cambios)
+  const actoresPrincipales = titulares.length > 0 ? titulares : jugadores;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight italic uppercase">Live Feed</h1>
@@ -253,10 +352,10 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
           <div className="w-1/3 flex flex-col items-center justify-center">
              <div className="text-4xl font-black italic tracking-tighter mb-1">{getMarcador()}</div>
              <div className="bg-white/10 px-3 py-1 rounded-full text-[10px] uppercase tracking-widest font-bold flex items-center gap-1.5 text-emerald-400">
-               {evento?.estado_partido === 'En Juego' ? <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> : null}
+               {['1er Tiempo', '2do Tiempo'].includes(evento?.estado_partido) ? <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> : null}
                {evento?.estado_partido}
              </div>
-             <div className="mt-2 text-2xl font-mono font-bold text-slate-300">
+             <div className="mt-2 text-3xl font-mono font-black text-slate-100">
                 {minutoActual}'
              </div>
           </div>
@@ -272,7 +371,7 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
         </div>
 
         {/* Controles de Tiempo */}
-        <div className="flex items-center gap-4 relative z-10">
+        <div className="flex items-center gap-4 relative z-10 bg-slate-800/50 px-6 py-2 rounded-2xl">
            <button 
              onClick={toggleCronometro}
              className="w-12 h-12 rounded-full bg-white text-slate-900 flex items-center justify-center hover:scale-105 transition-transform"
@@ -280,16 +379,16 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
              {cronometroActivo ? <Square className="w-5 h-5 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
            </button>
            <div className="flex flex-col">
-             <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">Cronómetro</span>
-             <div className="flex items-center gap-2 mt-1">
-               <button onClick={() => setMinutoActual(m => Math.max(0, m - 1))} className="text-slate-400 hover:text-white px-2">-</button>
-               <button onClick={() => setMinutoActual(m => m + 1)} className="text-slate-400 hover:text-white px-2">+</button>
+             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Cronómetro</span>
+             <div className="flex items-center gap-3 mt-1">
+               <button onClick={() => setMinutoActual(m => Math.max(0, m - 1))} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">-</button>
+               <button onClick={() => setMinutoActual(m => m + 1)} className="text-slate-400 hover:text-white px-2 py-1 bg-slate-800 rounded-lg">+</button>
              </div>
            </div>
         </div>
       </div>
 
-      {/* Botones de Acción */}
+      {/* Botones de Acción (Grid Avanzado) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
          <button onClick={() => abrirModalAccion('Gol')} className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
             <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xl shadow-md">⚽</div>
@@ -300,25 +399,46 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
             <span className="font-black text-[10px] uppercase tracking-widest">Gol Rival</span>
          </button>
          <button onClick={() => abrirModalAccion('Tarjeta Amarilla')} className="bg-yellow-50 hover:bg-yellow-100 text-yellow-600 border border-yellow-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
-            <div className="w-10 h-12 rounded-lg bg-yellow-400 text-white flex items-center justify-center shadow-md"></div>
+            <div className="w-8 h-10 rounded bg-yellow-400 text-white flex items-center justify-center shadow-md"></div>
             <span className="font-black text-[10px] uppercase tracking-widest mt-1">Amarilla</span>
          </button>
          <button onClick={() => abrirModalAccion('Tarjeta Roja')} className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
-            <div className="w-10 h-12 rounded-lg bg-red-500 text-white flex items-center justify-center shadow-md"></div>
+            <div className="w-8 h-10 rounded bg-red-500 text-white flex items-center justify-center shadow-md"></div>
             <span className="font-black text-[10px] uppercase tracking-widest mt-1">Roja</span>
          </button>
+
+         {/* Nuevas Acciones */}
+         <button onClick={() => abrirModalAccion('Tiro al Arco')} className="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
+            <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md"><Target className="w-5 h-5" /></div>
+            <span className="font-black text-[10px] uppercase tracking-widest">Tiro al Arco</span>
+         </button>
+         <button onClick={() => abrirModalAccion('Atajada')} className="bg-cyan-50 hover:bg-cyan-100 text-cyan-600 border border-cyan-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
+            <div className="w-10 h-10 rounded-full bg-cyan-500 text-white flex items-center justify-center shadow-md"><Hand className="w-5 h-5" /></div>
+            <span className="font-black text-[10px] uppercase tracking-widest">Atajada</span>
+         </button>
+         <button onClick={() => abrirModalAccion('Tiro de Esquina')} className="bg-purple-50 hover:bg-purple-100 text-purple-600 border border-purple-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
+            <div className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center shadow-md"><Flag className="w-5 h-5" /></div>
+            <span className="font-black text-[10px] uppercase tracking-widest">Esquina</span>
+         </button>
+         <button onClick={() => abrirModalAccion('Falta')} className="bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all">
+            <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-md"><AlertTriangle className="w-5 h-5" /></div>
+            <span className="font-black text-[10px] uppercase tracking-widest">Falta</span>
+         </button>
+
+         {/* Controles Maestra */}
          <button onClick={() => abrirModalAccion('Cambio')} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all sm:col-span-2">
             <div className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-md"><ArrowRightLeft className="w-5 h-5" /></div>
             <span className="font-black text-[10px] uppercase tracking-widest">Sustitución</span>
          </button>
-         <button onClick={() => {
-            actualizarEstadoPartido('Finalizado');
-            registrarAccion('Fin', null, null, 'Final del Partido');
-            setCronometroActivo(false);
-         }} className="bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all sm:col-span-2">
-            <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shadow-md"><Square className="w-5 h-5 fill-current" /></div>
-            <span className="font-black text-[10px] uppercase tracking-widest">Finalizar</span>
-         </button>
+         
+         {evento?.estado_partido !== 'Finalizado' && (
+           <button onClick={() => cambiarPeriodo(getSiguientePeriodo())} className="bg-slate-800 hover:bg-slate-900 text-white border border-slate-800 p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all sm:col-span-2">
+              <div className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center shadow-md">
+                <Clock className="w-5 h-5" />
+              </div>
+              <span className="font-black text-[10px] uppercase tracking-widest">{evento?.estado_partido === 'No Iniciado' ? 'Iniciar 1er Tiempo' : evento?.estado_partido === '1er Tiempo' ? 'Finalizar 1er Tiempo' : evento?.estado_partido === 'Descanso' ? 'Iniciar 2do Tiempo' : 'Finalizar Partido'}</span>
+           </button>
+         )}
       </div>
 
       {/* Timeline */}
@@ -344,8 +464,12 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
                       {evm.tipo_accion === 'Tarjeta Amarilla' && <span className="text-yellow-500">🟨 AMARILLA</span>}
                       {evm.tipo_accion === 'Tarjeta Roja' && <span className="text-red-500">🟥 ROJA</span>}
                       {evm.tipo_accion === 'Cambio' && <span className="text-indigo-500">🔄 CAMBIO</span>}
-                      {evm.tipo_accion === 'Inicio' && <span className="text-emerald-500">▶️ INICIO</span>}
-                      {evm.tipo_accion === 'Fin' && <span className="text-slate-800">⏹️ FINAL</span>}
+                      {evm.tipo_accion === 'Tiro al Arco' && <span className="text-blue-500">🎯 TIRO AL ARCO</span>}
+                      {evm.tipo_accion === 'Atajada' && <span className="text-cyan-500">🧤 ATAJADA</span>}
+                      {evm.tipo_accion === 'Tiro de Esquina' && <span className="text-purple-500">🚩 TIRO DE ESQUINA</span>}
+                      {evm.tipo_accion === 'Falta' && <span className="text-orange-500">⚠️ FALTA</span>}
+                      {evm.tipo_accion === 'Inicio' && <span className="text-emerald-500">▶️ {evm.comentario || 'INICIO'}</span>}
+                      {evm.tipo_accion === 'Fin' && <span className="text-slate-800">⏹️ {evm.comentario || 'FINAL'}</span>}
                     </p>
                     
                     {evm.jugador && evm.tipo_accion !== 'Cambio' && (
@@ -359,7 +483,7 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
                       </div>
                     )}
 
-                    {evm.comentario && <p className="text-slate-500 text-xs italic mt-0.5">{evm.comentario}</p>}
+                    {evm.comentario && !['Inicio','Fin'].includes(evm.tipo_accion) && <p className="text-slate-500 text-xs italic mt-0.5">{evm.comentario}</p>}
                  </div>
                  <button 
                    onClick={() => eliminarEventoMinuto(evm.id, evm.tipo_accion, evm.jugador_id)}
@@ -383,17 +507,17 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
               {accionSeleccionada === 'Cambio' ? (
                 <>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Jugador que Entra 🟩</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Jugador que Entra 🟩 (Suplentes)</label>
                     <select value={jugadorEntra} onChange={e => setJugadorEntra(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
                       <option value="">Seleccionar Jugador</option>
-                      {jugadores.map(j => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
+                      {suplentes.map(j => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Jugador que Sale 🟥</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Jugador que Sale 🟥 (Titulares)</label>
                     <select value={jugadorSale} onChange={e => setJugadorSale(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
                       <option value="">Seleccionar Jugador</option>
-                      {jugadores.map(j => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
+                      {titulares.map(j => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
                     </select>
                   </div>
                 </>
@@ -402,8 +526,18 @@ export default function PartidoEnVivo({ params }: { params: { id: string } }) {
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Protagonista</label>
                   <select value={jugadorEntra} onChange={e => setJugadorEntra(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
                     <option value="">Seleccionar Jugador (Opcional)</option>
-                    {jugadores.map(j => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
+                    {actoresPrincipales.map((j: any) => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
                   </select>
+                  
+                  {accionSeleccionada === 'Gol' && (
+                    <div className="mt-4">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">Asistencia (Opcional)</label>
+                      <select value={jugadorAsistencia} onChange={e => setJugadorAsistencia(e.target.value)} className="w-full bg-slate-50 border border-slate-200 text-slate-800 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-medium">
+                        <option value="">Sin asistencia</option>
+                        {actoresPrincipales.filter((j:any) => j.id !== jugadorEntra).map((j:any) => <option key={j.id} value={j.id}>{j.nombres} {j.apellidos}</option>)}
+                      </select>
+                    </div>
+                  )}
                 </div>
               )}
 

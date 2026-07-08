@@ -10,7 +10,7 @@ const supabaseAdmin = createClient(
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { evento_id, minuto, tipo_accion, jugador_id, jugador_sale_id, comentario, tenantSlug } = body;
+    const { evento_id, minuto, tipo_accion, jugador_id, jugador_sale_id, comentario, tenantSlug, es_local } = body;
 
     const tenant = await getTenant(tenantSlug) as any;
     if (!tenant) return NextResponse.json({ error: 'Tenant no encontrado' }, { status: 404 });
@@ -32,9 +32,17 @@ export async function POST(request: Request) {
 
     // Si es gol, actualizamos el marcador en eventos
     if (tipo_accion === 'Gol') {
-       // Necesitamos saber si el gol fue a favor (Local) o en contra (Visitante). 
-       // Asumimos que si hay jugador_id es a favor del club local.
-       const campoActualizar = jugador_id ? 'marcador_local' : 'marcador_visitante';
+       // El parámetro es_local nos indica si nuestro club juega de local o de visitante.
+       const esLocalBool = es_local !== false;
+       let campoActualizar = 'marcador_local';
+       
+       if (esLocalBool) {
+           // Somos el Local. Gol a favor -> marcador_local, Gol rival -> marcador_visitante
+           campoActualizar = jugador_id ? 'marcador_local' : 'marcador_visitante';
+       } else {
+           // Somos el Visitante. Gol a favor -> marcador_visitante, Gol rival -> marcador_local
+           campoActualizar = jugador_id ? 'marcador_visitante' : 'marcador_local';
+       }
        
        await supabaseAdmin.rpc('incrementar_marcador', { 
            p_evento_id: evento_id, 
@@ -60,7 +68,8 @@ export async function DELETE(request: Request) {
   const id = searchParams.get('id');
   const evento_id = searchParams.get('evento_id');
   const tipo_accion = searchParams.get('tipo_accion');
-  const jugador_id = searchParams.get('jugador_id'); // para saber si era local o visitante
+  const jugador_id = searchParams.get('jugador_id'); // para saber si era a favor
+  const es_local = searchParams.get('es_local') !== 'false';
 
   if (!id) return NextResponse.json({ error: 'ID requerido' }, { status: 400 });
 
@@ -74,7 +83,15 @@ export async function DELETE(request: Request) {
 
     // Si borramos un gol, restar del marcador
     if (tipo_accion === 'Gol' && evento_id) {
-       const campoActualizar = (jugador_id && jugador_id !== 'null') ? 'marcador_local' : 'marcador_visitante';
+       let campoActualizar = 'marcador_local';
+       const golAFavor = (jugador_id && jugador_id !== 'null');
+       
+       if (es_local) {
+           campoActualizar = golAFavor ? 'marcador_local' : 'marcador_visitante';
+       } else {
+           campoActualizar = golAFavor ? 'marcador_visitante' : 'marcador_local';
+       }
+
        const { data: evData } = await supabaseAdmin.from('eventos').select(campoActualizar).eq('id', evento_id).single();
        if (evData) {
            const currentVal = evData[campoActualizar as keyof typeof evData] as number || 0;
