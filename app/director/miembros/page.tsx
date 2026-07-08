@@ -12,7 +12,7 @@ export default function DirectorioMiembros() {
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const { slug: tenantSlug } = useTenant();
+  const { route, slug: tenantSlug } = useTenant();
   const [busqueda, setBusqueda] = useState('');
   const [filtroGrupo, setFiltroGrupo] = useState('Todos');
   const [filtroEdad, setFiltroEdad] = useState('Todas');
@@ -437,7 +437,7 @@ export default function DirectorioMiembros() {
                             setIsModalDetallesOpen(true); 
                           }} className="text-brand hover:bg-brand/10 dark:hover:bg-brand/10 rounded-lg transition-all" title="Ver Ficha y Accesos"><Eye className="w-5 h-5" /></button>
                           {pestaña === 'Registrados' ? (
-                            <button onClick={() => router.push(`/director/miembros/${jugador.id}`)} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 "><ExternalLink className="w-5 h-5" /></button>
+                            <button onClick={() => router.push(route(`/director/miembros/${jugador.id}`))} className="text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 p-2 "><ExternalLink className="w-5 h-5" /></button>
                           ) : (
                             <div className="flex gap-1">
                               <button onClick={() => aprobarJugador(jugador)} className="bg-emerald-500 text-white p-1.5 rounded-lg hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all"><Check className="w-4 h-4" /></button>

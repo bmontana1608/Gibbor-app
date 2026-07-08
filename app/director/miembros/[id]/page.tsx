@@ -38,14 +38,10 @@ export default function FichaDelJugador() {
         return;
       }
 
-      const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
-      const tenantData = await tenantRes.json();
-
       const { data, error } = await supabase
         .from('perfiles')
         .select('*')
         .eq('id', params.id)
-        .eq('club_id', tenantData.id)
         .maybeSingle(); 
 
       if (error) {
@@ -172,13 +168,10 @@ if (data.fecha_nacimiento) {
 
       const toastId = toast.loading('Subiendo imagen al servidor...');
 
-      const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
-      const tenantData = await tenantRes.json();
-
       // Enviar la imagen al API del servidor para quitar el fondo (funciona en iOS y Android)
       const formDataApi = new FormData();
       formDataApi.append('image_file', file);
-      formDataApi.append('club_id', tenantData.id);
+      formDataApi.append('club_id', jugador.club_id);
 
       toast.loading('Eliminando fondo con IA en el servidor...', { id: toastId });
 
