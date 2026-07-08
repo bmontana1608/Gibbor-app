@@ -23,10 +23,10 @@ serve(async (req) => {
     const periodo_mes = fecha.getMonth() + 1; // 1 - 12
     const periodo_anio = fecha.getFullYear();
 
-    // 1. Obtener todos los clubes y sus planes (Añadido slug)
+    // 1. Obtener todos los clubes y sus planes
     const { data: clubes, error: clubesError } = await supabase
       .from('clubes')
-      .select('id, nombre, slug, plan_id, planes_saas(precio_por_jugador)');
+      .select('id, nombre, slug, plan_id, planes_saas(precio_base, limite_jugadores_base, precio_jugador_extra)');
 
     if (clubesError) throw clubesError;
 
@@ -36,9 +36,12 @@ serve(async (req) => {
     for (const club of clubes) {
       if (!club.plan_id || !club.planes_saas) continue;
 
-      const precioPorJugador = club.planes_saas.precio_por_jugador || 2000;
+      const plan = club.planes_saas;
+      const precioBase = Number(plan.precio_base ?? 100000);
+      const limiteBase = Number(plan.limite_jugadores_base ?? 60);
+      const precioExtra = Number(plan.precio_jugador_extra ?? 2000);
 
-      // 3. Contar la cantidad de jugadores ACTIVOS de este club
+      // 3. Contar la cantidad de jugadores ACTIVOS de este club (solo rol 'Futbolista')
       const { count, error: countError } = await supabase
         .from('perfiles')
         .select('*', { count: 'exact', head: true })
@@ -52,7 +55,8 @@ serve(async (req) => {
       }
 
       const cantidadJugadores = count || 0;
-      const totalPagar = cantidadJugadores * precioPorJugador;
+      const extras = Math.max(0, cantidadJugadores - limiteBase);
+      const totalPagar = precioBase + (extras * precioExtra);
 
       // 4. Upsert de la factura mensual
       const factura = {
@@ -60,7 +64,7 @@ serve(async (req) => {
         periodo_mes,
         periodo_anio,
         cantidad_jugadores: cantidadJugadores,
-        tarifa_aplicada: precioPorJugador,
+        tarifa_aplicada: precioBase,
         total_pagar: totalPagar,
         estado_pago: 'pendiente'
       };
