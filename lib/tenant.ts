@@ -104,6 +104,9 @@ export async function getTenant(overrideSlug?: string | null) {
     isMaster: false,
     mp_access_token: currentClub.mp_access_token,
     mp_public_key: currentClub.mp_public_key,
+    fecha_fin_prueba: currentClub.fecha_fin_prueba,
+    proximo_corte: currentClub.proximo_corte,
+    estado_suscripcion: currentClub.estado_suscripcion,
     config: {
       nombre: currentClub.nombre,
       color: currentClub.color_primario || '#10b981',

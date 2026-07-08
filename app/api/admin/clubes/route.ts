@@ -9,7 +9,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { correo_director, password_director, ...clubData } = await request.json();
+    const { correo_director, password_director, dias_prueba, ...clubData } = await request.json();
 
     // 1. Obtener el plan SaaS por defecto (el primero disponible)
     const { data: planes, error: planError } = await supabaseAdmin
@@ -24,6 +24,14 @@ export async function POST(request: Request) {
 
     const planId = planes[0].id;
 
+    // Calcular fecha_fin_prueba
+    let fechaFinPrueba = null;
+    if (dias_prueba && Number(dias_prueba) > 0) {
+      const date = new Date();
+      date.setDate(date.getDate() + Number(dias_prueba));
+      fechaFinPrueba = date.toISOString();
+    }
+
     // 2. Insertar el club con el plan_id correcto
     const { data: clubResult, error: clubError } = await supabaseAdmin
       .from('clubes')
@@ -31,7 +39,9 @@ export async function POST(request: Request) {
         ...clubData,
         estado: 'Activo',
         plan: 'Premium',
-        plan_id: planId
+        plan_id: planId,
+        fecha_fin_prueba: fechaFinPrueba,
+        estado_suscripcion: fechaFinPrueba ? 'En Prueba' : 'Al Día'
       }])
       .select();
 

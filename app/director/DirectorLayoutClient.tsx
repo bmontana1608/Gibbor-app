@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import GibbiAssistant from "@/components/GibbiAssistant";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
 
@@ -28,6 +28,26 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const [basePath, setBasePath] = useState(tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '');
   const mainRef = useRef<HTMLElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Evaluar días restantes de prueba
+  const trialBanner = useMemo(() => {
+    if (!initialTenant?.fecha_fin_prueba) return null;
+    const finPrueba = new Date(initialTenant.fecha_fin_prueba);
+    const hoy = new Date();
+    
+    if (isNaN(finPrueba.getTime())) return null;
+    
+    const diffTime = finPrueba.getTime() - hoy.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays > 0 && diffDays <= 5) {
+      return {
+        dias: diffDays,
+        fecha: finPrueba.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
+      };
+    }
+    return null;
+  }, [initialTenant]);
 
   // Cerrar el menú al hacer clic afuera
   useEffect(() => {
@@ -332,6 +352,22 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
         </header>
 
         <main ref={mainRef} className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 transition-colors">
+          {trialBanner && (
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 font-bold text-sm shadow-md animate-in slide-in-from-top duration-300">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 animate-pulse text-amber-100 flex-shrink-0" />
+                <p>
+                  Tu período de prueba de Gibbor App está próximo a finalizar. Quedan <span className="underline decoration-wavy decoration-white font-black">{trialBanner.dias} {trialBanner.dias === 1 ? 'día' : 'días'}</span> (termina el {trialBanner.fecha}). Activa tu suscripción para evitar la suspensión del servicio.
+                </p>
+              </div>
+              <Link 
+                href={`${basePath}/director/soporte`}
+                className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0"
+              >
+                Habilitar Cuenta
+              </Link>
+            </div>
+          )}
           <GlobalAdPopup tenant={tenant} profile={profile} />
           {children}
         </main>

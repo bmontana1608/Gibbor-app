@@ -71,40 +71,45 @@ export async function middleware(request: NextRequest) {
         let isSuspended = clubData.estado_suscripcion === 'Suspendido' || clubData.estado === 'Suspendido';
         const hoy = new Date();
 
-        // 1. Validar por el nuevo sistema de Próximo Corte
-        if (clubData.proximo_corte) {
-          const fechaCorte = new Date(clubData.proximo_corte);
-          if (fechaCorte < hoy) {
-             isSuspended = true;
+        let enPrueba = false;
+        if (clubData.fecha_fin_prueba) {
+          const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
+          if (fechaFinPrueba >= hoy) {
+            enPrueba = true;
           }
-        } else {
-          // 2. Lógica Legacy (si el club aún no tiene un corte asignado)
-          const diaActual = hoy.getDate();
-          const mesActual = hoy.getMonth() + 1;
-          const anioActual = hoy.getFullYear();
+        }
 
-          let enPrueba = false;
-          if (clubData.fecha_fin_prueba) {
-            const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
-            if (fechaFinPrueba >= hoy) {
-              enPrueba = true;
-            } else {
+        if (enPrueba) {
+          isSuspended = false; // Nunca suspender durante periodo de prueba activo
+        } else {
+          // Evaluar corte o vencimiento de prueba
+          if (clubData.proximo_corte) {
+            const fechaCorte = new Date(clubData.proximo_corte);
+            if (fechaCorte < hoy) {
               isSuspended = true;
             }
-          }
+          } else if (clubData.fecha_fin_prueba) {
+            // Prueba finalizada y sin próximo corte cargado
+            isSuspended = true;
+          } else {
+            // Lógica Legacy (Fallback mensual)
+            const diaActual = hoy.getDate();
+            const mesActual = hoy.getMonth() + 1;
+            const anioActual = hoy.getFullYear();
 
-          if (!isSuspended && !enPrueba && diaActual > 10) {
-            const { data: facturas } = await supabase
-              .from('facturacion_mensual')
-              .select('estado_pago')
-              .eq('club_id', clubData.id)
-              .eq('periodo_mes', mesActual)
-              .eq('periodo_anio', anioActual)
-              .limit(1);
+            if (diaActual > 10) {
+              const { data: facturas } = await supabase
+                .from('facturacion_mensual')
+                .select('estado_pago')
+                .eq('club_id', clubData.id)
+                .eq('periodo_mes', mesActual)
+                .eq('periodo_anio', anioActual)
+                .limit(1);
 
-            const facturaMes = facturas?.[0];
-            if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
-               isSuspended = true;
+              const facturaMes = facturas?.[0];
+              if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
+                isSuspended = true;
+              }
             }
           }
         }

@@ -99,7 +99,7 @@ export default function ClubesPage() {
   const [clubAudit, setClubAudit] = useState<any>(null);
 
   const [formData, setFormData] = useState({
-    nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: ''
+    nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7'
   });
   const [editFormData, setEditFormData] = useState({
     nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000, plan_id: '' as string | number
@@ -131,7 +131,7 @@ export default function ClubesPage() {
       if (data.error) throw new Error(data.error);
       setClubes([data, ...clubes]);
       setShowModal(false);
-      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '' });
+      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7' });
       toast.success('¡Academia registrada con éxito!');
     } catch (err: any) { toast.error('Error: ' + err.message); }
     finally { setFetching(false); }
@@ -251,6 +251,7 @@ export default function ClubesPage() {
               <InputField label="Nombre Comercial" value={formData.nombre} onChange={(v: string) => setFormData({ ...formData, nombre: v })} required />
               <InputField label="Subdominio (Slug)" value={formData.slug} onChange={(v: string) => setFormData({ ...formData, slug: v.toLowerCase().replace(/\s/g, '-') })} placeholder="eagles-fc" required mono />
               <InputField label="URL Logo" value={formData.logo_url} onChange={(v: string) => setFormData({ ...formData, logo_url: v })} placeholder="https://..." required />
+              <InputField label="Días de prueba" type="number" value={formData.dias_prueba} onChange={(v: string) => setFormData({ ...formData, dias_prueba: v })} placeholder="7, 15, 30..." required />
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Color de Marca</label>
                 <input value={formData.color_primario} onChange={e => setFormData({ ...formData, color_primario: e.target.value })} type="color" className="w-full border border-gray-200 rounded-xl h-12 p-1.5 cursor-pointer" />
