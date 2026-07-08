@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings, X, Check } from 'lucide-react';
+import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings, X, Check, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MetricCard = ({ label, value, icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) => (
@@ -71,6 +71,9 @@ const ClubRow = ({ club, count, onToggle, onAudit, onEdit, onDelete }: any) => {
       </td>
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2 transition-opacity">
+          <a href={`/${club.slug}/director`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors" title="Acceso Soporte">
+            <Eye size={18} />
+          </a>
           <button onClick={() => onEdit(club)} className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Editar Club"><Settings size={18} /></button>
           <button onClick={() => onAudit(club)} className="p-2 text-gray-400 hover:text-violet-500 hover:bg-violet-50 rounded-lg transition-colors" title="Ver Auditoría"><History size={18} /></button>
           <button onClick={() => onToggle(club.id, club.estado)} className="p-2 text-gray-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors" title={club.estado === 'Activo' ? 'Suspender' : 'Activar'}>

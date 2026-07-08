@@ -34,8 +34,17 @@ export default function BibliotecaDirector() {
     
     const userResp = await supabase.auth.getUser();
     if (userResp.data.user) {
-      const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', userResp.data.user.id).single();
-      if (perfil) setClubId(perfil.club_id);
+      const { data: perfil } = await supabase.from('perfiles').select('rol, club_id').eq('id', userResp.data.user.id).single();
+      if (perfil) {
+        if (perfil.rol === 'SuperAdmin') {
+          if (slug && slug !== 'master' && slug !== 'localhost') {
+            const { data: club } = await supabase.from('clubes').select('id').eq('slug', slug).single();
+            if (club) setClubId(club.id);
+          }
+        } else {
+          setClubId(perfil.club_id);
+        }
+      }
     }
     
     // RLS will automatically restrict to Global + own Club

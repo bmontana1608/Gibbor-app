@@ -70,6 +70,7 @@ export default function AsistenciaEntrenador() {
   const [perfil, setPerfil] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
+  const [resolvedClubId, setResolvedClubId] = useState<string | null>(null);
 
   // Categorías
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -103,9 +104,24 @@ export default function AsistenciaEntrenador() {
       if (usuario) {
         setPerfil(usuario);
         
+        let clubId = usuario.club_id;
+        if (usuario.rol === 'SuperAdmin' && tenantSlug && tenantSlug !== 'master' && tenantSlug !== 'localhost') {
+          try {
+            const resTenant = await fetch(`/api/tenant?slug=${tenantSlug}`);
+            const tenantData = await resTenant.json();
+            if (tenantData?.id) {
+              clubId = tenantData.id;
+            }
+          } catch (e) {
+            console.error('Error fetching tenant details:', e);
+          }
+        }
+        
+        setResolvedClubId(clubId);
+        
         // Sincronización transparente de edades y categorías en segundo plano
-        if (usuario.club_id) {
-          syncCategoriasInteligentes(usuario.club_id).catch(console.error);
+        if (clubId) {
+          syncCategoriasInteligentes(clubId).catch(console.error);
         }
 
         try {
@@ -137,7 +153,7 @@ export default function AsistenciaEntrenador() {
       fecha: hoy,
       hora: horaActual,
       categoria_id: cat.nombre,
-      club_id: perfil?.club_id,
+      club_id: resolvedClubId,
     };
 
     let eventoId: string | null = null;
@@ -154,7 +170,7 @@ export default function AsistenciaEntrenador() {
       .from('perfiles')
       .select('id, nombres, apellidos, grupos, foto_url, tipo_plan')
       .eq('rol', 'Futbolista')
-      .eq('club_id', perfil.club_id)
+      .eq('club_id', resolvedClubId)
       .like('grupos', `${cat.nombre}%`)
       .neq('estado_miembro', 'Inactivo');
 
@@ -177,7 +193,7 @@ export default function AsistenciaEntrenador() {
         .from('asistencias')
         .select('jugador_id, estado')
         .in('jugador_id', jugs.map(j => j.id))
-        .eq('club_id', perfil.club_id)
+        .eq('club_id', resolvedClubId)
         .gte('fecha', desde);
 
       const pcts: Record<string, number | null> = {};
@@ -214,7 +230,7 @@ export default function AsistenciaEntrenador() {
       fecha: fechaSesion,
       evento_id: sesionId,
       registrado_por: `${perfil.nombres} ${perfil.apellidos}`,
-      club_id: perfil?.club_id,
+      club_id: resolvedClubId,
     }));
 
     // Intentar con todos los campos
@@ -275,7 +291,7 @@ export default function AsistenciaEntrenador() {
     const { data } = await supabase
       .from('asistencias')
       .select('fecha, estado, jugador_id, nota_rendimiento, grupo')
-      .eq('club_id', perfil.club_id)
+      .eq('club_id', resolvedClubId)
       .like('grupo', `${grupoBuscar}%`)
       .order('fecha', { ascending: false });
 

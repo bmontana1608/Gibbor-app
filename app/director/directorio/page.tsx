@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Store, MapPin, Globe, Phone, Search, Loader2 } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function DirectorioComercialPage() {
   const [patrocinadores, setPatrocinadores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [tenantInfo, setTenantInfo] = useState<any>(null);
+  const { slug: tenantSlug } = useTenant();
 
   useEffect(() => {
     cargarDirectorio();
@@ -21,10 +23,22 @@ export default function DirectorioComercialPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: perfil } = await supabase.from('perfiles').select('club_id').eq('id', user.id).single();
-      if (!perfil?.club_id) return;
+      const { data: perfil } = await supabase.from('perfiles').select('rol, club_id').eq('id', user.id).single();
+      
+      let clubId = perfil?.club_id;
+      if (perfil?.rol === 'SuperAdmin' && tenantSlug && tenantSlug !== 'master' && tenantSlug !== 'localhost') {
+        const { data: club } = await supabase.from('clubes').select('id').eq('slug', tenantSlug).single();
+        if (club) {
+          clubId = club.id;
+        }
+      }
+      
+      if (!clubId) {
+        setLoading(false);
+        return;
+      }
 
-      const { data: club } = await supabase.from('clubes').select('pais, ciudad').eq('id', perfil.club_id).single();
+      const { data: club } = await supabase.from('clubes').select('pais, ciudad').eq('id', clubId).single();
       setTenantInfo(club);
 
       const clubPais = club?.pais || 'Colombia';

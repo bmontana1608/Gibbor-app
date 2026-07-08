@@ -148,7 +148,9 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
               <p className="font-black text-slate-800 dark:text-white text-sm truncate uppercase italic tracking-tighter">
                 {usuario?.nombres?.split(' ')[0] || 'Staff User'}
               </p>
-              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none mt-1">Entrenador</p>
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none mt-1">
+                {usuario?.rol?.toLowerCase() === 'superadmin' ? 'SuperAdmin (Soporte)' : 'Entrenador'}
+              </p>
             </div>
           </div>
         </div>
@@ -206,6 +208,17 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                         <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors">Panel Director</span>
                     </Link>
                 )}
+                 {usuario?.rol?.toLowerCase() === 'superadmin' && (
+                     <Link 
+                         href="/admin/clubes"
+                         className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl transition-all group"
+                     >
+                         <div className="w-7 h-7 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg">
+                             <Shield className="w-4 h-4" />
+                         </div>
+                         <span className="text-xs font-bold text-white group-hover:text-purple-400 transition-colors">Volver Panel Admin</span>
+                     </Link>
+                 )}
              </div>
           </div>
         </div>

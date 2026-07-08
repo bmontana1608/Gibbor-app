@@ -204,6 +204,19 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 </div>
               </Link>
             ))}
+            {profile?.rol?.toLowerCase() === 'superadmin' && (
+              <Link
+                href="/admin/clubes"
+                className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
+              >
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-600 text-white shadow-lg">
+                  <ShieldCheck className="scale-90" />
+                </div>
+                <div>
+                    <p className="font-bold text-white text-[11px] leading-none group-hover:text-purple-400 transition-colors">Volver Panel Admin</p>
+                </div>
+              </Link>
+            )}
             </div>
           </div>
         </nav>
@@ -239,6 +252,13 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 <ShieldCheck className="w-3 h-3 text-brand" /> Área de Dirección
               </p>
             </div>
+            {profile?.rol?.toLowerCase() === 'superadmin' && (
+              <div className="bg-purple-100 dark:bg-purple-950/40 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
+                <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                  <ShieldCheck className="w-3 h-3 text-purple-500" /> Modo Soporte (SuperAdmin)
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
