@@ -24,6 +24,15 @@ export default function PartidosList() {
   }, [tenantSlug]);
 
   const brandColor = tenant?.config?.color || '#06b6d4';
+  
+  const [isSubdomain, setIsSubdomain] = useState(false);
+  useEffect(() => {
+    const host = typeof window !== 'undefined' ? window.location.host : '';
+    if (host.startsWith(`${tenantSlug}.`)) {
+      setIsSubdomain(true);
+    }
+  }, [tenantSlug]);
+  const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -44,7 +53,7 @@ export default function PartidosList() {
               <p className="text-sm font-bold text-slate-400 flex items-center gap-2"><Calendar className="w-4 h-4"/> {new Date(p.fecha).toLocaleDateString()}</p>
             </div>
             <Link 
-              href={`/entrenador/partidos/${p.id}`}
+              href={`${basePath}/entrenador/partidos/${p.id}`}
               className="w-14 h-14 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm"
             >
               <Play className="w-6 h-6 ml-1" style={{ color: brandColor }} />
