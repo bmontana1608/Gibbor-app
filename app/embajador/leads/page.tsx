@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Phone, MapPin, Target, Handshake, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,10 +12,12 @@ export default function MisLeadsPage() {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [embajadorId, setEmbajadorId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const queryId = searchParams.get('id');
 
   useEffect(() => {
     fetchMisLeads();
-  }, []);
+  }, [queryId]);
 
   const fetchMisLeads = async () => {
     setLoading(true);
@@ -26,12 +29,29 @@ export default function MisLeadsPage() {
       return;
     }
 
-    // Obtener ID del embajador asociado a este usuario
-    const { data: embajador } = await supabase
-      .from('embajadores')
-      .select('id')
-      .eq('user_id', user.id)
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('rol')
+      .eq('id', user.id)
       .single();
+
+    // Obtener ID del embajador asociado a este usuario
+    let embajador;
+    if (perfil?.rol === 'SuperAdmin' && queryId) {
+      const { data } = await supabase
+        .from('embajadores')
+        .select('id')
+        .eq('id', queryId)
+        .single();
+      embajador = data;
+    } else {
+      const { data } = await supabase
+        .from('embajadores')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      embajador = data;
+    }
 
     if (!embajador) {
       toast.error('No se encontró perfil de embajador');

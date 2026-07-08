@@ -2,17 +2,40 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Users } from 'lucide-react';
 
-export default async function MisClubesPage() {
+export default async function MisClubesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }> | { id?: string };
+}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) return redirect('/login');
 
-  const { data: embajador } = await supabase
-    .from('embajadores')
-    .select('id')
-    .eq('user_id', user.id)
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('rol')
+    .eq('id', user.id)
     .single();
+
+  const queryId = (await searchParams)?.id;
+
+  let embajador;
+  if (perfil?.rol === 'SuperAdmin' && queryId) {
+    const { data } = await supabase
+      .from('embajadores')
+      .select('id')
+      .eq('id', queryId)
+      .single();
+    embajador = data;
+  } else {
+    const { data } = await supabase
+      .from('embajadores')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+    embajador = data;
+  }
 
   if (!embajador) return redirect('/master');
 

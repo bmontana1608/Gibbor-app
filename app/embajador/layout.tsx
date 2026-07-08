@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { LogOut, Home, PieChart, Users, DollarSign, Wallet, Target, MessageSquare } from 'lucide-react';
 import MCMLogo from '@/components/MCMLogo';
 import CampanitaNotificaciones from './CampanitaNotificaciones';
+import SidebarNav from './SidebarNav';
 
 export default async function EmbajadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -13,23 +14,29 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
     return redirect('/login');
   }
 
-  // Verificar que el usuario tenga rol de embajador
+  // Verificar que el usuario tenga rol de embajador o super admin
   const { data: perfil } = await supabase
     .from('perfiles')
     .select('rol')
     .eq('id', user.id)
     .single();
 
-  if (!perfil || perfil.rol !== 'Embajador') {
+  if (!perfil || (perfil.rol !== 'Embajador' && perfil.rol !== 'SuperAdmin')) {
     return redirect('/master'); // O redireccionar a un no-autorizado
   }
 
-  // Cargar datos del embajador
-  const { data: embajador } = await supabase
-    .from('embajadores')
-    .select('id, nombre_completo, codigo_referido')
-    .eq('user_id', user.id)
-    .single();
+  const isSuperAdmin = perfil.rol === 'SuperAdmin';
+
+  // Cargar datos del embajador (solo si no es SuperAdmin)
+  let embajador = null;
+  if (!isSuperAdmin) {
+    const { data } = await supabase
+      .from('embajadores')
+      .select('id, nombre_completo, codigo_referido')
+      .eq('user_id', user.id)
+      .single();
+    embajador = data;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -38,28 +45,16 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
         <div className="p-6 border-b border-slate-800">
           <MCMLogo width={140} height={36} />
           <div className="mt-6 flex flex-col">
-            <span className="text-xs font-black uppercase tracking-widest text-green-500 mb-1">Panel de Embajador</span>
-            <span className="text-white font-bold truncate">{embajador?.nombre_completo || 'Embajador'}</span>
+            <span className="text-xs font-black uppercase tracking-widest text-green-500 mb-1">
+              {isSuperAdmin ? 'Soporte Administrativo' : 'Panel de Embajador'}
+            </span>
+            <span className="text-white font-bold truncate">
+              {isSuperAdmin ? 'SuperAdmin' : (embajador?.nombre_completo || 'Embajador')}
+            </span>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          <Link href="/embajador" className="flex items-center gap-3 px-4 py-3 bg-green-500/10 text-green-400 rounded-xl font-bold">
-            <PieChart className="w-5 h-5" /> Dashboard
-          </Link>
-          <Link href="/embajador/leads" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
-            <Target className="w-5 h-5" /> Prospección
-          </Link>
-          <Link href="/embajador/comisiones" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
-            <Wallet className="w-5 h-5" /> Comisiones
-          </Link>
-          <Link href="/embajador/clubes" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
-            <Users className="w-5 h-5" /> Mis Referidos
-          </Link>
-          <Link href="/embajador/chat" className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-colors">
-            <MessageSquare className="w-5 h-5" /> Chat CRM
-          </Link>
-        </nav>
+        <SidebarNav isSuperAdmin={isSuperAdmin} />
 
         <div className="p-4 border-t border-slate-800 flex items-center justify-between">
           <form action="/api/auth/signout" method="post" className="flex-1">

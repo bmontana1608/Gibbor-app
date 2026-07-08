@@ -3,16 +3,39 @@ import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign, Target
 import CopyButton from './CopyButton';
 import { QRCodeSVG } from 'qrcode.react';
 
-export default async function EmbajadorDashboard() {
+export default async function EmbajadorDashboard({
+  searchParams,
+}: {
+  searchParams: Promise<{ id?: string }> | { id?: string };
+}) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  // 1. Obtener perfil del embajador
-  const { data: embajador } = await supabase
-    .from('embajadores')
-    .select('*')
-    .eq('user_id', user!.id)
+  const { data: perfil } = await supabase
+    .from('perfiles')
+    .select('rol')
+    .eq('id', user!.id)
     .single();
+
+  const queryId = (await searchParams)?.id;
+
+  // 1. Obtener perfil del embajador
+  let embajador;
+  if (perfil?.rol === 'SuperAdmin' && queryId) {
+    const { data } = await supabase
+      .from('embajadores')
+      .select('*')
+      .eq('id', queryId)
+      .single();
+    embajador = data;
+  } else {
+    const { data } = await supabase
+      .from('embajadores')
+      .select('*')
+      .eq('user_id', user!.id)
+      .single();
+    embajador = data;
+  }
 
   if (!embajador) return <div>No se encontró tu perfil de embajador.</div>;
 

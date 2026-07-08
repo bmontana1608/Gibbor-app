@@ -269,6 +269,14 @@ export default function EmbajadoresAdminView() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex justify-center gap-2">
+                        <a 
+                          href={`/embajador?id=${emb.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors inline-flex items-center gap-1"
+                        >
+                          <ExternalLink size={14} /> Soporte
+                        </a>
                         <button 
                           onClick={() => abrirModalEditar(emb)}
                           className="text-xs font-bold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
@@ -330,6 +338,14 @@ export default function EmbajadoresAdminView() {
                   </div>
 
                   <div className="flex gap-2 pt-2 border-t border-slate-100">
+                    <a 
+                      href={`/embajador?id=${emb.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-center inline-flex items-center justify-center gap-1"
+                    >
+                      <ExternalLink size={14} /> Soporte
+                    </a>
                     <button 
                       onClick={() => abrirModalEditar(emb)}
                       className="flex-1 text-xs font-bold px-3 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors text-center"
