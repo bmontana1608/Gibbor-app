@@ -57,7 +57,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
     { name: 'Biblioteca', path: `${basePath}/entrenador/biblioteca`, icon: <Library className="w-5 h-5" /> },
     { name: 'Puntos de Honor', path: `${basePath}/entrenador/puntos`, icon: <Trophy className="w-5 h-5" /> },
     { name: 'Stats Lab', path: `${basePath}/entrenador/stats`, icon: <Radar className="w-5 h-5" /> },
-    { name: 'Partidos Live', path: `${basePath}/entrenador/partidos`, icon: <Play className="w-5 h-5" /> },
+    // { name: 'Partidos Live', path: `${basePath}/entrenador/partidos`, icon: <Play className="w-5 h-5" /> }, // Temporalmente oculto
     { name: 'Mis Categorías', path: `${basePath}/entrenador/categorias`, icon: <Users className="w-5 h-5" /> },
     { name: 'Estadísticas', path: `${basePath}/entrenador/estadisticas`, icon: <BarChart className="w-5 h-5" /> },
   ];

@@ -51,7 +51,7 @@ export default function FutbolistaLayoutClient({ children, initialTenant, initia
   const menu = [
     { name: "Mi Panel", path: `${basePath}/futbolista`, icon: <Home className="w-5 h-5" /> },
     { name: "Mis Pagos", path: `${basePath}/futbolista/pagos`, icon: <CreditCard className="w-5 h-5" /> },
-    { name: "Partidos Live", path: `${basePath}/futbolista/partidos`, icon: <Play className="w-5 h-5" /> },
+    // { name: "Partidos Live", path: `${basePath}/futbolista/partidos`, icon: <Play className="w-5 h-5" /> }, // Temporalmente oculto
     { name: "Mi Carnet", path: `${basePath}/futbolista/carnet`, icon: <Award className="w-5 h-5" /> },
     { name: "Seguridad", path: `${basePath}/futbolista/perfil`, icon: <ShieldCheck className="w-5 h-5" /> },
   ];
