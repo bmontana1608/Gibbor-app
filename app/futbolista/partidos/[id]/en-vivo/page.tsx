@@ -30,22 +30,33 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
   }, [params.id, tenantSlug]);
 
   useEffect(() => {
-    // Realtime listeners
-    const channelMinuto = supabase.channel('familia_minuto_minuto')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'eventos_minuto_minuto', filter: `evento_id=eq.${params.id}` }, () => {
-        fetchEventosMinuto();
+    // Realtime: sin filtro server-side (requiere Replica Identity FULL en Supabase)
+    // Filtramos client-side para evitar ese requisito
+    const channelMinuto = supabase.channel(`minuto-${params.id}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'eventos_minuto_minuto' }, (payload) => {
+        if ((payload.new as any)?.evento_id === params.id) {
+          fetchEventosMinuto();
+        }
       })
       .subscribe();
 
-    const channelEvento = supabase.channel('familia_evento')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'eventos', filter: `id=eq.${params.id}` }, (payload) => {
-         setEvento((prev: any) => ({ ...prev, ...payload.new }));
+    const channelEvento = supabase.channel(`evento-${params.id}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'eventos' }, (payload) => {
+        if ((payload.new as any)?.id === params.id) {
+          setEvento((prev: any) => ({ ...prev, ...payload.new }));
+        }
       })
       .subscribe();
+
+    // Polling de respaldo cada 5 segundos (garantiza sincronización aunque Realtime falle)
+    const interval = setInterval(() => {
+      fetchEventosMinuto();
+    }, 5000);
 
     return () => {
       supabase.removeChannel(channelMinuto);
       supabase.removeChannel(channelEvento);
+      clearInterval(interval);
     };
   }, [params.id]);
 
