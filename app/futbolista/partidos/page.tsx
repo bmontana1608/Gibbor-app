@@ -44,7 +44,13 @@ export default function FutbolistaPartidosLive() {
     loadData();
   }, [tenantSlug]);
 
+  const [filtro, setFiltro] = useState<'En Vivo' | 'Finalizados'>('En Vivo');
+
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando partidos...</div>;
+
+  const partidosEnVivo = eventos.filter(ev => ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(ev.estado_partido));
+  const partidosFinalizados = eventos.filter(ev => !['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(ev.estado_partido));
+  const partidosMostrar = filtro === 'En Vivo' ? partidosEnVivo : partidosFinalizados;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
@@ -54,9 +60,25 @@ export default function FutbolistaPartidosLive() {
       </h1>
       <p className="text-slate-500">Sigue el minuto a minuto de los partidos del club.</p>
       
+      {/* Tabs */}
+      <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6">
+        <button 
+          onClick={() => setFiltro('En Vivo')}
+          className={`flex-1 py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${filtro === 'En Vivo' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          En Vivo
+        </button>
+        <button 
+          onClick={() => setFiltro('Finalizados')}
+          className={`flex-1 py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${filtro === 'Finalizados' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          Finalizados
+        </button>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-4">
-        {eventos.map((ev) => {
-          const isLive = ['1er Tiempo', '2do Tiempo', 'Descanso'].includes(ev.estado_partido);
+        {partidosMostrar.map((ev) => {
+          const isLive = ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(ev.estado_partido);
           const isFinished = ev.estado_partido === 'Finalizado';
           
           return (
@@ -76,9 +98,9 @@ export default function FutbolistaPartidosLive() {
                     LIVE
                   </span>
                 )}
-                {isFinished && (
+                {!isLive && (
                    <span className="bg-slate-200 text-slate-600 text-[10px] font-black uppercase px-2 py-1 rounded-full tracking-widest">
-                     Finalizado
+                     {ev.estado_partido || 'Finalizado'}
                    </span>
                 )}
               </div>
@@ -96,7 +118,7 @@ export default function FutbolistaPartidosLive() {
                 <div className="flex flex-col items-center justify-center">
                   {(isLive || isFinished) ? (
                     <div className="text-3xl font-black italic tracking-tighter text-slate-800">
-                      {ev.es_local ? `${ev.marcador_local} - ${ev.marcador_visitante}` : `${ev.marcador_visitante} - ${ev.marcador_local}`}
+                      {ev.es_local ? `${ev.marcador_local || 0} - ${ev.marcador_visitante || 0}` : `${ev.marcador_visitante || 0} - ${ev.marcador_local || 0}`}
                     </div>
                   ) : (
                     <div className="text-lg font-black italic tracking-tighter text-slate-400">VS</div>
@@ -108,7 +130,7 @@ export default function FutbolistaPartidosLive() {
                     {ev.escudo_rival_url ? (
                       <img src={ev.escudo_rival_url} className="w-full h-full object-contain" />
                     ) : (
-                      <Shield className="w-8 h-8 text-slate-300" />
+                      <img src="https://cdn-icons-png.flaticon.com/512/1162/1162815.png" className="w-full h-full object-contain opacity-20" />
                     )}
                   </div>
                   <span className="text-xs font-black uppercase text-center text-slate-700 leading-tight h-8">
@@ -121,10 +143,10 @@ export default function FutbolistaPartidosLive() {
         })}
       </div>
       
-      {eventos.length === 0 && (
+      {partidosMostrar.length === 0 && (
         <div className="text-center py-20 bg-slate-50 rounded-3xl border border-slate-200">
           <Play className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-black text-slate-800 uppercase italic">No hay partidos</h3>
+          <h3 className="text-lg font-black text-slate-800 uppercase italic">No hay partidos {filtro}</h3>
           <p className="text-slate-500">Pronto habrán partidos disponibles.</p>
         </div>
       )}

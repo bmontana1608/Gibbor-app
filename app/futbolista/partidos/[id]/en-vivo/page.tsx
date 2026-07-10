@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
-import { Clock, Shield, ArrowRightLeft } from 'lucide-react';
+import { Clock, Shield, ArrowRightLeft, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FamiliaPartidoEnVivo({ params }: { params: { id: string } }) {
@@ -136,6 +136,57 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
             </div>
           </div>
         </div>
+
+        {/* Cancha Global de Acciones */}
+        {eventosMinuto.some((e: any) => e.comentario?.includes('| pos:')) && (
+          <div className="mb-12">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
+              <MapPin className="w-4 h-4" /> Mapa Táctico del Partido
+            </h3>
+            <div className="relative w-full aspect-[2/1] bg-emerald-600/20 border border-emerald-500/30 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
+              {/* Líneas de la cancha */}
+              <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-white/20 -ml-[1px]" />
+              <div className="absolute top-1/2 left-1/2 w-16 h-16 border-2 border-white/20 rounded-full -mt-8 -ml-8" />
+              <div className="absolute top-1/2 left-0 w-12 h-24 border-2 border-white/20 -mt-12 -ml-[2px]" />
+              <div className="absolute top-1/2 right-0 w-12 h-24 border-2 border-white/20 -mt-12 -mr-[2px]" />
+              
+              {/* Puntos (Acciones) */}
+              {eventosMinuto.map((evm: any) => {
+                if (!evm.comentario?.includes('| pos:')) return null;
+                const rawPos = evm.comentario.split('| pos:')[1]?.trim();
+                const [posX, posY] = rawPos ? rawPos.split(',').map(Number) : [null, null];
+                if (posX === null || posY === null) return null;
+
+                const isGol = evm.tipo_accion === 'Gol';
+                const isTiro = evm.tipo_accion === 'Tiro al Arco';
+                const isFalta = evm.tipo_accion === 'Falta';
+                
+                const dotColor = isGol ? 'bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,1)]' : 
+                                 isTiro ? 'bg-blue-400 shadow-[0_0_15px_rgba(96,165,250,1)]' : 
+                                 isFalta ? 'bg-orange-400 shadow-[0_0_15px_rgba(251,146,60,1)]' : 
+                                 'bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,1)]';
+
+                return (
+                  <div key={`pitch-${evm.id}`} className={`absolute w-3 h-3 rounded-full border-2 border-white/80 transition-all cursor-pointer group hover:scale-150 hover:z-50 ${dotColor}`}
+                       style={{left: `${posX}%`, top: `${posY}%`, transform: 'translate(-50%, -50%)'}}
+                  >
+                    <div className="opacity-0 group-hover:opacity-100 absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#020617] text-white text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap pointer-events-none border border-white/10 shadow-xl transition-opacity">
+                      {evm.minuto}' - {evm.tipo_accion}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Leyenda de la cancha */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mt-4 px-4">
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Goles</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Tiros</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-orange-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Faltas</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-yellow-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Otros</span></div>
+            </div>
+          </div>
+        )}
 
         {/* Timeline Rushbet Style */}
         <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2 px-2">
