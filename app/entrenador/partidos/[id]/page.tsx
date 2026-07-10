@@ -123,7 +123,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
 
   const toggleCronometro = () => {
     setCronometroActivo(!cronometroActivo);
-    if (!cronometroActivo && evento?.estado_partido === 'No Iniciado') {
+    if (!cronometroActivo && (evento?.estado_partido === 'No Iniciado' || evento?.estado_partido === 'Programado')) {
       cambiarPeriodo('1er Tiempo');
     }
   };
@@ -153,7 +153,7 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
   };
 
   const getSiguientePeriodo = () => {
-    if (evento?.estado_partido === 'No Iniciado') return '1er Tiempo';
+    if (evento?.estado_partido === 'No Iniciado' || evento?.estado_partido === 'Programado') return '1er Tiempo';
     if (evento?.estado_partido === '1er Tiempo') return 'Descanso';
     if (evento?.estado_partido === 'Descanso') return '2do Tiempo';
     return 'Finalizado';
