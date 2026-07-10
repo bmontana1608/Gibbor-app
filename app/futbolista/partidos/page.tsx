@@ -48,8 +48,8 @@ export default function FutbolistaPartidosLive() {
 
   if (cargando) return <div className="p-8 text-center text-slate-400">Cargando partidos...</div>;
 
-  const partidosEnVivo = eventos.filter(ev => ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(ev.estado_partido));
-  const partidosFinalizados = eventos.filter(ev => !['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(ev.estado_partido));
+  const partidosEnVivo = eventos.filter(ev => ev.estado_partido !== 'Finalizado');
+  const partidosFinalizados = eventos.filter(ev => ev.estado_partido === 'Finalizado');
   const partidosMostrar = filtro === 'En Vivo' ? partidosEnVivo : partidosFinalizados;
 
   return (
