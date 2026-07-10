@@ -121,6 +121,7 @@ if (data.fecha_nacimiento) {
       setJugador({ ...payload, grupos: payload.grupos?.replace('|MANUAL', '') }); 
       setEdicion(false);    
       toast.success("Datos actualizados.", { id: toastId });
+      router.refresh();
     }
     setGuardando(false);
   };
@@ -201,6 +202,7 @@ if (data.fecha_nacimiento) {
     if (!error) {
       setJugador({ ...jugador, estado_miembro: nuevoEstado });
       toast.success(`Jugador ${nuevoEstado}`);
+      router.refresh();
     }
   };
 
@@ -209,6 +211,7 @@ if (data.fecha_nacimiento) {
     const { error } = await supabase.from('perfiles').delete().eq('id', jugador.id);
     if (!error) {
       toast.success("Eliminado");
+      router.refresh();
       router.push(route('/director/miembros'));
     }
   };
