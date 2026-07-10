@@ -89,7 +89,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
           </Link>
           <div className="flex flex-col items-center">
             <span className="text-[9px] uppercase tracking-widest font-black text-emerald-500 flex items-center gap-1.5 mb-1">
-              {evento?.estado_partido === 'En Juego' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
+              {['1er Tiempo', '2do Tiempo', 'En Juego', 'Prórroga', 'Penales'].includes(evento?.estado_partido) && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>}
               {evento?.estado_partido || 'En Vivo'}
             </span>
             <div className="text-2xl font-black italic tracking-tighter">{getMarcador()}</div>
@@ -118,8 +118,13 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
                </span>
             </div>
 
-            <div className="w-1/3 flex flex-col items-center justify-center">
-               <span className="text-5xl font-black italic text-white/20 tracking-tighter">VS</span>
+            <div className="w-1/3 flex flex-col items-center justify-center gap-1">
+              {['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales', 'Finalizado'].includes(evento?.estado_partido) ? (
+                <span className="text-5xl font-black italic text-white tracking-tighter">{getMarcador()}</span>
+              ) : (
+                <span className="text-5xl font-black italic text-white/20 tracking-tighter">VS</span>
+              )}
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{evento?.estado_partido}</span>
             </div>
 
             <div className="flex flex-col items-center gap-3 w-1/3">
@@ -195,7 +200,17 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
 
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-8 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-white/20 before:via-white/10 before:to-transparent">
           {eventosMinuto.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-10">Esperando el inicio del partido...</p>
+            <div className="text-center py-10">
+              {['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(evento?.estado_partido) ? (
+                <div className="flex flex-col items-center gap-3">
+                  <span className="text-3xl">⚽</span>
+                  <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Partido en curso</p>
+                  <p className="text-slate-600 text-xs">Los eventos del partido aparecerán aquí en tiempo real</p>
+                </div>
+              ) : (
+                <p className="text-slate-500 text-sm">Esperando el inicio del partido...</p>
+              )}
+            </div>
           ) : (
             eventosMinuto.map((evm: any, index: number) => {
               const isGol = evm.tipo_accion === 'Gol';
