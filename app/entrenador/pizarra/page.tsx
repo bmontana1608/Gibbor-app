@@ -4,94 +4,103 @@ import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { 
   ArrowLeft, Trash2, Save, Eraser, Pen, Circle, 
-  Download, RefreshCw, Layers, Users as UsersIcon, X, Undo2, Settings
+  Download, RefreshCw, Layers, Users as UsersIcon, X, Undo2, Settings,
+  Play, Pause, Plus, Video, Target, Navigation
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+type ItemType = 'player_red' | 'player_blue' | 'ball' | 'cone';
+
+interface BoardItem {
+  id: string;
+  type: ItemType;
+  label?: string;
+  x: number; // percentage 0-100
+  y: number; // percentage 0-100
+}
+
+interface Frame {
+  id: string;
+  items: BoardItem[];
+  duration: number; // in ms, how long it takes to transition to this frame from the previous
+}
+
 export default function PizarraTactica() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvasFondoRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const [color, setColor] = useState('#ffffff');
-  const [lineWidth, setLineWidth] = useState(3);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
-  const [isPortrait, setIsPortrait] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);
+  // -- State --
   const [fullScreen, setFullScreen] = useState(false);
-  const [showFloatingTools, setShowFloatingTools] = useState(false);
-  const [floatingPos, setFloatingPos] = useState({ x: 0, y: 20 });
-  const [isDraggingTools, setIsDraggingTools] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isPortrait, setIsPortrait] = useState(false);
 
-  const [jugadores, setJugadores] = useState<any[]>([]);
+  // Animation State
+  const [frames, setFrames] = useState<Frame[]>([]);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  
+  // Interpolated items used ONLY during playback
+  const [renderedItems, setRenderedItems] = useState<BoardItem[]>([]);
+  
+  // Dragging State
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
+  // Tools
+  const [showToolbox, setShowToolbox] = useState(true);
+
+  // Canvas Drawing (Global for notes)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasFondoRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [color, setColor] = useState('#ffffff');
+  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
+  const [history, setHistory] = useState<string[]>([]);
+
+  // Initialize
   useEffect(() => {
-    inicializarPizzara();
-  }, [fullScreen]);
-
-  useEffect(() => {
-    inicializarPizzara();
-    setFloatingPos({ x: window.innerWidth - 80, y: 20 });
-    
     // Check orientation
     const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
-    
     const handleResize = () => {
       checkOrientation();
-      inicializarPizzara();
+      drawField();
     };
-    
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
-    // Inicializar jugadores si no hay
-    if (jugadores.length === 0) {
-      const initialJugadores = [];
-      // Equipo Rojo (en 2 columnas si es necesario, pero probemos 1 mas compacta)
+    // Initial setup: 11 red, 11 blue, 1 ball
+    if (frames.length === 0) {
+      const initialItems: BoardItem[] = [];
       for (let i = 1; i <= 11; i++) {
-        initialJugadores.push({
-          id: `red-${i}`,
-          label: `${i}`,
-          color: '#ef4444',
-          x: i > 6 ? 60 : 30, // Dos columnitas
-          y: 20 + ((i > 6 ? i-6 : i) * 25)
-        });
+        initialItems.push({ id: `red-${i}`, type: 'player_red', label: `${i}`, x: i > 6 ? 30 : 15, y: 15 + ((i > 6 ? i-6 : i) * 10) });
+        initialItems.push({ id: `blue-${i}`, type: 'player_blue', label: `${i}`, x: i > 6 ? 70 : 85, y: 15 + ((i > 6 ? i-6 : i) * 10) });
       }
-      // Equipo Azul
-      for (let i = 1; i <= 11; i++) {
-        initialJugadores.push({
-          id: `blue-${i}`,
-          label: `${i}`,
-          color: '#3b82f6',
-          x: i > 6 ? 120 : 90,
-          y: 20 + ((i > 6 ? i-6 : i) * 25)
-        });
-      }
-      setJugadores(initialJugadores);
+      initialItems.push({ id: 'ball-1', type: 'ball', x: 50, y: 50 });
+      setFrames([{ id: 'frame-1', items: initialItems, duration: 1000 }]);
+      setRenderedItems(initialItems);
     }
-  }, []);
+  }, [frames]);
 
-  const inicializarPizzara = () => {
-    const canvas = canvasRef.current;
-    const canvasFondo = canvasFondoRef.current;
-    if (!canvas || !canvasFondo) return;
-    
-    // Ajustar tamaños
+  // Sync rendered items when not playing
+  useEffect(() => {
+    if (!isPlaying && frames.length > 0 && frames[currentFrameIndex]) {
+      setRenderedItems(frames[currentFrameIndex].items);
+    }
+  }, [currentFrameIndex, frames, isPlaying]);
+
+  // -- Drawing Logic --
+  const drawField = () => {
+    const canvas = canvasFondoRef.current;
+    if (!canvas) return;
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    canvasFondo.width = canvasFondo.offsetWidth;
-    canvasFondo.height = canvasFondo.offsetHeight;
     
-    const ctxFondo = canvasFondo.getContext('2d');
-    if (ctxFondo) dibujarCampo(ctxFondo, canvasFondo.width, canvasFondo.height);
-  };
-
-  const dibujarCampo = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const w = canvas.width;
+    const h = canvas.height;
+    
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
     ctx.lineWidth = Math.max(2, w / 500);
@@ -100,27 +109,22 @@ export default function PizarraTactica() {
     const fw = w - margin * 2;
     const fh = h - margin * 2;
     
-    // Rectángulo principal
     ctx.strokeRect(margin, margin, fw, fh);
     
-    // Línea media
     ctx.beginPath();
     ctx.moveTo(w / 2, margin);
     ctx.lineTo(w / 2, h - margin);
     ctx.stroke();
     
-    // Círculo central
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, fh * 0.18, 0, Math.PI * 2);
     ctx.stroke();
     
-    // Punto central
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, 2, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fill();
     
-    // Áreas Izquierda
     const agW = fw * 0.16;
     const agH = fh * 0.60;
     const apW = fw * 0.06;
@@ -129,11 +133,9 @@ export default function PizarraTactica() {
     ctx.strokeRect(margin, h/2 - agH/2, agW, agH);
     ctx.strokeRect(margin, h/2 - apH/2, apW, apH);
     
-    // Áreas Derecha
     ctx.strokeRect(w - margin - agW, h/2 - agH/2, agW, agH);
     ctx.strokeRect(w - margin - apW, h/2 - apH/2, apW, apH);
 
-    // Semicírculos de las áreas
     ctx.beginPath();
     ctx.arc(margin + agW, h / 2, fh * 0.1, -Math.PI/2, Math.PI/2);
     ctx.stroke();
@@ -143,60 +145,38 @@ export default function PizarraTactica() {
     ctx.stroke();
   };
 
-  const obtenerCoordenadas = (e: any) => {
+  // Setup drawing canvas size
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+       canvas.width = canvas.offsetWidth;
+       canvas.height = canvas.offsetHeight;
+    }
+  }, [fullScreen]);
+
+  const getCanvasCoords = (e: React.PointerEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    
-    let clientX = e.clientX;
-    let clientY = e.clientY;
-
-    if (e.touches && e.touches.length > 0) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    }
-
-    // Coordenadas relativas al elemento visible, ajustadas al tamaño interno del canvas
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    
-    let rx = (clientX - rect.left) * scaleX;
-    let ry = (clientY - rect.top) * scaleY;
-
-    if (isPortrait && window.innerWidth < 1024) {
-        // Si hay rotación CSS de 90deg:
-        // El eje X del mouse ahora es el eje Y negativo de la cancha ?
-        // Depende de cómo aplique el transform origin.
-        // Por defecto es center. 
-        // Es más seguro usar OFFSET relativo al elemento si no estuviera rotado.
-        // Pero como está rotado, invertimos:
-        const xPerc = rx / rect.width;
-        const yPerc = ry / rect.height;
-        
-        // Mapeo 90deg CW: 
-        // originalX = yPerc * canvas.width
-        // originalY = (1 - xPerc) * canvas.height
-        return {
-            x: yPerc * canvas.width,
-            y: (1 - xPerc) * canvas.height
-        };
-    }
-    
-    return { x: rx, y: ry };
+    return {
+      x: (e.clientX - rect.left) * (canvas.width / rect.width),
+      y: (e.clientY - rect.top) * (canvas.height / rect.height)
+    };
   };
 
-  const startDrawing = (e: any) => {
-    const coords = obtenerCoordenadas(e);
+  const handlePointerDownCanvas = (e: React.PointerEvent) => {
+    // Only draw if no item is being dragged
+    if (draggedItemId || isPlaying) return;
     
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
     
-    // Guardar estado previo para UNDO
     const canvas = canvasRef.current;
     if (canvas) {
         setHistory(prev => [...prev.slice(-20), canvas.toDataURL()]);
     }
 
+    const coords = getCanvasCoords(e);
     ctx.beginPath();
     ctx.moveTo(coords.x, coords.y);
     
@@ -206,374 +186,330 @@ export default function PizarraTactica() {
     } else {
         ctx.globalCompositeOperation = 'source-over';
         ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
+        ctx.lineWidth = 3;
     }
     
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     setIsDrawing(true);
+    (e.target as Element).setPointerCapture(e.pointerId);
   };
 
-  const draw = (e: any) => {
+  const handlePointerMoveCanvas = (e: React.PointerEvent) => {
     if (!isDrawing) return;
-    const coords = obtenerCoordenadas(e);
+    const coords = getCanvasCoords(e);
     const ctx = canvasRef.current?.getContext('2d');
     if (ctx) { ctx.lineTo(coords.x, coords.y); ctx.stroke(); }
   };
 
-  const stopDrawing = () => setIsDrawing(false);
-
-  const clearCanvas = () => {
-    if (!window.confirm("¿Limpiar todos los dibujos? (La cancha se mantendrá)")) return;
-    const canvas = canvasRef.current;
-    if (canvas) {
-        setHistory(prev => [...prev.slice(-20), canvas.toDataURL()]);
-        const ctx = canvas.getContext('2d');
-        ctx?.clearRect(0, 0, canvas.width, canvas.height);
-    }
+  const handlePointerUpCanvas = (e: React.PointerEvent) => {
+    setIsDrawing(false);
+    (e.target as Element).releasePointerCapture(e.pointerId);
   };
 
-  const undo = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || history.length === 0) return;
+  // -- Dragging Logic --
+  const getPitchPercentage = (clientX: number, clientY: number) => {
+    if (!containerRef.current) return { x: 0, y: 0 };
+    const rect = containerRef.current.getBoundingClientRect();
+    let xPerc = ((clientX - rect.left) / rect.width) * 100;
+    let yPerc = ((clientY - rect.top) / rect.height) * 100;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const lastState = history[history.length - 1];
-    setHistory(prev => prev.slice(0, -1));
-
-    const img = new Image();
-    img.src = lastState;
-    img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-    };
+    xPerc = Math.max(0, Math.min(100, xPerc));
+    yPerc = Math.max(0, Math.min(100, yPerc));
+    
+    return { x: xPerc, y: yPerc };
   };
 
-  const aplicarFormacion = (team: 'red' | 'blue', formacion: string) => {
-    if (!formacion) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const w = canvas.width;
-    const h = canvas.height;
-    
-    const isRed = team === 'red';
-    
-    // Función helper para posiciones relativas
-    const pos = (xPerc: number, yPerc: number) => ({
-      x: isRed ? w * xPerc : w * (1 - xPerc),
-      y: h * yPerc
-    });
-
-    let layout: {x: number, y: number}[] = [];
-    if (formacion === '4-4-2') {
-      layout = [
-        pos(0.08, 0.50), // GK
-        pos(0.25, 0.20), pos(0.22, 0.40), pos(0.22, 0.60), pos(0.25, 0.80), // DEF
-        pos(0.45, 0.20), pos(0.40, 0.40), pos(0.40, 0.60), pos(0.45, 0.80), // MID
-        pos(0.65, 0.40), pos(0.65, 0.60) // FWD
-      ];
-    } else if (formacion === '4-3-3') {
-      layout = [
-        pos(0.08, 0.50), // GK
-        pos(0.25, 0.20), pos(0.22, 0.40), pos(0.22, 0.60), pos(0.25, 0.80), // DEF
-        pos(0.42, 0.50), pos(0.48, 0.25), pos(0.48, 0.75), // MID
-        pos(0.65, 0.50), pos(0.60, 0.25), pos(0.60, 0.75) // FWD
-      ];
-    } else if (formacion === '3-5-2') {
-      layout = [
-        pos(0.08, 0.50), // GK
-        pos(0.22, 0.25), pos(0.20, 0.50), pos(0.22, 0.75), // DEF
-        pos(0.40, 0.15), pos(0.45, 0.35), pos(0.40, 0.50), pos(0.45, 0.65), pos(0.40, 0.85), // MID
-        pos(0.65, 0.40), pos(0.65, 0.60) // FWD
-      ];
-    }
-
-    if (layout.length > 0) {
-      setJugadores(prev => prev.map(p => {
-        if (p.id.startsWith(team)) {
-          const num = parseInt(p.id.split('-')[1]);
-          if (num <= 11 && layout[num - 1]) {
-            return { ...p, x: layout[num - 1].x, y: layout[num - 1].y };
-          }
-        }
-        return p;
-      }));
-      toast.success(`Formación ${formacion} aplicada al equipo ${isRed ? 'Rojo' : 'Azul'}`);
-    }
+  const handleItemPointerDown = (e: React.PointerEvent, id: string) => {
+    if (isPlaying) return;
+    e.stopPropagation(); 
+    setDraggedItemId(id);
+    (e.target as Element).setPointerCapture(e.pointerId);
   };
 
-  const [draggedPlayerId, setDraggedPlayerId] = useState<string | null>(null);
-  const startDragging = (id: string) => () => setDraggedPlayerId(id);
-
-  const onDragMove = (e: any) => {
-    if (!draggedPlayerId) return;
-    const coords = obtenerCoordenadas(e);
-    setJugadores(prev => prev.map(p => p.id === draggedPlayerId ? { ...p, x: coords.x, y: coords.y } : p));
-  };
-
-  const stopDragging = () => setDraggedPlayerId(null);
-
-  const guardarCaptura = async () => {
-    const canvas = canvasRef.current;
-    const canvasFondo = canvasFondoRef.current;
-    if (!canvas || !canvasFondo) return;
-    
-    const toastId = toast.loading("Generando imagen final...");
-    
-    // Crear un canvas temporal para combinar fondo verde, líneas y dibujos
-    const finalCanvas = document.createElement('canvas');
-    finalCanvas.width = canvas.width;
-    finalCanvas.height = canvas.height;
-    const fctx = finalCanvas.getContext('2d');
-    if (fctx) {
-        // 1. Fondo verde
-        fctx.fillStyle = '#10b981';
-        fctx.fillRect(0,0, finalCanvas.width, finalCanvas.height);
-        // 2. Dibujar fondo (líneas)
-        fctx.drawImage(canvasFondo, 0, 0);
-        // 3. Dibujar dibujos del profesor
-        fctx.drawImage(canvas, 0, 0);
-        
-        // 4. Dibujar jugadores (circles)
-        const playerRadius = finalCanvas.width / 60;
-        jugadores.forEach(p => {
-            fctx.beginPath();
-            fctx.arc(p.x, p.y, playerRadius, 0, Math.PI * 2);
-            fctx.fillStyle = p.color;
-            fctx.fill();
-            fctx.strokeStyle = '#ffffff';
-            fctx.lineWidth = 1;
-            fctx.stroke();
-            fctx.fillStyle = '#ffffff';
-            fctx.font = `bold ${playerRadius * 0.8}px Arial`;
-            fctx.textAlign = 'center';
-            fctx.textBaseline = 'middle';
-            fctx.fillText(p.label, p.x, p.y);
-        });
-    }
-    
-    const dataURL = finalCanvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.download = `estrategia-club-${new Date().getTime()}.png`;
-    link.href = dataURL;
-    link.click();
-    
-    toast.success("Estrategia guardada con jugadores!", { id: toastId });
-  };
-
-  const startDragTools = (e: any) => {
-    setIsDraggingTools(true);
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    setDragOffset({
-        x: clientX - floatingPos.x,
-        y: clientY - floatingPos.y
-    });
+  const handleItemPointerMove = (e: React.PointerEvent) => {
+    if (!draggedItemId || isPlaying) return;
     e.stopPropagation();
+    
+    const { x, y } = getPitchPercentage(e.clientX, e.clientY);
+    
+    const updatedFrames = [...frames];
+    const currentItems = [...updatedFrames[currentFrameIndex].items];
+    const itemIndex = currentItems.findIndex(i => i.id === draggedItemId);
+    
+    if (itemIndex > -1) {
+      currentItems[itemIndex] = { ...currentItems[itemIndex], x, y };
+      updatedFrames[currentFrameIndex].items = currentItems;
+      setFrames(updatedFrames);
+      setRenderedItems(currentItems);
+    }
   };
 
-  const onDragTools = (e: any) => {
-    if (!isDraggingTools) return;
-    const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    
-    // Boundary checks
-    const newX = Math.max(10, Math.min(window.innerWidth - 60, clientX - dragOffset.x));
-    const newY = Math.max(10, Math.min(window.innerHeight - 60, clientY - dragOffset.y));
-    
-    setFloatingPos({ x: newX, y: newY });
+  const handleItemPointerUp = (e: React.PointerEvent) => {
+    if (!draggedItemId) return;
+    setDraggedItemId(null);
+    (e.target as Element).releasePointerCapture(e.pointerId);
   };
 
-  const stopDragTools = () => setIsDraggingTools(false);
+  // -- Add New Items --
+  const addNewItem = (type: ItemType) => {
+    if (isPlaying) return;
+    const newItem: BoardItem = {
+      id: `${type}-${Date.now()}`,
+      type,
+      x: 50,
+      y: 50,
+      label: type.includes('player') ? '?' : undefined
+    };
+    
+    const updatedFrames = [...frames];
+    for (let i = currentFrameIndex; i < updatedFrames.length; i++) {
+        updatedFrames[i].items = [...updatedFrames[i].items, { ...newItem }];
+    }
+    setFrames(updatedFrames);
+  };
+
+  // -- Animation Timeline --
+  const addFrame = () => {
+    if (isPlaying) return;
+    const newItems = frames[currentFrameIndex].items.map(i => ({ ...i }));
+    const newFrame: Frame = {
+      id: `frame-${Date.now()}`,
+      items: newItems,
+      duration: 1000 
+    };
+    
+    const newFrames = [...frames.slice(0, currentFrameIndex + 1), newFrame, ...frames.slice(currentFrameIndex + 1)];
+    setFrames(newFrames);
+    setCurrentFrameIndex(currentFrameIndex + 1);
+  };
+
+  const removeFrame = (idx: number) => {
+    if (frames.length <= 1 || isPlaying) return;
+    const newFrames = frames.filter((_, i) => i !== idx);
+    setFrames(newFrames);
+    if (currentFrameIndex >= newFrames.length) {
+      setCurrentFrameIndex(newFrames.length - 1);
+    }
+  };
+
+  const playAnimation = async () => {
+    if (frames.length <= 1) {
+      toast.error('Agrega más escenas (Frames) para animar');
+      return;
+    }
+    setIsPlaying(true);
+    setCurrentFrameIndex(0);
+    setRenderedItems(frames[0].items);
+
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (let i = 1; i < frames.length; i++) {
+        await sleep(50);
+        setCurrentFrameIndex(i);
+        setRenderedItems(frames[i].items);
+        await sleep(frames[i].duration);
+    }
+
+    setIsPlaying(false);
+  };
 
   return (
-    <div className={`h-screen bg-slate-900 flex flex-col font-sans text-white overflow-hidden select-none ${fullScreen ? 'fixed inset-0 z-[100]' : ''}`}>
+    <div className={`flex flex-col bg-slate-900 ${fullScreen ? 'fixed inset-0 z-50' : 'min-h-screen'} transition-all`}>
       
+      {/* Header */}
       {!fullScreen && (
-        <div className="bg-slate-800 border-b border-white/10 p-2 lg:p-4 flex items-center justify-between shadow-2xl z-20 gap-2">
-          <div className="flex items-center gap-2 lg:gap-4 min-w-0">
-            <button onClick={() => window.location.href = '/entrenador/planificador'} className="p-1.5 lg:p-2 hover:bg-slate-700 rounded-xl transition-colors shrink-0">
-              <ArrowLeft className="w-5 h-5 text-slate-400" />
+        <div className="bg-[#020617] border-b border-white/5 p-4 flex items-center justify-between z-20">
+          <div className="flex items-center gap-4">
+            <button className="text-slate-400 hover:text-white transition-colors" onClick={() => window.history.back()}>
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <div className="min-w-0">
-              <h1 className="text-[10px] lg:text-sm font-black uppercase tracking-widest text-emerald-400 truncate">Pizarra Táctica</h1>
-              <p className="text-[8px] lg:text-[10px] font-bold text-slate-400 hidden sm:block">MULTI-CAPA</p>
+            <div>
+              <h1 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
+                <Video className="w-6 h-6 text-emerald-500" />
+                Playbook Pro <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full not-italic">Beta</span>
+              </h1>
             </div>
           </div>
-
-          <div className="flex items-center gap-1 lg:gap-2 bg-slate-900/50 p-1 rounded-2xl border border-white/5 shrink-0">
-             <button onClick={() => setTool('pen')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Pen className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-             <button onClick={() => setTool('eraser')} className={`p-2 lg:p-3 rounded-xl transition-all ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}><Eraser className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-             <div className="w-px h-5 bg-white/10 mx-0.5"></div>
-             <button onClick={undo} disabled={history.length === 0} title="Deshacer" className={`p-2 lg:p-3 rounded-xl transition-all ${history.length > 0 ? 'text-slate-300 hover:text-white' : 'text-slate-700 pointer-events-none'}`}>
-                <Undo2 className="w-4 h-4 lg:w-5 lg:h-5" />
-             </button>
-             <button onClick={clearCanvas} title="Limpiar dibujos" className="p-2 lg:p-3 text-slate-500 hover:text-red-400 rounded-xl transition-colors"><RefreshCw className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-             <button onClick={() => { aplicarFormacion('red', '4-4-2'); aplicarFormacion('blue', '4-4-2'); }} title="Alinear 4-4-2 rápido" className="p-2 lg:p-3 text-slate-500 hover:text-emerald-400 rounded-xl transition-colors lg:hidden"><UsersIcon className="w-4 h-4 lg:w-5 lg:h-5" /></button>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex gap-1 lg:gap-2">
-              {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
-                  <button key={c} onClick={() => setColor(c)} className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 transition-all ${color === c ? 'scale-110 border-white' : 'border-transparent opacity-50'}`} style={{ backgroundColor: c }}></button>
-              ))}
-            </div>
-            <button onClick={() => setFullScreen(true)} className="lg:hidden p-2.5 bg-slate-700 rounded-xl text-white"><Layers className="w-4 h-4" /></button>
-            <button onClick={guardarCaptura} title="Guardar Imagen" className="bg-emerald-600 hover:bg-emerald-500 text-white p-2.5 lg:px-5 lg:py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all">
-              <Save className="w-4 h-4" /> <span className="hidden lg:inline">GUARDAR IMAGEN</span>
-            </button>
-          </div>
+          <button 
+            onClick={() => setFullScreen(true)}
+            className="hidden md:flex items-center gap-2 text-xs font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-all"
+          >
+            Pantalla Completa
+          </button>
         </div>
       )}
 
-      <div className={`flex-1 relative flex items-center justify-center bg-slate-950 ${fullScreen ? 'p-0' : 'p-4'}`} 
-        onMouseMove={(e) => { onDragMove(e); onDragTools(e); }} 
-        onMouseUp={() => { stopDragging(); stopDragTools(); }} 
-        onMouseLeave={() => { stopDragging(); stopDragTools(); }}
-        onTouchMove={(e) => { e.preventDefault(); onDragMove(e); onDragTools(e); }} 
-        onTouchEnd={() => { stopDragging(); stopDragTools(); }}
-      >
+      {/* Main Board Area */}
+      <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
         
-        {fullScreen && (
-          <div 
-            style={{ left: floatingPos.x, top: floatingPos.y }}
-            className="fixed z-[110] flex flex-col items-end gap-2 transition-shadow"
-          >
-              <button 
-                onMouseDown={startDragTools}
-                onTouchStart={startDragTools}
-                onClick={(e) => { e.stopPropagation(); setShowFloatingTools(!showFloatingTools); }} 
-                className={`p-4 rounded-full border border-white/20 shadow-2xl transition-all cursor-move active:scale-110 ${showFloatingTools ? 'text-brand' : 'bg-slate-800/95 backdrop-blur-md'}`}
-              >
-                {showFloatingTools ? <X className="w-6 h-6" /> : <Settings className="w-6 h-6 text-emerald-400" />}
-              </button>
+        {/* Toolbox Sidebar */}
+        <div className={`absolute md:relative z-30 ${showToolbox ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform w-16 md:w-20 bg-[#020617]/90 backdrop-blur-md border-r border-white/5 flex flex-col items-center py-4 gap-4 shadow-2xl h-full`}>
+            
+            <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-colors group relative" onClick={() => addNewItem('ball')}>
+                ⚽
+                <span className="absolute left-14 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Añadir Balón</span>
+            </button>
+            <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-colors group relative" onClick={() => addNewItem('cone')}>
+                🔺
+                <span className="absolute left-14 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Añadir Cono</span>
+            </button>
+            <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-colors group relative" onClick={() => addNewItem('player_red')}>
+                🔴
+                <span className="absolute left-14 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Añadir Atacante</span>
+            </button>
+            <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-colors group relative" onClick={() => addNewItem('player_blue')}>
+                🔵
+                <span className="absolute left-14 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">Añadir Defensor</span>
+            </button>
+            
+            <div className="w-12 h-px bg-white/10 my-2"></div>
+            
+            <button className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${tool === 'pen' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`} onClick={() => setTool('pen')}>
+                <Pen className="w-4 h-4" />
+            </button>
+            
+            <button className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${tool === 'eraser' ? 'bg-emerald-500 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`} onClick={() => setTool('eraser')}>
+                <Eraser className="w-4 h-4" />
+            </button>
+            
+            <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors mt-auto" onClick={() => {
+                const canvas = canvasRef.current;
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }}>
+                <Trash2 className="w-4 h-4" />
+            </button>
 
-              {showFloatingTools && (
-                <div className="bg-slate-800/90 backdrop-blur-xl p-3 rounded-[30px] border border-white/10 flex flex-col gap-4 shadow-2xl animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
-                    <div className="flex flex-col gap-2">
-                        <button onClick={() => { setTool('pen'); setShowFloatingTools(false); }} className={`p-4 rounded-2xl ${tool === 'pen' ? 'bg-emerald-500 text-white shadow-emerald-900/40' : 'text-slate-400 bg-slate-900/50'}`}><Pen className="w-6 h-6" /></button>
-                        <button onClick={() => { setTool('eraser'); setShowFloatingTools(false); }} className={`p-4 rounded-2xl ${tool === 'eraser' ? 'bg-emerald-500 text-white shadow-emerald-900/40' : 'text-slate-400 bg-slate-900/50'}`}><Eraser className="w-6 h-6" /></button>
-                        <div className="h-px w-full bg-white/10 my-1"></div>
-                        <button onClick={() => { undo(); setShowFloatingTools(false); }} className="p-3 text-slate-400 hover:text-white transition-colors"><Undo2 className="w-6 h-6" /></button>
-                        <button onClick={() => { setFullScreen(false); setShowFloatingTools(false); }} className="p-3 text-rose-500 hover:bg-rose-500/10 rounded-2xl"><Layers className="w-6 h-6" /></button>
-                    </div>
-                    <div className="w-full h-px bg-white/10"></div>
-                    <div className="flex flex-col gap-3 items-center">
-                        {['#ffffff', '#ef4444', '#3b82f6'].map(c => (
-                        <button key={c} onClick={() => { setColor(c); setShowFloatingTools(false); }} className={`w-8 h-8 rounded-full border-2 transition-transform ${color === c ? 'border-white scale-125' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c }}></button>
-                        ))}
-                    </div>
+            {fullScreen && (
+                <button className="w-10 h-10 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 transition-colors" onClick={() => setFullScreen(false)}>
+                    <X className="w-4 h-4" />
+                </button>
+            )}
+        </div>
+
+        {/* Pitch Container */}
+        <div className="flex-1 flex items-center justify-center p-2 md:p-8 bg-slate-900 overflow-hidden relative">
+            
+            {/* Mobile Toolbox Toggle */}
+            <button className="md:hidden absolute top-4 left-4 z-40 bg-white/10 p-2 rounded-xl backdrop-blur-md" onClick={() => setShowToolbox(!showToolbox)}>
+                <Settings className="w-5 h-5 text-white" />
+            </button>
+
+            <div 
+                ref={containerRef} 
+                className={`relative bg-emerald-600 rounded-3xl shadow-[0_0_100px_rgba(16,185,129,0.15)] border-4 border-emerald-700/50 overflow-hidden ${isPortrait ? 'w-full aspect-[2/3]' : 'w-full max-w-5xl aspect-[3/2]'}`}
+                style={{ touchAction: 'none' }}
+            >
+                {/* Background Field Lines */}
+                <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full pointer-events-none opacity-50" />
+                
+                {/* Drawing Layer */}
+                <canvas 
+                    ref={canvasRef} 
+                    className="absolute inset-0 w-full h-full z-10 touch-none"
+                    onPointerDown={handlePointerDownCanvas}
+                    onPointerMove={handlePointerMoveCanvas}
+                    onPointerUp={handlePointerUpCanvas}
+                    onPointerCancel={handlePointerUpCanvas}
+                />
+
+                {/* Items Layer */}
+                <div className="absolute inset-0 w-full h-full z-20 pointer-events-none">
+                    {renderedItems.map(item => (
+                        <div 
+                            key={item.id}
+                            onPointerDown={(e) => handleItemPointerDown(e, item.id)}
+                            onPointerMove={handleItemPointerMove}
+                            onPointerUp={handleItemPointerUp}
+                            onPointerCancel={handleItemPointerUp}
+                            className={`absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto flex items-center justify-center shadow-2xl
+                                ${isPlaying ? 'transition-all ease-linear' : (draggedItemId === item.id ? 'scale-125 z-50 cursor-grabbing' : 'cursor-grab hover:scale-110')}
+                            `}
+                            style={{ 
+                                left: `${item.x}%`, 
+                                top: `${item.y}%`,
+                                transitionDuration: isPlaying && frames[currentFrameIndex] ? `${frames[currentFrameIndex].duration}ms` : '0ms',
+                                width: item.type.includes('player') ? 'clamp(24px, 4%, 40px)' : item.type === 'ball' ? 'clamp(16px, 2%, 24px)' : 'clamp(20px, 3%, 30px)',
+                                height: item.type.includes('player') ? 'clamp(24px, 4%, 40px)' : item.type === 'ball' ? 'clamp(16px, 2%, 24px)' : 'clamp(20px, 3%, 30px)',
+                            }}
+                        >
+                            {item.type === 'player_red' && (
+                                <div className="w-full h-full bg-red-500 rounded-full border-2 border-white/80 flex items-center justify-center shadow-lg">
+                                    <span className="text-[10px] md:text-xs font-black text-white">{item.label}</span>
+                                </div>
+                            )}
+                            {item.type === 'player_blue' && (
+                                <div className="w-full h-full bg-blue-500 rounded-full border-2 border-white/80 flex items-center justify-center shadow-lg">
+                                    <span className="text-[10px] md:text-xs font-black text-white">{item.label}</span>
+                                </div>
+                            )}
+                            {item.type === 'ball' && (
+                                <div className="w-full h-full bg-white rounded-full flex items-center justify-center text-xs md:text-sm drop-shadow-md">
+                                    ⚽
+                                </div>
+                            )}
+                            {item.type === 'cone' && (
+                                <div className="w-full h-full flex items-center justify-center text-xs md:text-sm drop-shadow-md">
+                                    🔺
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
-              )}
-          </div>
-        )}
-        
-        <div className="absolute left-6 top-1/2 -translate-y-1/2 bg-slate-800/80 border border-white/10 p-4 rounded-3xl backdrop-blur-md hidden lg:flex flex-col gap-6 shadow-2xl z-30">
-           <div className="text-[8px] font-black text-slate-500 text-center uppercase tracking-widest">Formaciones</div>
-           
-           {/* Equipo Rojo */}
-           <div className="flex flex-col gap-2 items-center">
-              <div className="w-8 h-8 rounded-full bg-red-600 border-2 border-white/20 shadow-lg flex items-center justify-center font-bold text-[10px]">R</div>
-              <select 
-                onChange={(e) => aplicarFormacion('red', e.target.value)}
-                className="bg-slate-900 border border-white/10 text-white text-[10px] rounded p-1.5 outline-none cursor-pointer hover:bg-slate-700"
-              >
-                <option value="">Alinear...</option>
-                <option value="4-4-2">4-4-2</option>
-                <option value="4-3-3">4-3-3</option>
-                <option value="3-5-2">3-5-2</option>
-              </select>
-           </div>
-
-           {/* Equipo Azul */}
-           <div className="flex flex-col gap-2 items-center">
-              <div className="w-8 h-8 rounded-full bg-blue-600 border-2 border-white/20 shadow-lg flex items-center justify-center font-bold text-[10px]">A</div>
-              <select 
-                onChange={(e) => aplicarFormacion('blue', e.target.value)}
-                className="bg-slate-900 border border-white/10 text-white text-[10px] rounded p-1.5 outline-none cursor-pointer hover:bg-slate-700"
-              >
-                <option value="">Alinear...</option>
-                <option value="4-4-2">4-4-2</option>
-                <option value="4-3-3">4-3-3</option>
-                <option value="3-5-2">3-5-2</option>
-              </select>
-           </div>
-        </div>
-
-        {/* Cancha */}
-        <div ref={containerRef} className={`pizarra-container relative mx-auto aspect-[3/2] ${fullScreen ? 'w-screen h-screen' : 'w-full max-h-[calc(100vh-120px)]'} bg-emerald-600 rounded-[10px] lg:rounded-[40px] shadow-[0_0_100px_rgba(16,185,129,0.3)] border-[4px] lg:border-[12px] border-emerald-700 overflow-hidden cursor-crosshair transition-all duration-500`}>
-          
-          {/* Capa 1: Cancha (Inmune a borrador) */}
-          <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full" />
-          
-          {/* Capa 2: Dibujos (Transparente) */}
-          <canvas 
-            ref={canvasRef} 
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={(e) => { e.preventDefault(); draw(e); }}
-            onTouchEnd={stopDrawing}
-            className="absolute inset-0 w-full h-full z-10"
-          />
-          
-          {/* Capa 3: Jugadores Draggables */}
-          {jugadores.map((p) => (
-             <div 
-               key={p.id}
-               onMouseDown={startDragging(p.id)}
-               onTouchStart={startDragging(p.id)}
-               className="absolute w-5 h-5 lg:w-11 lg:h-11 rounded-full border border-white shadow-2xl flex items-center justify-center font-black text-[8px] lg:text-sm cursor-grab active:cursor-grabbing transition-transform hover:scale-110"
-               style={{ 
-                 backgroundColor: p.color, 
-                 left: p.x, 
-                 top: p.y, 
-                 transform: 'translate(-50%, -50%)',
-                 zIndex: draggedPlayerId === p.id ? 100 : 50
-               }}
-             >
-               {p.label}
-             </div>
-          ))}
-        </div>
-
-        <div className="absolute bottom-2 left-6 text-white/40 text-[8px] lg:text-[10px] font-bold uppercase flex gap-4">
-            <span className="text-emerald-500/60 font-black">? Tip:</span> El borrador no afecta las líneas del campo.
+            </div>
         </div>
       </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 1024px) and (orientation: portrait) {
-          .pizarra-container {
-            transform: rotate(90deg);
-            width: 90vh !important;
-            height: 90vw !important;
-            max-width: none !important;
-          }
-          .mobile-rotate-hint {
-            display: flex !important;
-          }
-        }
-        @keyframes spin-slow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-spin-slow {
-          animation: spin-slow 8s linear infinite;
-        }
-      `}} />
-      
-      {/* Aviso de Rotación en Móvil */}
-      <div className="mobile-rotate-hint hidden fixed inset-0 bg-slate-900/95 z-[200] flex-col items-center justify-center p-8 text-center pointer-events-none md:hidden">
-         <div className="bg-emerald-500/10 p-8 rounded-[40px] border border-emerald-500/20 mb-6 backdrop-blur-md">
-            <RefreshCw className="w-12 h-12 text-emerald-500 animate-spin-slow mb-4 mx-auto" />
-            <h2 className="text-xl font-black text-white mb-2 uppercase tracking-tighter">Pizarra Inteligente</h2>
-            <p className="text-slate-400 text-sm max-w-[200px] mx-auto">Gira tu teléfono para planificar con más espacio o usa la vista vertical.</p>
-         </div>
+      {/* Timeline Controls (Footer) */}
+      <div className="bg-[#020617] border-t border-white/5 p-4 z-20 flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+            {frames.map((frame, idx) => (
+                <div key={frame.id} className="relative group shrink-0">
+                    <button 
+                        onClick={() => { if(!isPlaying) setCurrentFrameIndex(idx); }}
+                        className={`w-16 h-12 rounded-lg border-2 flex items-center justify-center font-black text-xs transition-colors
+                            ${currentFrameIndex === idx ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-white/10 bg-white/5 text-slate-500 hover:border-white/30'}
+                        `}
+                    >
+                        Paso {idx + 1}
+                    </button>
+                    {frames.length > 1 && !isPlaying && (
+                        <button 
+                            onClick={(e) => { e.stopPropagation(); removeFrame(idx); }}
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    )}
+                </div>
+            ))}
+            <button 
+                onClick={addFrame}
+                disabled={isPlaying}
+                className="w-12 h-12 shrink-0 rounded-lg border-2 border-dashed border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-colors disabled:opacity-50"
+            >
+                <Plus className="w-5 h-5" />
+            </button>
+        </div>
+
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={isPlaying ? () => setIsPlaying(false) : playAnimation}
+                className={`px-8 py-3 rounded-xl font-black uppercase text-xs flex items-center gap-2 shadow-xl transition-all
+                    ${isPlaying ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30'}
+                `}
+            >
+                {isPlaying ? <><Pause className="w-4 h-4" /> Detener</> : <><Play className="w-4 h-4" /> Animar Jugada</>}
+            </button>
+            <button className="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-colors" title="Guardar Jugada">
+                <Save className="w-5 h-5" />
+            </button>
+        </div>
+
       </div>
 
     </div>
