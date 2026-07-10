@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, use } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { toast } from 'sonner';
@@ -8,6 +9,7 @@ import { Play, Square, Settings, Shield, Clock, ArrowRightLeft, Target, Hand, Fl
 import Link from 'next/link';
 
 export default function PartidoEnVivo({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
   const unwrappedParams = use(params);
   const matchId = unwrappedParams.id;
   const { slug: tenantSlug } = useTenant();
@@ -136,7 +138,11 @@ export default function PartidoEnVivo({ params }: { params: Promise<{ id: string
     });
     setEvento((prev: any) => ({...prev, estado_partido: nuevoEstado}));
     
-    if (nuevoEstado === '1er Tiempo') registrarAccion('Inicio', null, null, 'Inicia el 1er Tiempo');
+    if (nuevoEstado === '1er Tiempo') {
+      registrarAccion('Inicio', null, null, 'Inicia el 1er Tiempo');
+      setSegundosActuales(0);
+      setCronometroActivo(true);
+    }
     if (nuevoEstado === 'Descanso') {
       registrarAccion('Fin', null, null, 'Fin del 1er Tiempo');
       setCronometroActivo(false);

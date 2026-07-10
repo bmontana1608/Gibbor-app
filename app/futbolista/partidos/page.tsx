@@ -15,34 +15,58 @@ export default function FutbolistaPartidosLive() {
   const basePath = tenantSlug && tenantSlug !== 'master' ? `/${tenantSlug}` : '';
 
   useEffect(() => {
+    let clubId: string | null = null;
+
     async function loadData() {
       if (!tenantSlug) return;
       const { data: tenantData } = await supabase.from('clubes').select('*').eq('slug', tenantSlug).single();
       if (!tenantData) return;
       setTenant(tenantData);
+      clubId = tenantData.id;
 
-      const unMesAtras = new Date();
-      unMesAtras.setMonth(unMesAtras.getMonth() - 1);
-
-      const { data: ev } = await supabase
-        .from('eventos')
-        .select('*')
-        .eq('club_id', tenantData.id)
-        .order('fecha', { ascending: false })
-        .limit(100);
-      
-      if (ev) {
-        const filtered = ev.filter(e => {
-          const isReciente = new Date(e.fecha) >= unMesAtras;
-          const isActivo = ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(e.estado_partido);
-          return isReciente || isActivo;
-        });
-        setEventos(filtered);
-      }
+      await fetchEventos(tenantData.id);
       setCargando(false);
+
+      // Suscripción en tiempo real: se actualiza cuando el entrenador inicia un partido
+      const channel = supabase
+        .channel('partidos-en-vivo')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'eventos', filter: `club_id=eq.${tenantData.id}` },
+          () => {
+            if (clubId) fetchEventos(clubId);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
+
     loadData();
   }, [tenantSlug]);
+
+  async function fetchEventos(clubId: string) {
+    const unMesAtras = new Date();
+    unMesAtras.setMonth(unMesAtras.getMonth() - 1);
+
+    const { data: ev } = await supabase
+      .from('eventos')
+      .select('*')
+      .eq('club_id', clubId)
+      .order('fecha', { ascending: false })
+      .limit(100);
+
+    if (ev) {
+      const filtered = ev.filter(e => {
+        const isReciente = new Date(e.fecha) >= unMesAtras;
+        const isActivo = ['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(e.estado_partido);
+        return isReciente || isActivo;
+      });
+      setEventos(filtered);
+    }
+  }
 
   const [filtro, setFiltro] = useState<'En Vivo' | 'Finalizados'>('En Vivo');
 
