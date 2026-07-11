@@ -12,13 +12,14 @@ import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
 
 interface DirectorLayoutClientProps {
-
   children: React.ReactNode;
   initialTenant: any;
   initialProfile: any;
+  proximoCorte?: string | null;
+  estadoSuscripcion?: string | null;
 }
 
-export default function DirectorLayoutClient({ children, initialTenant, initialProfile }: DirectorLayoutClientProps) {
+export default function DirectorLayoutClient({ children, initialTenant, initialProfile, proximoCorte, estadoSuscripcion }: DirectorLayoutClientProps) {
   const pathname = usePathname();
   const router = useRouter();
   
@@ -29,7 +30,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
   const mainRef = useRef<HTMLElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Evaluar días restantes de prueba
+  // Banner de vencimiento de prueba
   const trialBanner = useMemo(() => {
     if (!initialTenant?.fecha_fin_prueba) return null;
     const finPrueba = new Date(initialTenant.fecha_fin_prueba);
@@ -48,6 +49,32 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     }
     return null;
   }, [initialTenant]);
+
+  // Banner preventivo de vencimiento de suscripción (proximo_corte)
+  const suscripcionBanner = useMemo(() => {
+    if (!proximoCorte) return null;
+    // No mostrar si ya hay banner de prueba activo
+    if (trialBanner) return null;
+    // Solo aplica si el estado es Activo (club al día)
+    if (estadoSuscripcion !== 'Activo') return null;
+
+    const fechaCorte = new Date(proximoCorte);
+    const hoy = new Date();
+    if (isNaN(fechaCorte.getTime())) return null;
+
+    const diffTime = fechaCorte.getTime() - hoy.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Mostrar banner si quedan 7 días o menos
+    if (diffDays > 0 && diffDays <= 7) {
+      return {
+        dias: diffDays,
+        fecha: fechaCorte.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }),
+        urgente: diffDays <= 3,
+      };
+    }
+    return null;
+  }, [proximoCorte, estadoSuscripcion, trialBanner]);
 
   // Cerrar el menú al hacer clic afuera
   useEffect(() => {
@@ -365,6 +392,30 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0"
               >
                 Habilitar Cuenta
+              </Link>
+            </div>
+          )}
+
+          {suscripcionBanner && (
+            <div className={`text-white px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 font-bold text-sm shadow-md animate-in slide-in-from-top duration-300 ${
+              suscripcionBanner.urgente
+                ? 'bg-gradient-to-r from-red-600 to-rose-700'
+                : 'bg-gradient-to-r from-amber-400 to-yellow-500'
+            }`}>
+              <div className="flex items-center gap-3">
+                <Clock className={`w-5 h-5 flex-shrink-0 ${suscripcionBanner.urgente ? 'animate-pulse' : ''}`} />
+                <p>
+                  {suscripcionBanner.urgente
+                    ? <>⚠️ <strong>¡Atención!</strong> Tu suscripción vence en <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> ({suscripcionBanner.fecha}). Renueva ahora para no perder el acceso.</>  
+                    : <>Tu suscripción se renueva en <span className="font-black">{suscripcionBanner.dias} días</span> ({suscripcionBanner.fecha}). Asegúrate de tener tu pago listo para evitar interrupciones.</>  
+                  }
+                </p>
+              </div>
+              <Link
+                href={`${basePath}/director/soporte`}
+                className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0 whitespace-nowrap"
+              >
+                Contactar Soporte
               </Link>
             </div>
           )}

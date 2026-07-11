@@ -23,6 +23,13 @@ export default async function DirectorLayout({ children }: { children: React.Rea
   const { getTenant } = await import('@/lib/tenant');
   const tenant = await getTenant(tenantSlug);
 
+  // Obtener datos de suscripción para banner preventivo
+  const { data: clubData } = await supabase
+    .from('clubes')
+    .select('proximo_corte, estado_suscripcion, fecha_fin_prueba')
+    .eq('slug', tenantSlug)
+    .single();
+
   const { data: perfil } = await supabase
     .from('perfiles')
     .select('*')
@@ -63,7 +70,12 @@ export default async function DirectorLayout({ children }: { children: React.Rea
   }
 
   return (
-    <DirectorLayoutClient initialTenant={tenant} initialProfile={perfil}>
+    <DirectorLayoutClient 
+      initialTenant={tenant} 
+      initialProfile={perfil}
+      proximoCorte={clubData?.proximo_corte || null}
+      estadoSuscripcion={clubData?.estado_suscripcion || null}
+    >
       {isSuspended ? (
         <SaaSSuspendidoView 
           club={tenant} 
