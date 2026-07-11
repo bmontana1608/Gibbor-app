@@ -147,7 +147,28 @@ export default function SaasCobranzaPage() {
       const dataSusc = await resSuscripcion.json();
       if (dataSusc.error) throw new Error(dataSusc.error);
 
-      toast.success('Pago registrado y membresía de club extendida 🚀', { id: toastId });
+      // 4. Trigger recibo (no bloquea si falla, pero avisa)
+      if (dataPago.pago_id) {
+        toast.loading('Membresía extendida. Enviando recibo por WhatsApp...', { id: toastId });
+        try {
+          const resRecibo = await fetch('/api/admin/enviar-recibo-saas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pago_id: dataPago.pago_id })
+          });
+          const resultRecibo = await resRecibo.json();
+          if (resultRecibo.error) {
+            toast.success('Membresía extendida, pero no se envió recibo: ' + resultRecibo.error, { id: toastId, duration: 5000 });
+          } else {
+            toast.success('Membresía extendida y recibo enviado 🚀', { id: toastId });
+          }
+        } catch (e: any) {
+          toast.success('Membresía extendida (Error al enviar recibo)', { id: toastId });
+        }
+      } else {
+        toast.success('Pago registrado y membresía de club extendida 🚀', { id: toastId });
+      }
+
       setIsModalPagoOpen(false);
       cargarDatos();
     } catch (e: any) {
@@ -171,6 +192,23 @@ export default function SaasCobranzaPage() {
       cargarDatos();
     } catch (e: any) {
       toast.error('Error: ' + e.message, { id: toastId });
+    }
+  };
+
+  const enviarReciboManual = async (pago: any) => {
+    const toastId = toast.loading('Generando y enviando recibo...');
+    try {
+      const res = await fetch('/api/admin/enviar-recibo-saas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pago_id: pago.id })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      
+      toast.success('Recibo enviado correctamente', { id: toastId });
+    } catch (e: any) {
+      toast.error('Error al enviar: ' + e.message, { id: toastId });
     }
   };
 

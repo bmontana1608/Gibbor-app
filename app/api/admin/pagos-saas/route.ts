@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     // 1. Guardar en pagos_saas usando supabaseAdmin (bypasses RLS)
-    const { error: errorPago } = await supabaseAdmin
+    const { data: pagoGuardado, error: errorPago } = await supabaseAdmin
       .from('pagos_saas')
       .insert([{
         club_id,
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         fecha_pago,
         comprobante_url: comprobante_url || null,
         estado: 'Aprobado'
-      }]);
+      }]).select('id').single();
 
     if (errorPago) throw errorPago;
 
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       if (errorFactura) throw errorFactura;
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, pago_id: pagoGuardado?.id });
   } catch (error: any) {
     console.error('Error in /api/admin/pagos-saas:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
