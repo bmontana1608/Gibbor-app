@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Search, Send, User, MessageSquare, Clock, Phone, Sparkles, Bot } from 'lucide-react';
+import { Loader2, Search, Send, User, MessageSquare, Phone, Sparkles, Bot, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CRMChatViewProps {
@@ -11,6 +11,7 @@ interface CRMChatViewProps {
 
 export default function CRMChatView({ role }: CRMChatViewProps) {
   const [chats, setChats] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'leads' | 'clubes'>('leads');
   const [activeChat, setActiveChat] = useState<any | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -61,22 +62,24 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
 
-    // Fetch leads based on role
+    // Fetch leads and clubes based on role
     let leadsQuery = supabase.from('atlas_academias').select('id, nombre, telefono, embajador_id');
+    let clubesQuery = supabase.from('clubes').select('id, nombre, telefono_contacto, embajador_id');
+
     if (role === 'embajador' && user) {
-      // Get the embajador id for this user
       const { data: embajador } = await supabase.from('embajadores').select('id').eq('user_id', user.id).maybeSingle();
       if (embajador) {
         leadsQuery = leadsQuery.eq('embajador_id', embajador.id);
+        clubesQuery = clubesQuery.eq('embajador_id', embajador.id);
       } else {
-        // Fallback to prevent fetching all
         leadsQuery = leadsQuery.eq('embajador_id', '00000000-0000-0000-0000-000000000000');
+        clubesQuery = clubesQuery.eq('embajador_id', '00000000-0000-0000-0000-000000000000');
       }
     }
     const { data: leads } = await leadsQuery;
+    const { data: clubes } = await clubesQuery;
 
     // Fetch distinct numbers from messages to show in the sidebar
-    // Supabase RPC or just fetching all and grouping for MVP
     const { data: allMsgs, error } = await supabase
       .from('crm_whatsapp_messages')
       .select('numero_telefono, mensaje, created_at, leido, es_saliente')
@@ -86,9 +89,9 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       toast.error('Error al cargar chats');
     }
 
-    if (allMsgs) {
+    if (allMsgs || leads || clubes) {
       // Group by number
-      const grouped = allMsgs.reduce((acc: any, msg: any) => {
+      const grouped = (allMsgs || []).reduce((acc: any, msg: any) => {
         if (!acc[msg.numero_telefono]) {
           acc[msg.numero_telefono] = { ...msg, unread: 0 };
         }
@@ -98,26 +101,71 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         return acc;
       }, {});
 
-      let chatList = Object.keys(grouped).map(num => {
-        const numNorm = num.replace(/\D/g, '');
-        const lead = leads?.find(l => {
-          const lNum = l.telefono ? l.telefono.replace(/\D/g, '') : '';
-          return lNum && numNorm && (lNum.includes(numNorm) || numNorm.includes(lNum));
-        });
+      // Build Leads List
+      const leadsList = (leads || []).map(l => {
+        const lNumNorm = l.telefono ? l.telefono.replace(/\D/g, '') : '';
+        let msgMatch = null;
+        let matchedPhone = l.telefono;
+        for (const num in grouped) {
+           const numNorm = num.replace(/\D/g, '');
+           if (lNumNorm && numNorm && (lNumNorm.includes(numNorm) || numNorm.includes(lNumNorm))) {
+              msgMatch = grouped[num];
+              matchedPhone = num;
+              break;
+           }
+        }
+        
         return {
-          numero_telefono: num,
-          lastMessage: grouped[num].mensaje,
-          lastMessageTime: grouped[num].created_at,
-          unread: grouped[num].unread,
-          lead: lead || null
+          numero_telefono: matchedPhone,
+          lastMessage: msgMatch ? msgMatch.mensaje : '',
+          lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
+          unread: msgMatch ? msgMatch.unread : 0,
+          entity: l,
+          type: 'lead'
         };
-      });
+      }).filter(c => c.numero_telefono && c.numero_telefono.length > 5);
 
-      // Filter for embajador
-      if (role === 'embajador') {
-        chatList = chatList.filter(c => c.lead);
-      }
+      // Build Clubes List
+      const clubesList = (clubes || []).map(c => {
+        const cNumNorm = c.telefono_contacto ? c.telefono_contacto.replace(/\D/g, '') : '';
+        let msgMatch = null;
+        let matchedPhone = c.telefono_contacto;
+        for (const num in grouped) {
+           const numNorm = num.replace(/\D/g, '');
+           if (cNumNorm && numNorm && (cNumNorm.includes(numNorm) || numNorm.includes(cNumNorm))) {
+              msgMatch = grouped[num];
+              matchedPhone = num;
+              break;
+           }
+        }
+        
+        return {
+          numero_telefono: matchedPhone,
+          lastMessage: msgMatch ? msgMatch.mensaje : '',
+          lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
+          unread: msgMatch ? msgMatch.unread : 0,
+          entity: c,
+          type: 'club'
+        };
+      }).filter(c => c.numero_telefono && c.numero_telefono.length > 5);
 
+      // Add orphaned chats
+      const allKnownNorm = [...leadsList, ...clubesList].map(c => c.numero_telefono.replace(/\D/g, ''));
+      const orphanedList = Object.keys(grouped).filter(num => {
+        const numNorm = num.replace(/\D/g, '');
+        return !allKnownNorm.some(k => k.includes(numNorm) || numNorm.includes(k));
+      }).map(num => ({
+        numero_telefono: num,
+        lastMessage: grouped[num].mensaje,
+        lastMessageTime: grouped[num].created_at,
+        unread: grouped[num].unread,
+        entity: null,
+        type: 'orphaned'
+      }));
+
+      let chatList = [...leadsList, ...clubesList, ...orphanedList];
+
+      // Sort by recent message first
       chatList = chatList.sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
 
       // Check URL for phone param to auto-select
@@ -125,11 +173,9 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       let phoneParam = params.get('phone');
       
       if (phoneParam) {
-        // Restore '+' if it was converted to space by URLSearchParams
         if (phoneParam.startsWith(' ')) {
           phoneParam = '+' + phoneParam.slice(1);
         }
-        
         const pNum = phoneParam.replace(/\D/g, '');
         
         let existing = chatList.find(c => {
@@ -138,21 +184,21 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         });
         
         if (!existing) {
-          const lead = leads?.find(l => {
-            const lNum = l.telefono ? l.telefono.replace(/\D/g, '') : '';
-            return lNum && pNum && (lNum.includes(pNum) || pNum.includes(lNum));
-          });
-          
           existing = {
             numero_telefono: phoneParam,
             lastMessage: '',
             lastMessageTime: new Date().toISOString(),
             unread: 0,
-            lead: lead || ({ nombre: 'Prospecto' } as any)
+            entity: { nombre: 'Prospecto' },
+            type: 'orphaned'
           };
           chatList = [existing, ...chatList];
         }
-        setActiveChat((prev: any) => prev ? prev : existing);
+        
+        if (existing.type === 'club') setActiveTab('clubes');
+        else setActiveTab('leads');
+        
+        setActiveChat(existing);
         window.history.replaceState({}, '', window.location.pathname);
       }
 
@@ -166,14 +212,13 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     // Update active chat messages
     setMessages(prev => {
       if (activeChat && msg.numero_telefono === activeChat.numero_telefono) {
-        // Mark as read if active
         if (!msg.es_saliente) markAsRead(msg.numero_telefono);
         return [...prev, msg];
       }
       return prev;
     });
 
-    // Refresh chat list (simplified)
+    // Refresh chat list to bump the chat
     initChat();
   };
 
@@ -205,7 +250,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         body: JSON.stringify({
           numero: activeChat.numero_telefono,
           mensaje: newMessage,
-          lead_id: activeChat.lead?.id || null
+          lead_id: activeChat.type === 'lead' && activeChat.entity ? activeChat.entity.id : null
         })
       });
 
@@ -223,14 +268,13 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setLoadingAI(true);
     setAiSuggestion('');
     try {
-      // Get last 10 messages for context
       const history = messages.slice(-10);
       const res = await fetch('/api/admin/crm/ai-copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           history,
-          leadName: activeChat.lead ? activeChat.lead.nombre : 'Prospecto'
+          leadName: activeChat.entity ? activeChat.entity.nombre : 'Prospecto'
         })
       });
       const data = await res.json();
@@ -242,10 +286,20 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setLoadingAI(false);
   };
 
-  const filteredChats = chats.filter(c => 
-    c.numero_telefono.includes(searchTerm) || 
-    (c.lead && c.lead.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredChats = chats.filter(c => {
+    // Tab filter
+    if (activeTab === 'clubes' && c.type !== 'club') return false;
+    if (activeTab === 'leads' && c.type === 'club') return false; // Leads + Orphaned show in leads
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchName = c.entity && c.entity.nombre.toLowerCase().includes(term);
+      const matchPhone = c.numero_telefono.includes(searchTerm);
+      if (!matchName && !matchPhone) return false;
+    }
+    return true;
+  });
 
   if (loading) {
     return <div className="flex h-[calc(100vh-100px)] items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-lime-500" /></div>;
@@ -259,41 +313,66 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         <div className="w-1/3 border-r border-slate-200 flex flex-col bg-white">
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-lg font-black text-slate-900 mb-4">Chat CRM</h2>
-            <div className="relative">
+            <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
                 type="text" 
-                placeholder="Buscar prospecto..." 
+                placeholder="Buscar contacto..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
               />
             </div>
+            {/* TABS */}
+            <div className="flex bg-slate-100 rounded-lg p-1">
+              <button 
+                onClick={() => setActiveTab('leads')}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'leads' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Prospectos
+              </button>
+              <button 
+                onClick={() => setActiveTab('clubes')}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'clubes' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                Academias
+              </button>
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {filteredChats.map(chat => (
-              <div 
-                key={chat.numero_telefono}
-                onClick={() => setActiveChat(chat)}
-                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex items-start gap-3 ${activeChat?.numero_telefono === chat.numero_telefono ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}`}
-              >
-                <div className="w-10 h-10 rounded-full bg-lime-100 flex items-center justify-center shrink-0">
-                  <User className="w-5 h-5 text-lime-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-sm text-slate-900 truncate">{chat.lead ? chat.lead.nombre : chat.numero_telefono}</h3>
-                    <span className="text-[10px] text-slate-400 whitespace-nowrap">{new Date(chat.lastMessageTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                  </div>
-                  <p className="text-xs text-slate-500 truncate">{chat.lastMessage}</p>
-                </div>
-                {chat.unread > 0 && (
-                  <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
-                    {chat.unread}
-                  </div>
-                )}
+            {filteredChats.length === 0 && (
+              <div className="text-center p-6 text-slate-400 text-xs font-bold">
+                No hay contactos disponibles
               </div>
-            ))}
+            )}
+            {filteredChats.map(chat => {
+              const hasMessages = chat.lastMessageTime !== new Date(0).toISOString();
+              return (
+                <div 
+                  key={chat.numero_telefono}
+                  onClick={() => setActiveChat(chat)}
+                  className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex items-start gap-3 ${activeChat?.numero_telefono === chat.numero_telefono ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${chat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
+                    {chat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-sm text-slate-900 truncate">{chat.entity ? chat.entity.nombre : chat.numero_telefono}</h3>
+                      <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                        {hasMessages ? new Date(chat.lastMessageTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Nuevo'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 truncate">{hasMessages ? chat.lastMessage : 'Iniciar conversación...'}</p>
+                  </div>
+                  {chat.unread > 0 && (
+                    <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                      {chat.unread}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -303,17 +382,17 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
             {/* Header */}
             <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-lime-100 flex items-center justify-center">
-                  <User className="w-5 h-5 text-lime-600" />
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeChat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
+                  {activeChat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-900">{activeChat.lead ? activeChat.lead.nombre : 'Prospecto Nuevo'}</h3>
+                  <h3 className="font-black text-slate-900">{activeChat.entity ? activeChat.entity.nombre : 'Prospecto Nuevo'}</h3>
                   <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
                     <Phone className="w-3 h-3" /> {activeChat.numero_telefono}
                   </div>
                 </div>
               </div>
-              {role === 'superadmin' && !activeChat.lead && (
+              {role === 'superadmin' && activeChat.type === 'orphaned' && (
                 <button className="text-xs font-bold text-lime-600 bg-lime-50 px-3 py-1.5 rounded-lg hover:bg-lime-100 transition-colors">
                   Vincular Lead
                 </button>
@@ -322,6 +401,13 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {messages.length === 0 && (
+                <div className="text-center py-10 text-slate-400">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                  <p className="text-sm font-bold">Aún no hay mensajes.</p>
+                  <p className="text-xs">¡Escribe abajo para iniciar la conversación!</p>
+                </div>
+              )}
               {messages.map(msg => (
                 <div key={msg.id} className={`flex ${msg.es_saliente ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[70%] rounded-2xl px-4 py-3 ${msg.es_saliente ? 'bg-lime-500 text-white rounded-tr-sm' : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'}`}>
