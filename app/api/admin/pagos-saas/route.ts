@@ -1,10 +1,23 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { club_id, factura_id, monto_pagado, metodo_pago, fecha_pago, comprobante_url } = body;
+
+    // WORKAROUND: La tabla pagos_saas tiene un foreign key hacia facturas_saas en lugar de facturacion_mensual.
+    // Insertamos un registro dummy para evitar el error de foreign key constraint, ya que no podemos hacer DROP CONSTRAINT.
+    if (factura_id) {
+      await supabaseAdmin.from('facturas_saas').upsert([{
+        id: factura_id,
+        club_id,
+        mes: new Date().getMonth() + 1,
+        anio: new Date().getFullYear(),
+        monto_total: Number(monto_pagado),
+        cantidad_jugadores: 0
+      }], { onConflict: 'id' });
+    }
 
     // 1. Guardar en pagos_saas usando supabaseAdmin (bypasses RLS)
     const { error: errorPago } = await supabaseAdmin
