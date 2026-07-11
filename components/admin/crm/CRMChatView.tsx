@@ -189,7 +189,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
             lastMessage: '',
             lastMessageTime: new Date().toISOString(),
             unread: 0,
-            entity: { nombre: 'Prospecto' },
+            entity: { nombre: 'Prospecto' } as any,
             type: 'orphaned'
           };
           chatList = [existing, ...chatList];
