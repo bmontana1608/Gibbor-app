@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { mcmLogoBase64 } from '@/lib/mcm-logo-base64';
 
 /**
  * Genera un PDF Élite de recibo Gibbor SaaS en formato Base64 para el cobro a clubes
@@ -39,19 +40,19 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setFont("helvetica", "normal");
   doc.text(`Vía: ${datos.metodoPago.toUpperCase()}`, 177.5, 27, { align: 'center' });
 
-  // Logo e Identidad (Gibbor Principal)
+  // Logo e Identidad (MCM)
   try {
-    doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+    doc.addImage(mcmLogoBase64, 'PNG', 15, 8, 24, 24);
   } catch (e) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
-    doc.text('G', 20, 25);
+    doc.text('M', 20, 25);
   }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text('GIBBOR APP', 45, 22);
+  doc.text('MCM APP', 45, 22);
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
@@ -117,7 +118,7 @@ export async function generarReciboSaaSPDFBase64(datos: {
   // Fila de datos
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "normal");
-  doc.text(`Suscripción Mensual Gibbor App - ${datos.mesCobrado}`, 20, tableY + 18);
+  doc.text(`Suscripción Mensual MCM App - ${datos.mesCobrado}`, 20, tableY + 18);
   doc.text(`${datos.cantidadJugadores} Atletas`, 120, tableY + 18, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
@@ -141,7 +142,7 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
-  doc.text('Este documento es un comprobante de pago electrónico generado automáticamente por Gibbor App.', 105, 160, { align: 'center' });
+  doc.text('Este documento es un comprobante de pago electrónico generado automáticamente por MCM App.', 105, 160, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
   doc.text('¡Gracias por formar parte de la evolución tecnológica del deporte!', 105, 165, { align: 'center' });
