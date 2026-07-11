@@ -1,9 +1,16 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Send, Clock, Trash2, CheckCircle, XCircle, Loader2, CalendarClock, Phone, MessageSquare, RefreshCw } from 'lucide-react';
+
+// Formatea una fecha en la hora LOCAL del navegador para el input datetime-local
+// Evita el bug de UTC donde las 7am Colombia aparecen como 12pm
+const toLocalDatetimeString = (date: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 export default function MensajesProgramadosView() {
   const [clubes, setClubes] = useState<any[]>([]);
@@ -16,10 +23,11 @@ export default function MensajesProgramadosView() {
   const [mensaje, setMensaje] = useState('');
   const [modoEnvio, setModoEnvio] = useState<'ahora' | 'programado'>('programado');
   const [fechaHora, setFechaHora] = useState(() => {
+    // Default: mañana a las 7:00 AM hora local (Colombia)
     const manana = new Date();
     manana.setDate(manana.getDate() + 1);
     manana.setHours(7, 0, 0, 0);
-    return manana.toISOString().slice(0, 16);
+    return toLocalDatetimeString(manana);
   });
 
   useEffect(() => { cargarDatos(); }, []);
@@ -164,7 +172,7 @@ export default function MensajesProgramadosView() {
               <Clock className="w-3 h-3 inline mr-1" /> Fecha y hora de envío
             </label>
             <input type="datetime-local" value={fechaHora} onChange={e => setFechaHora(e.target.value)}
-              min={new Date().toISOString().slice(0, 16)}
+              min={toLocalDatetimeString(new Date())}
               className="w-full border border-amber-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
               required={modoEnvio === 'programado'} />
             <p className="text-xs text-amber-600 mt-2">El cron revisa cada minuto — el envío puede tardar hasta 60 segundos después de la hora programada.</p>
