@@ -83,7 +83,7 @@ export default function SaasCobranzaPage() {
 
       if (clubesData) setClubes(clubesData);
       if (facturasData) setFacturas(facturasData);
-      if (pagosData) setPagos(pagosData);
+      
       setActivosPorClub(conteoMap);
     } catch (e) {
       console.error(e);
