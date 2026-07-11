@@ -182,10 +182,10 @@ export default function SaasCobranzaPage() {
 
     const toastId = toast.loading('Actualizando fecha de corte...');
     try {
-      const res = await fetch('/api/admin/clubes/corte', {
-        method: 'PUT',
+      const res = await fetch(`/api/admin/clubes/${club.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ club_id: club.id, proximo_corte: nuevaFecha })
+        body: JSON.stringify({ proximo_corte: nuevaFecha })
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

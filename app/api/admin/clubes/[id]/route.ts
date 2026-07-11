@@ -126,7 +126,8 @@ export async function PATCH(
       director_id,
       fecha_fin_prueba,
       tarifa_por_jugador,
-      plan_id
+      plan_id,
+      proximo_corte
     } = await request.json();
 
     // 1. Actualizar datos del club
@@ -141,6 +142,7 @@ export async function PATCH(
         fecha_fin_prueba: fecha_fin_prueba ? new Date(fecha_fin_prueba).toISOString() : null,
         tarifa_por_jugador,
         plan_id: plan_id || null,
+        proximo_corte: proximo_corte !== undefined ? proximo_corte : undefined,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);
