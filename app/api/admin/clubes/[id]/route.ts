@@ -131,21 +131,28 @@ export async function PATCH(
     } = await request.json();
 
     // 1. Actualizar datos del club
-    const { error: updateError } = await supabaseAdmin
-      .from('clubes')
-      .update({
-        nombre,
-        correo_administrativo,
-        telefono_contacto,
-        direccion,
-        nombre_legal,
-        fecha_fin_prueba: fecha_fin_prueba ? new Date(fecha_fin_prueba).toISOString() : null,
-        tarifa_por_jugador,
-        plan_id: plan_id || null,
-        proximo_corte: proximo_corte !== undefined ? proximo_corte : undefined,
+      const updatePayload: any = {
         updated_at: new Date().toISOString()
-      })
-      .eq('id', id);
+      };
+      if (nombre !== undefined) updatePayload.nombre = nombre;
+      if (correo_administrativo !== undefined) updatePayload.correo_administrativo = correo_administrativo;
+      if (telefono_contacto !== undefined) updatePayload.telefono_contacto = telefono_contacto;
+      if (direccion !== undefined) updatePayload.direccion = direccion;
+      if (nombre_legal !== undefined) updatePayload.nombre_legal = nombre_legal;
+      if (tarifa_por_jugador !== undefined) updatePayload.tarifa_por_jugador = tarifa_por_jugador;
+      if (proximo_corte !== undefined) updatePayload.proximo_corte = proximo_corte;
+      
+      if (fecha_fin_prueba !== undefined) {
+        updatePayload.fecha_fin_prueba = fecha_fin_prueba ? new Date(fecha_fin_prueba).toISOString() : null;
+      }
+      if (plan_id !== undefined) {
+        updatePayload.plan_id = plan_id || null;
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from('clubes')
+        .update(updatePayload)
+        .eq('id', id);
 
     if (updateError) throw updateError;
 
