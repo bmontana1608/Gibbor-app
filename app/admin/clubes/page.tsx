@@ -375,7 +375,7 @@ export default function ClubesPage() {
             <form onSubmit={handleEditClub} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <InputField label="Nombre Comercial" value={editFormData.nombre} onChange={(v: string) => setEditFormData({ ...editFormData, nombre: v })} />
-                <InputField label="Nombre Legal" value={editFormData.nombre_legal} onChange={(v: string) => setEditFormData({ ...editFormData, nombre_legal: v })} />
+                <InputField label="NIT / Documento" value={editFormData.nombre_legal} onChange={(v: string) => setEditFormData({ ...editFormData, nombre_legal: v })} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <InputField label="Correo Administrativo" value={editFormData.correo_administrativo} onChange={(v: string) => setEditFormData({ ...editFormData, correo_administrativo: v })} type="email" />
