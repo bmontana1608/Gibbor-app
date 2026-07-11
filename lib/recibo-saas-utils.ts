@@ -42,7 +42,7 @@ export async function generarReciboSaaSPDFBase64(datos: {
 
   // Logo e Identidad (MCM)
   try {
-    doc.addImage(mcmLogoBase64, 'PNG', 15, 8, 24, 24);
+    doc.addImage(mcmLogoBase64, 'PNG', 15, 12, 38, 14);
   } catch (e) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(20);
@@ -52,13 +52,13 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text('Master Club Manager', 45, 22);
+  doc.text('Master Club Manager', 58, 22);
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 200);
-  doc.text('Plataforma Tecnológica Deportiva', 45, 28);
-  doc.text(`Comprobante: #${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
+  doc.text('Plataforma Tecnológica Deportiva', 58, 28);
+  doc.text(`Comprobante: #${String(datos.consecutivo).padStart(4, '0')}`, 58, 33);
 
 
   // 3. INFORMACIÓN DEL CLUB CLIENTE
