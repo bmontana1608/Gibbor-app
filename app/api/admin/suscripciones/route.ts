@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       .update({
         proximo_corte: nuevoCorte,
         estado: 'Activo',
-        estado_suscripcion: es_prueba ? 'En Prueba' : 'Al Día'
+        estado_suscripcion: es_prueba ? 'En Prueba' : 'Activo'
       })
       .eq('id', club_id);
 
