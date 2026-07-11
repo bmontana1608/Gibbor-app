@@ -12,11 +12,14 @@ export async function GET(request: Request) {
     // Para simplificar, asumiremos que si se llama desde Vercel o localmente está permitido.
     // Podrías agregar: if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) return 401;
 
-    // 2. Obtener hasta 10 mensajes pendientes (FIFO - First In, First Out)
+    const ahora = new Date().toISOString();
+
+    // 2. Obtener hasta 10 mensajes pendientes cuya hora programada ya llegó
     const { data: pendientes, error: fetchError } = await supabaseAdmin
       .from('mensajes_cola')
       .select('*, clubes ( slug )')
       .eq('estado', 'Pendiente')
+      .or(`programado_para.is.null,programado_para.lte.${ahora}`)
       .order('fecha_creacion', { ascending: true })
       .limit(10);
 

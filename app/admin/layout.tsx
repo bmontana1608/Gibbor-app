@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { 
   Building2, Users, CreditCard, TrendingUp, Library, LifeBuoy, 
   Megaphone, History, User, Settings, LogOut, Loader2, FileText, Image as ImageIcon, Rocket, MessageSquare,
-  DollarSign
+  DollarSign, CalendarClock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import MCMLogo from '@/components/MCMLogo';
@@ -43,6 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { id: 'cobranza', icon: <DollarSign size={20} />, label: 'Cobranza', path: '/admin/cobranza' },
     { id: 'crm', icon: <Rocket size={20} />, label: 'CRM', path: '/admin/crm' },
     { id: 'chat', icon: <MessageSquare size={20} />, label: 'WhatsApp CRM', path: '/admin/crm/chat' },
+    { id: 'mensajes-programados', icon: <CalendarClock size={20} />, label: 'Prog. WhatsApp', path: '/admin/mensajes-programados' },
     { id: 'usuarios', icon: <Users size={20} />, label: 'Usuarios', path: '/admin/usuarios' },
     { id: 'planes', icon: <CreditCard size={20} />, label: 'Planes', path: '/admin/planes' },
     { id: 'metricas', icon: <TrendingUp size={20} />, label: 'Métricas', path: '/admin/metricas' },
