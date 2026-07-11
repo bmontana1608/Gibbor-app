@@ -68,36 +68,37 @@ export async function middleware(request: NextRequest) {
         .single();
 
       if (clubData) {
-        let isSuspended = clubData.estado_suscripcion === 'Suspendido' || clubData.estado === 'Suspendido';
         const hoy = new Date();
 
-        let enPrueba = false;
-        if (clubData.fecha_fin_prueba) {
-          const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
-          if (fechaFinPrueba >= hoy) {
-            enPrueba = true;
-          }
-        }
+        // Si el super admin marcó el club como Activo, nunca suspender
+        const estadoActivo = clubData.estado_suscripcion === 'Activo' || clubData.estado === 'Activo';
 
-        if (enPrueba) {
-          isSuspended = false; // Nunca suspender durante periodo de prueba activo
-        } else {
-          // Evaluar corte o vencimiento de prueba
-          if (clubData.proximo_corte) {
-            const fechaCorte = new Date(clubData.proximo_corte);
-            if (fechaCorte < hoy) {
-              isSuspended = true;
+        let isSuspended = clubData.estado_suscripcion === 'Suspendido' || clubData.estado === 'Suspendido';
+
+        if (!estadoActivo) {
+          // Solo evaluar otras condiciones si NO está marcado explícitamente como Activo
+          let enPrueba = false;
+          if (clubData.fecha_fin_prueba) {
+            const fechaFinPrueba = new Date(clubData.fecha_fin_prueba);
+            if (fechaFinPrueba >= hoy) {
+              enPrueba = true;
             }
-          } else if (clubData.fecha_fin_prueba) {
-            // Prueba finalizada y sin próximo corte cargado
-            isSuspended = true;
-          } else {
-            // Lógica Legacy (Fallback mensual)
-            const diaActual = hoy.getDate();
-            const mesActual = hoy.getMonth() + 1;
-            const anioActual = hoy.getFullYear();
+          }
 
-            if (diaActual > 10) {
+          if (enPrueba) {
+            isSuspended = false; // Nunca suspender durante periodo de prueba activo
+          } else {
+            // Evaluar corte de pago
+            if (clubData.proximo_corte) {
+              const fechaCorte = new Date(clubData.proximo_corte);
+              if (fechaCorte < hoy) {
+                isSuspended = true;
+              }
+            } else if (clubData.fecha_fin_prueba) {
+              // Prueba finalizada y sin próximo corte — verificar facturación antes de suspender
+              const diaActual = hoy.getDate();
+              const mesActual = hoy.getMonth() + 1;
+              const anioActual = hoy.getFullYear();
               const { data: facturas } = await supabase
                 .from('facturacion_mensual')
                 .select('estado_pago')
@@ -105,10 +106,29 @@ export async function middleware(request: NextRequest) {
                 .eq('periodo_mes', mesActual)
                 .eq('periodo_anio', anioActual)
                 .limit(1);
-
               const facturaMes = facturas?.[0];
               if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
                 isSuspended = true;
+              }
+            } else {
+              // Lógica Legacy (Fallback mensual) — sin prueba ni corte configurado
+              const diaActual = hoy.getDate();
+              const mesActual = hoy.getMonth() + 1;
+              const anioActual = hoy.getFullYear();
+
+              if (diaActual > 10) {
+                const { data: facturas } = await supabase
+                  .from('facturacion_mensual')
+                  .select('estado_pago')
+                  .eq('club_id', clubData.id)
+                  .eq('periodo_mes', mesActual)
+                  .eq('periodo_anio', anioActual)
+                  .limit(1);
+
+                const facturaMes = facturas?.[0];
+                if (!facturaMes || facturaMes.estado_pago !== 'pagado') {
+                  isSuspended = true;
+                }
               }
             }
           }
