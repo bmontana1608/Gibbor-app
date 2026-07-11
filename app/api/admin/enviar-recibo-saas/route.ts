@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     });
 
     // 3. Enviar PDF por WhatsApp
-    const mensajeTexto = `¡Hola! Adjuntamos tu comprobante de pago por la Suscripción a MCM App correspondiente a *${mesNombre} ${anio}*.\n\nGracias por confiar en nuestra plataforma tecnológica.`;
+    const mensajeTexto = `¡Hola! Adjuntamos tu comprobante de pago por la Suscripción a Master Club Manager correspondiente a *${mesNombre} ${anio}*.\n\nGracias por confiar en nuestra plataforma tecnológica.`;
     
     await enviarMensajeWhatsAppServer(
       club.telefono_contacto,

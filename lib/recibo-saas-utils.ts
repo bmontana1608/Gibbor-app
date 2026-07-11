@@ -51,8 +51,8 @@ export async function generarReciboSaaSPDFBase64(datos: {
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text('MCM APP', 45, 22);
+  doc.setFontSize(16);
+  doc.text('Master Club Manager', 45, 22);
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
@@ -118,7 +118,7 @@ export async function generarReciboSaaSPDFBase64(datos: {
   // Fila de datos
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "normal");
-  doc.text(`Suscripción Mensual MCM App - ${datos.mesCobrado}`, 20, tableY + 18);
+  doc.text(`Suscripción Mensual Master Club Manager - ${datos.mesCobrado}`, 20, tableY + 18);
   doc.text(`${datos.cantidadJugadores} Atletas`, 120, tableY + 18, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
@@ -142,7 +142,7 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(8);
-  doc.text('Este documento es un comprobante de pago electrónico generado automáticamente por MCM App.', 105, 160, { align: 'center' });
+  doc.text('Este documento es un comprobante de pago electrónico generado automáticamente por Master Club Manager.', 105, 160, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
   doc.text('¡Gracias por formar parte de la evolución tecnológica del deporte!', 105, 165, { align: 'center' });
