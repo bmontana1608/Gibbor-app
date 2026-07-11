@@ -60,11 +60,12 @@ export default function SaasCobranzaPage() {
         .select('*, clubes(nombre, slug)')
         .order('created_at', { ascending: false });
 
-      // 3. Cargar todos los pagos
-      const { data: pagosData } = await supabase
-        .from('pagos_saas')
-        .select('*, clubes(nombre)')
-        .order('fecha_pago', { ascending: false });
+      // 3. Cargar todos los pagos (vía API para saltar RLS)
+      const resPagos = await fetch('/api/admin/pagos-saas');
+      if (resPagos.ok) {
+        const resultPagos = await resPagos.json();
+        if (resultPagos.data) setPagos(resultPagos.data);
+      }
 
       // 4. Calcular atletas activos por club para el MRR
       const { data: perfilesData } = await supabase

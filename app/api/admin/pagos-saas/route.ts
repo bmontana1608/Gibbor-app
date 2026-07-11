@@ -79,3 +79,19 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    const { data: pagosData, error } = await supabaseAdmin
+      .from('pagos_saas')
+      .select('*, clubes(nombre)')
+      .order('fecha_pago', { ascending: false });
+
+    if (error) throw error;
+    
+    return NextResponse.json({ data: pagosData });
+  } catch (error: any) {
+    console.error('Error GET /api/admin/pagos-saas:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
