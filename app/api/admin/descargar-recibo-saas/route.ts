@@ -14,14 +14,27 @@ export async function GET(request: Request) {
     // 1. Obtener los datos del pago
     const { data: pago, error: errorPago } = await supabaseAdmin
       .from('pagos_saas')
-      .select('*, facturacion_mensual(*, clubes(nombre, telefono_contacto, nombre_legal))')
+      .select('*')
       .eq('id', pago_id)
       .single();
 
     if (errorPago || !pago) return new NextResponse('Pago no encontrado', { status: 404 });
 
-    const factura = pago.facturacion_mensual;
-    const club = factura?.clubes || { nombre: 'Club Desconocido', nombre_legal: 'N/A', telefono_contacto: '' };
+    // 2. Obtener club
+    const { data: clubData } = await supabaseAdmin
+      .from('clubes')
+      .select('nombre, telefono_contacto, nombre_legal')
+      .eq('id', pago.club_id)
+      .single();
+
+    // 3. Obtener factura
+    const { data: factura } = await supabaseAdmin
+      .from('facturacion_mensual')
+      .select('*')
+      .eq('id', pago.factura_id)
+      .single();
+
+    const club = clubData || { nombre: 'Club Desconocido', nombre_legal: 'N/A', telefono_contacto: '' };
 
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const mesNombre = factura?.periodo_mes ? meses[factura.periodo_mes - 1] : 'Mensualidad';

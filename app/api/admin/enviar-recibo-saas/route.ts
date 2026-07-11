@@ -11,17 +11,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Falta ID del pago' }, { status: 400 });
     }
 
-    // 1. Obtener los datos del pago y de la factura asociada
+    // 1. Obtener los datos del pago
     const { data: pago, error: errorPago } = await supabaseAdmin
       .from('pagos_saas')
-      .select('*, facturacion_mensual(*, clubes(nombre, telefono_contacto, nombre_legal))')
+      .select('*')
       .eq('id', pago_id)
       .single();
 
     if (errorPago || !pago) throw new Error('Pago no encontrado');
 
-    const factura = pago.facturacion_mensual;
-    const club = factura?.clubes;
+    // 2. Obtener club
+    const { data: club } = await supabaseAdmin
+      .from('clubes')
+      .select('nombre, telefono_contacto, nombre_legal')
+      .eq('id', pago.club_id)
+      .single();
+
+    // 3. Obtener factura
+    const { data: factura } = await supabaseAdmin
+      .from('facturacion_mensual')
+      .select('*')
+      .eq('id', pago.factura_id)
+      .single();
 
     if (!club?.telefono_contacto) {
       return NextResponse.json({ error: 'El club no tiene un teléfono de contacto configurado para WhatsApp.' }, { status: 400 });
