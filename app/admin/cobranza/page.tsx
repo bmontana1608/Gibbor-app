@@ -157,21 +157,11 @@ export default function SaasCobranzaPage() {
 
     const toastId = toast.loading('Eliminando pago...');
     try {
-      // 1. Eliminar de pagos_saas
-      const { error: errorDel } = await supabase
-        .from('pagos_saas')
-        .delete()
-        .eq('id', pago.id);
-
-      if (errorDel) throw errorDel;
-
-      // 2. Volver a poner la factura en pendiente si tiene factura vinculada
-      if (pago.factura_id) {
-        await supabase
-          .from('facturacion_mensual')
-          .update({ estado_pago: 'pendiente' })
-          .eq('id', pago.factura_id);
-      }
+      const res = await fetch(`/api/admin/pagos-saas?id=${pago.id}${pago.factura_id ? `&factura_id=${pago.factura_id}` : ''}`, {
+        method: 'DELETE'
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
 
       toast.success('Pago eliminado', { id: toastId });
       cargarDatos();
@@ -184,56 +174,16 @@ export default function SaasCobranzaPage() {
     e.preventDefault();
     const toastId = toast.loading(`Generando facturas para el periodo ${mesGenerar}/${anioGenerar}...`);
     try {
-      // Buscamos clubes activos
-      const { data: activeClubs } = await supabase
-        .from('clubes')
-        .select('*, planes_saas(*)')
-        .neq('estado', 'Eliminado');
+      const res = await fetch('/api/admin/cobranza/facturacion-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mesGenerar, anioGenerar })
+      });
+      const result = await res.json();
+      
+      if (result.error) throw new Error(result.error);
 
-      if (!activeClubs || activeClubs.length === 0) {
-        throw new Error('No hay clubes registrados');
-      }
-
-      let insertadas = 0;
-      let duplicadas = 0;
-
-      for (const club of activeClubs) {
-        const totalAtletas = activosPorClub[club.id] || 0;
-        
-        // Calcular tarifa según plan
-        const plan = club.planes_saas;
-        const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
-        const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
-        const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
-        
-        const extras = Math.max(0, totalAtletas - limiteBase);
-        const total = precioBase + (extras * precioExtra);
-
-        // Guardar factura
-        const { error } = await supabase
-          .from('facturacion_mensual')
-          .insert([{
-            club_id: club.id,
-            periodo_mes: Number(mesGenerar),
-            periodo_anio: Number(anioGenerar),
-            cantidad_jugadores: totalAtletas,
-            tarifa_aplicada: precioBase,
-            total_pagar: total,
-            estado_pago: 'pendiente'
-          }]);
-
-        if (error) {
-          if (error.code === '23505') { // Unique constraint
-            duplicadas++;
-          } else {
-            console.error('Error insertando factura para', club.nombre, error);
-          }
-        } else {
-          insertadas++;
-        }
-      }
-
-      toast.success(`Proceso completado. Facturas creadas: ${insertadas}. Ya existentes: ${duplicadas}`, { id: toastId });
+      toast.success(`Proceso completado. Facturas creadas: ${result.insertadas}. Ya existentes: ${result.duplicadas}`, { id: toastId });
       setIsModalGenerarOpen(false);
       cargarDatos();
     } catch (err: any) {

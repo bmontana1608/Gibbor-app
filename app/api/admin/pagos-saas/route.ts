@@ -37,3 +37,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const id = url.searchParams.get('id');
+    const factura_id = url.searchParams.get('factura_id');
+
+    if (!id) return NextResponse.json({ error: 'Falta ID del pago' }, { status: 400 });
+
+    const { error: errorDel } = await supabaseAdmin
+      .from('pagos_saas')
+      .delete()
+      .eq('id', id);
+
+    if (errorDel) throw errorDel;
+
+    if (factura_id) {
+      await supabaseAdmin
+        .from('facturacion_mensual')
+        .update({ estado_pago: 'pendiente' })
+        .eq('id', factura_id);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error DELETE /api/admin/pagos-saas:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

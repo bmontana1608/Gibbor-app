@@ -64,17 +64,22 @@ export default function MensajesProgramadosView() {
     setEnviando(true);
     const toastId = toast.loading(modoEnvio === 'ahora' ? 'Enviando...' : 'Programando...');
     try {
-      const programadoPara = modoEnvio === 'programado' ? new Date(fechaHora).toISOString() : null;
-      const { error } = await supabase.from('mensajes_cola').insert([{
-        club_id: clubSeleccionado,
-        telefono_destino: telefono.replace(/\D/g, ''),
-        mensaje: mensaje.trim(),
-        estado: 'Pendiente',
-        programado_para: programadoPara,
-      }]);
-      if (error) throw error;
+      const res = await fetch('/api/admin/mensajes-programados', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          club_id: clubSeleccionado,
+          telefono_destino: telefono.replace(/\D/g, ''),
+          mensaje: mensaje.trim(),
+          estado: 'Pendiente',
+          programado_para: modoEnvio === 'programado' ? new Date(fechaHora).toISOString() : null,
+          enviar_ahora: modoEnvio === 'ahora'
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
       if (modoEnvio === 'ahora') {
-        await fetch('/api/cron/whatsapp');
         toast.success('Mensaje enviado', { id: toastId });
       } else {
         const horaLocal = new Date(fechaHora).toLocaleString('es-CO', {
@@ -91,9 +96,20 @@ export default function MensajesProgramadosView() {
   };
 
   const cancelarMensaje = async (id: string) => {
-    await supabase.from('mensajes_cola').update({ estado: 'Cancelado' }).eq('id', id);
-    toast.success('Mensaje cancelado');
-    cargarDatos();
+    try {
+      const res = await fetch('/api/admin/mensajes-programados', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, estado: 'Cancelado' })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      
+      toast.success('Mensaje cancelado');
+      cargarDatos();
+    } catch (e: any) {
+      toast.error('Error al cancelar: ' + e.message);
+    }
   };
 
   const getEstadoBadge = (estado: string, programadoPara: string | null) => {

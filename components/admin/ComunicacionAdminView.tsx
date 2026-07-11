@@ -42,15 +42,15 @@ export default function ComunicacionAdminView() {
     e.preventDefault();
     setSaving(true);
 
-    if (formData.activo) {
-      await supabase.from('anuncios_globales').update({ activo: false }).neq('id', 0);
-    }
+    try {
+      const res = await fetch('/api/admin/comunicacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
 
-    const { error } = await supabase.from('anuncios_globales').insert([formData]);
-
-    if (error) {
-      toast.error('Error al guardar: ' + error.message);
-    } else {
       toast.success('Anuncio global publicado');
       
       // Disparar Notificación Push a TODA la red
@@ -69,27 +69,37 @@ export default function ComunicacionAdminView() {
       setShowModal(false);
       setFormData({ titulo: '', mensaje: '', tipo: 'Info', activo: true });
       cargarAnuncios();
+    } catch (error: any) {
+      toast.error('Error al guardar: ' + error.message);
     }
     setSaving(false);
   };
 
   const toggleEstado = async (id: number, currentEstado: boolean) => {
-    if (!currentEstado) {
-      // Desactivar todos los demas antes de activar este
-      await supabase.from('anuncios_globales').update({ activo: false }).neq('id', 0);
+    try {
+      const res = await fetch('/api/admin/comunicacion', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, activo: !currentEstado })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      cargarAnuncios();
+    } catch (e: any) {
+      toast.error('Error al cambiar estado: ' + e.message);
     }
-    const { error } = await supabase.from('anuncios_globales').update({ activo: !currentEstado }).eq('id', id);
-    if (error) toast.error('Error al cambiar estado');
-    else cargarAnuncios();
   };
 
   const handleEliminar = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este anuncio del historial?')) return;
-    const { error } = await supabase.from('anuncios_globales').delete().eq('id', id);
-    if (error) toast.error('Error al eliminar');
-    else {
+    try {
+      const res = await fetch(`/api/admin/comunicacion?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       toast.success('Anuncio eliminado');
       cargarAnuncios();
+    } catch (e: any) {
+      toast.error('Error al eliminar: ' + e.message);
     }
   };
 

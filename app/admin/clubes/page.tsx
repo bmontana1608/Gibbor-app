@@ -205,6 +205,29 @@ export default function ClubesPage() {
     setDetailsLoading(false);
   };
 
+  const generarFacturaExpress = async (clubId: string) => {
+    const toastId = toast.loading('Generando factura express...');
+    try {
+      const hoy = new Date();
+      const res = await fetch('/api/admin/cobranza/facturacion-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mesGenerar: hoy.getMonth() + 1, anioGenerar: hoy.getFullYear(), club_id: clubId })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      
+      if (result.insertadas > 0) {
+        toast.success('Factura generada. Redirigiendo a cobranza...', { id: toastId });
+      } else {
+        toast.success('La factura ya existía. Redirigiendo...', { id: toastId });
+      }
+      setTimeout(() => window.location.href = '/admin/cobranza', 1500);
+    } catch (error: any) {
+      toast.error('Error: ' + error.message, { id: toastId });
+    }
+  };
+
   return (
     <div className="animate-in fade-in duration-300">
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -249,9 +272,18 @@ export default function ClubesPage() {
                     </p>
                   </div>
                 </div>
-                <a href={`/admin/cobranza`} className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Ir a Cobranza">
-                  <CreditCard size={18} />
-                </a>
+                <div className="flex items-center gap-1">
+                  <button 
+                    onClick={() => generarFacturaExpress(c.id)}
+                    className="p-2 text-lime-600 hover:bg-lime-50 rounded-lg transition-colors shrink-0 flex items-center gap-1 text-xs font-bold" 
+                    title="Generar factura de este mes"
+                  >
+                    <Plus size={16} /> Facturar
+                  </button>
+                  <a href={`/admin/cobranza`} className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Ir a Cobranza">
+                    <CreditCard size={18} />
+                  </a>
+                </div>
               </div>
             ))}
           </div>
