@@ -118,28 +118,21 @@ export default function SaasCobranzaPage() {
 
     const toastId = toast.loading('Registrando pago de suscripción...');
     try {
-      // 1. Guardar en pagos_saas
-      const { error: errorPago } = await supabase
-        .from('pagos_saas')
-        .insert([{
+      // 1. & 2. Guardar en pagos_saas y marcar factura como pagada (vía API para evitar errores RLS)
+      const resPago = await fetch('/api/admin/pagos-saas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           club_id: facturaSeleccionada.club_id,
           factura_id: facturaSeleccionada.id,
-          monto_pagado: Number(montoPagado),
+          monto_pagado: montoPagado,
           metodo_pago: metodoPago,
           fecha_pago: fechaPago,
-          comprobante_url: comprobanteUrl || null,
-          estado: 'Aprobado'
-        }]);
-
-      if (errorPago) throw errorPago;
-
-      // 2. Marcar factura como pagada en facturacion_mensual
-      const { error: errorFactura } = await supabase
-        .from('facturacion_mensual')
-        .update({ estado_pago: 'pagado' })
-        .eq('id', facturaSeleccionada.id);
-
-      if (errorFactura) throw errorFactura;
+          comprobante_url: comprobanteUrl
+        })
+      });
+      const dataPago = await resPago.json();
+      if (dataPago.error) throw new Error(dataPago.error);
 
       // 3. Extender suscripción del club (Llamando al API del sistema)
       const resSuscripcion = await fetch('/api/admin/suscripciones', {
