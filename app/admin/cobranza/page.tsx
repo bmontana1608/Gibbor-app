@@ -672,7 +672,15 @@ export default function SaasCobranzaPage() {
                           Ver Adjunto <ArrowUpRight size={12}/>
                         </a>
                       ) : (
-                        <span className="text-xs text-slate-400">Sin archivo</span>
+                        <a 
+                          href={`/api/admin/descargar-recibo-saas?pago_id=${p.id}`}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-lime-600 hover:underline flex items-center gap-1 justify-center"
+                          title="Descargar PDF Generado por el Sistema"
+                        >
+                          Ver PDF <ArrowUpRight size={12}/>
+                        </a>
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
