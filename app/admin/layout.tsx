@@ -38,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const navItems = [
+    { id: 'dashboard', icon: <TrendingUp size={20} />, label: 'Inicio', path: '/admin' },
     { id: 'solicitudes', icon: <FileText size={20} />, label: 'Solicitudes', path: '/admin/solicitudes' },
     { id: 'clubes', icon: <Building2 size={20} />, label: 'Clubes', path: '/admin/clubes' },
     { id: 'cobranza', icon: <DollarSign size={20} />, label: 'Cobranza', path: '/admin/cobranza' },
