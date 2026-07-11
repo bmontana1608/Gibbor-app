@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings, X, Check, Eye } from 'lucide-react';
+import { Loader2, Plus, ShieldCheck, Activity, Users, CreditCard, ArrowRightLeft, Trash2, History, AlertTriangle, CheckCircle2, Lock, Mail, Building2, Settings, X, Check, Eye, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MetricCard = ({ label, value, icon, sub, color }: { label: string, value: string | number, icon: any, sub: string, color: string }) => (
@@ -90,6 +90,33 @@ export default function ClubesPage() {
   const [clubes, setClubes] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<any>(null);
   const [fetching, setFetching] = useState(true);
+
+  const clubesPorVencer = useMemo(() => {
+    const hoy = new Date();
+    return clubes.map(c => {
+      if (c.estado_suscripcion === 'Suspendido' || c.estado === 'Suspendido') return null;
+      
+      let fechaEvaluar = c.proximo_corte;
+      let esPrueba = false;
+      
+      if (!fechaEvaluar && c.fecha_fin_prueba) {
+        fechaEvaluar = c.fecha_fin_prueba;
+        esPrueba = true;
+      }
+      
+      if (!fechaEvaluar) return null;
+      
+      const corte = new Date(fechaEvaluar);
+      const diffTime = corte.getTime() - hoy.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Mostrar si vence en 7 días o menos, o si acaba de vencer recientemente
+      if (diffDays <= 7 && diffDays >= -15) {
+        return { ...c, _diasRestantes: diffDays, _esPrueba: esPrueba, _fechaVencimiento: fechaEvaluar };
+      }
+      return null;
+    }).filter(Boolean).sort((a: any, b: any) => a._diasRestantes - b._diasRestantes);
+  }, [clubes]);
 
   // States for modals
   const [showModal, setShowModal] = useState(false);
@@ -196,6 +223,41 @@ export default function ClubesPage() {
           <Plus size={18} /> Nueva Academia
         </button>
       </div>
+
+      {clubesPorVencer.length > 0 && (
+        <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-5 shadow-sm">
+          <h3 className="font-black text-orange-800 flex items-center gap-2 mb-3">
+            <AlertTriangle className="text-orange-500" size={20} />
+            Suscripciones Próximas a Vencer
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {clubesPorVencer.map((c: any) => (
+              <div key={c.id} className="bg-white border border-orange-100 rounded-xl p-3 flex items-center justify-between shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden border border-gray-200 flex-shrink-0">
+                    {c.logo_url ? <img src={c.logo_url} alt="Logo" className="w-full h-full object-cover" /> : <Building2 className="text-gray-400" size={16} />}
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-1">{c.nombre}</p>
+                    <p className={`text-xs font-bold ${c._diasRestantes < 0 ? 'text-red-500' : c._diasRestantes <= 3 ? 'text-orange-500' : 'text-amber-500'}`}>
+                      {c._diasRestantes < 0 
+                        ? `Venció hace ${Math.abs(c._diasRestantes)} días` 
+                        : c._diasRestantes === 0 
+                          ? 'Vence HOY' 
+                          : `Vence en ${c._diasRestantes} días`}
+                      {c._esPrueba && ' (Prueba)'}
+                    </p>
+                  </div>
+                </div>
+                <a href={`/admin/cobranza`} className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors shrink-0" title="Ir a Cobranza">
+                  <CreditCard size={18} />
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden relative">
         {fetching && clubes.length === 0 ? (
