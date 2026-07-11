@@ -170,6 +170,33 @@ export default function SaasCobranzaPage() {
     }
   };
 
+  const editarCorte = async (club: any) => {
+    const nuevaFecha = window.prompt(`Ingresa la nueva fecha de corte para ${club.nombre} (YYYY-MM-DD):`, club.proximo_corte || new Date().toISOString().split('T')[0]);
+    if (!nuevaFecha) return;
+    
+    // Validar formato YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
+      toast.error('Formato inválido. Usa YYYY-MM-DD.');
+      return;
+    }
+
+    const toastId = toast.loading('Actualizando fecha de corte...');
+    try {
+      const res = await fetch('/api/admin/clubes/corte', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ club_id: club.id, proximo_corte: nuevaFecha })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      toast.success('Fecha de corte actualizada', { id: toastId });
+      cargarDatos();
+    } catch (e: any) {
+      toast.error('Error al actualizar: ' + e.message, { id: toastId });
+    }
+  };
+
   const generarFacturasManuales = async (e: React.FormEvent) => {
     e.preventDefault();
     const toastId = toast.loading(`Generando facturas para el periodo ${mesGenerar}/${anioGenerar}...`);
@@ -430,11 +457,20 @@ export default function SaasCobranzaPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`text-xs font-bold px-2 py-1 rounded-md border ${
-                          isVencido ? 'bg-red-50 text-red-600 border-red-100' : 'bg-lime-50 text-lime-700 border-lime-100'
-                        }`}>
-                          {club.proximo_corte || 'No Definido'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-bold px-2 py-1 rounded-md border ${
+                            isVencido ? 'bg-red-50 text-red-600 border-red-100' : 'bg-lime-50 text-lime-700 border-lime-100'
+                          }`}>
+                            {club.proximo_corte || 'No Definido'}
+                          </span>
+                          <button 
+                            onClick={() => editarCorte(club)}
+                            className="p-1.5 text-slate-400 hover:text-lime-600 hover:bg-slate-100 rounded-md transition-colors"
+                            title="Asignar fecha de corte manual"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
                         {deuda > 0 ? (
