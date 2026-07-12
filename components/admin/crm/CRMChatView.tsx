@@ -304,6 +304,19 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
       if (!res.ok) throw new Error('Error al enviar');
       
+      const sentMsg = {
+        id: crypto.randomUUID(),
+        numero_telefono: activeChat.numero_telefono,
+        mensaje: newMessage,
+        es_saliente: true,
+        leido: true,
+        created_at: new Date().toISOString(),
+        instancia: 'mcm-ventas'
+      };
+      
+      setMessages(prev => [...prev, sentMsg]);
+      setChats(prev => prev.map(c => c.numero_telefono === activeChat.numero_telefono ? { ...c, lastMessage: newMessage, lastMessageTime: sentMsg.created_at } : c));
+      
       setNewMessage('');
     } catch (error) {
       toast.error('No se pudo enviar el mensaje');
