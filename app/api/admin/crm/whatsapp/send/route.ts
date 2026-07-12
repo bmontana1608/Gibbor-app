@@ -44,10 +44,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Error al enviar mensaje' }, { status: 500 });
     }
 
-    // Optionally save locally if the webhook doesn't catch our own outgoing messages reliably
-    // Webhook should catch it (fromMe=true), but it's safer to let webhook do it or do it here.
-    // The webhook handles it if it's connected, but we can insert it here and let webhook ignore duplicates, 
-    // or just rely on the webhook. We will rely on the webhook since it processes `fromMe: true`.
+    // Guardar el mensaje saliente en la base de datos para que aparezca instantáneamente en el chat
+    await supabaseAdmin.from('crm_whatsapp_messages').insert({
+      lead_id: lead_id || null,
+      numero_telefono: numero.replace(/\D/g, ''),
+      mensaje: mensaje,
+      es_saliente: true,
+      instancia: instance,
+      leido: true
+    });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
