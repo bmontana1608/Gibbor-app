@@ -22,6 +22,11 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const activeChatRef = useRef<any>(null);
+
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+  }, [activeChat]);
 
   useEffect(() => {
     initChat();
@@ -211,7 +216,8 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const handleNewMessage = (msg: any) => {
     // Update active chat messages
     setMessages(prev => {
-      if (activeChat && msg.numero_telefono === activeChat.numero_telefono) {
+      const currentActive = activeChatRef.current;
+      if (currentActive && msg.numero_telefono === currentActive.numero_telefono) {
         if (!msg.es_saliente) markAsRead(msg.numero_telefono);
         return [...prev, msg];
       }
@@ -223,14 +229,15 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   };
 
   const fetchMessages = async (numero: string) => {
-    const { data } = await supabase
-      .from('crm_whatsapp_messages')
-      .select('*')
-      .eq('numero_telefono', numero)
-      .order('created_at', { ascending: true });
-    
-    if (data) setMessages(data);
-    markAsRead(numero);
+    try {
+      const res = await fetch(`/api/admin/crm/whatsapp/messages?phone=${numero}`);
+      if (!res.ok) throw new Error('Error al cargar mensajes');
+      const data = await res.json();
+      setMessages(data || []);
+      markAsRead(numero);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const markAsRead = async (numero: string) => {
