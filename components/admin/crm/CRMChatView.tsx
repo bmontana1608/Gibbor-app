@@ -22,6 +22,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newName, setNewName] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatRef = useRef<any>(null);
 
@@ -241,7 +242,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     }
   };
 
-  const handleNewManualChat = (e: React.FormEvent) => {
+  const handleNewManualChat = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanNum = newPhone.replace(/\D/g, '');
     if (cleanNum.length < 8) {
@@ -255,19 +256,29 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       if (existing.type === 'club') setActiveTab('clubes');
       else setActiveTab('leads');
     } else {
+      // Create new lead in database
+      const { data, error } = await supabase.from('atlas_academias').insert({
+        nombre: newName || 'Prospecto Manual',
+        telefono: cleanNum,
+        embajador_id: currentUser?.id
+      }).select().single();
+
+      const leadEntity = data || { nombre: newName || 'Prospecto Manual', id: null };
+
       const newChat: any = {
         numero_telefono: cleanNum,
         lastMessage: '',
         lastMessageTime: new Date().toISOString(),
         unread: 0,
-        entity: { nombre: 'Contacto Manual' } as any,
-        type: 'orphaned'
+        entity: leadEntity,
+        type: 'lead'
       };
       setChats(prev => [newChat, ...prev]);
       setActiveChat(newChat);
       setActiveTab('leads');
     }
     setNewPhone('');
+    setNewName('');
   };
 
   const markAsRead = async (numero: string) => {
@@ -351,17 +362,26 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-lg font-black text-slate-900 mb-4">Chat CRM</h2>
             
-            <form onSubmit={handleNewManualChat} className="flex gap-2 mb-4">
+            <form onSubmit={handleNewManualChat} className="flex flex-col gap-2 mb-4">
               <input 
                 type="text" 
-                placeholder="Ejem: 573012345678" 
-                value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
-                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500"
+                placeholder="Nombre del prospecto..." 
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500"
               />
-              <button type="submit" className="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition whitespace-nowrap">
-                + Iniciar
-              </button>
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="Teléfono (ej: 57301...)" 
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500"
+                />
+                <button type="submit" className="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition whitespace-nowrap">
+                  + Iniciar
+                </button>
+              </div>
             </form>
 
             <div className="relative mb-4">
