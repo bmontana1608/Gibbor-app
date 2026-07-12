@@ -34,9 +34,7 @@ export async function POST(req: NextRequest) {
           delay: 1200,
           presence: 'composing'
         },
-        textMessage: {
-          text: mensaje
-        }
+        text: mensaje
       })
     });
 
