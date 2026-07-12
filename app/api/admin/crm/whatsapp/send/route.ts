@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         'apikey': evolutionKey || ''
       },
       body: JSON.stringify({
-        number: numero,
+        number: numero.replace(/\D/g, ''),
         options: {
           delay: 1200,
           presence: 'composing'
