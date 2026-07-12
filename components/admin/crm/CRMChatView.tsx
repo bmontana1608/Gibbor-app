@@ -116,7 +116,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         }
         
         return {
-          numero_telefono: matchedPhone,
+          numero_telefono: matchedPhone?.replace(/\D/g, '') || '',
           lastMessage: msgMatch ? msgMatch.mensaje : '',
           lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
           unread: msgMatch ? msgMatch.unread : 0,
@@ -140,7 +140,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         }
         
         return {
-          numero_telefono: matchedPhone,
+          numero_telefono: matchedPhone?.replace(/\D/g, '') || '',
           lastMessage: msgMatch ? msgMatch.mensaje : '',
           lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
           unread: msgMatch ? msgMatch.unread : 0,
