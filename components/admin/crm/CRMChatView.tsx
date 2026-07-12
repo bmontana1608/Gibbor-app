@@ -21,6 +21,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeChatRef = useRef<any>(null);
 
@@ -240,6 +241,35 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     }
   };
 
+  const handleNewManualChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanNum = newPhone.replace(/\D/g, '');
+    if (cleanNum.length < 8) {
+      toast.error('Número inválido. Usa código de país ej: 573012345678');
+      return;
+    }
+    
+    let existing = chats.find(c => c.numero_telefono.includes(cleanNum) || cleanNum.includes(c.numero_telefono));
+    if (existing) {
+      setActiveChat(existing);
+      if (existing.type === 'club') setActiveTab('clubes');
+      else setActiveTab('leads');
+    } else {
+      const newChat: ChatContacto = {
+        numero_telefono: cleanNum,
+        lastMessage: '',
+        lastMessageTime: new Date().toISOString(),
+        unread: 0,
+        entity: { nombre: 'Contacto Manual' } as any,
+        type: 'orphaned'
+      };
+      setChats(prev => [newChat, ...prev]);
+      setActiveChat(newChat);
+      setActiveTab('leads');
+    }
+    setNewPhone('');
+  };
+
   const markAsRead = async (numero: string) => {
     await supabase.from('crm_whatsapp_messages').update({ leido: true }).eq('numero_telefono', numero).eq('es_saliente', false);
     setChats(prev => prev.map(c => c.numero_telefono === numero ? { ...c, unread: 0 } : c));
@@ -320,6 +350,20 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         <div className="w-1/3 border-r border-slate-200 flex flex-col bg-white">
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-lg font-black text-slate-900 mb-4">Chat CRM</h2>
+            
+            <form onSubmit={handleNewManualChat} className="flex gap-2 mb-4">
+              <input 
+                type="text" 
+                placeholder="Ejem: 573012345678" 
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value)}
+                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500"
+              />
+              <button type="submit" className="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition whitespace-nowrap">
+                + Iniciar
+              </button>
+            </form>
+
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input 
