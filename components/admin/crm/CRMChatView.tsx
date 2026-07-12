@@ -255,7 +255,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       if (existing.type === 'club') setActiveTab('clubes');
       else setActiveTab('leads');
     } else {
-      const newChat: ChatContacto = {
+      const newChat: any = {
         numero_telefono: cleanNum,
         lastMessage: '',
         lastMessageTime: new Date().toISOString(),
