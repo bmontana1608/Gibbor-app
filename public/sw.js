@@ -42,7 +42,6 @@ self.addEventListener('notificationclick', function(event) {
 
 // Manejador de fetch (Obligatorio para que algunos navegadores consideren la PWA como válida/instalable)
 self.addEventListener('fetch', function(event) {
-  // Por ahora solo dejamos pasar las peticiones (passthrough)
-  // Pero la presencia de este listener es necesaria para los criterios de PWA
-  event.respondWith(fetch(event.request));
+  // Se deja el listener vacío. Esto es suficiente para engañar a los navegadores 
+  // y que consideren la PWA como instalable, sin interceptar ni romper las peticiones de Next.js
 });
