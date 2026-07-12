@@ -51,7 +51,7 @@ ${chatContext}
 Teniendo en cuenta el historial anterior y las reglas de venta, redacta la respuesta ideal que el VENDEDOR debe enviarle al CLIENTE ahora:
 `;
 
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
