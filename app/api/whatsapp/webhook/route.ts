@@ -30,7 +30,17 @@ export async function POST(req: NextRequest) {
     const fromMe = body.data?.key?.fromMe;
 
     if (instance === 'mcm-ventas') {
-      if (!remoteJid || !message) return NextResponse.json({ ok: true });
+      if (!remoteJid || !message) {
+        // Log the raw payload for debugging if extraction fails
+        await supabaseAdmin.from('crm_whatsapp_messages').insert({
+          numero_telefono: 'DEBUG_WEBHOOK',
+          mensaje: JSON.stringify(body).substring(0, 500),
+          es_saliente: false,
+          instancia: instance,
+          leido: false
+        });
+        return NextResponse.json({ ok: true });
+      }
       const phone = remoteJid.split('@')[0];
       
       // Look up lead by phone
