@@ -25,7 +25,19 @@ export async function POST(req: NextRequest) {
     console.log('📩 Webhook recibido:', body);
 
     const instance = body.instance;
-    const message = body.data?.message?.conversation || body.data?.message?.extendedTextMessage?.text || '';
+    const msgData = body.data?.message;
+    let message = msgData?.conversation || msgData?.extendedTextMessage?.text || '';
+
+    if (!message && msgData) {
+      if (msgData.audioMessage) message = '🎵 [Nota de voz]';
+      else if (msgData.imageMessage) message = '📷 [Imagen]';
+      else if (msgData.videoMessage) message = '🎥 [Video]';
+      else if (msgData.documentMessage) message = '📄 [Documento]';
+      else if (msgData.stickerMessage) message = '👾 [Sticker]';
+      else if (msgData.contactMessage) message = '👤 [Contacto]';
+      else if (msgData.locationMessage) message = '📍 [Ubicación]';
+    }
+
     const remoteJid = body.data?.key?.remoteJid;
     const fromMe = body.data?.key?.fromMe;
 
