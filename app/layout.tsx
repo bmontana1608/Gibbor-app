@@ -60,6 +60,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const tenant = await getTenant();
+  const isMaster = (tenant as any).isMaster || (tenant as any).slug === 'master';
   
   return (
     <html lang="es" suppressHydrationWarning>
@@ -85,7 +86,7 @@ export default async function RootLayout({
         <Providers>
           <GlobalAnnouncementBanner />
           {children}
-          <InstallPrompt />
+          {!isMaster && <InstallPrompt />}
           <SWRegistration />
         </Providers>
       </body>
