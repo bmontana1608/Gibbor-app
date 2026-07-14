@@ -1,0 +1,1 @@
+ALTER TABLE mensajes_cola ADD COLUMN IF NOT EXISTS enviar_ahora BOOLEAN DEFAULT false;

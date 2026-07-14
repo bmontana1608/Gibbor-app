@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import GibbiAssistant from "@/components/GibbiAssistant";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
 
@@ -337,6 +337,15 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                     <p className="text-[10px] uppercase font-black text-brand tracking-widest">{brandName}</p>
                   </div>
                   
+                  <Link 
+                    href={`${basePath}/director/suscripcion`} 
+                    onClick={() => setIsUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
+                  >
+                    <Star className="w-4 h-4 text-amber-500" />
+                    Mi Suscripción
+                  </Link>
+
                   <Link 
                     href={`${basePath}/director/configuracion`} 
                     onClick={() => setIsUserMenuOpen(false)}
