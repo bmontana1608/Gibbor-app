@@ -90,7 +90,8 @@ export default function SuscripcionPage() {
 
   const tarifa = club.tarifa_por_jugador || 0;
   const total = tarifa * jugadoresActivos;
-  const proximoCorte = club.proximo_corte ? new Date(club.proximo_corte) : null;
+  // Evitar problemas de zona horaria (UTC midnight -> día anterior local)
+  const proximoCorte = club.proximo_corte ? new Date(club.proximo_corte.split('T')[0] + 'T12:00:00') : null;
   const estado = club.estado_suscripcion || 'Desconocido';
 
   const estadoConfig: Record<string, { color: string, icon: any, label: string }> = {
