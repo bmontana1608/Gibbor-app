@@ -25,9 +25,13 @@ export default function InstallPrompt() {
 
   // Cargar datos del club DIRECTAMENTE desde el manifest dinámico
   useEffect(() => {
-    if (!tenantSlug) return;
+    // Buscar la URL del manifest que inyectó layout.tsx
+    const manifestLink = document.querySelector('link[rel="manifest"]');
+    const manifestUrl = manifestLink?.getAttribute('href');
 
-    fetch(`/${tenantSlug}/manifest.json`)
+    if (!manifestUrl) return;
+
+    fetch(manifestUrl)
       .then(res => res.json())
       .then(manifest => {
         if (manifest?.name && manifest.name !== 'Club Deportivo') {
@@ -41,7 +45,7 @@ export default function InstallPrompt() {
       .catch(() => {
         // Fallback silencioso
       });
-  }, [tenantSlug]);
+  }, [pathname]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

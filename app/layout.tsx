@@ -65,6 +65,13 @@ export default async function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.deferredPWAEvent = null;
+          window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            window.deferredPWAEvent = e;
+          });
+        `}} />
       </head>
       <body 
         className="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 antialiased transition-colors duration-300"
