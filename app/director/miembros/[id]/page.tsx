@@ -569,7 +569,7 @@ if (data.fecha_nacimiento) {
             )}
             
             <button onClick={() => {
-              const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://${tenantSlug || 'app'}.efdgibbor.com`;
+              const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://www.masterclubmanager.com/${tenantSlug || 'tenant'}/login`;
               window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
             }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
           </div>

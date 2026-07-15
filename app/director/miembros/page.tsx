@@ -654,7 +654,7 @@ export default function DirectorioMiembros() {
                       }} disabled={generandoAcceso} className="w-full bg-brand text-white py-4 rounded-2xl font-black uppercase text-[10px]">Activar Acceso</button>
                     )}
                     <button onClick={() => {
-                      const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://${tenant?.slug || 'app'}.efdgibbor.com`;
+                      const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://www.masterclubmanager.com/${tenant?.slug || 'tenant'}/login`;
                       window.open(`https://wa.me/${solicitudSeleccionada.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                     }} className="w-full bg-emerald-500 text-white py-4 rounded-2xl font-black uppercase text-[10px] flex items-center justify-center gap-2"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
                   </div>
