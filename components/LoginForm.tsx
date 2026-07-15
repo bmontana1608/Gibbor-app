@@ -90,16 +90,41 @@ export default function LoginForm({ tenant }: LoginFormProps) {
       return;
     }
 
-    const { data: perfilData, error: perfilError } = await supabase
+    let { data: perfilData, error: perfilError } = await supabase
       .from('perfiles')
       .select('rol, club_id, clubes(slug)')
       .eq('id', authData.user.id)
       .single();
 
     if (perfilError || !perfilData) {
-      alert('Error: Este usuario no tiene un perfil asignado.');
-      setLoading(false);
-      return;
+      // INTENTO DE AUTOREPARACIÓN: Si el director creó el perfil pero quedó huérfano del Auth ID
+      try {
+        const fixRes = await fetch('/api/auth/fix-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authData.user.id, email: authData.user.email })
+        });
+        
+        if (fixRes.ok) {
+          // Re-intentar obtener el perfil reparado
+          const retry = await supabase
+            .from('perfiles')
+            .select('rol, club_id, clubes(slug)')
+            .eq('id', authData.user.id)
+            .single();
+            
+          perfilData = retry.data;
+          perfilError = retry.error;
+        }
+      } catch (fixErr) {
+        console.error("Fallo al intentar autoreparar el perfil", fixErr);
+      }
+
+      if (perfilError || !perfilData) {
+        alert('Error: Este usuario no tiene un perfil asignado.');
+        setLoading(false);
+        return;
+      }
     }
 
     const clubSlug = (perfilData.clubes as any)?.slug;
