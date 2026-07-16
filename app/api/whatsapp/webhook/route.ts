@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
@@ -98,7 +97,7 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = parts[1];
       const monto = parseInt(parts[2].replace(/\D/g, ''));
 
-      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
       
       if (!alumnos || alumnos.length === 0) {
         await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
@@ -106,17 +105,8 @@ export async function POST(req: NextRequest) {
       }
 
       const alumno = alumnos[0];
-      await supabase.from('pagos_ingresos').insert([{
-        jugador_id: alumno.id,
-        monto: monto,
-        monto_base: monto,
-        total: monto,
-        concepto: 'Mensualidad (WhatsApp Bot)',
-        metodo_pago: 'Efectivo (Bot)',
-        fecha: new Date().toISOString().split('T')[0]
-      }]);
 
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabaseAdmin.from('configuracion_wa').select('*').single();
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
         grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
@@ -141,7 +131,7 @@ export async function POST(req: NextRequest) {
         console.error("Error subiendo PDF:", e);
       }
 
-      await supabase.from('pagos_ingresos').insert([{
+      await supabaseAdmin.from('pagos_ingresos').insert([{
         jugador_id: alumno.id,
         monto: monto,
         monto_base: monto,
@@ -160,18 +150,18 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = message.split(' ')[1];
       if (!nombreBusqueda) return NextResponse.json({ ok: true });
 
-      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
       if (!alumnos || alumnos.length === 0) {
         await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
         return NextResponse.json({ ok: true });
       }
 
       const alumno = alumnos[0];
-      const { data: planes } = await supabase.from('planes').select('*');
+      const { data: planes } = await supabaseAdmin.from('planes').select('*');
       const precio = planes?.find(p => p.nombre === (alumno.tipo_plan || 'Regular'))?.precio_base || 140000;
       
       const mesPrefijo = new Date().toISOString().slice(0, 7);
-      const { data: pago } = await supabase.from('pagos_ingresos').select('*').eq('jugador_id', alumno.id).filter('fecha', 'gte', `${mesPrefijo}-01`).limit(1);
+      const { data: pago } = await supabaseAdmin.from('pagos_ingresos').select('*').eq('jugador_id', alumno.id).filter('fecha', 'gte', `${mesPrefijo}-01`).limit(1);
 
       const info = `👤 *INFO ALUMNO* \n\n` +
                    `• *Nombre:* ${alumno.nombres} ${alumno.apellidos}\n` +
@@ -188,11 +178,11 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = message.split(' ')[1];
       if (!nombreBusqueda) return NextResponse.json({ ok: true });
 
-      const { data: alumnos } = await supabase.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
       if (!alumnos || alumnos.length === 0) return NextResponse.json({ ok: true });
 
       const alumno = alumnos[0];
-      const { error } = await supabase.from('asistencias').insert([{
+      const { error } = await supabaseAdmin.from('asistencias').insert([{
         jugador_id: alumno.id,
         estado: 'Presente',
         fecha: new Date().toISOString().split('T')[0]
