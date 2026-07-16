@@ -52,8 +52,7 @@ export async function POST(request: Request) {
       await supabaseAdmin
         .from(tabla)
         .update({ [tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id']: userId })
-        .eq(tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id', orphanProfile.id)
-        .catch(() => {}); // Ignorar si la columna no existe o falla
+        .eq(tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id', orphanProfile.id);
     }
 
     // 5. Eliminar el huérfano
