@@ -628,9 +628,9 @@ export default function ModuloCobranza() {
       const mesNombre = meses[fechaPeriodo.getMonth()];
       const anioActual = fechaPeriodo.getFullYear();
       
-      const direccionClub = config.direccion || 'Calle Ficticia #12-34';
-      const ciudadClub = config.ciudad || 'Cúcuta, Norte de Santander';
-      const nuevoConsecutivo = (config.ultimo_consecutivo_recibo || 0) + 1;
+      const direccionClub = config?.direccion || 'Calle Ficticia #12-34';
+      const ciudadClub = config?.ciudad || 'Cúcuta, Norte de Santander';
+      const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
 
       // --- LÓGICA DE ESTADO INTELIGENTE (1-5 día del mes actual, o VENCIDO si es mes pasado) ---
       const hoy = new Date();
@@ -684,9 +684,11 @@ export default function ModuloCobranza() {
       if (!result.success) throw new Error(result.error);
 
       // 5. Incrementar consecutivo en la nube
-      await supabase.from('configuracion_wa')
-        .update({ ultimo_consecutivo_recibo: nuevoConsecutivo })
-        .eq('id', config.id);
+      if (config?.id) {
+        await supabase.from('configuracion_wa')
+          .update({ ultimo_consecutivo_recibo: nuevoConsecutivo })
+          .eq('id', config.id);
+      }
 
       toast.success(`Recibo #${nuevoConsecutivo} enviado 🚀`);
     } catch (error: any) {
