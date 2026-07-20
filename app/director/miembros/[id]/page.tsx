@@ -286,24 +286,54 @@ if (data.fecha_nacimiento) {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Categoría</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">
+                    {formData.rol === 'Entrenador' || formData.rol === 'Director' ? 'Categorías Asignadas' : 'Categoría'}
+                  </label>
                   <div className="space-y-2">
-                    <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
-                      <option value="">Sin Asignar</option>
-                      {categorias.map(c => (
-                        <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
-                      ))}
-                    </select>
-                    {formData.rol === 'Futbolista' && formData.grupos && (
-                      <label className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
-                        <input 
-                          type="checkbox"
-                          checked={formData.override_categoria}
-                          onChange={(e) => setFormData((prev: any) => ({ ...prev, override_categoria: e.target.checked }))}
-                          className="w-3 h-3 rounded border-slate-300"
-                        />
-                        Fijar categoría manualmente
-                      </label>
+                    {formData.rol === 'Entrenador' || formData.rol === 'Director' ? (
+                      <div className="grid grid-cols-2 gap-2 border bg-cyan-50/30 p-3 rounded-xl border-cyan-100 max-h-32 overflow-y-auto">
+                        {categorias.map(c => (
+                          <label key={c.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                            <input 
+                              type="checkbox" 
+                              checked={(formData.grupos || '').split(', ').map((g: string) => g.trim()).includes(c.nombre)}
+                              onChange={(e) => {
+                                const currentGroups = (formData.grupos || '').split(', ').map((g: string) => g.trim()).filter(Boolean);
+                                let newGroups;
+                                if (e.target.checked) {
+                                  newGroups = [...currentGroups, c.nombre];
+                                } else {
+                                  newGroups = currentGroups.filter((g: string) => g !== c.nombre);
+                                }
+                                setFormData((prev: any) => ({ ...prev, grupos: newGroups.join(', ') }));
+                              }}
+                              className="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:text-brand"
+                            />
+                            {c.nombre}
+                          </label>
+                        ))}
+                        {categorias.length === 0 && <p className="text-[10px] text-slate-400 italic">No hay categorías activas.</p>}
+                      </div>
+                    ) : (
+                      <>
+                        <select name="grupos" value={formData.grupos || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white">
+                          <option value="">Sin Asignar</option>
+                          {categorias.map(c => (
+                            <option key={c.nombre} value={c.nombre}>{c.nombre}</option>
+                          ))}
+                        </select>
+                        {formData.rol === 'Futbolista' && formData.grupos && (
+                          <label className="flex items-center gap-2 text-[10px] font-bold text-slate-600 bg-slate-50 p-2 rounded border border-slate-200 cursor-pointer">
+                            <input 
+                              type="checkbox"
+                              checked={formData.override_categoria}
+                              onChange={(e) => setFormData((prev: any) => ({ ...prev, override_categoria: e.target.checked }))}
+                              className="w-3.5 h-3.5 rounded border-slate-300"
+                            />
+                            Fijar categoría manualmente
+                          </label>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
