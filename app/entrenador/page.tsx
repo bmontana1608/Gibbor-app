@@ -41,18 +41,25 @@ export default function DashboardEntrenador() {
       if (usuario) {
         setPerfil(usuario);
         
-        const categoriasAsignadas = (usuario.grupos || '').split(', ').filter(Boolean);
-        const queryAlumnos = supabase.from('perfiles').select('id')
+        const categoriasAsignadas = (usuario.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
+        const { data: allAlumnos } = await supabase.from('perfiles').select('id, grupos')
           .eq('club_id', usuario.club_id)  // FILTRO DE SEGURIDAD: solo jugadores del club
-          .eq('rol', 'Futbolista');
+          .eq('rol', 'Futbolista')
+          .neq('estado_miembro', 'Inactivo');
         
-        if (categoriasAsignadas.length > 0) {
-          queryAlumnos.in('grupos', categoriasAsignadas);
-        } else {
-          queryAlumnos.eq('grupos', 'Ninguna');
+        let totalAlumnos = 0;
+        if (allAlumnos) {
+          if (categoriasAsignadas.length > 0) {
+            const filteredAlumnos = allAlumnos.filter(j => {
+              if (!j.grupos) return false;
+              const limpio = j.grupos.replace('|MANUAL', '').trim();
+              const arr = limpio.split(',').map((g: string) => g.trim()).filter(Boolean);
+              return arr.some((g: string) => categoriasAsignadas.includes(g));
+            });
+            totalAlumnos = filteredAlumnos.length;
+          }
         }
 
-        const { data: mAlumnos } = await queryAlumnos;
         const { data: mAsistencias } = await supabase
           .from('asistencias')
           .select('estado')
@@ -60,7 +67,7 @@ export default function DashboardEntrenador() {
           .gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
         
         setMetricas({
-          alumnosTotal: mAlumnos?.length || 0,
+          alumnosTotal: totalAlumnos,
           asistenciaMes: mAsistencias?.length ? Math.round((mAsistencias.filter(a => a.estado === 'Presente').length / mAsistencias.length) * 100) : 0,
           puntosGenerados: 0
         });
