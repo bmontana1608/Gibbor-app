@@ -1,14 +1,22 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 // Cliente Admin (Service Role) para bypass de RLS
-const supabaseAdmin = createClient(
+const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+
     const { correo_director, password_director, dias_prueba, ...clubData } = await request.json();
 
     // 1. Obtener el plan SaaS por defecto (el primero disponible)
@@ -111,6 +119,13 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+
     const body = await request.json();
     const { id, ...datosParaActualizar } = body;
     

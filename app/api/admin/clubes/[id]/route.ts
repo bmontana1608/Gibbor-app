@@ -1,8 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { logAction } from '@/lib/audit';
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -14,6 +15,13 @@ export async function GET(
   const { id } = await context.params;
 
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+
     // 1. Datos básicos del club
     const { data: club } = await supabaseAdmin
       .from('clubes')
@@ -77,9 +85,15 @@ export async function DELETE(
   const { id } = await context.params;
 
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+
     // 1. Obtener datos antes del cambio
     const { data: club } = await supabaseAdmin.from('clubes').select('nombre').eq('id', id).single();
-    const { data: { user } } = await supabaseAdmin.auth.getUser();
 
     // 2. Realizar SOFT DELETE (Baja Lógica)
     // Cambiamos el estado y marcamos la fecha de eliminación
@@ -116,6 +130,12 @@ export async function PATCH(
 ) {
   const { id } = await context.params;
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
+    if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     const { 
       nombre, 
       correo_administrativo, 
@@ -182,7 +202,6 @@ export async function PATCH(
     }
 
     // 3. Registrar acción en logs_admin (Audit Trail Maestro)
-    const { data: { user } } = await supabaseAdmin.auth.getUser();
     if (user) {
       await supabaseAdmin.from('logs_admin').insert({
         admin_id: user.id,

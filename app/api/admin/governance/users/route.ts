@@ -1,7 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const supabaseAdmin = createClient(
+const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
@@ -9,9 +10,20 @@ const supabaseAdmin = createClient(
 export async function POST(request: Request) {
   try {
     const { userId, action, payload } = await request.json();
-    const { data: { user: adminUser } } = await supabaseAdmin.auth.getUser();
+    const supabase = await createClient();
+    const { data: { user: adminUser } } = await supabase.auth.getUser();
 
     if (!adminUser) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase
+      .from('perfiles')
+      .select('rol')
+      .eq('id', adminUser.id)
+      .single();
+
+    if (perfil?.rol !== 'SuperAdmin') {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
 
     let result;
     if (action === 'RESET_PASSWORD') {

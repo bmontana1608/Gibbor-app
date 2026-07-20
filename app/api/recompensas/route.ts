@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient as createServerClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { logAction } from '@/lib/audit';
 
@@ -7,10 +8,31 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { tipo, jugadorIds, monto, motivo, otorgadoPor, insigniaId } = body;
 
-    const supabaseAdmin = createClient(
+    const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+
+    const { data: perfil } = await supabase.from('perfiles').select('rol, club_id').eq('id', user.id).single();
+    if (!perfil || !['SuperAdmin', 'Director', 'Entrenador'].includes(perfil.rol || '')) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    if (perfil.rol !== 'SuperAdmin') {
+      const { data: targetPlayers } = await supabaseAdmin
+        .from('perfiles')
+        .select('club_id')
+        .in('id', jugadorIds);
+      
+      const distinctClubIds = Array.from(new Set(targetPlayers?.map(p => p.club_id).filter(Boolean)));
+      if (distinctClubIds.length > 1 || (distinctClubIds.length === 1 && distinctClubIds[0] !== perfil.club_id)) {
+        return NextResponse.json({ error: 'No autorizado (diferente club)' }, { status: 403 });
+      }
+    }
 
     const insigniasDisponibles = [
       { id: 'goleador', nombre: 'Goleador Élite', icono: '⚽', desc: 'Máximo artillero' },
@@ -40,7 +62,6 @@ export async function POST(request: Request) {
       }
 
       // 4. Auditoría Centralizada MCM
-      const { data: { user } } = await supabaseAdmin.auth.getUser();
       if (user) {
         await logAction({
           userId: user.id,
@@ -75,7 +96,6 @@ export async function POST(request: Request) {
       }
 
       // Auditoría de Insignias MCM
-      const { data: { user } } = await supabaseAdmin.auth.getUser();
       if (user) {
         await logAction({
           userId: user.id,

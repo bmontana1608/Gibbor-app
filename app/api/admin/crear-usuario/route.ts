@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +10,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 });
     }
 
-    // 1. Intentar crear el usuario en Supabase Auth
+    // 1. Autenticar al usuario llamante
+    const supabase = await createClient();
+    const { data: { user: caller } } = await supabase.auth.getUser();
+    if (!caller) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
+
+    // 2. Obtener el perfil del llamante para verificar rol y club_id
+    const { data: callerPerfil } = await supabase
+      .from('perfiles')
+      .select('rol, club_id')
+      .eq('id', caller.id)
+      .single();
+
+    if (!callerPerfil) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    const isSuperAdmin = callerPerfil.rol === 'SuperAdmin';
+    const isDirector = callerPerfil.rol === 'Director';
+
+    if (!isSuperAdmin && !isDirector) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+    }
+
+    // 3. Obtener los datos actuales del perfil original antes de crear el acceso
+    const { data: perfilOriginal, error: getError } = await supabaseAdmin
+      .from('perfiles')
+      .select('*')
+      .eq('id', perfilId)
+      .single();
+
+    if (getError || !perfilOriginal) {
+       return NextResponse.json({ error: 'No se encontró el perfil original' }, { status: 404 });
+    }
+
+    // 4. Aislamiento Multi-tenant: Si es Director, validar que el perfil original pertenezca a su mismo club
+    if (isDirector && perfilOriginal.club_id !== callerPerfil.club_id) {
+      return NextResponse.json({ error: 'No autorizado (diferente club)' }, { status: 403 });
+    }
+
+    // 5. Intentar crear el usuario en Supabase Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -44,18 +86,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: authError.message }, { status: 500 });
     }
 
-    // 2. MIGRACIÓN SEGURA (Copiar -> Migrar -> Eliminar)
-    
-    // 2.1 Obtener los datos actuales del perfil
-    const { data: perfilOriginal, error: getError } = await supabaseAdmin
-      .from('perfiles')
-      .select('*')
-      .eq('id', perfilId)
-      .single();
-
-    if (getError || !perfilOriginal) {
-       return NextResponse.json({ error: 'No se encontró el perfil original' }, { status: 404 });
-    }
+    // 6. MIGRACIÓN SEGURA (Copiar -> Migrar -> Eliminar)
 
     // 2.2 Crear el NUEVO perfil (Clon con nuevo ID)
     const { error: createError } = await supabaseAdmin
