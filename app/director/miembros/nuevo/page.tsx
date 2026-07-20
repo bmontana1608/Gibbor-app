@@ -288,8 +288,8 @@ export default function NuevoMiembro() {
                           checked={(formData.grupos || '').split(',').map((g: string) => g.trim()).includes(cat.nombre.trim())}
                           onChange={(e) => {
                             const currentGroups = (formData.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
-                            const uniqueGroups = Array.from(new Set(currentGroups));
-                            let newGroups;
+                            const uniqueGroups = Array.from(new Set(currentGroups)) as string[];
+                            let newGroups: string[];
                             if (e.target.checked) {
                               newGroups = [...uniqueGroups, cat.nombre.trim()];
                             } else {

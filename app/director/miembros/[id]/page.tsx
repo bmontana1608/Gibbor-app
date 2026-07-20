@@ -304,8 +304,8 @@ export default function FichaDelJugador() {
                               checked={(formData.grupos || '').split(',').map((g: string) => g.trim()).includes(c.nombre.trim())}
                               onChange={(e) => {
                                 const currentGroups = (formData.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
-                                const uniqueGroups = Array.from(new Set(currentGroups));
-                                let newGroups;
+                                const uniqueGroups = Array.from(new Set(currentGroups)) as string[];
+                                let newGroups: string[];
                                 if (e.target.checked) {
                                   newGroups = [...uniqueGroups, c.nombre.trim()];
                                 } else {
