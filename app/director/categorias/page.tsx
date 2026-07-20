@@ -176,7 +176,12 @@ export default function GestionCategorias() {
   // --- CÁLCULOS ---
   let miembrosTotales = 0;
   const categoriasConMetricas = categorias.map(cat => {
-    const alumnosEnEsteGrupo = jugadores.filter(j => j.grupos === cat.nombre && j.estado_miembro !== 'Pendiente' && j.estado_miembro !== 'Inactivo').length;
+    const alumnosEnEsteGrupo = jugadores.filter(j => {
+      if (!j.grupos) return false;
+      const limpio = j.grupos.replace('|MANUAL', '').trim();
+      const arr = limpio.split(',').map((g: string) => g.trim());
+      return arr.includes(cat.nombre.trim()) && j.estado_miembro !== 'Pendiente' && j.estado_miembro !== 'Inactivo';
+    }).length;
     miembrosTotales += alumnosEnEsteGrupo;
     const porcentaje = cat.capacidad_maxima > 0 ? Math.round((alumnosEnEsteGrupo / cat.capacidad_maxima) * 100) : 0;
     return { ...cat, inscritos: alumnosEnEsteGrupo, porcentaje };

@@ -36,14 +36,22 @@ export default function DetalleCategoria() {
     if (catError || !catData) { setCargando(false); return; }
     setCategoria(catData);
 
-    const { data: memData } = await supabase.from('perfiles')
+    const { data: allPlayers } = await supabase.from('perfiles')
       .select('*')
       .eq('rol', 'Futbolista')
       .eq('club_id', catData.club_id)
-      .eq('grupos', catData.nombre)
       .neq('estado_miembro', 'Pendiente')
       .order('nombres', { ascending: true });
-    if (memData) setMiembros(memData);
+    
+    if (allPlayers) {
+      const filteredMem = allPlayers.filter(j => {
+        if (!j.grupos) return false;
+        const limpio = j.grupos.replace('|MANUAL', '').trim();
+        const arr = limpio.split(',').map((g: string) => g.trim());
+        return arr.includes(catData.nombre.trim());
+      });
+      setMiembros(filteredMem);
+    }
     
     const { data: entData } = await supabase.from('perfiles')
       .select('id, nombres, apellidos')
