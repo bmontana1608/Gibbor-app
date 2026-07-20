@@ -57,7 +57,7 @@ export default function ConvocatoriasEntrenador() {
         const nombresCategoriasEntrenador = (usuario.grupos || '')
           .split(',')
           .map((c: string) => c.trim())
-          .filter(Boolean);
+          .filter(Boolean) as string[];
 
         // Cargar Jugadores
         const { data: todosJugadores, error: jugErr } = await supabase
@@ -74,7 +74,7 @@ export default function ConvocatoriasEntrenador() {
           if (nombresCategoriasEntrenador.length > 0) {
             jugadoresFiltrados = todosJugadores.filter((j: any) => {
               const grupoJugador = (j.grupos || '').replace('|MANUAL', '').trim().toLowerCase();
-              return nombresCategoriasEntrenador.some(cat => {
+              return nombresCategoriasEntrenador.some((cat: string) => {
                 const lowerCat = cat.toLowerCase();
                 return grupoJugador === lowerCat || grupoJugador.startsWith(lowerCat);
               });
