@@ -24,14 +24,36 @@ export async function GET(request: Request) {
     .select('*')
     .eq('club_id', club_id);
 
-  if (entrenador_id) {
-    query = query.eq('entrenador_id', entrenador_id);
-  }
-
   const { data, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (entrenador_id && data) {
+    const { data: coachProfile } = await supabaseAdmin
+      .from('perfiles')
+      .select('nombres, apellidos, grupos')
+      .eq('id', entrenador_id)
+      .single();
+
+    if (coachProfile) {
+      const coachFullName = `${coachProfile.nombres || ''} ${coachProfile.apellidos || ''}`.trim().toLowerCase();
+      const coachGroups = (coachProfile.grupos || '')
+        .split(',')
+        .map((g: string) => g.trim().toLowerCase())
+        .filter(Boolean);
+
+      const filtered = data.filter(cat => {
+        const matchByName = coachGroups.includes((cat.nombre || '').trim().toLowerCase());
+        const matchByTrainer = (cat.entrenadores || '')
+          .toLowerCase()
+          .includes(coachFullName);
+        return matchByName || matchByTrainer;
+      });
+
+      return NextResponse.json(filtered);
+    }
   }
 
   return NextResponse.json(data);

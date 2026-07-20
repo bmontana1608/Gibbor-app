@@ -53,15 +53,11 @@ export default function ConvocatoriasEntrenador() {
       setPerfil(usuario);
 
       if (usuario?.club_id) {
-        // Cargar Categorias del Entrenador
-        const { data: categoriasData } = await supabase
-          .from('categorias')
-          .select('nombre')
-          .eq('club_id', usuario.club_id)
-          .eq('entrenador_id', usuario.id)
-          .eq('estado', 'Activo');
-
-        const nombresCategoriasEntrenador = (categoriasData || []).map((c: any) => c.nombre);
+        // Obtener Categorías del perfil del Entrenador
+        const nombresCategoriasEntrenador = (usuario.grupos || '')
+          .split(',')
+          .map((c: string) => c.trim())
+          .filter(Boolean);
 
         // Cargar Jugadores
         const { data: todosJugadores, error: jugErr } = await supabase
