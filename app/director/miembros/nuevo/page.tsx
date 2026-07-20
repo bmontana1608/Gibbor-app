@@ -285,16 +285,18 @@ export default function NuevoMiembro() {
                       <label key={cat.nombre} className="text-brand transition-colors">
                         <input 
                           type="checkbox" 
-                          checked={(formData.grupos || '').split(', ').includes(cat.nombre)}
+                          checked={(formData.grupos || '').split(',').map((g: string) => g.trim()).includes(cat.nombre.trim())}
                           onChange={(e) => {
-                            const currentGroups = (formData.grupos || '').split(', ').filter(Boolean);
+                            const currentGroups = (formData.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
+                            const uniqueGroups = Array.from(new Set(currentGroups));
                             let newGroups;
                             if (e.target.checked) {
-                              newGroups = [...currentGroups, cat.nombre];
+                              newGroups = [...uniqueGroups, cat.nombre.trim()];
                             } else {
-                              newGroups = currentGroups.filter((g: string) => g !== cat.nombre);
+                              newGroups = uniqueGroups.filter((g: string) => g !== cat.nombre.trim());
                             }
-                            setFormData({ ...formData, grupos: newGroups.join(', ') });
+                            const finalGroups = Array.from(new Set(newGroups)).join(', ');
+                            setFormData({ ...formData, grupos: finalGroups });
                           }}
                           className="text-brand focus:text-brand"
                         />

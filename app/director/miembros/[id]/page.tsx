@@ -47,15 +47,20 @@ export default function FichaDelJugador() {
       if (error) {
         toast.error('Error al cargar datos: ' + error.message);
       } else if (data) {
-        setJugador({ ...data, grupos: data.grupos?.replace('|MANUAL', '') });
+        let cleanGrupos = '';
+        if (data.grupos) {
+          const cleanArr = data.grupos.replace('|MANUAL', '').split(',').map((g: string) => g.trim()).filter(Boolean);
+          cleanGrupos = Array.from(new Set(cleanArr)).join(', ');
+        }
+        setJugador({ ...data, grupos: cleanGrupos });
         
         const formDataInit = { ...data };
-if (data.fecha_nacimiento) {
-  formDataInit.fecha_nacimiento = normalizeDate(data.fecha_nacimiento);
-}
+        if (data.fecha_nacimiento) {
+          formDataInit.fecha_nacimiento = normalizeDate(data.fecha_nacimiento);
+        }
+        formDataInit.grupos = cleanGrupos;
         if (data.grupos && data.grupos.includes('|MANUAL')) {
           formDataInit.override_categoria = true;
-          formDataInit.grupos = data.grupos.replace('|MANUAL', '');
         } else {
           formDataInit.override_categoria = false;
         }
@@ -296,16 +301,18 @@ if (data.fecha_nacimiento) {
                           <label key={c.nombre} className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
                             <input 
                               type="checkbox" 
-                              checked={(formData.grupos || '').split(', ').map((g: string) => g.trim()).includes(c.nombre)}
+                              checked={(formData.grupos || '').split(',').map((g: string) => g.trim()).includes(c.nombre.trim())}
                               onChange={(e) => {
-                                const currentGroups = (formData.grupos || '').split(', ').map((g: string) => g.trim()).filter(Boolean);
+                                const currentGroups = (formData.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
+                                const uniqueGroups = Array.from(new Set(currentGroups));
                                 let newGroups;
                                 if (e.target.checked) {
-                                  newGroups = [...currentGroups, c.nombre];
+                                  newGroups = [...uniqueGroups, c.nombre.trim()];
                                 } else {
-                                  newGroups = currentGroups.filter((g: string) => g !== c.nombre);
+                                  newGroups = uniqueGroups.filter((g: string) => g !== c.nombre.trim());
                                 }
-                                setFormData((prev: any) => ({ ...prev, grupos: newGroups.join(', ') }));
+                                const finalGroups = Array.from(new Set(newGroups)).join(', ');
+                                setFormData((prev: any) => ({ ...prev, grupos: finalGroups }));
                               }}
                               className="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:text-brand"
                             />
