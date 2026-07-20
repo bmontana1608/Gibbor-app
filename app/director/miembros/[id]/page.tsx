@@ -103,6 +103,12 @@ if (data.fecha_nacimiento) {
     const toastId = toast.loading("Guardando...");
 
     const payload = { ...formData };
+    if (payload.estado_miembro === 'Inactivo' && jugador.estado_miembro !== 'Inactivo') {
+      payload.fecha_inactivacion = new Date().toISOString().split('T')[0];
+    } else if (payload.estado_miembro === 'Activo' && jugador.estado_miembro !== 'Activo') {
+      payload.fecha_inactivacion = null;
+    }
+
     if (payload.override_categoria && payload.grupos && payload.rol === 'Futbolista') {
       payload.grupos = `${payload.grupos}|MANUAL`;
     } else if (payload.grupos) {
@@ -118,7 +124,11 @@ if (data.fecha_nacimiento) {
     if (error) {
       toast.error("Error al actualizar: " + error.message, { id: toastId });
     } else {
-      setJugador({ ...payload, grupos: payload.grupos?.replace('|MANUAL', '') }); 
+      setJugador({ 
+        ...payload, 
+        grupos: payload.grupos?.replace('|MANUAL', ''),
+        fecha_inactivacion: payload.fecha_inactivacion !== undefined ? payload.fecha_inactivacion : jugador.fecha_inactivacion
+      }); 
       setEdicion(false);    
       toast.success("Datos actualizados.", { id: toastId });
       router.refresh();
@@ -198,9 +208,20 @@ if (data.fecha_nacimiento) {
 
   const cambiarEstado = async (nuevoEstado: string) => {
     if (!window.confirm(`¿Cambiar estado a ${nuevoEstado}?`)) return;
-    const { error } = await supabase.from('perfiles').update({ estado_miembro: nuevoEstado }).eq('id', jugador.id);
+    const fechaInact = nuevoEstado === 'Inactivo' ? new Date().toISOString().split('T')[0] : null;
+    const { error } = await supabase
+      .from('perfiles')
+      .update({ 
+        estado_miembro: nuevoEstado,
+        fecha_inactivacion: fechaInact
+      })
+      .eq('id', jugador.id);
     if (!error) {
-      setJugador({ ...jugador, estado_miembro: nuevoEstado });
+      setJugador({ 
+        ...jugador, 
+        estado_miembro: nuevoEstado,
+        fecha_inactivacion: fechaInact
+      });
       toast.success(`Jugador ${nuevoEstado}`);
       router.refresh();
     }

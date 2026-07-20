@@ -43,32 +43,50 @@ export default function GestionDePlanes() {
 
   async function cargarDatos() {
     setCargando(true);
+    if (!tenantSlug) return;
+    
     let currentTenant = tenant;
 
-    if (!currentTenant && tenantSlug) {
+    if (!currentTenant) {
       try {
         const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`);
-        currentTenant = await tenantRes.json();
-        setTenant(currentTenant);
+        if (tenantRes.ok) {
+          currentTenant = await tenantRes.json();
+          setTenant(currentTenant);
+        } else {
+          throw new Error("No se pudo obtener el tenant");
+        }
       } catch (err) {
-        console.error("Error al cargar tenant", err);
+        console.error("Error al cargar tenant:", err);
+        toast.error("Error de conexión con el club");
+        setCargando(false);
+        return;
       }
+    }
+
+    if (!currentTenant || !currentTenant.id) {
+      toast.error("No se detectó un identificador de club válido.");
+      setCargando(false);
+      return;
     }
 
     const { data: perfilesData } = await supabase
       .from('perfiles')
       .select('id, nombres, apellidos, tipo_plan')
+      .eq('club_id', currentTenant.id)
       .neq('rol', 'Entrenador')
       .order('nombres', { ascending: true });
 
     const { data: planesData } = await supabase
       .from('planes')
       .select('*')
+      .eq('club_id', currentTenant.id)
       .order('nombre', { ascending: true });
 
     const { data: conceptosData } = await supabase
       .from('conceptos_cobro')
       .select('*')
+      .eq('club_id', currentTenant.id)
       .order('nombre', { ascending: true });
 
     if (perfilesData) setJugadores(perfilesData);
@@ -99,6 +117,10 @@ export default function GestionDePlanes() {
   };
 
   const savePlan = async () => {
+    if (!tenant?.id) {
+      toast.error("Error: No se detectó un club válido para asociar el plan.");
+      return;
+    }
     if (!nombrePlanEdit || !montoPlanEdit) {
       toast.error("Por favor completa los campos obligatorios.");
       return;
@@ -112,7 +134,7 @@ export default function GestionDePlanes() {
       dia_cobro_mensual: Number(diaCobroPlanEdit),
       dias_limite_pronto_pago: Number(graciaPlanEdit),
       tipo: 'Mensualidad',
-      club_id: tenant?.id
+      club_id: tenant.id
     };
 
     if (planEditando) {
@@ -122,7 +144,7 @@ export default function GestionDePlanes() {
           .from('perfiles')
           .update({ tipo_plan: nombrePlanEdit })
           .eq('tipo_plan', planEditando.nombre)
-          .eq('club_id', tenant?.id);
+          .eq('club_id', tenant.id);
       }
       const { error } = await supabase.from('planes').update(payload).eq('id', planEditando.id);
       if (error) { toast.error("Error al actualizar: " + error.message, { id: toastId }); return; }
@@ -159,6 +181,10 @@ export default function GestionDePlanes() {
   };
 
   const saveConcepto = async () => {
+    if (!tenant?.id) {
+      toast.error("Error: No se detectó un club válido para asociar el concepto.");
+      return;
+    }
     if (!nombreConceptoEdit || !montoConceptoEdit) {
       toast.error("Por favor completa los campos obligatorios.");
       return;
@@ -169,7 +195,7 @@ export default function GestionDePlanes() {
       nombre: nombreConceptoEdit,
       precio_sugerido: Number(montoConceptoEdit),
       estado: 'Activo',
-      club_id: tenant?.id
+      club_id: tenant.id
     };
 
     if (conceptoEditando) {

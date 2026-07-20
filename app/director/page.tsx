@@ -34,6 +34,11 @@ export default function DashboardDirector() {
     tasaAsistencia: 0
   });
   const [dataCrecimiento, setDataCrecimiento] = useState<any[]>([]);
+  const [tendencia, setTendencia] = useState({
+    label: 'Estable',
+    color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    icon: 'stable'
+  });
   const [alertas, setAlertas] = useState<any[]>([]);
   const [todasLasAlertas, setTodasLasAlertas] = useState<any[]>([]);
   const [gruposRendimiento, setGruposRendimiento] = useState<any[]>([]);
@@ -74,7 +79,7 @@ export default function DashboardDirector() {
           { data: asistData },
           { data: msgRes }
         ] = await Promise.all([
-          supabase.from('perfiles').select('*').eq('club_id', tenantData.id).eq('rol', 'Futbolista').eq('estado_miembro', 'Activo'),
+          supabase.from('perfiles').select('*').eq('club_id', tenantData.id).eq('rol', 'Futbolista').in('estado_miembro', ['Activo', 'Inactivo']),
           supabase.from('planes').select('*').eq('club_id', tenantData.id),
           supabase.from('pagos_ingresos').select('*').eq('club_id', tenantData.id),
           supabase.from('asistencias').select('jugador_id, estado').eq('club_id', tenantData.id),
@@ -87,7 +92,8 @@ export default function DashboardDirector() {
         if (planesData) setPlanesList(planesData);
 
         if (jugadores) {
-          const total = jugadores.length;
+          const jugadoresActivos = jugadores.filter(j => j.estado_miembro === 'Activo');
+          const total = jugadoresActivos.length;
           const normalizeDate = (d: string | null | undefined) => {
             if (!d || d === 'null' || d === 'undefined') return '';
             if (d.includes('-')) return d.split('T')[0];
@@ -111,7 +117,7 @@ export default function DashboardDirector() {
           let alDiaCount = 0;
           const morosos: any[] = [];
 
-          jugadores.forEach(j => {
+          jugadoresActivos.forEach(j => {
             const precio = preciosMap.get(j.tipo_plan || 'Regular') || 0;
             totalProyectado += precio;
             const tienePago = idsPagados.has(j.id);
@@ -144,12 +150,32 @@ export default function DashboardDirector() {
             // Fin de ese mes (23:59:59 del último día del mes)
             const finDeMes = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
             
-            // Contar cuántos jugadores se registraron antes o durante este mes
+            // Contar cuántos jugadores se registraron antes o durante este mes, y no estaban inactivos en ese mes
             const totalActivosEnMes = jugadores.filter(p => {
               const dateStr = normalizeDate(p.fecha_registro);
-              if (!dateStr) return true; // Si no tiene fecha, asumimos que es antiguo y ya estaba
+              if (!dateStr) return false;
               const regDate = new Date(dateStr + 'T00:00:00');
-              return regDate <= finDeMes;
+              
+              if (regDate > finDeMes) return false;
+
+              if (p.estado_miembro === 'Inactivo') {
+                const inactDateStr = normalizeDate(p.fecha_inactivacion);
+                if (inactDateStr) {
+                  const inactDate = new Date(inactDateStr + 'T00:00:00');
+                  if (inactDate <= finDeMes) return false;
+                } else {
+                  // Fallback para inactivos sin fecha: usar updated_at, created_at o fecha_registro
+                  const fallbackDateStr = normalizeDate(p.updated_at || p.created_at || p.fecha_registro);
+                  if (fallbackDateStr) {
+                    const fallbackDate = new Date(fallbackDateStr + 'T00:00:00');
+                    if (fallbackDate <= finDeMes) return false;
+                  } else {
+                    return false;
+                  }
+                }
+              }
+
+              return true;
             }).length;
 
             dataGrafico.push({
@@ -158,7 +184,7 @@ export default function DashboardDirector() {
             });
           }
 
-          const alertasBajaAsistencia = jugadores.filter(j => {
+          const alertasBajaAsistencia = jugadoresActivos.filter(j => {
             const misAsis = asistData?.filter(a => a.jugador_id === j.id) || [];
             if (misAsis.length < 3) return false;
             const presentes = misAsis.filter(a => a.estado === 'Presente').length;
@@ -188,17 +214,42 @@ export default function DashboardDirector() {
 
           setTodasLasAlertas([...morosos, ...alertasBajaAsistencia]);
           setDataCrecimiento(dataGrafico);
-          setAlertas([...morosos.slice(0, 3), ...alertasBajaAsistencia.slice(0, 2)]);
-          setActividadReciente(jugadores.slice(0, 5));
           
-          const gMap = jugadores.reduce((acc: any, p) => {
+          if (dataGrafico.length >= 2) {
+            const actual = dataGrafico[dataGrafico.length - 1].total;
+            const anterior = dataGrafico[dataGrafico.length - 2].total;
+            if (actual > anterior) {
+              setTendencia({
+                label: 'En ascenso',
+                color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
+                icon: 'up'
+              });
+            } else if (actual < anterior) {
+              setTendencia({
+                label: 'En descenso',
+                color: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400',
+                icon: 'down'
+              });
+            } else {
+              setTendencia({
+                label: 'Estable',
+                color: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+                icon: 'stable'
+              });
+            }
+          }
+
+          setAlertas([...morosos.slice(0, 3), ...alertasBajaAsistencia.slice(0, 2)]);
+          setActividadReciente(jugadoresActivos.slice(0, 5));
+          
+          const gMap = jugadoresActivos.reduce((acc: any, p) => {
             acc[p.grupos || 'Sin Asignar'] = (acc[p.grupos || 'Sin Asignar'] || 0) + 1;
             return acc;
           }, {});
           setGruposRendimiento(Object.entries(gMap).map(([nombre, cantidad]) => ({ nombre, cantidad: cantidad as number })));
 
           // FILTRAR CUMPLEAÑEROS DEL MES
-          const listaCumple = jugadores.filter(j => {
+          const listaCumple = jugadoresActivos.filter(j => {
             if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
             let mesNac = 0;
             if (j.fecha_nacimiento.includes('/')) {
@@ -345,9 +396,11 @@ export default function DashboardDirector() {
               <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">Crecimiento de Atletas</h3>
               <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Histórico últimos 6 meses</p>
             </div>
-            <div className="flex items-center gap-2 bg-brand-muted px-3 py-1 rounded-full">
-              <ArrowUpRight className="w-4 h-4 text-brand" />
-              <span className="text-xs font-black text-brand uppercase tracking-tighter">En ascenso</span>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${tendencia.color}`}>
+              {tendencia.icon === 'up' && <TrendingUp className="w-4 h-4" />}
+              {tendencia.icon === 'down' && <TrendingDown className="w-4 h-4" />}
+              {tendencia.icon === 'stable' && <TrendingUp className="w-4 h-4 opacity-50 rotate-90" />}
+              <span className="text-xs font-black uppercase tracking-tighter">{tendencia.label}</span>
             </div>
           </div>
           
