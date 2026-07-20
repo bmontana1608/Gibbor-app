@@ -17,6 +17,8 @@ import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { Loader } from 'lucide-react';
 
+const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
 export default function DashboardDirector() {
   const router = useRouter();
   const pathname = usePathname();
@@ -498,7 +500,7 @@ export default function DashboardDirector() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
             <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
-              <Cake className="w-4 h-4 text-brand" /> Cumpleaños de Mayo
+              <Cake className="w-4 h-4 text-brand" /> Cumpleaños de {nombresMeses[new Date().getMonth()]}
             </h3>
             <PartyPopper className="w-5 h-5 text-brand/30" />
           </div>
