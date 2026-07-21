@@ -21,8 +21,19 @@ export default function ModuloCobranza() {
 
     const toastId = toast.loading("Eliminando registro de pago...");
     try {
+      const { data: pagoToDelete } = await supabase.from('pagos_ingresos').select('*').eq('id', id).single();
+
       const { error } = await supabase.from('pagos_ingresos').delete().eq('id', id);
       if (error) throw error;
+
+      if (pagoToDelete && String(pagoToDelete.notas || '').startsWith('ABONO - ')) {
+         await supabase.from('abonos')
+           .delete()
+           .eq('perfil_id', pagoToDelete.jugador_id)
+           .eq('periodo', pagoToDelete.fecha)
+           .eq('monto', pagoToDelete.total);
+      }
+
       toast.success("Pago eliminado correctamente", { id: toastId });
       cargarDatos();
     } catch (error: any) {
@@ -66,9 +77,21 @@ export default function ModuloCobranza() {
     if (!window.confirm(`¿Eliminar el abono de $${Number(monto).toLocaleString('es-CO')}? Esto afectará el saldo del alumno.`)) return;
     const toastId = toast.loading('Eliminando abono...');
     try {
+      const { data: abono } = await supabase.from('abonos').select('*').eq('id', id).single();
+      
       // Eliminar de la tabla de abonos
       await supabase.from('abonos').delete().eq('id', id);
-      // Eliminar también el registro en pagos_ingresos (buscar por notas + jugador)
+      
+      // Eliminar también el registro en pagos_ingresos
+      if (abono) {
+        await supabase.from('pagos_ingresos')
+          .delete()
+          .eq('jugador_id', abono.perfil_id)
+          .eq('fecha', abono.periodo)
+          .eq('total', monto)
+          .like('notas', 'ABONO - %');
+      }
+      
       toast.success('Abono eliminado', { id: toastId });
       cargarDatos();
     } catch (err: any) {
