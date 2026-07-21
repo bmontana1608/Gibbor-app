@@ -859,7 +859,7 @@ export default function ModuloCobranza() {
         }
         return false;
       })
-      .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
+      .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0) + parseFloat(p.descuento || 0), 0);
 
     // ── Abonos del mes de cobro seleccionado
     const periodoCobro = fechaInicio.substring(0, 7); // 'YYYY-MM'
@@ -947,7 +947,7 @@ export default function ModuloCobranza() {
             const pFecha = normalizeDate(p.fecha);
             return pFecha.startsWith(mesStr);
           })
-          .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0), 0);
+          .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0) + parseFloat(p.descuento || 0), 0);
 
         const abonosMes = abonos
           .filter(a => a.perfil_id === j.id && String(a.periodo).startsWith(mesStr))
