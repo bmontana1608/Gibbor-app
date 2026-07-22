@@ -184,8 +184,8 @@ export default function ModuloCobranza() {
 
   const normalizeDate = (d: string) => {
     if (!d) return '';
-    // Si viene con hora, cortamos para tener solo la fecha
-    const base = d.split(' ')[0];
+    // Si viene con hora o es formato ISO (T), cortamos para tener solo la fecha
+    const base = d.replace('T', ' ').split(' ')[0];
     const separator = base.includes('-') ? '-' : '/';
     const parts = base.split(separator);
 

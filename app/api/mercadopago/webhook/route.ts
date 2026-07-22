@@ -65,12 +65,12 @@ export async function POST(req: Request) {
                 total: Number(monto),
                 metodo_pago: 'Mercado Pago',
                 notas: `MP_ID:${paymentId}`,
-                fecha: new Date().toISOString(),
+                fecha: new Date().toISOString().split('T')[0],
                 consecutivo: nextConsecutivo
              });
 
-             // 6. Marcar al jugador como 'Al Día'
-             await supabaseAdmin.from('perfiles').update({ estado_pago: 'Al Día' }).eq('id', jugadorId);
+             // 6. Marcar al jugador como 'Al día'
+             await supabaseAdmin.from('perfiles').update({ estado_pago: 'Al día' }).eq('id', jugadorId);
           }
         }
       }
