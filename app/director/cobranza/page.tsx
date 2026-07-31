@@ -628,9 +628,9 @@ export default function ModuloCobranza() {
       const mesNombre = meses[fechaPeriodo.getMonth()];
       const anioActual = fechaPeriodo.getFullYear();
       
-      const direccionClub = config?.direccion || 'Calle Ficticia #12-34';
-      const ciudadClub = config?.ciudad || 'Cúcuta, Norte de Santander';
-      const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
+      const direccionClub = config.direccion || 'Calle Ficticia #12-34';
+      const ciudadClub = config.ciudad || 'Cúcuta, Norte de Santander';
+      const nuevoConsecutivo = (config.ultimo_consecutivo_recibo || 0) + 1;
 
       // --- LÓGICA DE ESTADO INTELIGENTE (1-5 día del mes actual, o VENCIDO si es mes pasado) ---
       const hoy = new Date();
@@ -684,11 +684,9 @@ export default function ModuloCobranza() {
       if (!result.success) throw new Error(result.error);
 
       // 5. Incrementar consecutivo en la nube
-      if (config?.id) {
-        await supabase.from('configuracion_wa')
-          .update({ ultimo_consecutivo_recibo: nuevoConsecutivo })
-          .eq('id', config.id);
-      }
+      await supabase.from('configuracion_wa')
+        .update({ ultimo_consecutivo_recibo: nuevoConsecutivo })
+        .eq('id', config.id);
 
       toast.success(`Recibo #${nuevoConsecutivo} enviado 🚀`);
     } catch (error: any) {
@@ -1307,7 +1305,7 @@ export default function ModuloCobranza() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Proyectado</p>
             <h3 className="text-2xl font-black text-slate-800">${totalProyectado.toLocaleString('es-CO')}</h3>
@@ -1316,17 +1314,27 @@ export default function ModuloCobranza() {
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
             <h3 className="text-2xl font-black text-emerald-600">${ingresosRecaudados.toLocaleString('es-CO')}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{porcentajeRecaudo}% del mes recaudado</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{porcentajeRecaudo}% del mes</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos</p>
+            <h3 className="text-2xl font-black text-red-600">${egresosTotales.toLocaleString('es-CO')}</h3>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Gastos del mes</p>
+          </div>
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Balance Neto</p>
+            <h3 className="text-2xl font-black text-indigo-600">${utilidadNeta.toLocaleString('es-CO')}</h3>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Dinero real en caja</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar (Mes)</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
             <h3 className="text-2xl font-black text-amber-600">${ingresosPendientesMes.toLocaleString('es-CO')}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Saldo del mes actual</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Saldo mes actual</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mora Histórica</p>
             <h3 className="text-2xl font-black text-rose-600">${moraHistoricaTotal.toLocaleString('es-CO')}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Deudas meses anteriores</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Meses anteriores</p>
           </div>
         </div>
 
