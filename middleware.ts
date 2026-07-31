@@ -91,7 +91,10 @@ export async function middleware(request: NextRequest) {
             // Evaluar corte de pago
             if (clubData.proximo_corte) {
               const fechaCorte = new Date(clubData.proximo_corte);
-              if (fechaCorte < hoy) {
+              const fechaBloqueo = new Date(fechaCorte);
+              fechaBloqueo.setDate(fechaBloqueo.getDate() + 5); // 5 días de gracia
+
+              if (fechaBloqueo < hoy) {
                 isSuspended = true;
               }
             } else if (clubData.fecha_fin_prueba) {
@@ -116,7 +119,7 @@ export async function middleware(request: NextRequest) {
               const mesActual = hoy.getMonth() + 1;
               const anioActual = hoy.getFullYear();
 
-              if (diaActual > 10) {
+              if (diaActual > 15) { // Legacy: 10 + 5 días de gracia
                 const { data: facturas } = await supabase
                   .from('facturacion_mensual')
                   .select('estado_pago')

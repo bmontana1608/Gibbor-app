@@ -50,29 +50,40 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     return null;
   }, [initialTenant]);
 
-  // Banner preventivo de vencimiento de suscripción (proximo_corte)
+  // Banner preventivo y de gracia de suscripción (proximo_corte)
   const suscripcionBanner = useMemo(() => {
     if (!proximoCorte) return null;
     // No mostrar si ya hay banner de prueba activo
     if (trialBanner) return null;
-    // Solo aplica si el estado es Activo (club al día)
-    if (estadoSuscripcion !== 'Activo') return null;
 
     const fechaCorte = new Date(proximoCorte);
     const hoy = new Date();
     if (isNaN(fechaCorte.getTime())) return null;
 
     const diffTime = fechaCorte.getTime() - hoy.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Positivo: faltan días. Negativo/cero: ya pasó.
 
-    // Mostrar banner si quedan 7 días o menos
-    if (diffDays > 0 && diffDays <= 7) {
+    // 1. Periodo de gracia (0 a -4 días). El día -5 ya se bloquea, pero si logra entrar verá 0 días de gracia.
+    if (diffDays <= 0 && diffDays >= -5) {
+      const diasGracia = 5 + diffDays; // Si diffDays = 0 (hoy es el corte), quedan 5. Si diffDays = -4, queda 1.
       return {
+        tipo: 'gracia',
+        dias: diasGracia,
+        fecha: fechaCorte.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }),
+        urgente: true,
+      };
+    }
+
+    // 2. Preventivo (faltan de 1 a 7 días) - Solo si está Activo
+    if (estadoSuscripcion === 'Activo' && diffDays > 0 && diffDays <= 7) {
+      return {
+        tipo: 'preventivo',
         dias: diffDays,
         fecha: fechaCorte.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }),
         urgente: diffDays <= 3,
       };
     }
+
     return null;
   }, [proximoCorte, estadoSuscripcion, trialBanner]);
 
@@ -414,9 +425,11 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <div className="flex items-center gap-3">
                 <Clock className={`w-5 h-5 flex-shrink-0 ${suscripcionBanner.urgente ? 'animate-pulse' : ''}`} />
                 <p>
-                  {suscripcionBanner.urgente
-                    ? <>⚠️ <strong>¡Atención!</strong> Tu suscripción vence en <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> ({suscripcionBanner.fecha}). Renueva ahora para no perder el acceso.</>  
-                    : <>Tu suscripción se renueva en <span className="font-black">{suscripcionBanner.dias} días</span> ({suscripcionBanner.fecha}). Asegúrate de tener tu pago listo para evitar interrupciones.</>  
+                  {suscripcionBanner.tipo === 'gracia' 
+                    ? <>⚠️ <strong>¡ATENCIÓN!</strong> Tu suscripción venció el {suscripcionBanner.fecha}. Estás en periodo de gracia, te quedan <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> antes de que se bloquee el acceso.</>
+                    : suscripcionBanner.urgente
+                      ? <>⚠️ <strong>¡Atención!</strong> Tu suscripción vence en <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> ({suscripcionBanner.fecha}). Renueva ahora para no perder el acceso.</>  
+                      : <>Tu suscripción se renueva en <span className="font-black">{suscripcionBanner.dias} días</span> ({suscripcionBanner.fecha}). Asegúrate de tener tu pago listo para evitar interrupciones.</>  
                   }
                 </p>
               </div>
