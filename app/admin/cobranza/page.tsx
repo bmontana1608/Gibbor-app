@@ -59,7 +59,18 @@ export default function SaasCobranzaPage() {
     try {
       // 0. Cargar config superadmin
       const { data: configData } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
-      if (configData) setConfigSuperAdmin(configData);
+      if (configData) {
+        let loaded: any = { ...configData };
+        if (configData.mensaje_cobro) {
+          try {
+            const parsed = JSON.parse(configData.mensaje_cobro);
+            if (typeof parsed === 'object' && parsed !== null) {
+              loaded = { ...parsed, ...loaded };
+            }
+          } catch (e) {}
+        }
+        setConfigSuperAdmin(loaded);
+      }
 
       // 1. Cargar clubes con sus planes
       const { data: clubesData } = await supabase
