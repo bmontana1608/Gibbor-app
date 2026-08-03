@@ -1,0 +1,204 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
+import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
+
+export const dynamic = 'force-dynamic';
+
+async function subirReciboASupabase(pdfBase64: string, nombreArchivo: string) {
+  const buffer = Buffer.from(pdfBase64, 'base64');
+  const { data, error } = await supabaseAdmin.storage
+    .from('recibos')
+    .upload(`recibos/${Date.now()}_${nombreArchivo}`, buffer, {
+      contentType: 'application/pdf',
+    });
+
+  if (error) throw error;
+  const { data: urlData } = supabaseAdmin.storage.from('recibos').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    console.log('📩 Webhook recibido:', body);
+
+    const instance = body.instance;
+    const msgData = body.data?.message;
+    let message = msgData?.conversation || msgData?.extendedTextMessage?.text || '';
+
+    if (!message && msgData) {
+      if (msgData.audioMessage) message = '🎵 [Nota de voz]';
+      else if (msgData.imageMessage) message = '📷 [Imagen]';
+      else if (msgData.videoMessage) message = '🎥 [Video]';
+      else if (msgData.documentMessage) message = '📄 [Documento]';
+      else if (msgData.stickerMessage) message = '👾 [Sticker]';
+      else if (msgData.contactMessage) message = '👤 [Contacto]';
+      else if (msgData.locationMessage) message = '📍 [Ubicación]';
+    }
+
+    const remoteJid = body.data?.key?.remoteJid;
+    const fromMe = body.data?.key?.fromMe;
+
+    if (instance === 'mcm-ventas') {
+      if (!remoteJid || !message) {
+        // Log the raw payload for debugging if extraction fails
+        await supabaseAdmin.from('crm_whatsapp_messages').insert({
+          numero_telefono: 'DEBUG_WEBHOOK',
+          mensaje: JSON.stringify(body).substring(0, 500),
+          es_saliente: false,
+          instancia: instance,
+          leido: false
+        });
+        return NextResponse.json({ ok: true });
+      }
+      const phone = remoteJid.split('@')[0];
+      
+      // Look up lead by phone
+      const { data: leads } = await supabaseAdmin.from('atlas_academias').select('id').like('telefono', `%${phone}%`).limit(1);
+      const leadId = leads && leads.length > 0 ? leads[0].id : null;
+
+      await supabaseAdmin.from('crm_whatsapp_messages').insert({
+        lead_id: leadId,
+        numero_telefono: phone,
+        mensaje: message,
+        es_saliente: fromMe,
+        instancia: instance,
+        leido: fromMe
+      });
+
+      return NextResponse.json({ ok: true });
+    }
+
+    if (!fromMe || !message.startsWith('!')) {
+      return NextResponse.json({ ok: true });
+    }
+
+    const command = message.toLowerCase().split(' ')[0];
+
+    if (command === '!ayuda') {
+      const menu = `🤖 *ASISTENTE VIRTUAL* \n\n` +
+                   `Puedes usar estos comandos desde aquí:\n\n` +
+                   `• *!pago [nombre] [monto]* \nRegistra un pago y genera recibo PDF.\n` +
+                   `• *!info [nombre]* \nVer estado, deuda y contacto del alumno.\n` +
+                   `• *!asistencia [nombre]* \nMarca asistencia de hoy como *Presente*.\n\n` +
+                   `_Ejemplo: !pago Milan 60000_`;
+      await enviarMensajeWhatsApp(remoteJid, menu, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
+      return NextResponse.json({ ok: true });
+    }
+
+    if (command === '!pago') {
+      const parts = message.split(' ');
+      if (parts.length < 3) {
+        await enviarMensajeWhatsApp(remoteJid, '❌ Formato incorrecto. Usa: !pago [Nombre] [Monto]', undefined, 'document', 'Archivo_Gibbor.pdf', instance);
+        return NextResponse.json({ ok: true });
+      }
+
+      const nombreBusqueda = parts[1];
+      const monto = parseInt(parts[2].replace(/\D/g, ''));
+
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      
+      if (!alumnos || alumnos.length === 0) {
+        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
+        return NextResponse.json({ ok: true });
+      }
+
+      const alumno = alumnos[0];
+
+      const { data: config } = await supabaseAdmin.from('configuracion_wa').select('*').eq('club_id', alumno.club_id).maybeSingle();
+      const { data: club } = await supabaseAdmin.from('clubes').select('nombre, logo_url').eq('id', alumno.club_id).maybeSingle();
+
+      const pdfBase64 = await generarReciboPDFBase64({
+        nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
+        grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
+        consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
+        empresa: {
+          logo_url: club?.logo_url,
+          nombre_club: config?.nombre_club || club?.nombre || 'TU CLUB',
+          direccion: config?.direccion || 'Sede Deportiva', 
+          ciudad: config?.ciudad || 'Colombia',
+          nequi: config?.nequi, 
+          daviplata: config?.daviplata,
+          bre_b: config?.bre_b,
+          banco_nombre: config?.banco_nombre,
+          banco_numero: config?.banco_numero
+        }
+      });
+
+      // --- NUEVO: SUBIR A STORAGE ---
+      let reciboUrl = '';
+      try {
+        reciboUrl = await subirReciboASupabase(pdfBase64, `Recibo_${alumno.nombres}.pdf`);
+      } catch (e) {
+        console.error("Error subiendo PDF:", e);
+      }
+
+      await supabaseAdmin.from('pagos_ingresos').insert([{
+        jugador_id: alumno.id,
+        monto: monto,
+        monto_base: monto,
+        total: monto,
+        concepto: 'Mensualidad (WhatsApp Bot)',
+        metodo_pago: 'Efectivo (Bot)',
+        fecha: new Date().toISOString().split('T')[0],
+        recibo_url: reciboUrl // Guardamos el link oficial
+      }]);
+
+      await enviarMensajeWhatsApp(remoteJid, `✅ *PAGO REGISTRADO* \nAlumno: *${alumno.nombres}*\nMonto: *$ ${monto.toLocaleString()}*\n\n_El recibo ya está disponible en tu Dashboard._`, pdfBase64, 'document', `Recibo_${alumno.nombres}.pdf`, instance);
+    }
+
+    // ----- COMANDO: !INFO -----
+    if (command === '!info') {
+      const nombreBusqueda = message.split(' ')[1];
+      if (!nombreBusqueda) return NextResponse.json({ ok: true });
+
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      if (!alumnos || alumnos.length === 0) {
+        await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
+        return NextResponse.json({ ok: true });
+      }
+
+      const alumno = alumnos[0];
+      const { data: planes } = await supabaseAdmin.from('planes').select('*');
+      const precio = planes?.find(p => p.nombre === (alumno.tipo_plan || 'Regular'))?.precio_base || 140000;
+      
+      const mesPrefijo = new Date().toISOString().slice(0, 7);
+      const { data: pago } = await supabaseAdmin.from('pagos_ingresos').select('*').eq('jugador_id', alumno.id).filter('fecha', 'gte', `${mesPrefijo}-01`).limit(1);
+
+      const info = `👤 *INFO ALUMNO* \n\n` +
+                   `• *Nombre:* ${alumno.nombres} ${alumno.apellidos}\n` +
+                   `• *Plan:* ${alumno.tipo_plan || 'Regular'}\n` +
+                   `• *Estado Pago:* ${pago && pago.length > 0 ? '✅ AL DÍA' : '❌ PENDIENTE'}\n` +
+                   `• *Tel. Acudiente:* ${alumno.telefono || 'No registrado'}\n\n` +
+                   `_Para registrar pago usa !pago ${alumno.nombres.split(' ')[0]} ${precio}_`;
+      
+      await enviarMensajeWhatsApp(remoteJid, info, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
+    }
+
+    // ----- COMANDO: !ASISTENCIA -----
+    if (command === '!asistencia') {
+      const nombreBusqueda = message.split(' ')[1];
+      if (!nombreBusqueda) return NextResponse.json({ ok: true });
+
+      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      if (!alumnos || alumnos.length === 0) return NextResponse.json({ ok: true });
+
+      const alumno = alumnos[0];
+      const { error } = await supabaseAdmin.from('asistencias').insert([{
+        jugador_id: alumno.id,
+        estado: 'Presente',
+        fecha: new Date().toISOString().split('T')[0]
+      }]);
+
+      if (!error) {
+        await enviarMensajeWhatsApp(remoteJid, `⚽ *ASISTENCIA REGISTRADA* \n*${alumno.nombres}* ha sido marcado como *Presente* el día de hoy.`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
+      }
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error: any) {
+    console.error('❌ Error en Webhook:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
