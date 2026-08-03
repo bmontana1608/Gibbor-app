@@ -62,16 +62,22 @@ export default function SaasCobranzaPage() {
       const { data: configData } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
       if (configData) {
         let loaded: any = { ...configData };
+        // Solo usar mensaje_cobro como fallback cuando el campo de columna esté vacío
         if (configData.mensaje_cobro) {
           try {
             const parsed = JSON.parse(configData.mensaje_cobro);
             if (typeof parsed === 'object' && parsed !== null) {
-              loaded = { ...parsed, ...loaded };
+              for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
+                if (parsed[key] && !loaded[key]) {
+                  loaded[key] = parsed[key];
+                }
+              }
             }
           } catch (e) {}
         }
         setConfigSuperAdmin(loaded);
       }
+
 
       // 1. Cargar clubes con sus planes
       const { data: clubesData } = await supabase

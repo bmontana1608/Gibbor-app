@@ -72,12 +72,18 @@ export default function ConfiguracionPage() {
   const cargarConfiguracion = async () => {
     setLoading(true);
     const { data } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
-    let loaded: any = data || {};
+    let loaded: any = { ...(data || {}) };
+    // Si mensaje_cobro contiene datos de medios de pago (fallback),
+    // solo los usamos cuando el campo de la columna esté vacío.
     if (data?.mensaje_cobro) {
       try {
         const parsed = JSON.parse(data.mensaje_cobro);
         if (typeof parsed === 'object' && parsed !== null) {
-          loaded = { ...parsed, ...loaded };
+          for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
+            if (parsed[key] && !loaded[key]) {
+              loaded[key] = parsed[key];
+            }
+          }
         }
       } catch (e) {}
     }
