@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Calendar, Users, Send, ShieldCheck, User, ClipboardList, Edit2, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getAbreviaturaPosicion } from '@/lib/deportes';
 
 export default function ConvocatoriasEntrenador() {
   const { slug: tenantSlug } = useTenant();
@@ -439,8 +440,12 @@ export default function ConvocatoriasEntrenador() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-800 truncate text-sm">{jugador.nombres} {jugador.apellidos}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              {jugador.posicion || 'Sin posición'} 
+                            <p className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1.5 font-bold">
+                              {jugador.posicion ? (
+                                <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[9px] font-black border border-slate-200">
+                                  {getAbreviaturaPosicion(jugador.posicion)} - {jugador.posicion}
+                                </span>
+                              ) : 'Sin posición'} 
                               {jugador.edadFisica !== null && <span className="font-black text-slate-700 ml-1">({jugador.edadFisica} años)</span>}
                             </p>
                             {jugador.diasParaCumple !== null && jugador.diasParaCumple <= 45 && (

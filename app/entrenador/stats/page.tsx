@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { esPosicionGuardameta, getAbreviaturaPosicion } from '@/lib/deportes';
 
 // --- COMPONENTE RADAR SVG PERSONALIZADO ---
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
@@ -308,7 +309,7 @@ export default function GestionSkillsEntrenador() {
   };
 
   const getHabilidadesFiltradas = () => {
-     const isPortero = alumnoSeleccionado?.posicion === 'Portero';
+     const isPortero = esPosicionGuardameta(alumnoSeleccionado?.posicion);
      return habilidades.filter(h => {
          if (h.tipo_jugador_real === 'General') return true;
          if (isPortero && h.tipo_jugador_real === 'Portero') return true;
@@ -393,7 +394,7 @@ export default function GestionSkillsEntrenador() {
                                 </div>
                                 {a.posicion && (
                                     <span className={`text-[8px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider flex-shrink-0 ${alumnoSeleccionado?.id === a.id ? 'bg-white/20' : 'bg-slate-900/50 text-slate-500'}`}>
-                                        {a.posicion === 'Portero' ? 'POR' : a.posicion === 'Defensa' ? 'DEF' : a.posicion === 'Mediocampista' ? 'MED' : a.posicion === 'Delantero' ? 'DEL' : 'VAR'}
+                                        {getAbreviaturaPosicion(a.posicion)}
                                     </span>
                                 )}
                             </button>
@@ -411,7 +412,7 @@ export default function GestionSkillsEntrenador() {
                      <div className="text-center">
                         <Settings className="w-12 h-12 text-slate-700 mx-auto mb-4" />
                         <h2 className="text-2xl font-black italic tracking-tighter">CONFIGURADOR TÉCNICO</h2>
-                        <p className="text-slate-500 text-xs mt-1">Define las habilidades que evaluarás. Puedes crear stats exclusivos para porteros.</p>
+                        <p className="text-slate-500 text-xs mt-1">Define las habilidades que evaluarás. Puedes crear stats exclusivos para porteros/arqueros.</p>
                      </div>
 
                      <div className="flex flex-col md:flex-row gap-2">
@@ -429,7 +430,7 @@ export default function GestionSkillsEntrenador() {
                          >
                             <option value="General">General (Todos)</option>
                             <option value="Campo">Solo Jugadores de Campo</option>
-                            <option value="Portero">Solo Porteros</option>
+                            <option value="Portero">Solo Porteros / Arqueros</option>
                          </select>
                          <button onClick={agregarHabilidad} className="bgtext-brand p-4 rounded-2xl hover:opacity-80 transition-colors shadow-lg flex justify-center"><Plus className="w-6 h-6" /></button>
                      </div>
@@ -472,12 +473,21 @@ export default function GestionSkillsEntrenador() {
                                     className="w-full bg-slate-800 border border-white/10 rounded-xl pl-9 pr-4 py-3 text-xs font-bold text-white outline-none focus:border-brand cursor-pointer appearance-none shadow-sm"
                                 >
                                     <option value="">Asignar Posición...</option>
-                                    <option value="Portero">Portero</option>
-                                    <option value="Defensa">Defensa</option>
-                                    <option value="Lateral">Lateral</option>
-                                    <option value="Mediocampista">Mediocampista</option>
-                                    <option value="Extremo">Extremo</option>
-                                    <option value="Delantero">Delantero</option>
+                                    <optgroup label="Fútsal / Fútbol Sala" className="bg-slate-900 text-slate-400 font-bold">
+                                        <option value="Arquero" className="bg-slate-800 text-white">Arquero / Portero (ARQ)</option>
+                                        <option value="Cierre" className="bg-slate-800 text-white">Cierre (CIE)</option>
+                                        <option value="Ala" className="bg-slate-800 text-white">Ala (ALA)</option>
+                                        <option value="Pivot" className="bg-slate-800 text-white">Pívot (PIV)</option>
+                                        <option value="Universal" className="bg-slate-800 text-white">Universal (UNI)</option>
+                                    </optgroup>
+                                    <optgroup label="Fútbol 11 / Campo" className="bg-slate-900 text-slate-400 font-bold">
+                                        <option value="Portero" className="bg-slate-800 text-white">Portero / Guardameta (POR)</option>
+                                        <option value="Defensa" className="bg-slate-800 text-white">Defensa Central (DEF)</option>
+                                        <option value="Lateral" className="bg-slate-800 text-white">Lateral (LAT)</option>
+                                        <option value="Mediocampista" className="bg-slate-800 text-white">Mediocampista (MED)</option>
+                                        <option value="Extremo" className="bg-slate-800 text-white">Extremo (EXT)</option>
+                                        <option value="Delantero" className="bg-slate-800 text-white">Delantero (DEL)</option>
+                                    </optgroup>
                                 </select>
                                 <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none rotate-90" />
                             </div>

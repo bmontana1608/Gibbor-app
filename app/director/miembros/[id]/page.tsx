@@ -423,7 +423,29 @@ export default function FichaDelJugador() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Posición de Juego</label>
-                  <input type="text" name="posicion" value={formData.posicion || ''} onChange={handleChange} placeholder="Ej: Delantero" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
+                  <select 
+                    name="posicion" 
+                    value={formData.posicion || ''} 
+                    onChange={handleChange} 
+                    className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm bg-white font-medium text-slate-700"
+                  >
+                    <option value="">Sin Asignar / Seleccionar...</option>
+                    <optgroup label="Fútsal / Fútbol Sala">
+                      <option value="Arquero">Arquero / Portero (ARQ)</option>
+                      <option value="Cierre">Cierre (CIE)</option>
+                      <option value="Ala">Ala (ALA)</option>
+                      <option value="Pivot">Pívot (PIV)</option>
+                      <option value="Universal">Universal (UNI)</option>
+                    </optgroup>
+                    <optgroup label="Fútbol 11 / Campo">
+                      <option value="Portero">Portero / Guardameta (POR)</option>
+                      <option value="Defensa">Defensa Central (DEF)</option>
+                      <option value="Lateral">Lateral (LAT)</option>
+                      <option value="Mediocampista">Mediocampista (MED)</option>
+                      <option value="Extremo">Extremo (EXT)</option>
+                      <option value="Delantero">Delantero (DEL)</option>
+                    </optgroup>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Dorsal / Número</label>
