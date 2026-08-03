@@ -58,8 +58,13 @@ export default function SaasCobranzaPage() {
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      // 0. Cargar config superadmin
-      const { data: configData } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
+      // 0. Cargar config superadmin (solo columnas reales de la tabla)
+      const { data: configData } = await supabase
+        .from('configuracion_superadmin')
+        .select('id, telefono_soporte, mensaje_cobro')
+        .eq('id', 1)
+        .maybeSingle();
+
       if (configData) {
         let loaded: any = { ...configData };
         // Solo usar mensaje_cobro como fallback cuando el campo de columna esté vacío

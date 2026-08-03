@@ -71,14 +71,19 @@ export default function ConfiguracionPage() {
 
   const cargarConfiguracion = async () => {
     setLoading(true);
-    const { data } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
+    // Solo seleccionar columnas que realmente existen en la tabla
+    const { data } = await supabase
+      .from('configuracion_superadmin')
+      .select('id, telefono_soporte, mensaje_cobro')
+      .eq('id', 1)
+      .maybeSingle();
     let loaded: any = { ...(data || {}) };
-    // Si mensaje_cobro contiene datos de medios de pago (fallback),
-    // solo los usamos cuando el campo de la columna esté vacío.
+    // mensaje_cobro guarda los medios de pago como JSON
     if (data?.mensaje_cobro) {
       try {
         const parsed = JSON.parse(data.mensaje_cobro);
         if (typeof parsed === 'object' && parsed !== null) {
+          // Poblar campos saas_* desde el JSON solo si la propiedad no viene de la DB
           for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
             if (parsed[key] && !loaded[key]) {
               loaded[key] = parsed[key];

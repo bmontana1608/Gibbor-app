@@ -102,11 +102,12 @@ export async function POST(request: Request) {
         .eq('id', 1)
         .maybeSingle();
 
-      console.log('[enviar-recordatorio] configSuperAdmin raw:', JSON.stringify(configSuperAdmin));
-      console.log('[enviar-recordatorio] configError:', configError?.message);
+      if (configError) console.error('[enviar-recordatorio] Error leyendo config:', configError.message);
+      console.log('[enviar-recordatorio] mensaje_cobro en DB:', configSuperAdmin?.mensaje_cobro);
 
       const bloquePago = buildBloquePago(configSuperAdmin || {});
-      console.log('[enviar-recordatorio] bloquePago generado:', bloquePago);
+      console.log('[enviar-recordatorio] bloquePago:', bloquePago);
+
 
 
       // Formatear fecha de corte legible

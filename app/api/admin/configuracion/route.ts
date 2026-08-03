@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const { data, error } = await supabaseAdmin
       .from('configuracion_superadmin')
-      .select('*')
+      .select('id, telefono_soporte, mensaje_cobro')
       .eq('id', 1)
       .maybeSingle();
 
@@ -14,94 +14,114 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      raw: data,
-      mensaje_cobro_parsed: (() => {
-        try { return data?.mensaje_cobro ? JSON.parse(data.mensaje_cobro) : null; } 
-        catch (e) { return `PARSE_ERROR: ${data?.mensaje_cobro}`; }
-      })()
-    });
+    let parsed: any = null;
+    try {
+      parsed = data?.mensaje_cobro ? JSON.parse(data.mensaje_cobro) : null;
+    } catch (e) {
+      parsed = `PARSE_ERROR: ${data?.mensaje_cobro}`;
+    }
+
+    return NextResponse.json({ raw: data, medios_de_pago: parsed });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-// POST: Guardar configuración usando SOLO mensaje_cobro como fuente canónica
+// POST: Guardar configuración
+// La tabla configuracion_superadmin solo tiene: id (SERIAL), telefono_soporte, mensaje_cobro
+// Los medios de pago SaaS se almacenan SIEMPRE como JSON dentro de mensaje_cobro.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    console.log('[configuracion] body recibido:', JSON.stringify(body));
 
-    // 1. Leer la config actual para no perder valores existentes
+    // 1. Leer solo las columnas que REALMENTE existen en la tabla
     const { data: configActual, error: readError } = await supabaseAdmin
       .from('configuracion_superadmin')
-      .select('id, mensaje_cobro, telefono_soporte, gemini_api_key, slack_webhook_url')
+      .select('id, mensaje_cobro, telefono_soporte')
       .eq('id', 1)
       .maybeSingle();
 
     if (readError) {
-      console.error('Error leyendo configuracion_superadmin:', readError.message);
+      console.warn('[configuracion] Error leyendo config actual:', readError.message);
     }
 
-    // 2. Reconstruir medios de pago: partir del JSON guardado + sobrescribir con body
+    console.log('[configuracion] config actual en DB:', JSON.stringify(configActual));
+
+    // 2. Reconstruir medios de pago desde mensaje_cobro + nuevos valores del body
     let datosMediosPago: any = {};
     if (configActual?.mensaje_cobro) {
       try {
         datosMediosPago = JSON.parse(configActual.mensaje_cobro);
+        console.log('[configuracion] datosMediosPago actuales:', JSON.stringify(datosMediosPago));
       } catch (e) {
-        console.warn('mensaje_cobro no es JSON válido, se reemplazará:', configActual.mensaje_cobro);
-        datosMediosPago = {};
+        console.warn('[configuracion] mensaje_cobro no es JSON válido:', configActual.mensaje_cobro);
       }
     }
 
-    // Los nuevos valores del body siempre sobrescriben los existentes
-    for (const campo of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
+    // Los nuevos valores del body siempre sobrescriben
+    const camposMediosPago = ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia'];
+    for (const campo of camposMediosPago) {
       if (body[campo] !== undefined) {
         datosMediosPago[campo] = body[campo];
       }
     }
 
-    // 3. Construir payload SOLO con columnas que seguro existen en el esquema base
+    console.log('[configuracion] datosMediosPago después del merge:', JSON.stringify(datosMediosPago));
+
+    // 3. Payload SOLO con columnas que existen: id, mensaje_cobro, telefono_soporte
     const payload: any = {
       id: 1,
       mensaje_cobro: JSON.stringify(datosMediosPago),
     };
 
-    // Campos simples no-medios-de-pago (también columnas seguras)
-    if (body.telefono_soporte !== undefined) payload.telefono_soporte = body.telefono_soporte;
-    if (body.gemini_api_key !== undefined) payload.gemini_api_key = body.gemini_api_key;
-    if (body.slack_webhook_url !== undefined) payload.slack_webhook_url = body.slack_webhook_url;
-
-    console.log('Guardando en configuracion_superadmin:', JSON.stringify(payload));
-
-    // 4. Upsert SOLO con columnas base (sin saas_* sueltas para evitar errores de esquema)
-    const { error: upsertError } = await supabaseAdmin
-      .from('configuracion_superadmin')
-      .upsert(payload, { onConflict: 'id' });
-
-    if (upsertError) {
-      console.error('Error en upsert configuracion_superadmin:', upsertError);
-      return NextResponse.json({ error: upsertError.message }, { status: 500 });
+    if (body.telefono_soporte !== undefined) {
+      payload.telefono_soporte = body.telefono_soporte;
     }
+
+    console.log('[configuracion] payload a guardar:', JSON.stringify(payload));
+
+    // 4. UPDATE primero (más confiable que upsert cuando la fila ya existe)
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from('configuracion_superadmin')
+      .update({ mensaje_cobro: payload.mensaje_cobro, ...(payload.telefono_soporte ? { telefono_soporte: payload.telefono_soporte } : {}) })
+      .eq('id', 1)
+      .select('id, mensaje_cobro');
+
+    if (updateError) {
+      console.error('[configuracion] Error en UPDATE:', updateError.message);
+      // Si el update falla, intentar INSERT
+      const { error: insertError } = await supabaseAdmin
+        .from('configuracion_superadmin')
+        .insert({ id: 1, mensaje_cobro: payload.mensaje_cobro, telefono_soporte: payload.telefono_soporte || '+573124265170' });
+
+      if (insertError) {
+        console.error('[configuracion] Error en INSERT fallback:', insertError.message);
+        return NextResponse.json({ error: `UPDATE: ${updateError.message} | INSERT: ${insertError.message}` }, { status: 500 });
+      }
+    }
+
+    console.log('[configuracion] resultado UPDATE:', JSON.stringify(updated));
 
     // 5. Verificar que quedó guardado
     const { data: verificacion } = await supabaseAdmin
       .from('configuracion_superadmin')
-      .select('mensaje_cobro')
+      .select('id, mensaje_cobro')
       .eq('id', 1)
       .maybeSingle();
 
-    console.log('Verificación post-guardado:', verificacion?.mensaje_cobro);
+    console.log('[configuracion] verificación post-guardado:', JSON.stringify(verificacion));
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       guardado: datosMediosPago,
-      verificacion: (() => {
+      verificacion_db: (() => {
         try { return verificacion?.mensaje_cobro ? JSON.parse(verificacion.mensaje_cobro) : null; }
-        catch (e) { return null; }
+        catch (e) { return verificacion?.mensaje_cobro; }
       })()
     });
   } catch (error: any) {
-    console.error('Excepción en API de configuracion:', error);
+    console.error('[configuracion] Excepción:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
