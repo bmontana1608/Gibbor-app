@@ -59,10 +59,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Los nuevos valores del body siempre sobrescriben
+    // Los nuevos valores del body siempre sobrescriben, pero IGNORAR campos vacíos
     const camposMediosPago = ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia'];
     for (const campo of camposMediosPago) {
-      if (body[campo] !== undefined) {
+      if (body[campo] !== undefined && body[campo] !== '') {
         datosMediosPago[campo] = body[campo];
       }
     }
