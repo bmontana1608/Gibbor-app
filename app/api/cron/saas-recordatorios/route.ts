@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       const mesNombre = meses[hoy.getMonth()];
       const anio = hoy.getFullYear();
 
-      const mensaje = `Hola *${club.nombre}* 👋⚽,\n\nTe recordamos desde la administración de *Master Club Manager (MCM)* que tu fecha de corte de suscripción SaaS (*${club.proximo_corte}*) ha llegado o se encuentra pendiente.\n\n📄 *Resumen de Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Valor a Regularizar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n\n💳 *Medios de Pago:*\n• Nequi / Daviplata: *315 220 1608*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nAgradecemos tu oportuno pago para mantener el servicio activo sin interrupciones. 🏆`;
+      const mensaje = `Hola *${club.nombre}* 👋⚽,\n\nTe recordamos desde la administración de *Master Club Manager (MCM)* que tu fecha de corte de suscripción SaaS (*${club.proximo_corte}*) ha llegado o se encuentra pendiente.\n\n📄 *Resumen de Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Valor a Regularizar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n\n💳 *Medios de Pago:*\n• Nequi / Daviplata: *315 220 1608*\n• Llave Bre-B / Daviplata: *@DAVIBMT801*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nAgradecemos tu oportuno pago para mantener el servicio activo sin interrupciones. 🏆`;
 
       const result = await enviarMensajeWhatsAppServer(
         telefono,

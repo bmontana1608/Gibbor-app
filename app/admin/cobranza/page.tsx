@@ -298,7 +298,7 @@ export default function SaasCobranzaPage() {
     const anio = factura?.periodo_anio || hoy.getFullYear();
     const fechaCorte = club.proximo_corte || `${anio}-${String(hoy.getMonth() + 1).padStart(2, '0')}-05`;
 
-    const borrador = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${atletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n• Nequi / Daviplata: *315 220 1608*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
+    const borrador = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${atletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n• Nequi / Daviplata: *315 220 1608*\n• Llave Bre-B / Daviplata: *@DAVIBMT801*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
 
     setMensajePreview(borrador);
     setIsModalPreviewOpen(true);
@@ -851,6 +851,7 @@ export default function SaasCobranzaPage() {
                     <option value="Transferencia">Transferencia Bancaria</option>
                     <option value="Nequi">Nequi</option>
                     <option value="Daviplata">Daviplata</option>
+                    <option value="Llave Bre-B (@DAVIBMT801)">Llave Bre-B (@DAVIBMT801)</option>
                     <option value="Efectivo">Efectivo</option>
                     <option value="MercadoPago">MercadoPago</option>
                     <option value="Otro">Otro</option>
