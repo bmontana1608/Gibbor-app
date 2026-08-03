@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import { 
   Building2, CreditCard, DollarSign, Calendar, Search, 
   CheckCircle, FileText, Trash2, PlusCircle, X, 
-  Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle
+  Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle,
+  MessageSquare, Send, Smartphone, Bell
 } from 'lucide-react';
 
 export default function SaasCobranzaPage() {
@@ -35,6 +36,14 @@ export default function SaasCobranzaPage() {
   const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
   const [mesGenerar, setMesGenerar] = useState(() => new Date().getMonth() + 1);
   const [anioGenerar, setAnioGenerar] = useState(() => new Date().getFullYear());
+
+  // Modal Vista Previa / Notificar WhatsApp
+  const [isModalPreviewOpen, setIsModalPreviewOpen] = useState(false);
+  const [clubPreview, setClubPreview] = useState<any>(null);
+  const [facturaPreview, setFacturaPreview] = useState<any>(null);
+  const [mensajePreview, setMensajePreview] = useState('');
+  const [enviandoWA, setEnviandoWA] = useState(false);
+  const [enviandoMasivo, setEnviandoMasivo] = useState(false);
 
   // Edición de fecha de corte
   const [editingCorteId, setEditingCorteId] = useState<string | null>(null);
@@ -271,6 +280,78 @@ export default function SaasCobranzaPage() {
     }
   };
 
+  const abrirModalPreview = (club: any, factura?: any) => {
+    setClubPreview(club);
+    setFacturaPreview(factura || null);
+
+    const atletas = activosPorClub[club.id] || 0;
+    const plan = club.planes_saas;
+    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+    const extras = Math.max(0, atletas - limiteBase);
+    const montoCalculado = factura?.total_pagar ? Number(factura.total_pagar) : (precioBase + (extras * precioExtra));
+
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const hoy = new Date();
+    const mesNombre = factura?.periodo_mes ? meses[factura.periodo_mes - 1] : meses[hoy.getMonth()];
+    const anio = factura?.periodo_anio || hoy.getFullYear();
+    const fechaCorte = club.proximo_corte || `${anio}-${String(hoy.getMonth() + 1).padStart(2, '0')}-05`;
+
+    const borrador = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${atletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n• Nequi / Daviplata: *315 220 1608*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
+
+    setMensajePreview(borrador);
+    setIsModalPreviewOpen(true);
+  };
+
+  const confirmarEnvioWhatsApp = async () => {
+    if (!clubPreview) return;
+    setEnviandoWA(true);
+    const toastId = toast.loading(`Enviando WhatsApp a ${clubPreview.nombre}...`);
+    try {
+      const res = await fetch('/api/admin/cobranza/enviar-recordatorio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          club_id: clubPreview.id,
+          factura_id: facturaPreview?.id,
+          mensajePersonalizado: mensajePreview
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      toast.success(`Recordatorio de cobranza enviado a ${clubPreview.nombre} 🚀`, { id: toastId });
+      setIsModalPreviewOpen(false);
+    } catch (err: any) {
+      toast.error('Error al enviar: ' + err.message, { id: toastId });
+    } finally {
+      setEnviandoWA(false);
+    }
+  };
+
+  const enviarRecordatoriosMasivos = async () => {
+    const confirmar = window.confirm('¿Confirmas que deseas enviar recordatorios de cobro por WhatsApp a TODOS los clubes morosos o vencidos?');
+    if (!confirmar) return;
+
+    setEnviandoMasivo(true);
+    const toastId = toast.loading('Notificando a todos los clubes morosos por WhatsApp...');
+    try {
+      const res = await fetch('/api/admin/cobranza/notificar-todos-pendientes', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      toast.success(`Proceso masivo completado. Enviados: ${data.enviados}, Fallidos: ${data.fallidos}`, { id: toastId, duration: 6000 });
+      cargarDatos();
+    } catch (err: any) {
+      toast.error('Error en proceso masivo: ' + err.message, { id: toastId });
+    } finally {
+      setEnviandoMasivo(false);
+    }
+  };
+
   const formatearDinero = (monto: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -339,7 +420,15 @@ export default function SaasCobranzaPage() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Cobranza Multiclub</h1>
           <p className="text-slate-500 font-medium mt-1">Controla los pagos de membresías SaaS, emite cobros e ingresa abonos de los clubes.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={enviarRecordatoriosMasivos}
+            disabled={enviandoMasivo}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-2xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-200 disabled:opacity-50"
+          >
+            {enviandoMasivo ? <Loader2 size={18} className="animate-spin" /> : <Smartphone size={18} />}
+            {enviandoMasivo ? 'Notificando...' : 'Notificar Cobros (WhatsApp)'}
+          </button>
           <button 
             onClick={() => setIsModalGenerarOpen(true)}
             className="bg-slate-950 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-2xl text-sm transition-all flex items-center gap-2"
@@ -468,6 +557,7 @@ export default function SaasCobranzaPage() {
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Membresía</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Próximo Corte</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Deuda Activa</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -499,7 +589,7 @@ export default function SaasCobranzaPage() {
                         <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">futbolistas</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-slate-800 text-sm">{plan.nombre}</div>
+                        <div className="font-bold text-slate-800 text-sm">{plan?.nombre}</div>
                         <div className="text-xs text-slate-500 mt-1">Est. {formatearDinero(mrrEstimado)}/mes</div>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -560,6 +650,15 @@ export default function SaasCobranzaPage() {
                           <div className="text-emerald-600 font-bold text-sm">Al día ✅</div>
                         )}
                       </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => abrirModalPreview(club)}
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1.5 mx-auto shadow-sm"
+                          title="Enviar recordatorio de cobro por WhatsApp"
+                        >
+                          <Smartphone size={14} /> Notificar
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -608,12 +707,24 @@ export default function SaasCobranzaPage() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       {fac.estado_pago !== 'pagado' ? (
-                        <button 
-                          onClick={() => abrirModalPago(fac)}
-                          className="bg-lime-500 hover:bg-lime-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm"
-                        >
-                          Registrar Pago
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => abrirModalPago(fac)}
+                            className="bg-lime-500 hover:bg-lime-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm"
+                          >
+                            Registrar Pago
+                          </button>
+                          <button 
+                            onClick={() => {
+                              const clubMatch = clubes.find(c => c.id === fac.club_id);
+                              if (clubMatch) abrirModalPreview(clubMatch, fac);
+                            }}
+                            className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 p-2 rounded-xl transition-all shadow-sm"
+                            title="Enviar recordatorio WhatsApp de esta factura"
+                          >
+                            <Smartphone size={15} />
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-xs text-slate-400 font-medium">Completada</span>
                       )}
@@ -826,6 +937,65 @@ export default function SaasCobranzaPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL VISTA PREVIA / NOTIFICAR WHATSAPP */}
+      {isModalPreviewOpen && clubPreview && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                  <Smartphone size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black tracking-tight">Notificar Cobro por WhatsApp</h3>
+                  <p className="text-slate-400 text-xs font-medium">Academia: {clubPreview.nombre}</p>
+                </div>
+              </div>
+              <button onClick={() => setIsModalPreviewOpen(false)} className="text-slate-400 hover:text-white p-1 transition-colors"><X size={20}/></button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-emerald-50 border border-emerald-100 p-3.5 rounded-2xl flex items-center justify-between text-xs">
+                <span className="font-bold text-emerald-900">Teléfono Destino:</span>
+                <span className="font-mono font-black text-emerald-700 bg-white px-2.5 py-1 rounded-lg border border-emerald-200">
+                  {clubPreview.telefono_contacto || 'Buscando teléfono de Director...'}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                  <span>Borrador del Mensaje</span>
+                  <span className="text-[10px] text-slate-400 font-normal">Puedes editar el texto antes de enviar</span>
+                </label>
+                <textarea
+                  rows={10}
+                  value={mensajePreview}
+                  onChange={e => setMensajePreview(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 outline-none focus:ring-2 focus:ring-emerald-500 leading-relaxed custom-scrollbar"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3">
+                <button
+                  onClick={() => setIsModalPreviewOpen(false)}
+                  className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmarEnvioWhatsApp}
+                  disabled={enviandoWA}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 disabled:opacity-50"
+                >
+                  {enviandoWA ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  {enviandoWA ? 'Enviando...' : 'Enviar por WhatsApp'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
