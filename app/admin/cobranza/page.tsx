@@ -813,13 +813,22 @@ export default function SaasCobranzaPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => eliminarPago(p)}
-                        className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"
-                        title="Eliminar registro de pago"
-                      >
-                        <Trash2 size={16}/>
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button 
+                          onClick={() => enviarReciboManual(p)}
+                          className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-colors"
+                          title="Enviar Recibo PDF por WhatsApp al Club"
+                        >
+                          <Send size={16}/>
+                        </button>
+                        <button 
+                          onClick={() => eliminarPago(p)}
+                          className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"
+                          title="Eliminar registro de pago"
+                        >
+                          <Trash2 size={16}/>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

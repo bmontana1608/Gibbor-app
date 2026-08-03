@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import { mcmLogoBase64 } from '@/lib/mcm-logo-base64';
 
 /**
- * Genera un PDF Élite de recibo Gibbor SaaS en formato Base64 para el cobro a clubes
+ * Genera un PDF Élite de recibo MCM SaaS en formato Base64 para el cobro a clubes clientes
  */
 export async function generarReciboSaaSPDFBase64(datos: {
   clubNombre: string;
@@ -17,20 +17,23 @@ export async function generarReciboSaaSPDFBase64(datos: {
 }) {
   const doc = new jsPDF();
   
-  // Colores de Marca Gibbor
-  const naranjaGibbor = [249, 115, 22]; // #f97316
+  // Colores de Marca MCM / Gibbor
+  const verdeMCM = [34, 197, 94]; // #22c55e
+  const verdeLimo = [132, 204, 22]; // #84cc16
   const slate900 = [15, 23, 42];
+  const slate700 = [51, 65, 85];
   const slate500 = [100, 116, 139];
   const slate100 = [241, 245, 249];
-  const green = [34, 197, 94];
 
-  // 1. ENCABEZADO Y LOGO
+  const fechaEmision = datos.fechaPago ? new Date(datos.fechaPago.split('T')[0] + 'T12:00:00') : new Date();
+
+  // 1. ENCABEZADO PRINCIPAL (BANNER OSCURO)
   doc.setFillColor(slate900[0], slate900[1], slate900[2]);
-  doc.rect(0, 0, 210, 40, 'F');
+  doc.rect(0, 0, 210, 42, 'F');
   
-  // Badge de Estado (Siempre Pagado en este recibo)
-  doc.setFillColor(green[0], green[1], green[2]);
-  doc.rect(145, 0, 65, 40, 'F');
+  // Badge de Estado (PAGO CONFIRMADO)
+  doc.setFillColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+  doc.rect(145, 0, 65, 42, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
@@ -38,116 +41,164 @@ export async function generarReciboSaaSPDFBase64(datos: {
   
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(`Vía: ${datos.metodoPago.toUpperCase()}`, 177.5, 27, { align: 'center' });
+  doc.text(`VÍA: ${(datos.metodoPago || 'TRANSFERENCIA').toUpperCase()}`, 177.5, 28, { align: 'center' });
 
-  // Logo e Identidad (MCM)
-  try {
-    doc.addImage(mcmLogoBase64, 'PNG', 15, 12, 38, 14);
-  } catch (e) {
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(20);
-    doc.text('M', 20, 25);
+  // Renderizado del Logo Oficial de MCM
+  let logoCargado = false;
+  if (mcmLogoBase64 && mcmLogoBase64.startsWith('data:')) {
+    try {
+      doc.addImage(mcmLogoBase64, 'PNG', 12, 9, 42, 24);
+      logoCargado = true;
+    } catch (e) {
+      logoCargado = false;
+    }
   }
 
+  if (!logoCargado) {
+    doc.setFillColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+    doc.roundedRect(15, 9, 24, 24, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text('MCM', 27, 24, { align: 'center' });
+  }
+
+  // Título e Identidad MCM
+  const titleX = logoCargado ? 58 : 45;
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text('Master Club Manager', 58, 22);
+  doc.setFontSize(15);
+  doc.text('MASTER CLUB MANAGER', titleX, 20);
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.setTextColor(200, 200, 200);
-  doc.text('Plataforma Tecnológica Deportiva', 58, 28);
-  doc.text(`Comprobante: #${String(datos.consecutivo).padStart(4, '0')}`, 58, 33);
+  doc.setTextColor(203, 213, 225);
+  doc.text('Plataforma Tecnológica de Gestión Deportiva SaaS', titleX, 26);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(163, 230, 53); // #a3e635 (Verde Limo)
+  doc.text(`Comprobante Oficial: #${String(datos.consecutivo).padStart(4, '0')}`, titleX, 32);
 
 
-  // 3. INFORMACIÓN DEL CLUB CLIENTE
+  // 2. INFORMACIÓN DEL CLUB CLIENTE
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text('INFORMACIÓN DEL CLIENTE (CLUB)', 15, 55);
+  doc.text('INFORMACIÓN DEL CLIENTE (ACADEMIA / CLUB)', 15, 54);
   
-  doc.setDrawColor(naranjaGibbor[0], naranjaGibbor[1], naranjaGibbor[2]);
-  doc.setLineWidth(0.5);
-  doc.line(15, 57, 30, 57);
+  doc.setDrawColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+  doc.setLineWidth(0.6);
+  doc.line(15, 56, 35, 56);
 
-  // Caja de fondo
+  // Caja contenedora de datos del cliente
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.roundedRect(15, 62, 180, 30, 3, 3, 'F');
+  doc.roundedRect(15, 60, 180, 32, 3, 3, 'F');
 
   // --- COLUMNA IZQUIERDA ---
   doc.setFontSize(7);
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('NOMBRE DEL CLUB / ACADEMIA:', 20, 70);
-  doc.text('TELÉFONO DE CONTACTO:', 20, 82);
+  doc.text('NOMBRE DEL CLUB / ACADEMIA:', 20, 68);
+  doc.text('TELÉFONO DE CONTACTO:', 20, 81);
 
+  const nombreClubUpper = (datos.clubNombre || 'CLUB DESCONOCIDO').toUpperCase();
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(datos.clubNombre.toUpperCase(), 20, 75, { maxWidth: 85 });
-  doc.text(datos.clubTelefono || 'NO REGISTRADO', 20, 87, { maxWidth: 85 });
+  doc.text(nombreClubUpper, 20, 73, { maxWidth: 85 });
+  doc.setFontSize(9);
+  doc.text(datos.clubTelefono || 'NO REGISTRADO', 20, 86, { maxWidth: 85 });
 
   // --- COLUMNA DERECHA ---
   doc.setFontSize(7);
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('DOCUMENTO / NIT:', 115, 70);
-  doc.text('FECHA DE PAGO:', 115, 82);
+  doc.text('NIT / DOCUMENTO LEGAL:', 115, 68);
+  doc.text('FECHA DE PAGO:', 115, 81);
 
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(datos.clubDocumento || 'NO REGISTRADO', 115, 75);
-  
-  const fechaObj = new Date(datos.fechaPago.split('T')[0] + 'T12:00:00');
-  doc.text(fechaObj.toLocaleDateString('es-CO'), 115, 87);
+  doc.text(datos.clubDocumento || 'NO REGISTRADO', 115, 73);
+  doc.text(fechaEmision.toLocaleDateString('es-CO'), 115, 86);
 
 
-  // 4. TABLA DE CONCEPTOS
-  const tableY = 107;
+  // 3. TABLA DE CONCEPTOS
+  const tableY = 104;
   doc.setFillColor(slate900[0], slate900[1], slate900[2]);
   doc.rect(15, tableY, 180, 10, 'F');
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
   doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
-  doc.text('CANTIDAD', 120, tableY + 6.5, { align: 'center' });
+  doc.text('ATLETAS', 135, tableY + 6.5, { align: 'center' });
   doc.text('TOTAL', 185, tableY + 6.5, { align: 'right' });
 
-  // Fila de datos
+  // Fila de concepto principal
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "normal");
-  doc.text(`Suscripción Mensual Master Club Manager - ${datos.mesCobrado}`, 20, tableY + 18);
-  doc.text(`${datos.cantidadJugadores} Atletas`, 120, tableY + 18, { align: 'center' });
+  doc.setFontSize(8.5);
+  doc.text(`Suscripción Plataforma SaaS - Periodo ${datos.mesCobrado}`, 20, tableY + 18);
+  doc.text(`${datos.cantidadJugadores} Activos`, 135, tableY + 18, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
   doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
 
-  // Línea de cierre de tabla
-  doc.setDrawColor(230, 230, 230);
-  doc.setLineWidth(0.1);
-  doc.line(15, tableY + 25, 195, tableY + 25);
+  // Línea de separación
+  doc.setDrawColor(226, 232, 240);
+  doc.setLineWidth(0.2);
+  doc.line(15, tableY + 26, 195, tableY + 26);
 
-  // Cuadro de Total Final
+  // Cuadro del Total Final
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.rect(130, tableY + 25, 65, 12, 'F');
+  doc.rect(125, tableY + 28, 70, 14, 'F');
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(slate700[0], slate700[1], slate700[2]);
+  doc.text('TOTAL PAGADO:', 130, tableY + 37);
   doc.setFontSize(11);
-  doc.setTextColor(green[0], green[1], green[2]);
-  doc.text('TOTAL PAGADO:', 135, tableY + 33);
-  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 190, tableY + 33, { align: 'right' });
+  doc.setTextColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 190, tableY + 37, { align: 'right' });
 
 
-  // 5. PIE DE PÁGINA
+  // 4. FIRMA Y SELLO OFICIAL MASTER CLUB MANAGER
+  const footerY = tableY + 60;
+  
+  // Sello izquierdo MCM
+  doc.setDrawColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+  doc.setLineWidth(0.5);
+  doc.line(15, footerY, 70, footerY);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+  doc.text('DEPARTAMENTO FINANCIERO MCM', 42.5, footerY + 5, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+  doc.text('Master Club Manager SaaS', 42.5, footerY + 9, { align: 'center' });
+
+  // Sello derecho Cliente
+  doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
+  doc.line(140, footerY, 195, footerY);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+  doc.text('CONFIRMACIÓN DEL CLIENTE', 167.5, footerY + 5, { align: 'center' });
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+  doc.text(nombreClubUpper, 167.5, footerY + 9, { align: 'center' });
+
+
+  // 5. PIE DE PÁGINA DIGITAL
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "italic");
-  doc.setFontSize(8);
-  doc.text('Este documento es un comprobante de pago electrónico generado automáticamente por Master Club Manager.', 105, 160, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.text('Este documento es un comprobante de pago oficial generado electrónicamente por Master Club Manager.', 105, 275, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
-  doc.text('¡Gracias por formar parte de la evolución tecnológica del deporte!', 105, 165, { align: 'center' });
+  doc.text('Master Club Manager SaaS © 2026 • Impulsando el deporte con tecnología', 105, 280, { align: 'center' });
 
-  // Salida a Base64 (compatible con Evolution API)
-  const base64PDF = btoa(doc.output());
-  return base64PDF;
+  // 6. Salida limpia a Base64 sin btoa binary DOMException crash
+  return doc.output('datauristring').split(',')[1];
 }
