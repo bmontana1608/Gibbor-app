@@ -96,13 +96,18 @@ export async function POST(request: Request) {
 
     if (!mensajeFinal) {
       // Obtener medios de pago configurados por el Super Admin
-      const { data: configSuperAdmin } = await supabaseAdmin
+      const { data: configSuperAdmin, error: configError } = await supabaseAdmin
         .from('configuracion_superadmin')
-        .select('*')
+        .select('id, mensaje_cobro, telefono_soporte')
         .eq('id', 1)
         .maybeSingle();
 
+      console.log('[enviar-recordatorio] configSuperAdmin raw:', JSON.stringify(configSuperAdmin));
+      console.log('[enviar-recordatorio] configError:', configError?.message);
+
       const bloquePago = buildBloquePago(configSuperAdmin || {});
+      console.log('[enviar-recordatorio] bloquePago generado:', bloquePago);
+
 
       // Formatear fecha de corte legible
       let fechaCorteStr = fechaCorte;

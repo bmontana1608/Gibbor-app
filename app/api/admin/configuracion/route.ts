@@ -1,81 +1,105 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
-export async function POST(request: Request) {
+// GET: Diagnóstico – ver qué hay guardado en configuracion_superadmin
+export async function GET() {
   try {
-    const body = await request.json();
-
-    // 1. Leer la config actual para no perder valores existentes
-    const { data: configActual } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('configuracion_superadmin')
       .select('*')
       .eq('id', 1)
       .maybeSingle();
 
-    // 2. Construir el estado actual de los medios de pago
-    //    Prioridad: columna directa (si existe y tiene valor) > mensaje_cobro JSON > vacío
-    let datosMediosPago: any = {};
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-    // a) Cargar desde mensaje_cobro como base
+    return NextResponse.json({ 
+      raw: data,
+      mensaje_cobro_parsed: (() => {
+        try { return data?.mensaje_cobro ? JSON.parse(data.mensaje_cobro) : null; } 
+        catch (e) { return `PARSE_ERROR: ${data?.mensaje_cobro}`; }
+      })()
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// POST: Guardar configuración usando SOLO mensaje_cobro como fuente canónica
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    // 1. Leer la config actual para no perder valores existentes
+    const { data: configActual, error: readError } = await supabaseAdmin
+      .from('configuracion_superadmin')
+      .select('id, mensaje_cobro, telefono_soporte, gemini_api_key, slack_webhook_url')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if (readError) {
+      console.error('Error leyendo configuracion_superadmin:', readError.message);
+    }
+
+    // 2. Reconstruir medios de pago: partir del JSON guardado + sobrescribir con body
+    let datosMediosPago: any = {};
     if (configActual?.mensaje_cobro) {
       try {
         datosMediosPago = JSON.parse(configActual.mensaje_cobro);
-      } catch (e) {}
+      } catch (e) {
+        console.warn('mensaje_cobro no es JSON válido, se reemplazará:', configActual.mensaje_cobro);
+        datosMediosPago = {};
+      }
     }
 
-    // b) Si hay columnas directas con valor, sobrescriben el JSON
-    const camposMediosPago = ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia'];
-    for (const campo of camposMediosPago) {
-      if (configActual?.[campo]) datosMediosPago[campo] = configActual[campo];
-    }
-
-    // c) Los nuevos valores del body siempre ganan (el usuario acaba de editarlos)
-    for (const campo of camposMediosPago) {
+    // Los nuevos valores del body siempre sobrescriben los existentes
+    for (const campo of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
       if (body[campo] !== undefined) {
         datosMediosPago[campo] = body[campo];
       }
     }
 
-    // 3. Payload principal: siempre guarda mensaje_cobro como fuente canónica de medios de pago
+    // 3. Construir payload SOLO con columnas que seguro existen en el esquema base
     const payload: any = {
       id: 1,
       mensaje_cobro: JSON.stringify(datosMediosPago),
     };
 
-    // Campos simples del body (no son medios de pago)
+    // Campos simples no-medios-de-pago (también columnas seguras)
     if (body.telefono_soporte !== undefined) payload.telefono_soporte = body.telefono_soporte;
     if (body.gemini_api_key !== undefined) payload.gemini_api_key = body.gemini_api_key;
     if (body.slack_webhook_url !== undefined) payload.slack_webhook_url = body.slack_webhook_url;
 
-    // Intentar también guardar columnas directas si están en el esquema
-    for (const campo of camposMediosPago) {
-      payload[campo] = datosMediosPago[campo] ?? '';
-    }
+    console.log('Guardando en configuracion_superadmin:', JSON.stringify(payload));
 
-    // 4. Upsert. Si falla por columnas inexistentes, reintentar sin ellas
-    let { error } = await supabaseAdmin
+    // 4. Upsert SOLO con columnas base (sin saas_* sueltas para evitar errores de esquema)
+    const { error: upsertError } = await supabaseAdmin
       .from('configuracion_superadmin')
-      .upsert(payload);
+      .upsert(payload, { onConflict: 'id' });
 
-    if (error) {
-      console.warn('Upsert con columnas saas_* falló, reintentando sin ellas:', error.message);
-
-      const payloadReducido: any = { id: 1, mensaje_cobro: payload.mensaje_cobro };
-      if (payload.telefono_soporte !== undefined) payloadReducido.telefono_soporte = payload.telefono_soporte;
-      if (payload.gemini_api_key !== undefined) payloadReducido.gemini_api_key = payload.gemini_api_key;
-      if (payload.slack_webhook_url !== undefined) payloadReducido.slack_webhook_url = payload.slack_webhook_url;
-
-      const { error: fallbackError } = await supabaseAdmin
-        .from('configuracion_superadmin')
-        .upsert(payloadReducido);
-
-      if (fallbackError) {
-        console.error('Error final guardando configuración:', fallbackError);
-        return NextResponse.json({ error: fallbackError.message }, { status: 500 });
-      }
+    if (upsertError) {
+      console.error('Error en upsert configuracion_superadmin:', upsertError);
+      return NextResponse.json({ error: upsertError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    // 5. Verificar que quedó guardado
+    const { data: verificacion } = await supabaseAdmin
+      .from('configuracion_superadmin')
+      .select('mensaje_cobro')
+      .eq('id', 1)
+      .maybeSingle();
+
+    console.log('Verificación post-guardado:', verificacion?.mensaje_cobro);
+
+    return NextResponse.json({ 
+      success: true, 
+      guardado: datosMediosPago,
+      verificacion: (() => {
+        try { return verificacion?.mensaje_cobro ? JSON.parse(verificacion.mensaje_cobro) : null; }
+        catch (e) { return null; }
+      })()
+    });
   } catch (error: any) {
     console.error('Excepción en API de configuracion:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
