@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { enviarMensajeWhatsAppServer } from '@/lib/whatsappServer';
 import { generarReciboSaaSPDFBase64 } from '@/lib/recibo-saas-utils';
+import { buildBloquePago } from '@/lib/saas-pago-utils';
 
 export async function POST(request: Request) {
   try {
@@ -101,20 +102,15 @@ export async function POST(request: Request) {
         .eq('id', 1)
         .maybeSingle();
 
-      const nequi = configSuperAdmin?.saas_nequi || '315 220 1608';
-      const daviplata = configSuperAdmin?.saas_daviplata || '315 220 1608';
-      const breB = configSuperAdmin?.saas_bre_b || '@DAVIBMT801';
-      const bancolombia = configSuperAdmin?.saas_bancolombia || '912-0000-8431 (Ahorros)';
+      const bloquePago = buildBloquePago(configSuperAdmin || {});
 
-      const lineasPago: string[] = [];
-      if (nequi) lineasPago.push(`• Nequi: *${nequi}*`);
-      if (daviplata) lineasPago.push(`• Daviplata: *${daviplata}*`);
-      if (breB) lineasPago.push(`• Llave Bre-B / Daviplata: *${breB}*`);
-      if (bancolombia) lineasPago.push(`• Bancolombia: *${bancolombia}*`);
+      // Formatear fecha de corte legible
+      let fechaCorteStr = fechaCorte;
+      try {
+        fechaCorteStr = new Date(fechaCorte).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+      } catch (e) {}
 
-      const bloquePago = lineasPago.join('\n');
-
-      mensajeFinal = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
+      mensajeFinal = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorteStr}*\n\n💳 *Medios de Pago Disponibles:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
     }
 
     // 5. Generar PDF de Recibo SaaS con Logo Oficial MCM
