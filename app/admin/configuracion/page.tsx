@@ -125,6 +125,84 @@ export default function ConfiguracionPage() {
         <p className="text-xs text-gray-400 mt-2">A este número se redirigirán los clubes suspendidos por mora.</p>
       </div>
 
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6 space-y-4">
+        <h4 className="font-bold text-slate-800 text-sm border-b pb-2 flex items-center justify-between">
+          <span>Medios de Pago Oficiales MCM (Cobranza a Clubes)</span>
+          <span className="text-[10px] text-lime-600 font-bold bg-lime-50 px-2 py-0.5 rounded-full uppercase">Plantillas de Cobro</span>
+        </h4>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Nequi</label>
+            <input 
+              type="text" 
+              placeholder="Ej: 315 220 1608" 
+              value={configAdmin.saas_nequi || ''} 
+              onChange={e => setConfigAdmin({...configAdmin, saas_nequi: e.target.value})}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Daviplata</label>
+            <input 
+              type="text" 
+              placeholder="Ej: 315 220 1608" 
+              value={configAdmin.saas_daviplata || ''} 
+              onChange={e => setConfigAdmin({...configAdmin, saas_daviplata: e.target.value})}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Llave Bre-B / Transfiya</label>
+            <input 
+              type="text" 
+              placeholder="Ej: @DAVIBMT801" 
+              value={configAdmin.saas_bre_b || ''} 
+              onChange={e => setConfigAdmin({...configAdmin, saas_bre_b: e.target.value})}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium text-emerald-700"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Cuenta Bancaria (Bancolombia)</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Ahorros #912-0000-8431" 
+              value={configAdmin.saas_bancolombia || ''} 
+              onChange={e => setConfigAdmin({...configAdmin, saas_bancolombia: e.target.value})}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+            />
+          </div>
+        </div>
+
+        <div className="pt-2 flex justify-end">
+          <button 
+            onClick={async () => {
+              try {
+                const res = await fetch('/api/admin/configuracion', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    saas_nequi: configAdmin.saas_nequi || '',
+                    saas_daviplata: configAdmin.saas_daviplata || '',
+                    saas_bre_b: configAdmin.saas_bre_b || '',
+                    saas_bancolombia: configAdmin.saas_bancolombia || ''
+                  })
+                });
+                if (!res.ok) throw new Error('Error al guardar');
+                toast.success('Medios de pago SaaS actualizados correctamente 🚀');
+              } catch (e: any) {
+                toast.error('Error: ' + e.message);
+              }
+            }}
+            className="bg-lime-500 hover:bg-lime-600 text-white font-bold px-6 py-2.5 rounded-xl transition-colors shadow-sm text-sm"
+          >
+            Guardar Medios de Pago SaaS
+          </button>
+        </div>
+      </div>
+
       <h3 className="font-bold text-slate-800 mb-4 border-t pt-6 flex items-center gap-2"><Bot size={18} /> Inteligencia Artificial (Gibbi)</h3>
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
         <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Clave API de Gemini</label>

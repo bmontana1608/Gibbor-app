@@ -22,6 +22,26 @@ export async function GET(request: Request) {
     let fallidos = 0;
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+    // Obtener medios de pago configurados por el Super Admin
+    const { data: configSuperAdmin } = await supabaseAdmin
+      .from('configuracion_superadmin')
+      .select('*')
+      .eq('id', 1)
+      .maybeSingle();
+
+    const nequi = configSuperAdmin?.saas_nequi || '315 220 1608';
+    const daviplata = configSuperAdmin?.saas_daviplata || '315 220 1608';
+    const breB = configSuperAdmin?.saas_bre_b || '@DAVIBMT801';
+    const bancolombia = configSuperAdmin?.saas_bancolombia || '912-0000-8431 (Ahorros)';
+
+    const lineasPago: string[] = [];
+    if (nequi) lineasPago.push(`• Nequi: *${nequi}*`);
+    if (daviplata) lineasPago.push(`• Daviplata: *${daviplata}*`);
+    if (breB) lineasPago.push(`• Llave Bre-B / Daviplata: *${breB}*`);
+    if (bancolombia) lineasPago.push(`• Bancolombia: *${bancolombia}*`);
+
+    const bloquePago = lineasPago.join('\n');
+
     for (const club of clubesPendientes) {
       let telefono = club.telefono_contacto;
       if (!telefono) {
@@ -59,7 +79,7 @@ export async function GET(request: Request) {
       const mesNombre = meses[hoy.getMonth()];
       const anio = hoy.getFullYear();
 
-      const mensaje = `Hola *${club.nombre}* 👋⚽,\n\nTe recordamos desde la administración de *Master Club Manager (MCM)* que tu fecha de corte de suscripción SaaS (*${club.proximo_corte}*) ha llegado o se encuentra pendiente.\n\n📄 *Resumen de Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Valor a Regularizar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n\n💳 *Medios de Pago:*\n• Nequi / Daviplata: *315 220 1608*\n• Llave Bre-B / Daviplata: *@DAVIBMT801*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nAgradecemos tu oportuno pago para mantener el servicio activo sin interrupciones. 🏆`;
+      const mensaje = `Hola *${club.nombre}* 👋⚽,\n\nTe recordamos desde la administración de *Master Club Manager (MCM)* que tu fecha de corte de suscripción SaaS (*${club.proximo_corte}*) ha llegado o se encuentra pendiente.\n\n📄 *Resumen de Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Valor a Regularizar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n\n💳 *Medios de Pago:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nAgradecemos tu oportuno pago para mantener el servicio activo sin interrupciones. 🏆`;
 
       const result = await enviarMensajeWhatsAppServer(
         telefono,

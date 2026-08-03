@@ -44,6 +44,7 @@ export default function SaasCobranzaPage() {
   const [mensajePreview, setMensajePreview] = useState('');
   const [enviandoWA, setEnviandoWA] = useState(false);
   const [enviandoMasivo, setEnviandoMasivo] = useState(false);
+  const [configSuperAdmin, setConfigSuperAdmin] = useState<any>(null);
 
   // Edición de fecha de corte
   const [editingCorteId, setEditingCorteId] = useState<string | null>(null);
@@ -56,6 +57,10 @@ export default function SaasCobranzaPage() {
   const cargarDatos = async () => {
     setCargando(true);
     try {
+      // 0. Cargar config superadmin
+      const { data: configData } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
+      if (configData) setConfigSuperAdmin(configData);
+
       // 1. Cargar clubes con sus planes
       const { data: clubesData } = await supabase
         .from('clubes')
@@ -298,7 +303,20 @@ export default function SaasCobranzaPage() {
     const anio = factura?.periodo_anio || hoy.getFullYear();
     const fechaCorte = club.proximo_corte || `${anio}-${String(hoy.getMonth() + 1).padStart(2, '0')}-05`;
 
-    const borrador = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${atletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n• Nequi / Daviplata: *315 220 1608*\n• Llave Bre-B / Daviplata: *@DAVIBMT801*\n• Bancolombia (Ahorros): *912-0000-8431*\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
+    const nequi = configSuperAdmin?.saas_nequi || '315 220 1608';
+    const daviplata = configSuperAdmin?.saas_daviplata || '315 220 1608';
+    const breB = configSuperAdmin?.saas_bre_b || '@DAVIBMT801';
+    const bancolombia = configSuperAdmin?.saas_bancolombia || '912-0000-8431 (Ahorros)';
+
+    const lineasPago: string[] = [];
+    if (nequi) lineasPago.push(`• Nequi: *${nequi}*`);
+    if (daviplata) lineasPago.push(`• Daviplata: *${daviplata}*`);
+    if (breB) lineasPago.push(`• Llave Bre-B / Daviplata: *${breB}*`);
+    if (bancolombia) lineasPago.push(`• Bancolombia: *${bancolombia}*`);
+
+    const bloquePago = lineasPago.join('\n');
+
+    const borrador = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${atletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
 
     setMensajePreview(borrador);
     setIsModalPreviewOpen(true);
