@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { enviarMensajeWhatsAppServer } from '@/lib/whatsappServer';
+import { generarReciboSaaSPDFBase64 } from '@/lib/recibo-saas-utils';
 
 export async function POST(request: Request) {
   try {
@@ -116,13 +117,31 @@ export async function POST(request: Request) {
       mensajeFinal = `Hola *${club.nombre}* 👋⚽,\n\nUn cordial saludo de parte del equipo de *Master Club Manager (MCM)*.\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${mesNombre} ${anio}*.\n\n📄 *Detalles de tu Suscripción:*\n• Plan: *${plan?.nombre || 'Estándar'}*\n• Atletas Activos: *${totalAtletas}*\n• Total a Pagar: *$ ${montoCalculado.toLocaleString('es-CO')}*\n• Fecha de Corte: *${fechaCorte}*\n\n💳 *Medios de Pago Disponibles:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${club.slug}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
     }
 
-    // 5. Enviar mensaje por el canal maestro de WhatsApp ('gibbor')
+    // 5. Generar PDF de Recibo SaaS con Logo Oficial MCM
+    let base64PDF: string | undefined = undefined;
+    try {
+      base64PDF = await generarReciboSaaSPDFBase64({
+        clubNombre: club.nombre || 'Club Sin Nombre',
+        clubDocumento: club.nombre_legal || 'N/A',
+        clubTelefono: telefono,
+        mesCobrado: `${mesNombre} ${anio}`,
+        cantidadJugadores: totalAtletas,
+        montoTotal: montoCalculado,
+        consecutivo: factura?.id ? factura.id.split('-')[0] : '0001',
+        metodoPago: 'Suscripción SaaS',
+        fechaPago: hoy.toISOString()
+      });
+    } catch (e) {
+      console.error('Error generando PDF recibo SaaS:', e);
+    }
+
+    // 6. Enviar mensaje por el canal maestro de WhatsApp ('gibbor') adjuntando el recibo PDF
     const result = await enviarMensajeWhatsAppServer(
       telefono,
       mensajeFinal,
-      undefined,
+      base64PDF,
       'document',
-      '',
+      `Recibo_SaaS_${club.nombre.replace(/\s+/g, '_')}_${mesNombre}.pdf`,
       'gibbor'
     );
 
