@@ -1,6 +1,44 @@
 import jsPDF from 'jspdf';
 
 /**
+ * Convierte una URL de imagen a un Data URI Base64 de forma segura para jsPDF
+ */
+async function urlToBase64(url: string): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith('data:')) return url;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    if (typeof window !== 'undefined') {
+      const blob = await res.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      const arrayBuffer = await res.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const contentType = res.headers.get('content-type') || 'image/png';
+      return `data:${contentType};base64,${buffer.toString('base64')}`;
+    }
+  } catch (e) {
+    return null;
+  }
+}
+
+function dibujarBadgeInicial(doc: jsPDF, nombreClub?: string) {
+  doc.setFillColor(249, 115, 22);
+  doc.roundedRect(15, 8, 24, 24, 3, 3, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  const inicial = (nombreClub || 'C').charAt(0).toUpperCase();
+  doc.text(inicial, 27, 23, { align: 'center' });
+}
+
+/**
  * Genera un PDF Élite de recibo Gibbor en formato Base64
  */
 export async function generarReciboPDFBase64(datos: {
@@ -71,44 +109,6 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
   doc.text(esPago ? `Vía: ${(datos.metodo || '').toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 177.5, 27, { align: 'center' });
-
-/**
- * Convierte una URL de imagen a un Data URI Base64 de forma segura para jsPDF
- */
-async function urlToBase64(url: string): Promise<string | null> {
-  if (!url) return null;
-  if (url.startsWith('data:')) return url;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    if (typeof window !== 'undefined') {
-      const blob = await res.blob();
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = () => resolve(null);
-        reader.readAsDataURL(blob);
-      });
-    } else {
-      const arrayBuffer = await res.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const contentType = res.headers.get('content-type') || 'image/png';
-      return `data:${contentType};base64,${buffer.toString('base64')}`;
-    }
-  } catch (e) {
-    return null;
-  }
-}
-
-function dibujarBadgeInicial(doc: jsPDF, nombreClub?: string) {
-  doc.setFillColor(249, 115, 22);
-  doc.roundedRect(15, 8, 24, 24, 3, 3, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  const inicial = (nombreClub || 'C').charAt(0).toUpperCase();
-  doc.text(inicial, 27, 23, { align: 'center' });
-}
 
   // Logo e Identidad
   let logoBase64: string | null = null;
