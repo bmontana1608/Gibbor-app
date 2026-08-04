@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
 
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
-        grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
+        grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO', tipoRecibo: 'pago',
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
           logo_url: club?.logo_url,

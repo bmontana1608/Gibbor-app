@@ -83,9 +83,9 @@ export default function ConfiguracionPage() {
       try {
         const parsed = JSON.parse(data.mensaje_cobro);
         if (typeof parsed === 'object' && parsed !== null) {
-          // Poblar campos saas_* desde el JSON solo si la propiedad no viene de la DB
-          for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
-            if (parsed[key] && !loaded[key]) {
+          // Poblar campos desde el JSON si existen
+          for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia', 'gemini_api_key', 'slack_webhook_url']) {
+            if (parsed[key] !== undefined && !loaded[key]) {
               loaded[key] = parsed[key];
             }
           }

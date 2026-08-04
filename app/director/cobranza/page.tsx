@@ -652,6 +652,7 @@ export default function ModuloCobranza() {
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
+        tipoRecibo: 'cobro',
         empresa: {
           logo_url: tenant?.logo_url || tenant?.config?.logo,
           nombre_club: clubConfig.nombre_club || tenant?.config?.nombre || tenant?.nombre,
@@ -731,6 +732,7 @@ export default function ModuloCobranza() {
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
+        tipoRecibo: 'cobro',
         empresa: {
           logo_url: tenant?.logo_url || tenant?.config?.logo,
           nombre_club: config?.nombre_club || tenant?.config?.nombre || tenant?.nombre,
@@ -1048,6 +1050,7 @@ export default function ModuloCobranza() {
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
+        tipoRecibo: 'pago',
         empresa: {
           logo_url: tenant?.logo_url || tenant?.config?.logo,
           nombre_club: clubConfig.nombre_club || tenant?.config?.nombre || tenant?.nombre,
@@ -1128,6 +1131,7 @@ export default function ModuloCobranza() {
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
+        tipoRecibo: 'pago',
         empresa: {
           logo_url: tenant?.logo_url || tenant?.config?.logo,
           nombre_club: config?.nombre_club || tenant?.config?.nombre || tenant?.nombre,
@@ -1667,6 +1671,7 @@ export default function ModuloCobranza() {
                   consecutivo: reciboGenerado.consecutivo,
                   fecha: reciboGenerado.fecha,
                   metodo: reciboGenerado.metodo,
+                  tipoRecibo: 'pago',
                   empresa: {
                     logo_url: tenant?.logo_url || tenant?.config?.logo,
                     nombre_club: config?.nombre_club || tenant?.config?.nombre || tenant?.nombre,

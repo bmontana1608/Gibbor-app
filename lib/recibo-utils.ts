@@ -54,6 +54,7 @@ export async function generarReciboPDFBase64(datos: {
   notas?: string;
   fecha?: string;        // Fecha de EMISIÓN del recibo (hoy)
   fechaPeriodo?: string; // Fecha del MES que se está cobrando (para el concepto)
+  tipoRecibo?: 'cobro' | 'pago'; // 'cobro' (Cuenta de Cobro) o 'pago' (Comprobante de Pago)
   empresa: {
     nombre_club?: string;
     direccion: string;
@@ -85,13 +86,17 @@ export async function generarReciboPDFBase64(datos: {
   const slate500 = [100, 116, 139];
   const slate100 = [241, 245, 249];
 
-  // LÓGICA DE ESTADO DINÁMICO (basada en fecha de emisión, no del período)
-  const esPago = !!datos.metodo;
+  // LÓGICA DE ESTADO DINÁMICO (basada en fecha de emisión y tipo de recibo)
+  const esPago = datos.tipoRecibo ? datos.tipoRecibo === 'pago' : !!datos.metodo;
   const diaVence = 5;
   const esVencido = !esPago && fechaEmision.getDate() > diaVence;
   
-  const statusLabel = esPago ? 'PAGO CONFIRMADO' : (esVencido ? 'RECIBO VENCIDO' : 'PENDIENTE DE PAGO');
-  const statusColor = esPago ? [34, 197, 94] : (esVencido ? [220, 38, 38] : [255, 120, 0]); // Verde : Rojo : Naranja
+  const statusLabel = esPago 
+    ? 'PAGO CONFIRMADO' 
+    : (esVencido ? 'COBRO VENCIDO' : 'CUENTA DE COBRO');
+  const statusColor = esPago 
+    ? [34, 197, 94] 
+    : (esVencido ? [220, 38, 38] : [255, 120, 0]); // Verde : Rojo : Naranja
 
   // 1. ENCABEZADO Y LOGO
   doc.setFillColor(slate900[0], slate900[1], slate900[2]);
@@ -99,16 +104,16 @@ export async function generarReciboPDFBase64(datos: {
   
   // Badge de Estado dinámico
   doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
-  doc.rect(145, 0, 65, 40, 'F');
+  doc.rect(140, 0, 70, 40, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text(statusLabel, 177.5, 22, { align: 'center' });
+  doc.text(statusLabel, 175, 22, { align: 'center' });
   
   // Subtexto de estado
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(esPago ? `Vía: ${(datos.metodo || '').toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 177.5, 27, { align: 'center' });
+  doc.text(esPago ? `Vía: ${(datos.metodo || 'EFECTIVO').toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 175, 27, { align: 'center' });
 
   // Logo e Identidad
   let logoBase64: string | null = null;
@@ -136,7 +141,8 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 200);
   doc.text(`${datos.empresa.direccion} • ${datos.empresa.ciudad}`, 45, 28);
-  doc.text(`Recibo: #${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
+  const tipoTituloDoc = esPago ? 'Comprobante de Pago' : 'Cuenta de Cobro';
+  doc.text(`${tipoTituloDoc}: #${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
 
 
   // 3. INFORMACIÓN DEL JUGADOR
@@ -295,7 +301,10 @@ export async function generarReciboPDFBase64(datos: {
   doc.text(`ADMINISTRACIÓN ${nombreClubUpper}`, 155, footerY + 9, { align: 'center' });
 
   doc.setFontSize(6);
-  doc.text(`Este recibo es un comprobante oficial de pago generado digitalmente.`, 105, 280, { align: 'center' });
+  const footerTextDoc = esPago 
+    ? 'Este recibo es un comprobante oficial de pago generado digitalmente.'
+    : 'Este documento es una cuenta de cobro oficial generada digitalmente.';
+  doc.text(footerTextDoc, 105, 280, { align: 'center' });
   doc.text(`${nombreClubUpper} - Plataforma Oficial`, 105, 284, { align: 'center' });
 
   return doc.output('datauristring').split(',')[1];

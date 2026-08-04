@@ -270,6 +270,7 @@ export default function DashboardFutbolista() {
         metodo: pago.metodo_pago || 'Efectivo',
         fecha: pago.fecha || new Date().toISOString().split('T')[0],
         fechaPeriodo: pago.fecha || new Date().toISOString().split('T')[0],
+        tipoRecibo: 'pago',
         empresa: {
           logo_url: tenant?.logo_url || tenant?.config?.logo,
           nombre_club: clubConfig.nombre_club || tenant?.config?.nombre || tenant?.nombre || 'Club',

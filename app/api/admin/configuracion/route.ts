@@ -59,10 +59,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // Los nuevos valores del body siempre sobrescriben, pero IGNORAR campos vacíos
-    const camposMediosPago = ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia'];
-    for (const campo of camposMediosPago) {
-      if (body[campo] !== undefined && body[campo] !== '') {
+    // Los nuevos valores del body siempre sobrescriben los campos pasados
+    const camposJSON = ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia', 'gemini_api_key', 'slack_webhook_url'];
+    for (const campo of camposJSON) {
+      if (body[campo] !== undefined) {
         datosMediosPago[campo] = body[campo];
       }
     }

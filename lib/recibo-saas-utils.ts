@@ -12,14 +12,20 @@ export async function generarReciboSaaSPDFBase64(datos: {
   cantidadJugadores: number;
   montoTotal: number;
   consecutivo: string | number;
-  metodoPago: string;
-  fechaPago: string; // Fecha en la que se pagó
+  metodoPago?: string;
+  fechaPago?: string;
+  tipoRecibo?: 'cobro' | 'pago'; // 'cobro' (Cuenta de Cobro) o 'pago' (Comprobante de Pago)
 }) {
   const doc = new jsPDF();
   
+  // Determinar si es cobro o pago
+  const esPago = datos.tipoRecibo ? datos.tipoRecibo === 'pago' : !!datos.metodoPago;
+  
   // Colores de Marca MCM / Gibbor
-  const verdeMCM = [34, 197, 94]; // #22c55e
-  const verdeLimo = [132, 204, 22]; // #84cc16
+  const verdeMCM = [34, 197, 94]; // #22c55e (Verde Pago)
+  const naranjaCobro = [249, 115, 22]; // #f97316 (Naranja Cobro)
+  const statusColor = esPago ? verdeMCM : naranjaCobro;
+
   const slate900 = [15, 23, 42];
   const slate700 = [51, 65, 85];
   const slate500 = [100, 116, 139];
@@ -31,17 +37,20 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setFillColor(slate900[0], slate900[1], slate900[2]);
   doc.rect(0, 0, 210, 42, 'F');
   
-  // Badge de Estado (PAGO CONFIRMADO)
-  doc.setFillColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
-  doc.rect(145, 0, 65, 42, 'F');
+  // Badge de Estado (PAGO CONFIRMADO / CUENTA DE COBRO)
+  doc.setFillColor(statusColor[0], statusColor[1], statusColor[2]);
+  doc.rect(140, 0, 70, 42, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text('PAGO CONFIRMADO', 177.5, 22, { align: 'center' });
+  doc.text(esPago ? 'PAGO CONFIRMADO' : 'CUENTA DE COBRO', 175, 22, { align: 'center' });
   
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(`VÍA: ${(datos.metodoPago || 'TRANSFERENCIA').toUpperCase()}`, 177.5, 28, { align: 'center' });
+  const subLabel = esPago 
+    ? `VÍA: ${(datos.metodoPago || 'TRANSFERENCIA').toUpperCase()}`
+    : 'PENDIENTE DE PAGO';
+  doc.text(subLabel, 175, 28, { align: 'center' });
 
   // Renderizado del Logo Oficial de MCM
   let logoCargado = false;
@@ -152,20 +161,20 @@ export async function generarReciboSaaSPDFBase64(datos: {
   // Cuadro del Total Final
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
   doc.rect(125, tableY + 28, 70, 14, 'F');
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(slate700[0], slate700[1], slate700[2]);
-  doc.text('TOTAL PAGADO:', 130, tableY + 37);
+  doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL A PAGAR:', 128, tableY + 37);
   doc.setFontSize(11);
-  doc.setTextColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
-  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 190, tableY + 37, { align: 'right' });
+  doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
+  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 192, tableY + 37, { align: 'right' });
 
 
   // 4. FIRMA Y SELLO OFICIAL MASTER CLUB MANAGER
   const footerY = tableY + 60;
   
   // Sello izquierdo MCM
-  doc.setDrawColor(verdeMCM[0], verdeMCM[1], verdeMCM[2]);
+  doc.setDrawColor(statusColor[0], statusColor[1], statusColor[2]);
   doc.setLineWidth(0.5);
   doc.line(15, footerY, 70, footerY);
   doc.setFontSize(8);
@@ -194,7 +203,10 @@ export async function generarReciboSaaSPDFBase64(datos: {
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "italic");
   doc.setFontSize(7.5);
-  doc.text('Este documento es un comprobante de pago oficial generado electrónicamente por Master Club Manager.', 105, 275, { align: 'center' });
+  const footerDocText = esPago
+    ? 'Este documento es un comprobante de pago oficial generado electrónicamente por Master Club Manager.'
+    : 'Este documento es una cuenta de cobro oficial generada electrónicamente por Master Club Manager.';
+  doc.text(footerDocText, 105, 275, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
   doc.text('Master Club Manager SaaS © 2026 • Impulsando el deporte con tecnología', 105, 280, { align: 'center' });

@@ -198,50 +198,31 @@ export default function ConfiguracionGeneral() {
       return;
     }
     setCargando(true);
-    const { data: existing } = await supabase.from('configuracion_wa').select('id').eq('club_id', tenant.id).maybeSingle();
-    
-    const payload: any = { 
-      ...config, 
-      hijos_config: hijosIds.join(','), 
-      club_id: tenant.id,
-      updated_at: new Date() 
-    };
-    
-    if (existing?.id) {
-      payload.id = existing.id;
-    }
+    try {
+      const res = await fetch('/api/director/configuracion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          club_id: tenant.id,
+          config: {
+            ...config,
+            hijos_config: hijosIds.join(',')
+          },
+          identidad
+        })
+      });
 
-    const { error } = await supabase.from('configuracion_wa').upsert(payload);
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Error al guardar la configuración');
+      }
 
-    const resClub = await fetch('/api/tenant/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: tenant.id,
-        payload: {
-          nombre: config.nombre_club,
-          logo_url: identidad.logo_url,
-          color_primario: identidad.color_primario,
-          color_secundario: identidad.color_secundario
-        }
-      })
-    });
-    
-    const clubResult = await resClub.json();
-    const errorClub = clubResult.error ? { message: clubResult.error } : null;
-
-    if (errorClub) {
-      toast.error("Error al guardar identidad visual: " + errorClub.message);
-    }
-
-    if (error && !error.message.includes('hijos_config')) {
-      toast.error("Error al guardar ajustes: " + error.message);
-    } else if (error && error.message.includes('hijos_config')) {
-      toast.error("Debes añadir la columna 'hijos_config' (Text) en la tabla 'configuracion_wa' de Supabase.");
-    } else if (!errorClub) {
       toast.success("Ajustes e identidad visual actualizados ✨");
+    } catch (err: any) {
+      toast.error("Error: " + err.message);
+    } finally {
+      setCargando(false);
     }
-    setCargando(false);
   };
 
   const MP_CLIENT_ID = process.env.NEXT_PUBLIC_MP_CLIENT_ID || '7714123508461740';

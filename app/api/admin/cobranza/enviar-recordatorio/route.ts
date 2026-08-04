@@ -131,7 +131,8 @@ export async function POST(request: Request) {
         montoTotal: montoCalculado,
         consecutivo: factura?.id ? factura.id.split('-')[0] : '0001',
         metodoPago: 'Suscripción SaaS',
-        fechaPago: hoy.toISOString()
+        fechaPago: hoy.toISOString(),
+        tipoRecibo: 'cobro'
       });
     } catch (e) {
       console.error('Error generando PDF recibo SaaS:', e);
