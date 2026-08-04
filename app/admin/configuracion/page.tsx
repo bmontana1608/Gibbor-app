@@ -71,29 +71,27 @@ export default function ConfiguracionPage() {
 
   const cargarConfiguracion = async () => {
     setLoading(true);
-    // Solo seleccionar columnas que realmente existen en la tabla
-    const { data } = await supabase
-      .from('configuracion_superadmin')
-      .select('id, telefono_soporte, mensaje_cobro')
-      .eq('id', 1)
-      .maybeSingle();
-    let loaded: any = { ...(data || {}) };
-    // mensaje_cobro guarda los medios de pago como JSON
-    if (data?.mensaje_cobro) {
-      try {
-        const parsed = JSON.parse(data.mensaje_cobro);
-        if (typeof parsed === 'object' && parsed !== null) {
-          // Poblar campos desde el JSON si existen
-          for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia', 'gemini_api_key', 'slack_webhook_url']) {
-            if (parsed[key] !== undefined && !loaded[key]) {
-              loaded[key] = parsed[key];
-            }
-          }
-        }
-      } catch (e) {}
+    try {
+      const res = await fetch('/api/admin/configuracion', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const raw = data.raw || {};
+        const medios = data.medios_de_pago || {};
+        setConfigAdmin({
+          telefono_soporte: raw.telefono_soporte || '',
+          saas_nequi: medios.saas_nequi || '',
+          saas_daviplata: medios.saas_daviplata || '',
+          saas_bre_b: medios.saas_bre_b || '',
+          saas_bancolombia: medios.saas_bancolombia || '',
+          gemini_api_key: medios.gemini_api_key || '',
+          slack_webhook_url: medios.slack_webhook_url || ''
+        });
+      }
+    } catch (e) {
+      console.error("Error al cargar configuración superadmin:", e);
+    } finally {
+      setLoading(false);
     }
-    setConfigAdmin(loaded);
-    setLoading(false);
   };
 
   const guardarConfiguracion = async (campo: string, valor: string, mensajeExito: string) => {
@@ -102,9 +100,11 @@ export default function ConfiguracionPage() {
       payload[campo] = valor;
       const res = await fetch('/api/admin/configuracion', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('Error al guardar en la base de datos.');
+      await cargarConfiguracion();
       toast.success(mensajeExito);
     } catch (err: any) {
       toast.error(err.message);
@@ -203,6 +203,7 @@ export default function ConfiguracionPage() {
               try {
                 const res = await fetch('/api/admin/configuracion', {
                   method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
                     saas_nequi: configAdmin.saas_nequi || '',
                     saas_daviplata: configAdmin.saas_daviplata || '',
@@ -211,6 +212,7 @@ export default function ConfiguracionPage() {
                   })
                 });
                 if (!res.ok) throw new Error('Error al guardar');
+                await cargarConfiguracion();
                 toast.success('Medios de pago SaaS actualizados correctamente 🚀');
               } catch (e: any) {
                 toast.error('Error: ' + e.message);

@@ -82,9 +82,14 @@ export async function POST(request: Request) {
     console.log('[configuracion] payload a guardar:', JSON.stringify(payload));
 
     // 4. UPDATE primero (más confiable que upsert cuando la fila ya existe)
+    const updateObj: any = { mensaje_cobro: payload.mensaje_cobro };
+    if (payload.telefono_soporte !== undefined) {
+      updateObj.telefono_soporte = payload.telefono_soporte;
+    }
+
     const { data: updated, error: updateError } = await supabaseAdmin
       .from('configuracion_superadmin')
-      .update({ mensaje_cobro: payload.mensaje_cobro, ...(payload.telefono_soporte ? { telefono_soporte: payload.telefono_soporte } : {}) })
+      .update(updateObj)
       .eq('id', 1)
       .select('id, mensaje_cobro');
 

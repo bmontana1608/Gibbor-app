@@ -62,14 +62,25 @@ export default function ConfiguracionGeneral() {
           return;
         }
 
+        const { data: clubData } = await supabase.from('clubes').select('nombre, logo_url, color_primario, color_secundario').eq('id', tenantData.id).maybeSingle();
+        if (clubData) {
+          setIdentidad({
+            logo_url: clubData.logo_url || '',
+            color_primario: clubData.color_primario || '#06b6d4',
+            color_secundario: clubData.color_secundario || '#0284c7'
+          });
+        }
+
         const { data } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenantData.id).maybeSingle();
         const añoActual = new Date().getFullYear();
         
+        const clubNombreFinal = clubData?.nombre || data?.nombre_club || tenantData.config?.nombre || tenantData.nombre || 'MI CLUB';
+
         if (data) {
           setConfig(prev => ({
             ...prev,
             ...data,
-            nombre_club: data.nombre_club || tenantData.config?.nombre || 'MI CLUB',
+            nombre_club: clubNombreFinal,
             temporada_actual: data.temporada_actual || `TEMPORADA ${añoActual}`,
             hijos_config: data.hijos_config || '',
             link_pago: data.link_pago || ''
@@ -78,18 +89,9 @@ export default function ConfiguracionGeneral() {
         } else {
           setConfig(prev => ({
             ...prev,
-            nombre_club: tenantData.config?.nombre || 'MI CLUB',
+            nombre_club: clubNombreFinal,
             temporada_actual: `TEMPORADA ${añoActual}`
           }));
-        }
-
-        const { data: clubData } = await supabase.from('clubes').select('logo_url, color_primario, color_secundario').eq('id', tenantData.id).single();
-        if (clubData) {
-          setIdentidad({
-            logo_url: clubData.logo_url || '',
-            color_primario: clubData.color_primario || '#06b6d4',
-            color_secundario: clubData.color_secundario || '#0284c7'
-          });
         }
         setLoadingConfig(false);
 
