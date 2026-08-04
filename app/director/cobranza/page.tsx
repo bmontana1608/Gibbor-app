@@ -671,7 +671,15 @@ export default function ModuloCobranza() {
       const textoDescuento = descuentoCalculado > 0 
         ? ` Recuerda que si pagas antes del 5 tienes descuento de $${descuentoCalculado.toLocaleString('es-CO')}.`
         : '';
-      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en el club ✨`;
+      const metodosPagoTexto = [
+        clubConfig?.nequi ? `• Nequi: *${clubConfig.nequi}*` : '',
+        clubConfig?.daviplata ? `• Daviplata: *${clubConfig.daviplata}*` : '',
+        clubConfig?.bre_b ? `• Llave Bre-B / Transfiya: *${clubConfig.bre_b}*` : '',
+        clubConfig?.banco_nombre ? `• ${clubConfig.banco_nombre}: *${clubConfig.banco_numero || ''}*` : ''
+      ].filter(Boolean).join('\n');
+
+      const bloquePagoMsg = metodosPagoTexto ? `\n\n💳 *Canales de Pago Disponibles:*\n${metodosPagoTexto}` : '';
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento}${bloquePagoMsg}\n\nGracias por confiar en el club ✨`;
 
       const result = await enviarMensajeWhatsApp(
         alumno.telefono,

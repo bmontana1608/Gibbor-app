@@ -58,29 +58,21 @@ export default function SaasCobranzaPage() {
   const cargarDatos = async () => {
     setCargando(true);
     try {
-      // 0. Cargar config superadmin (solo columnas reales de la tabla)
-      const { data: configData } = await supabase
-        .from('configuracion_superadmin')
-        .select('id, telefono_soporte, mensaje_cobro')
-        .eq('id', 1)
-        .maybeSingle();
-
-      if (configData) {
-        let loaded: any = { ...configData };
-        // Solo usar mensaje_cobro como fallback cuando el campo de columna esté vacío
-        if (configData.mensaje_cobro) {
-          try {
-            const parsed = JSON.parse(configData.mensaje_cobro);
-            if (typeof parsed === 'object' && parsed !== null) {
-              for (const key of ['saas_nequi', 'saas_daviplata', 'saas_bre_b', 'saas_bancolombia']) {
-                if (parsed[key] && !loaded[key]) {
-                  loaded[key] = parsed[key];
-                }
-              }
-            }
-          } catch (e) {}
+      // 0. Cargar config superadmin mediante API server (bypasses RLS)
+      try {
+        const resConfig = await fetch('/api/admin/configuracion', { cache: 'no-store' });
+        if (resConfig.ok) {
+          const configJson = await resConfig.json();
+          const raw = configJson.raw || {};
+          const medios = configJson.medios_de_pago || {};
+          setConfigSuperAdmin({
+            telefono_soporte: raw.telefono_soporte || '',
+            mensaje_cobro: raw.mensaje_cobro,
+            ...medios
+          });
         }
-        setConfigSuperAdmin(loaded);
+      } catch (e) {
+        console.error("Error al cargar configSuperAdmin en cobranza:", e);
       }
 
 
