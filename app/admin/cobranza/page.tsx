@@ -7,7 +7,7 @@ import {
   Building2, CreditCard, DollarSign, Calendar, Search, 
   CheckCircle, FileText, Trash2, PlusCircle, X, 
   Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle,
-  MessageSquare, Send, Smartphone, Bell, Printer, RefreshCw, Eye, CheckCircle2
+  MessageSquare, Send, Smartphone, Bell, Printer, RefreshCw, Eye, CheckCircle2, Filter
 } from 'lucide-react';
 import { buildBloquePago } from '@/lib/saas-pago-utils';
 import { generarReciboSaaSPDFBase64 } from '@/lib/recibo-saas-utils';
@@ -23,8 +23,8 @@ export default function SaasCobranzaPage() {
   const [activeTab, setActiveTab] = useState<'estado_cuentas' | 'facturas' | 'pagos' | 'recibos'>('estado_cuentas');
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstadoFactura, setFiltroEstadoFactura] = useState('Todos');
-  const [filtroMes, setFiltroMes] = useState('Todos');
-  const [filtroAnio, setFiltroAnio] = useState('Todos');
+  const [filtroMes, setFiltroMes] = useState<string>('Todos');
+  const [filtroAnio, setFiltroAnio] = useState<string>('Todos');
   const [filtroTipoRecibo, setFiltroTipoRecibo] = useState<'Todos' | 'pago' | 'cobro'>('Todos');
 
   // Modal registrar pago
@@ -135,7 +135,7 @@ export default function SaasCobranzaPage() {
       const { error } = await supabase.functions.invoke('facturacion-mensual');
       if (error) throw error;
       
-      toast.success('Corte mensual calculado con éxito', { id: toastId });
+      toast.success('Corte mensual calculated con éxito', { id: toastId });
       cargarDatos();
     } catch (error: any) {
       toast.error('Error al calcular corte: ' + error.message, { id: toastId });
@@ -286,7 +286,6 @@ export default function SaasCobranzaPage() {
     }
   };
 
-  // Abrir Modal de Notificación Intuitivo
   const abrirModalPreview = (club: any, factura?: any) => {
     setClubPreview(club);
     setFacturaPreview(factura || null);
@@ -448,9 +447,6 @@ export default function SaasCobranzaPage() {
     .reduce((sum, f) => sum + Number(f.total_pagar), 0);
 
   // --- CONSTRUCCIÓN DEL HISTORIAL UNIFICADO DE RECIBOS DEL MES ---
-  const hoyAnio = new Date().getFullYear();
-  const hoyMesIndex = new Date().getMonth() + 1;
-
   const recibosPagoLista = pagos.map(p => {
     const clubMatch = clubes.find(c => c.id === p.club_id);
     const fechaObj = p.fecha_pago ? new Date(p.fecha_pago) : new Date();
@@ -502,13 +498,21 @@ export default function SaasCobranzaPage() {
     (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
   );
 
+  // --- APLICACIÓN DE FILTROS DE BÚSQUEDA Y DE FECHA (MES Y AÑO) ---
   const recibosFiltrados = todosRecibosUnificados.filter(r => {
     const matchesSearch = r.club_nombre.toLowerCase().includes(busqueda.toLowerCase()) || r.consecutivo.toLowerCase().includes(busqueda.toLowerCase());
     const matchesTipo = filtroTipoRecibo === 'Todos' || r.tipo === filtroTipoRecibo;
-    return matchesSearch && matchesTipo;
+    
+    const fechaObj = new Date(r.fecha);
+    const mesNum = fechaObj.getMonth() + 1;
+    const anioNum = fechaObj.getFullYear();
+
+    const matchesMes = filtroMes === 'Todos' || mesNum === Number(filtroMes);
+    const matchesAnio = filtroAnio === 'Todos' || anioNum === Number(filtroAnio);
+
+    return matchesSearch && matchesTipo && matchesMes && matchesAnio;
   });
 
-  // --- FILTROS DE LISTAS DE OTRAS PESTAÑAS ---
   const clubesFiltrados = clubes.filter(c => 
     c.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
     c.slug.toLowerCase().includes(busqueda.toLowerCase())
@@ -520,6 +524,19 @@ export default function SaasCobranzaPage() {
     const matchesMes = filtroMes === 'Todos' || f.periodo_mes === Number(filtroMes);
     const matchesAnio = filtroAnio === 'Todos' || f.periodo_anio === Number(filtroAnio);
     return matchesSearch && matchesEstado && matchesMes && matchesAnio;
+  });
+
+  const pagosFiltrados = pagos.filter(p => {
+    const clubMatch = p.clubes?.nombre || '';
+    const matchesSearch = clubMatch.toLowerCase().includes(busqueda.toLowerCase());
+    const fechaObj = new Date(p.fecha_pago);
+    const mesNum = fechaObj.getMonth() + 1;
+    const anioNum = fechaObj.getFullYear();
+
+    const matchesMes = filtroMes === 'Todos' || mesNum === Number(filtroMes);
+    const matchesAnio = filtroAnio === 'Todos' || anioNum === Number(filtroAnio);
+
+    return matchesSearch && matchesMes && matchesAnio;
   });
 
   if (cargando) {
@@ -596,10 +613,10 @@ export default function SaasCobranzaPage() {
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recibos del Mes</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recibos Emitidos</span>
             <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500"><FileText size={16}/></div>
           </div>
-          <h3 className="text-2xl font-black text-slate-800 tracking-tight">{todosRecibosUnificados.length} Emitidos</h3>
+          <h3 className="text-2xl font-black text-slate-800 tracking-tight">{recibosFiltrados.length} Registros</h3>
           <p className="text-[10px] text-slate-400 font-semibold mt-1">{recibosPagoLista.length} pagos / {recibosCobroLista.length} cobros</p>
         </div>
       </div>
@@ -616,33 +633,79 @@ export default function SaasCobranzaPage() {
           onClick={() => { setActiveTab('facturas'); setBusqueda(''); }}
           className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'facturas' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          <Calendar size={16} /> Facturas Emitidas ({facturas.length})
+          <Calendar size={16} /> Facturas Emitidas ({facturasFiltradas.length})
         </button>
         <button 
           onClick={() => { setActiveTab('pagos'); setBusqueda(''); }}
           className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'pagos' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          <CheckCircle size={16} /> Historial de Pagos ({pagos.length})
+          <CheckCircle size={16} /> Historial de Pagos ({pagosFiltrados.length})
         </button>
         <button 
           onClick={() => { setActiveTab('recibos'); setBusqueda(''); }}
           className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'recibos' ? 'bg-lime-500 text-white shadow-md shadow-lime-500/20' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          <FileText size={16} /> Recibos y Comprobantes del Mes ({todosRecibosUnificados.length})
+          <FileText size={16} /> Recibos y Comprobantes del Mes ({recibosFiltrados.length})
         </button>
       </div>
 
-      {/* CONTROLES / FILTROS DE BÚSQUEDA */}
+      {/* CONTROLES / FILTROS DE BÚSQUEDA Y FECHA POR MES/AÑO */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            value={busqueda} 
-            onChange={e => setBusqueda(e.target.value)} 
-            placeholder="Buscar por academia, slug o N° de recibo..." 
-            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-lime-500/35 focus:bg-white transition-all text-slate-800 font-medium"
-          />
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-center">
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
+            <input 
+              type="text" 
+              value={busqueda} 
+              onChange={e => setBusqueda(e.target.value)} 
+              placeholder="Buscar por academia, slug o N° recibo..." 
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-lime-500/35 focus:bg-white transition-all text-slate-800 font-medium"
+            />
+          </div>
+
+          {/* FILTRO DE MES Y AÑO */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+              <Calendar size={14} className="text-lime-600" />
+              <select 
+                value={filtroMes} 
+                onChange={e => setFiltroMes(e.target.value)} 
+                className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer"
+              >
+                <option value="Todos">Todos los Meses</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                  <option key={m} value={m}>{nombreMes(m)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+              <select 
+                value={filtroAnio} 
+                onChange={e => setFiltroAnio(e.target.value)} 
+                className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer"
+              >
+                <option value="Todos">Todos los Años</option>
+                {[2026, 2025, 2024, 2023].map(a => (
+                  <option key={a} value={a}>{a}</option>
+                ))}
+              </select>
+            </div>
+
+            {(filtroMes !== 'Todos' || filtroAnio !== 'Todos' || busqueda) && (
+              <button
+                onClick={() => {
+                  setFiltroMes('Todos');
+                  setFiltroAnio('Todos');
+                  setBusqueda('');
+                }}
+                className="text-xs font-bold text-slate-400 hover:text-red-500 px-2 py-1 transition-colors"
+                title="Limpiar filtros"
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
         </div>
 
         {activeTab === 'recibos' && (
@@ -651,19 +714,19 @@ export default function SaasCobranzaPage() {
               onClick={() => setFiltroTipoRecibo('Todos')}
               className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'Todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
             >
-              Todos ({todosRecibosUnificados.length})
+              Todos ({recibosFiltrados.length})
             </button>
             <button
               onClick={() => setFiltroTipoRecibo('pago')}
               className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'pago' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
             >
-              Pagos Confirmados ({recibosPagoLista.length})
+              Pagos Confirmados
             </button>
             <button
               onClick={() => setFiltroTipoRecibo('cobro')}
               className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'cobro' ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}`}
             >
-              Cuentas de Cobro ({recibosCobroLista.length})
+              Cuentas de Cobro
             </button>
           </div>
         )}
@@ -678,17 +741,6 @@ export default function SaasCobranzaPage() {
               <option value="Todos">Todos los Estados</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Pagado">Pagado</option>
-            </select>
-
-            <select 
-              value={filtroMes} 
-              onChange={e => setFiltroMes(e.target.value)} 
-              className="bg-slate-50 border border-slate-200 text-xs font-bold uppercase rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-lime-500 text-slate-600"
-            >
-              <option value="Todos">Todos los Meses</option>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                <option key={m} value={m}>{nombreMes(m)}</option>
-              ))}
             </select>
           </div>
         )}
@@ -907,7 +959,7 @@ export default function SaasCobranzaPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {pagos.map(p => (
+                {pagosFiltrados.map(p => (
                   <tr key={p.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-medium text-slate-600">
                       {new Date(p.fecha_pago).toLocaleDateString('es-CO')}
@@ -965,9 +1017,9 @@ export default function SaasCobranzaPage() {
                     </td>
                   </tr>
                 ))}
-                {pagos.length === 0 && (
+                {pagosFiltrados.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">Aún no hay ningún pago registrado.</td>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">No se encontraron pagos con los filtros aplicados.</td>
                   </tr>
                 )}
               </tbody>
@@ -982,13 +1034,18 @@ export default function SaasCobranzaPage() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <FileText className="text-lime-500 w-6 h-6" /> Recibos y Comprobantes Emitidos este Mes
+                <FileText className="text-lime-500 w-6 h-6" /> Recibos y Comprobantes Emitidos
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Historial unificado de cuentas de cobro y confirmaciones de pago. Reimprime en PDF o reenvía por WhatsApp.
+                Historial unificado de cuentas de cobro y confirmaciones de pago. Consulta por mes, reimprime en PDF o reenvía por WhatsApp.
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {filtroMes !== 'Todos' && (
+                <span className="bg-lime-100 text-lime-800 text-xs font-bold px-3 py-1 rounded-full border border-lime-300">
+                  Mes: {nombreMes(Number(filtroMes))} {filtroAnio !== 'Todos' ? filtroAnio : ''}
+                </span>
+              )}
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total: {recibosFiltrados.length}</span>
             </div>
           </div>
@@ -1058,7 +1115,7 @@ export default function SaasCobranzaPage() {
                 {recibosFiltrados.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
-                      No hay recibos registrados en este período.
+                      No hay recibos registrados para los filtros seleccionados.
                     </td>
                   </tr>
                 )}
