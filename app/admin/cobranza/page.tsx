@@ -7,9 +7,10 @@ import {
   Building2, CreditCard, DollarSign, Calendar, Search, 
   CheckCircle, FileText, Trash2, PlusCircle, X, 
   Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle,
-  MessageSquare, Send, Smartphone, Bell
+  MessageSquare, Send, Smartphone, Bell, Printer, RefreshCw, Eye, CheckCircle2
 } from 'lucide-react';
 import { buildBloquePago } from '@/lib/saas-pago-utils';
+import { generarReciboSaaSPDFBase64 } from '@/lib/recibo-saas-utils';
 
 export default function SaasCobranzaPage() {
   const [cargando, setCargando] = useState(true);
@@ -19,11 +20,12 @@ export default function SaasCobranzaPage() {
   const [activosPorClub, setActivosPorClub] = useState<Record<string, number>>({});
   
   // Filtros y Pestañas
-  const [activeTab, setActiveTab] = useState<'estado_cuentas' | 'facturas' | 'pagos'>('estado_cuentas');
+  const [activeTab, setActiveTab] = useState<'estado_cuentas' | 'facturas' | 'pagos' | 'recibos'>('estado_cuentas');
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstadoFactura, setFiltroEstadoFactura] = useState('Todos');
   const [filtroMes, setFiltroMes] = useState('Todos');
   const [filtroAnio, setFiltroAnio] = useState('Todos');
+  const [filtroTipoRecibo, setFiltroTipoRecibo] = useState<'Todos' | 'pago' | 'cobro'>('Todos');
 
   // Modal registrar pago
   const [isModalPagoOpen, setIsModalPagoOpen] = useState(false);
@@ -32,6 +34,9 @@ export default function SaasCobranzaPage() {
   const [metodoPago, setMetodoPago] = useState('Transferencia');
   const [comprobanteUrl, setComprobanteUrl] = useState('');
   const [fechaPago, setFechaPago] = useState(() => new Date().toISOString().split('T')[0]);
+
+  // Modal Recibo Generado tras Registrar Pago
+  const [reciboGenerado, setReciboGenerado] = useState<any>(null);
 
   // Modal generar facturas
   const [isModalGenerarOpen, setIsModalGenerarOpen] = useState(false);
@@ -75,7 +80,6 @@ export default function SaasCobranzaPage() {
         console.error("Error al cargar configSuperAdmin en cobranza:", e);
       }
 
-
       // 1. Cargar clubes con sus planes
       const { data: clubesData } = await supabase
         .from('clubes')
@@ -86,7 +90,7 @@ export default function SaasCobranzaPage() {
       // 2. Cargar todas las facturas
       const { data: facturasData } = await supabase
         .from('facturacion_mensual')
-        .select('*, clubes(nombre, slug)')
+        .select('*, clubes(nombre, slug, telefono_contacto)')
         .order('created_at', { ascending: false });
 
       // 3. Cargar todos los pagos (vía API para saltar RLS)
@@ -128,7 +132,7 @@ export default function SaasCobranzaPage() {
 
     const toastId = toast.loading('Calculando facturación mensual...');
     try {
-      const { data, error } = await supabase.functions.invoke('facturacion-mensual');
+      const { error } = await supabase.functions.invoke('facturacion-mensual');
       if (error) throw error;
       
       toast.success('Corte mensual calculado con éxito', { id: toastId });
@@ -152,7 +156,7 @@ export default function SaasCobranzaPage() {
 
     const toastId = toast.loading('Registrando pago de suscripción...');
     try {
-      // 1. & 2. Guardar en pagos_saas y marcar factura como pagada (vía API para evitar errores RLS)
+      // 1. Guardar en pagos_saas y marcar factura como pagada (vía API)
       const resPago = await fetch('/api/admin/pagos-saas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,7 +172,7 @@ export default function SaasCobranzaPage() {
       const dataPago = await resPago.json();
       if (dataPago.error) throw new Error(dataPago.error);
 
-      // 3. Extender suscripción del club (Llamando al API del sistema)
+      // 2. Extender suscripción del club
       const resSuscripcion = await fetch('/api/admin/suscripciones', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -177,27 +181,28 @@ export default function SaasCobranzaPage() {
       const dataSusc = await resSuscripcion.json();
       if (dataSusc.error) throw new Error(dataSusc.error);
 
-      // 4. Trigger recibo (no bloquea si falla, pero avisa)
-      if (dataPago.pago_id) {
-        toast.loading('Membresía extendida. Enviando recibo por WhatsApp...', { id: toastId });
-        try {
-          const resRecibo = await fetch('/api/admin/enviar-recibo-saas', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pago_id: dataPago.pago_id })
-          });
-          const resultRecibo = await resRecibo.json();
-          if (resultRecibo.error) {
-            toast.success('Membresía extendida, pero no se envió recibo: ' + resultRecibo.error, { id: toastId, duration: 5000 });
-          } else {
-            toast.success('Membresía extendida y recibo enviado 🚀', { id: toastId });
-          }
-        } catch (e: any) {
-          toast.success('Membresía extendida (Error al enviar recibo)', { id: toastId });
-        }
-      } else {
-        toast.success('Pago registrado y membresía de club extendida 🚀', { id: toastId });
-      }
+      toast.success('Pago registrado y membresía extendida 🚀', { id: toastId });
+
+      // 3. Preparar recibo generado para modal interactivo inteligente
+      const clubMatch = clubes.find(c => c.id === facturaSeleccionada.club_id);
+      const mesNombre = nombreMes(facturaSeleccionada.periodo_mes);
+      const consecutivoUnico = dataPago.pago_id ? dataPago.pago_id.slice(-4).toUpperCase() : String(Math.floor(1000 + Math.random() * 9000));
+
+      setReciboGenerado({
+        pago_id: dataPago.pago_id,
+        factura_id: facturaSeleccionada.id,
+        club_id: facturaSeleccionada.club_id,
+        club_nombre: facturaSeleccionada.clubes?.nombre || clubMatch?.nombre || 'Club',
+        club_slug: facturaSeleccionada.clubes?.slug || clubMatch?.slug || '',
+        club_telefono: clubMatch?.telefono_contacto || '',
+        consecutivo: consecutivoUnico,
+        monto_total: Number(montoPagado),
+        metodo_pago: metodoPago,
+        fecha: fechaPago,
+        mes_cobrado: `${mesNombre} ${facturaSeleccionada.periodo_anio}`,
+        cantidad_jugadores: facturaSeleccionada.cantidad_jugadores || 0,
+        tipo: 'pago'
+      });
 
       setIsModalPagoOpen(false);
       cargarDatos();
@@ -207,7 +212,7 @@ export default function SaasCobranzaPage() {
   };
 
   const eliminarPago = async (pago: any) => {
-    const confirmar = window.confirm(`¿Estás seguro de eliminar este pago por $${Number(pago.monto_pagado).toLocaleString('es-CO')}? Esto no revertirá la fecha de corte del club pero cambiará el estado de la factura.`);
+    const confirmar = window.confirm(`¿Estás seguro de eliminar este pago por $${Number(pago.monto_pagado).toLocaleString('es-CO')}? Esto cambiará el estado de la factura a pendiente.`);
     if (!confirmar) return;
 
     const toastId = toast.loading('Eliminando pago...');
@@ -225,23 +230,6 @@ export default function SaasCobranzaPage() {
     }
   };
 
-  const enviarReciboManual = async (pago: any) => {
-    const toastId = toast.loading('Generando y enviando recibo...');
-    try {
-      const res = await fetch('/api/admin/enviar-recibo-saas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pago_id: pago.id })
-      });
-      const result = await res.json();
-      if (result.error) throw new Error(result.error);
-      
-      toast.success('Recibo enviado correctamente', { id: toastId });
-    } catch (e: any) {
-      toast.error('Error al enviar: ' + e.message, { id: toastId });
-    }
-  };
-
   const iniciarEdicionCorte = (club: any) => {
     setEditingCorteId(club.id);
     setEditingCorteFecha(club.proximo_corte || new Date().toISOString().split('T')[0]);
@@ -254,8 +242,6 @@ export default function SaasCobranzaPage() {
 
   const guardarCorte = async (club: any) => {
     if (!editingCorteFecha) return;
-    
-    // Validar formato YYYY-MM-DD
     if (!/^\d{4}-\d{2}-\d{2}$/.test(editingCorteFecha)) {
       toast.error('Formato inválido. Usa YYYY-MM-DD.');
       return;
@@ -300,6 +286,7 @@ export default function SaasCobranzaPage() {
     }
   };
 
+  // Abrir Modal de Notificación Intuitivo
   const abrirModalPreview = (club: any, factura?: any) => {
     setClubPreview(club);
     setFacturaPreview(factura || null);
@@ -378,6 +365,51 @@ export default function SaasCobranzaPage() {
     }
   };
 
+  // --- MÉTODOS DE MANEJO DE RECIBOS INTELIGENTES ---
+  const reimprimirReciboSaaS = async (recibo: any) => {
+    const toastId = toast.loading("Generando PDF de " + (recibo.tipo === 'pago' ? 'Comprobante' : 'Cuenta de Cobro') + "...");
+    try {
+      const pdfBase64 = await generarReciboSaaSPDFBase64({
+        clubNombre: recibo.club_nombre,
+        clubDocumento: recibo.club_documento || 'N/A',
+        clubTelefono: recibo.club_telefono || '',
+        mesCobrado: recibo.mes_cobrado,
+        cantidadJugadores: recibo.cantidad_jugadores || 0,
+        montoTotal: recibo.monto_total,
+        consecutivo: recibo.consecutivo,
+        metodoPago: recibo.metodo_pago || (recibo.tipo === 'pago' ? 'Suscripción SaaS' : undefined),
+        fechaPago: recibo.fecha,
+        tipoRecibo: recibo.tipo
+      });
+
+      const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      win?.focus();
+      toast.success("PDF generado exitosamente 🚀", { id: toastId });
+    } catch (e: any) {
+      toast.error("Error al generar PDF: " + e.message, { id: toastId });
+    }
+  };
+
+  const reenviarWhatsAppRecibo = async (recibo: any) => {
+    const clubMatch = clubes.find(c => c.id === recibo.club_id) || { nombre: recibo.club_nombre, slug: recibo.club_slug, id: recibo.club_id, telefono_contacto: recibo.club_telefono };
+    setClubPreview(clubMatch);
+    setFacturaPreview(recibo.factura_id ? { id: recibo.factura_id } : null);
+
+    let borrador = '';
+    if (recibo.tipo === 'pago') {
+      borrador = `¡Hola *${recibo.club_nombre}*! 👋\n\nConfirmamos el recibo de tu pago de la suscripción SaaS correspondiente a *${recibo.mes_cobrado}* por un valor de *$ ${recibo.monto_total.toLocaleString('es-CO')}* (Vía ${recibo.metodo_pago || 'Transferencia'}).\n\n📄 Adjuntamos tu *Comprobante Oficial de Pago* en PDF.\n\n¡Gracias por tu confianza en *Master Club Manager*! 🏆✨`;
+    } else {
+      const bloquePago = buildBloquePago(configSuperAdmin || {});
+      borrador = `Hola *${recibo.club_nombre}* 👋⚽,\n\nTe recordamos que se encuentra pendiente el aporte de tu mensualidad SaaS correspondiente a *${recibo.mes_cobrado}* por un valor de *$ ${recibo.monto_total.toLocaleString('es-CO')}*.\n\n📄 *Detalles de tu Suscripción:*\n• Total a Pagar: *$ ${recibo.monto_total.toLocaleString('es-CO')}*\n• Fecha de Corte: *${recibo.fecha_corte || 'En transcurso'}*\n\n💳 *Medios de Pago Disponibles:*\n${bloquePago}\n• Acceso Directo: *https://www.masterclubmanager.com/${recibo.club_slug || ''}/login*\n\nPor favor envíanos tu comprobante por este medio una vez realizado el pago para mantener tu plataforma 100% activa. ¡Gracias por tu confianza! 🏆`;
+    }
+
+    setMensajePreview(borrador);
+    setIsModalPreviewOpen(true);
+  };
+
   const formatearDinero = (monto: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -415,7 +447,68 @@ export default function SaasCobranzaPage() {
     .filter(f => f.estado_pago !== 'pagado')
     .reduce((sum, f) => sum + Number(f.total_pagar), 0);
 
-  // --- FILTROS DE LISTAS ---
+  // --- CONSTRUCCIÓN DEL HISTORIAL UNIFICADO DE RECIBOS DEL MES ---
+  const hoyAnio = new Date().getFullYear();
+  const hoyMesIndex = new Date().getMonth() + 1;
+
+  const recibosPagoLista = pagos.map(p => {
+    const clubMatch = clubes.find(c => c.id === p.club_id);
+    const fechaObj = p.fecha_pago ? new Date(p.fecha_pago) : new Date();
+    const mesNombre = nombreMes(fechaObj.getMonth() + 1);
+    return {
+      id: `pago-${p.id}`,
+      pago_id: p.id,
+      consecutivo: p.id.slice(-4).toUpperCase(),
+      club_id: p.club_id,
+      club_nombre: p.clubes?.nombre || clubMatch?.nombre || 'Club',
+      club_slug: clubMatch?.slug || '',
+      club_telefono: clubMatch?.telefono_contacto || '',
+      monto_total: Number(p.monto_pagado || 0),
+      metodo_pago: p.metodo_pago || 'Suscripción SaaS',
+      fecha: p.fecha_pago || new Date().toISOString(),
+      mes_cobrado: `${mesNombre} ${fechaObj.getFullYear()}`,
+      cantidad_jugadores: activosPorClub[p.club_id] || 0,
+      tipo: 'pago' as const,
+      estado_label: 'PAGO CONFIRMADO'
+    };
+  });
+
+  const recibosCobroLista = facturas
+    .filter(f => f.estado_pago !== 'pagado')
+    .map(f => {
+      const clubMatch = clubes.find(c => c.id === f.club_id);
+      const mesNombre = nombreMes(f.periodo_mes);
+      const isVencido = clubMatch?.proximo_corte ? new Date(clubMatch.proximo_corte) < new Date() : false;
+      return {
+        id: `factura-${f.id}`,
+        factura_id: f.id,
+        consecutivo: String(f.id).slice(0, 5).toUpperCase(),
+        club_id: f.club_id,
+        club_nombre: f.clubes?.nombre || clubMatch?.nombre || 'Club',
+        club_slug: f.clubes?.slug || clubMatch?.slug || '',
+        club_telefono: clubMatch?.telefono_contacto || '',
+        monto_total: Number(f.total_pagar || 0),
+        metodo_pago: undefined,
+        fecha: f.created_at || new Date().toISOString(),
+        fecha_corte: clubMatch?.proximo_corte || `${f.periodo_anio}-${String(f.periodo_mes).padStart(2, '0')}-05`,
+        mes_cobrado: `${mesNombre} ${f.periodo_anio}`,
+        cantidad_jugadores: f.cantidad_jugadores || activosPorClub[f.club_id] || 0,
+        tipo: 'cobro' as const,
+        estado_label: isVencido ? 'COBRO VENCIDO' : 'CUENTA DE COBRO'
+      };
+    });
+
+  const todosRecibosUnificados = [...recibosPagoLista, ...recibosCobroLista].sort(
+    (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+  );
+
+  const recibosFiltrados = todosRecibosUnificados.filter(r => {
+    const matchesSearch = r.club_nombre.toLowerCase().includes(busqueda.toLowerCase()) || r.consecutivo.toLowerCase().includes(busqueda.toLowerCase());
+    const matchesTipo = filtroTipoRecibo === 'Todos' || r.tipo === filtroTipoRecibo;
+    return matchesSearch && matchesTipo;
+  });
+
+  // --- FILTROS DE LISTAS DE OTRAS PESTAÑAS ---
   const clubesFiltrados = clubes.filter(c => 
     c.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
     c.slug.toLowerCase().includes(busqueda.toLowerCase())
@@ -440,11 +533,13 @@ export default function SaasCobranzaPage() {
   return (
     <div className="space-y-8 pb-20 animate-in fade-in duration-300">
       
-      {/* HEADER */}
+      {/* HEADER PRINCIPAL */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-3xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Cobranza Multiclub</h1>
-          <p className="text-slate-500 font-medium mt-1">Controla los pagos de membresías SaaS, emite cobros e ingresa abonos de los clubes.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <CreditCard className="text-lime-500 w-8 h-8" /> Cobranza Multiclub SaaS
+          </h1>
+          <p className="text-slate-500 font-medium mt-1">Control de pagos de membresías, emisión de recibos inteligentes y notificaciones por WhatsApp.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button 
@@ -470,11 +565,11 @@ export default function SaasCobranzaPage() {
         </div>
       </div>
 
-      {/* KPIS */}
+      {/* KPIS Y MÉTRICAS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">MRR Total Estimado</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">MRR Proyectado</span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500"><TrendingUp size={16}/></div>
           </div>
           <h3 className="text-2xl font-black text-slate-800 tracking-tight">{formatearDinero(mrrTotal)}</h3>
@@ -483,7 +578,7 @@ export default function SaasCobranzaPage() {
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cobrado (Este Mes)</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recaudado (Este Mes)</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500"><CheckCircle size={16}/></div>
           </div>
           <h3 className="text-2xl font-black text-emerald-600 tracking-tight">{formatearDinero(cobradoMes)}</h3>
@@ -492,57 +587,86 @@ export default function SaasCobranzaPage() {
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Deuda Total Pendiente</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Deuda Pendiente</span>
             <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center text-red-500"><AlertTriangle size={16}/></div>
           </div>
           <h3 className="text-2xl font-black text-red-600 tracking-tight">{formatearDinero(deudasTotales)}</h3>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1">De todos los meses</p>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1">Acumulado en mora</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Academias</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500"><Building2 size={16}/></div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recibos del Mes</span>
+            <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500"><FileText size={16}/></div>
           </div>
-          <h3 className="text-2xl font-black text-slate-800 tracking-tight">{clubes.length} Clubes</h3>
-          <p className="text-[10px] text-slate-400 font-semibold mt-1">Activos en la plataforma</p>
+          <h3 className="text-2xl font-black text-slate-800 tracking-tight">{todosRecibosUnificados.length} Emitidos</h3>
+          <p className="text-[10px] text-slate-400 font-semibold mt-1">{recibosPagoLista.length} pagos / {recibosCobroLista.length} cobros</p>
         </div>
       </div>
 
-      {/* PESTAÑAS DE CONTROL */}
-      <div className="flex gap-6 border-b border-slate-200">
+      {/* PESTAÑAS DE CONTROL ESTILO DIRECTOR */}
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         <button 
           onClick={() => { setActiveTab('estado_cuentas'); setBusqueda(''); }}
-          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${activeTab === 'estado_cuentas' ? 'border-lime-500 text-lime-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'estado_cuentas' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          Estado de Cuentas por Club
+          <Building2 size={16} /> Estado de Cuentas por Club
         </button>
         <button 
           onClick={() => { setActiveTab('facturas'); setBusqueda(''); }}
-          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${activeTab === 'facturas' ? 'border-lime-500 text-lime-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'facturas' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          Facturas Emitidas ({facturas.length})
+          <Calendar size={16} /> Facturas Emitidas ({facturas.length})
         </button>
         <button 
           onClick={() => { setActiveTab('pagos'); setBusqueda(''); }}
-          className={`pb-4 px-2 font-bold text-sm transition-all border-b-2 ${activeTab === 'pagos' ? 'border-lime-500 text-lime-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'pagos' ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
         >
-          Historial de Pagos ({pagos.length})
+          <CheckCircle size={16} /> Historial de Pagos ({pagos.length})
+        </button>
+        <button 
+          onClick={() => { setActiveTab('recibos'); setBusqueda(''); }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === 'recibos' ? 'bg-lime-500 text-white shadow-md shadow-lime-500/20' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'}`}
+        >
+          <FileText size={16} /> Recibos y Comprobantes del Mes ({todosRecibosUnificados.length})
         </button>
       </div>
 
-      {/* CONTROLES / FILTROS */}
+      {/* CONTROLES / FILTROS DE BÚSQUEDA */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-80">
+        <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
           <input 
             type="text" 
             value={busqueda} 
             onChange={e => setBusqueda(e.target.value)} 
-            placeholder="Buscar por academia o slug..." 
-            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-lime-500/35 focus:bg-white transition-all text-brand font-medium"
+            placeholder="Buscar por academia, slug o N° de recibo..." 
+            className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-lime-500/35 focus:bg-white transition-all text-slate-800 font-medium"
           />
         </div>
+
+        {activeTab === 'recibos' && (
+          <div className="flex gap-2 w-full md:w-auto">
+            <button
+              onClick={() => setFiltroTipoRecibo('Todos')}
+              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'Todos' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              Todos ({todosRecibosUnificados.length})
+            </button>
+            <button
+              onClick={() => setFiltroTipoRecibo('pago')}
+              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'pago' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
+            >
+              Pagos Confirmados ({recibosPagoLista.length})
+            </button>
+            <button
+              onClick={() => setFiltroTipoRecibo('cobro')}
+              className={`px-3 py-2 text-xs font-bold rounded-xl transition-all ${filtroTipoRecibo === 'cobro' ? 'bg-orange-500 text-white' : 'bg-orange-50 text-orange-700 hover:bg-orange-100'}`}
+            >
+              Cuentas de Cobro ({recibosCobroLista.length})
+            </button>
+          </div>
+        )}
 
         {activeTab === 'facturas' && (
           <div className="flex gap-2 w-full md:w-auto">
@@ -570,7 +694,7 @@ export default function SaasCobranzaPage() {
         )}
       </div>
 
-      {/* CONTENIDO DE PESTAÑA: ESTADO DE CUENTAS */}
+      {/* CONTENIDO DE PESTAÑA: ESTADO DE CUENTAS POR CLUB */}
       {activeTab === 'estado_cuentas' && (
         <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
@@ -597,7 +721,6 @@ export default function SaasCobranzaPage() {
                   const extras = Math.max(0, atletas - limiteBase);
                   const mrrEstimado = precioBase + (extras * precioExtra);
                   
-                  // Calcular deuda pendiente
                   const deuda = facturas
                     .filter(f => f.club_id === club.id && f.estado_pago !== 'pagado')
                     .reduce((sum, f) => sum + Number(f.total_pagar), 0);
@@ -639,14 +762,14 @@ export default function SaasCobranzaPage() {
                               className="p-1.5 text-white bg-lime-500 hover:bg-lime-600 rounded-md transition-colors"
                               title="Guardar"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                              <CheckCircle size={14} />
                             </button>
                             <button 
                               onClick={cancelarEdicionCorte}
                               className="p-1.5 text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
                               title="Cancelar"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                              <X size={14} />
                             </button>
                           </div>
                         ) : (
@@ -661,7 +784,7 @@ export default function SaasCobranzaPage() {
                               className="p-1.5 text-slate-400 hover:text-lime-600 hover:bg-slate-100 rounded-md transition-colors"
                               title="Asignar fecha de corte manual"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                              <Calendar size={14} />
                             </button>
                           </div>
                         )}
@@ -752,7 +875,7 @@ export default function SaasCobranzaPage() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 font-medium">Completada</span>
+                        <span className="text-xs text-slate-400 font-medium">Completada ✅</span>
                       )}
                     </td>
                   </tr>
@@ -799,33 +922,35 @@ export default function SaasCobranzaPage() {
                       {formatearDinero(p.monto_pagado)}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {p.comprobante_url ? (
-                        <a 
-                          href={p.comprobante_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1 justify-center"
-                        >
-                          Ver Adjunto <ArrowUpRight size={12}/>
-                        </a>
-                      ) : (
-                        <a 
-                          href={`/api/admin/descargar-recibo-saas?pago_id=${p.id}`}
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-xs font-bold text-lime-600 hover:underline flex items-center gap-1 justify-center"
-                          title="Descargar PDF Generado por el Sistema"
-                        >
-                          Ver PDF <ArrowUpRight size={12}/>
-                        </a>
-                      )}
+                      <button 
+                        onClick={() => reimprimirReciboSaaS({
+                          club_nombre: p.clubes?.nombre || 'Club',
+                          mes_cobrado: nombreMes(new Date(p.fecha_pago).getMonth() + 1) + ' ' + new Date(p.fecha_pago).getFullYear(),
+                          consecutivo: p.id.slice(-4).toUpperCase(),
+                          monto_total: Number(p.monto_pagado),
+                          metodo_pago: p.metodo_pago,
+                          fecha: p.fecha_pago,
+                          tipo: 'pago'
+                        })}
+                        className="text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1 justify-center mx-auto"
+                        title="Ver Comprobante PDF de Pago"
+                      >
+                        <FileText size={14}/> Ver PDF
+                      </button>
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button 
-                          onClick={() => enviarReciboManual(p)}
+                          onClick={() => reenviarWhatsAppRecibo({
+                            club_id: p.club_id,
+                            club_nombre: p.clubes?.nombre || 'Club',
+                            mes_cobrado: nombreMes(new Date(p.fecha_pago).getMonth() + 1) + ' ' + new Date(p.fecha_pago).getFullYear(),
+                            monto_total: Number(p.monto_pagado),
+                            metodo_pago: p.metodo_pago,
+                            tipo: 'pago'
+                          })}
                           className="text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-colors"
-                          title="Enviar Recibo PDF por WhatsApp al Club"
+                          title="Enviar Comprobante por WhatsApp"
                         >
                           <Send size={16}/>
                         </button>
@@ -843,6 +968,98 @@ export default function SaasCobranzaPage() {
                 {pagos.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">Aún no hay ningún pago registrado.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* CONTENIDO DE PESTAÑA & SECCIÓN INFERIOR: HISTORIAL DE RECIBOS DEL MES */}
+      {(activeTab === 'recibos' || activeTab === 'estado_cuentas') && (
+        <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden p-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <FileText className="text-lime-500 w-6 h-6" /> Recibos y Comprobantes Emitidos este Mes
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Historial unificado de cuentas de cobro y confirmaciones de pago. Reimprime en PDF o reenvía por WhatsApp.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total: {recibosFiltrados.length}</span>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">N° Recibo</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo de Recibo</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Academia / Club</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Período</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Monto Total</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Acciones Inteligentes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {recibosFiltrados.map((recibo) => {
+                  const esPago = recibo.tipo === 'pago';
+
+                  return (
+                    <tr key={recibo.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 font-mono font-bold text-slate-800 text-xs">
+                        #{recibo.consecutivo}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                          esPago 
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                            : (recibo.estado_label.includes('VENCIDO') ? 'bg-red-50 text-red-700 border-red-200' : 'bg-orange-50 text-orange-700 border-orange-200')
+                        }`}>
+                          {recibo.estado_label}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-900">
+                        {recibo.club_nombre}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-bold text-slate-600">
+                        {recibo.mes_cobrado}
+                      </td>
+                      <td className="px-6 py-4 text-right font-black text-slate-900">
+                        {formatearDinero(recibo.monto_total)}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => reimprimirReciboSaaS(recibo)}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                            title="Reimprimir o Descargar PDF"
+                          >
+                            <Printer size={14} /> Reimprimir PDF
+                          </button>
+
+                          <button
+                            onClick={() => reenviarWhatsAppRecibo(recibo)}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+                            title="Reenviar mensaje inteligente por WhatsApp"
+                          >
+                            <Smartphone size={14} /> Reenviar WhatsApp
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {recibosFiltrados.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400 font-medium">
+                      No hay recibos registrados en este período.
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -927,6 +1144,64 @@ export default function SaasCobranzaPage() {
         </div>
       )}
 
+      {/* MODAL INTELIGENTE DE RECIBO GENERADO TRAS REGISTRAR PAGO */}
+      {reciboGenerado && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 bg-slate-900 text-white text-center relative">
+              <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 border border-emerald-500/30">
+                <CheckCircle2 size={32} />
+              </div>
+              <h3 className="text-xl font-black">¡Comprobante de Pago Generado!</h3>
+              <p className="text-xs text-slate-400 mt-1">N° Recibo: #{reciboGenerado.consecutivo}</p>
+              <button 
+                onClick={() => setReciboGenerado(null)} 
+                className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center space-y-1">
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Academia</p>
+                <p className="font-black text-slate-900 text-base">{reciboGenerado.club_nombre}</p>
+                <p className="text-2xl font-black text-emerald-600 pt-2">{formatearDinero(reciboGenerado.monto_total)}</p>
+                <p className="text-xs text-slate-500 font-medium">{reciboGenerado.mes_cobrado} • Vía {reciboGenerado.metodo_pago}</p>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    reenviarWhatsAppRecibo(reciboGenerado);
+                    setReciboGenerado(null);
+                  }}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 text-sm"
+                >
+                  <Smartphone size={18} /> Enviar Comprobante por WhatsApp (Auto)
+                </button>
+
+                <button
+                  onClick={() => {
+                    reimprimirReciboSaaS(reciboGenerado);
+                  }}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                >
+                  <Printer size={16} /> Imprimir / Descargar Comprobante PDF
+                </button>
+
+                <button
+                  onClick={() => setReciboGenerado(null)}
+                  className="w-full bg-transparent text-slate-400 font-bold py-2 hover:text-slate-600 text-xs"
+                >
+                  Cerrar Ventana
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL GENERAR FACTURAS MANUALES */}
       {isModalGenerarOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -987,7 +1262,7 @@ export default function SaasCobranzaPage() {
                   <Smartphone size={20} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black tracking-tight">Notificar Cobro por WhatsApp</h3>
+                  <h3 className="text-base font-black tracking-tight">Notificar por WhatsApp</h3>
                   <p className="text-slate-400 text-xs font-medium">Academia: {clubPreview.nombre}</p>
                 </div>
               </div>
