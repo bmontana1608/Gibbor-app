@@ -5,19 +5,17 @@
 
 ---
 
-## 🖼️ PIEZAS GRÁFICAS DE NIVEL AGENCIA CREADAS
+## 🖼️ PIEZAS GRÁFICAS DE NIVEL AGENCIA CON LOGO OFICIAL MCM
 
-### Opción A: Imagen Única de Alto Impacto (Direct Response Ad)
-- **Ruta:** `marketing/assets/post_01_diseno_profesional_mcm.png`
-- **Enfoque:** Comparativo 3D Isométrico "Antes vs Después" (Caos de cuaderno vs App MCM con WhatsApp automático).
+- **Carpeta de Logos Oficiales:** `marketing/brand_assets/` (`LOGO MCM.png`, `LOGO NEGATIVO MCM.png`, `favicon MCM.png`, `favicon NEGRO MCM.png`)
 
-### Opción B: Carrusel de 3 Slides para Instagram (Formato 1:1 o 4:5)
-- **Slide 1 (Portada de Gancho):** `marketing/assets/post_01_carrusel_slide1_mcm.png`  
-  - *Texto en Imagen:* **"3 FUGAS DE DINERO QUE TIENE TU ESCUELA DE FÚTBOL (Y NO LO SABES)"**
-- **Slide 2 (El Problema Real):**
-  - *Texto en Imagen:* **"1. Alumnos que faltaron y nadie cobró | 2. Recibos perdidos en chats | 3. Torneos financiados de tu propio bolsillo"**
-- **Slide 3 (La Solución MCM):**
-  - *Texto en Imagen:* **"Reemplaza el caos por cobros y recibos automáticos por WhatsApp. Escribe DEMO para probarlo gratis."**
+### Opción A: Single Ad con Logo Negativo Oficial Integrado
+- **Ruta:** `marketing/assets/post_01_ad_con_logo_oficial_mcm.png`
+- **Enfoque:** Imagen promocional dark-mode de alto impacto con el logo negativo oficial de MCM en la esquina superior, contraste 3D entre el caos manual y la app automatizada.
+
+### Opción B: Carrusel de Portada con Logo Positivo Oficial Integrado
+- **Ruta:** `marketing/assets/post_01_carrusel_logo_oficial_mcm.png`
+- **Slide 1 (Portada):** Incorpora la marca e isotipo oficial de MCM en el centro superior con el título principal: *"3 FUGAS DE DINERO QUE TIENE TU ESCUELA DE FÚTBOL (Y NO LO SABES)"*.
 
 ---
 
