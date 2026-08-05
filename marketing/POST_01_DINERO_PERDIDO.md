@@ -1,23 +1,27 @@
-# 📢 POST #01: "EL DINERO QUE TU ESCUELA PIERDE TODOS LOS MESES"
+# 🎨 POST #01 (VERSIÓN DISEÑO DE AGENCIA & CARRUSEL DE ALTO IMPACTO)
+
+> **Concepto Creativo:** Direct-Response SaaS Ad de Nivel Internacional.  
+> **Paleta de Marca MCM:** Dark Slate (`#0F172A`), Lime Neon (`#84CC16`), Emerald Green (`#10B981`) y Cyan Tech (`#06B6D4`).
 
 ---
 
-## 📊 FICHA TÉCNICA DEL POST
-- **Pilar de Contenido:** 1. Errores & Dolor
-- **Emoción Principal:** 💥 **Dolor** (*"Estoy perdiendo dinero sin darme cuenta"*)
-- **Público Objetivo:** Directores, Fundadores y Tesoreros de Escuelas de Fútbol / Academias Deportivas.
-- **Enemigo Atacado:** Cuadernos fisicos, notas sueltas, Excel desactualizado y la memoria del entrenador.
-- **Objetivo de Conversión:** Generar comentarios, DMs y clicks hacia agendamiento de Demos en WhatsApp / Registro de Prueba Gratuita.
-- **Recurso Gráfico Oficial:** `marketing/assets/post_01_dolor_cobranza_mcm.png`
+## 🖼️ PIEZAS GRÁFICAS DE NIVEL AGENCIA CREADAS
+
+### Opción A: Imagen Única de Alto Impacto (Direct Response Ad)
+- **Ruta:** `marketing/assets/post_01_diseno_profesional_mcm.png`
+- **Enfoque:** Comparativo 3D Isométrico "Antes vs Después" (Caos de cuaderno vs App MCM con WhatsApp automático).
+
+### Opción B: Carrusel de 3 Slides para Instagram (Formato 1:1 o 4:5)
+- **Slide 1 (Portada de Gancho):** `marketing/assets/post_01_carrusel_slide1_mcm.png`  
+  - *Texto en Imagen:* **"3 FUGAS DE DINERO QUE TIENE TU ESCUELA DE FÚTBOL (Y NO LO SABES)"**
+- **Slide 2 (El Problema Real):**
+  - *Texto en Imagen:* **"1. Alumnos que faltaron y nadie cobró | 2. Recibos perdidos en chats | 3. Torneos financiados de tu propio bolsillo"**
+- **Slide 3 (La Solución MCM):**
+  - *Texto en Imagen:* **"Reemplaza el caos por cobros y recibos automáticos por WhatsApp. Escribe DEMO para probarlo gratis."**
 
 ---
 
-## 📸 PIEZA GRÁFICA ASOCIADA
-![Post 01 - Cuaderno vs MCM Dashboard](file:///c:/Users/Usuario/Downloads/Gibbor-app-main%20%283%29/Gibbor-app-main/marketing/assets/post_01_dolor_cobranza_mcm.png)
-
----
-
-## 📲 COPY 1: INSTAGRAM & FACEBOOK (Feed)
+## 📲 COPY FINAL OPTIMIZADO PARA PUBLICAR (Instagram / Facebook)
 
 **¿Sabes exactamente cuánto dinero dejó de entrar a tu escuela de fútbol este mes? 📉💸**
 
@@ -44,53 +48,7 @@ En **Master Club Manager (MCM)** reemplazamos el caos por una plataforma automá
 
 ---
 
-## 💼 COPY 2: LINKEDIN (Enfoque Ejecutivo & Financiero)
-
-**El costo oculto de administrar una academia deportiva en hojas de papel y WhatsApp 📉⚽**
-
-Muchos directores de escuelas de fútbol enfocan el 100% de su energía en reclutar nuevos alumnos, pero ignoran la fuga constante de ingresos en su propia caja chica.
-
-El desorden en la cobranza manual genera tres grandes fugas financieras:
-
-1. **Cuentas por cobrar no registradas:** Pagos informales o abonos que nunca se asentaron en un sistema.  
-2. **Cartera vencida no gestionada:** Notificaciones de cobro que no se envían a tiempo por falta de seguimiento.  
-3. **Pérdida de autoridad institucional:** Padres de familia que perciben informalidad administrativa y retrasan sus pagos sin consecuencia.
-
-La solución no es trabajar más horas administrando; es implementar procesos automatizados.
-
-Con **Master Club Manager (MCM)**, transformamos la cobranza manual en un sistema con recibos inteligentes en PDF, alertas automatizadas por WhatsApp y reportería financiera en tiempo real.
-
-Si diriges un club deportivo y quieres proteger la rentabilidad de tu institución, conversemos.
-
-🌐 **Conoce la plataforma:** www.masterclubmanager.com
-
----
-
-## 🎥 SCRIPT 3: REELS / TIKTOK / SHORTS (15 - 20 Segundos)
-
-**[Visual inicial - 0 a 3s]:**
-*(Un cuaderno desgastado con recibos a mano y tachones rojas. Texto grande en pantalla: "¿CUÁNTO DINERO PERDISTE ESTE MES?")*
-
-🎙️ **Voz en Off (Directa / Firme):**
-"Si administras una escuela de fútbol en cuadernos o grupos de WhatsApp... estás perdiendo dinero todos los meses y no te estás dando cuenta."
-
-**[Desarrollo - 3 a 12s]:**
-*(Corte rápido al dashboard de MCM mostrando cobros automáticos verdes y notificaciones de WhatsApp saliendo)*
-🎙️ "Mensualidades no cobradas, inscripciones sin anotar y horas perdidas buscando transferencias. En MCM automatizamos tus cobros y recibos por WhatsApp para que cobres el 100% a tiempo."
-
-**[Llamado a la Acción - 12 a 18s]:**
-*(Texto en pantalla: 'Comenta DEMO o entra al link de la bio')*
-🎙️ "Deja de financiar tu club por desorden. Comenta DEMO o entra al link de nuestra bio y pruébalo gratis."
-
----
-
-## 💬 PROTOCOLO DE CONVERSIÓN EN DMs Y COMENTARIOS
-
-Cuando un Director o Entrenador comente *"DEMO"* o pregunte *"¿Cómo funciona?"*:
-
-**Respuesta Inmediata (DM):**
-> *"¡Hola Profe/Director! 👋 Gracias por escribirnos. Sabias que la mayoría de directores pierden hasta 5 horas a la semana persiguiendo pagos por WhatsApp?*
-> 
-> *En MCM configuramos la plataforma con tu logo y tu propio WhatsApp para que envíes recibos en PDF en 1 clic.*
-> 
-> *¿Cuántos alumnos tiene tu escuela actualmente? Te envío un video corto de 2 minutos adaptado a tu club o te agendo una demo guiada."*
+## 💬 GUÍA DE DIRECCIÓN DE DISEÑO & MARCA (BRAND GUIDELINES)
+1. **Tipografía:** Sans-serif moderna, enérgica y limpia (Montserrat Black / Inter ExtraBold para encabezados; Inter Medium para cuerpo).
+2. **Contraste:** Fondo oscuro profundo con texto blanco nítido y acentos verdes neón (`lime-500`) en datos numéricos y botones de acción.
+3. **Jerarquía Visual:** El dolor (texto grande y números de pérdida) siempre encabeza la pieza; el producto (pantalla real de MCM con tilde verde de WhatsApp) actúa como el héroe salvador.
