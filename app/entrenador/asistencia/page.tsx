@@ -610,7 +610,7 @@ export default function AsistenciaEntrenador() {
 
                           {/* Nombre + badge */}
                           <div className="flex-1 min-w-0">
-                            <p className={`font-black uppercase italic text-sm truncate ${
+                            <p className={`font-black uppercase italic text-sm line-clamp-2 leading-tight ${
                               estado === 'Presente' ? 'text-slate-800 dark:text-white'
                               : estado === 'Ausente' ? 'text-rose-400'
                               : 'text-amber-500'
