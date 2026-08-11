@@ -610,13 +610,14 @@ export default function AsistenciaEntrenador() {
 
                           {/* Nombre + badge */}
                           <div className="flex-1 min-w-0">
-                            <p className={`font-black uppercase italic text-sm line-clamp-2 leading-tight ${
+                            <div className={`font-black uppercase italic leading-tight ${
                               estado === 'Presente' ? 'text-slate-800 dark:text-white'
                               : estado === 'Ausente' ? 'text-rose-400'
                               : 'text-amber-500'
                             }`}>
-                              {alumno.nombres} {alumno.apellidos}
-                            </p>
+                              <p className="text-sm truncate">{alumno.nombres}</p>
+                              <p className="text-xs truncate opacity-80">{alumno.apellidos}</p>
+                            </div>
                             <BadgeAsistencia pct={pct} />
                           </div>
 
