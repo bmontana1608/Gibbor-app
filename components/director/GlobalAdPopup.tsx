@@ -70,39 +70,38 @@ export default function GlobalAdPopup({ tenant, profile }: GlobalAdPopupProps) {
   if (!flyer) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="relative inline-flex max-w-lg max-h-[90vh] animate-in zoom-in-95 duration-300">
+        
+        {/* Botón X flotante en la esquina */}
         <button 
           onClick={cerrarFlyer}
-          className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors"
+          className="absolute -top-3 -right-3 z-10 w-8 h-8 bg-black hover:bg-slate-800 border-2 border-white rounded-full flex items-center justify-center text-white shadow-xl transition-transform hover:scale-105"
         >
-          <X size={18} />
+          <X size={16} strokeWidth={3} />
         </button>
 
-        {flyer.imagen_url && (
-          <img src={flyer.imagen_url} alt={flyer.titulo} className="w-full h-auto max-h-[70vh] object-contain bg-slate-100" />
+        {flyer.link_url ? (
+          <a 
+            href={flyer.link_url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            onClick={cerrarFlyer}
+            className="block w-full h-full cursor-pointer"
+          >
+            <img 
+              src={flyer.imagen_url} 
+              alt={flyer.titulo || 'Promoción'} 
+              className="w-full h-full object-contain rounded-xl shadow-2xl" 
+            />
+          </a>
+        ) : (
+          <img 
+            src={flyer.imagen_url} 
+            alt={flyer.titulo || 'Promoción'} 
+            className="w-full h-full object-contain rounded-xl shadow-2xl" 
+          />
         )}
-
-        <div className="p-6 bg-white">
-          <h2 className="text-xl font-black text-slate-800 tracking-tight mb-2">{flyer.titulo}</h2>
-          
-          <div className="flex gap-3 mt-4">
-            <button onClick={cerrarFlyer} className="flex-1 px-4 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors">
-              Cerrar
-            </button>
-            {flyer.link_url && (
-              <a 
-                href={flyer.link_url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                onClick={cerrarFlyer}
-                className="flex-1 px-4 py-3 bg-brand text-white font-bold rounded-xl hover:bg-brand/90 transition-colors flex items-center justify-center gap-2"
-              >
-                Ver más <ExternalLink size={16} />
-              </a>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );
