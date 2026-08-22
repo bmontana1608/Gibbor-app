@@ -154,7 +154,7 @@ export default function DashboardDirector() {
             
             // Contar cuántos jugadores se registraron antes o durante este mes, y no estaban inactivos en ese mes
             const totalActivosEnMes = jugadores.filter(p => {
-              const dateStr = normalizeDate(p.fecha_registro);
+              const dateStr = normalizeDate(p.fecha_ingreso_club || p.fecha_ingreso || p.created_at);
               if (!dateStr) return false;
               const regDate = new Date(dateStr + 'T00:00:00');
               
@@ -166,8 +166,8 @@ export default function DashboardDirector() {
                   const inactDate = new Date(inactDateStr + 'T00:00:00');
                   if (inactDate <= finDeMes) return false;
                 } else {
-                  // Fallback para inactivos sin fecha: usar updated_at, created_at o fecha_registro
-                  const fallbackDateStr = normalizeDate(p.updated_at || p.created_at || p.fecha_registro);
+                  // Fallback para inactivos sin fecha: usar updated_at, created_at o fecha_ingreso
+                  const fallbackDateStr = normalizeDate(p.updated_at || p.created_at || p.fecha_ingreso_club || p.fecha_ingreso);
                   if (fallbackDateStr) {
                     const fallbackDate = new Date(fallbackDateStr + 'T00:00:00');
                     if (fallbackDate <= finDeMes) return false;
