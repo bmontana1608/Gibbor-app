@@ -16,6 +16,8 @@ export async function generarReciboPDFBase64(datos: {
   notas?: string;
   fecha?: string;        // Fecha de EMISIÓN del recibo (hoy)
   fechaPeriodo?: string; // Fecha del MES que se está cobrando (para el concepto)
+  deudaAcumulada?: number; // Total deuda histórica
+  mesesEnMora?: string[];  // Meses adeudados
   empresa: {
     nombre_club?: string;
     direccion: string;
@@ -163,6 +165,22 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFont("helvetica", "bold");
   doc.text(`$ ${precioBaseDisplay.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
 
+  // Fila de deuda acumulada (solo si aplica)
+  let deudaRowOffset = 0;
+  if (datos.deudaAcumulada && datos.deudaAcumulada > 0) {
+    deudaRowOffset = 9;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(220, 38, 38); // Rojo
+    const textoMora = datos.mesesEnMora && datos.mesesEnMora.length > 0 
+        ? `+ Mensualidades atrasadas (${datos.mesesEnMora.join(', ')})`
+        : '+ Mensualidades atrasadas';
+    doc.text(textoMora, 20, tableY + 18 + deudaRowOffset);
+    doc.text(`+ $ ${datos.deudaAcumulada.toLocaleString('es-CO')}`, 150, tableY + 18 + deudaRowOffset, { align: 'right' });
+    doc.setFont("helvetica", "bold");
+    doc.text(`+ $ ${datos.deudaAcumulada.toLocaleString('es-CO')}`, 185, tableY + 18 + deudaRowOffset, { align: 'right' });
+  }
+
   // Fila de descuento pronto pago (solo si aplica)
   let descuentoRowOffset = 0;
   if (datos.descuentoProntoPago && datos.descuentoProntoPago > 0) {
@@ -170,34 +188,35 @@ export async function generarReciboPDFBase64(datos: {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(34, 197, 94); // Verde
-    doc.text('✓ Descuento Pronto Pago (primeros 5 días)', 20, tableY + 27);
-    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 150, tableY + 27, { align: 'right' });
+    doc.text('V Descuento Pronto Pago (primeros 5 días)', 20, tableY + 18 + deudaRowOffset + descuentoRowOffset);
+    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 150, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
     doc.setFont("helvetica", "bold");
-    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 185, tableY + 27, { align: 'right' });
+    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 185, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
   }
 
   // Línea de cierre de tabla
   doc.setDrawColor(230, 230, 230);
   doc.setLineWidth(0.1);
-  doc.line(15, tableY + 25 + descuentoRowOffset, 195, tableY + 25 + descuentoRowOffset);
+  const offsetTotal = deudaRowOffset + descuentoRowOffset;
+  doc.line(15, tableY + 25 + offsetTotal, 195, tableY + 25 + offsetTotal);
 
   // Cuadro de Total Final
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.rect(130, tableY + 25 + descuentoRowOffset, 65, 12, 'F');
+  doc.rect(130, tableY + 25 + offsetTotal, 65, 12, 'F');
   doc.setFontSize(11);
   doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
-  doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL PENDIENTE:', 135, tableY + 33 + descuentoRowOffset);
-  doc.text(`$ ${datos.tarifa.toLocaleString('es-CO')}`, 190, tableY + 33 + descuentoRowOffset, { align: 'right' });
+  doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL PENDIENTE:', 135, tableY + 33 + offsetTotal);
+  doc.text(`$ ${datos.tarifa.toLocaleString('es-CO')}`, 190, tableY + 33 + offsetTotal, { align: 'right' });
 
 
   // 5. MÉTODOS DE PAGO (BIEN DEFINIDOS)
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text('CANALES DE PAGO DISPONIBLES', 15, 155);
+  doc.text('CANALES DE PAGO DISPONIBLES', 15, 155 + offsetTotal);
   doc.line(15, 157, 30, 157);
 
-  let paymentY = 165;
+  let paymentY = 165 + offsetTotal;
   const colWidth = 58;
   
   // Tarjetas de pago sutiles

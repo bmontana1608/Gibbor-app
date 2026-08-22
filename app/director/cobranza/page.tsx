@@ -441,8 +441,15 @@ export default function ModuloCobranza() {
     
     // Determinar la tarifa base según el concepto
     let tarifaBase = 0;
+    let notasFinales = notas;
+
     if (conceptoCobro === 'Mensualidad') {
-      tarifaBase = jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan);
+      tarifaBase = (jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) + (jugadorSeleccionado.deudaAcumulada || 0);
+      
+      // Si está pagando la mensualidad y tenía deuda, añadimos la marca para limpiar el historial
+      if ((jugadorSeleccionado.deudaAcumulada || 0) > 0) {
+        notasFinales = notasFinales ? `${notasFinales} (SALDA DEUDA HISTÓRICA)` : 'SALDA DEUDA HISTÓRICA';
+      }
     } else {
       const conc = conceptos.find(c => c.nombre === conceptoCobro);
       tarifaBase = conc ? Number(conc.precio_sugerido) : 0;
@@ -470,7 +477,7 @@ export default function ModuloCobranza() {
         recargo,
         total,
         metodo_pago: metodoPago,
-        notas,
+        notas: notasFinales,
         fecha: fechaPago,
         club_id: tenant?.id
       };
@@ -500,6 +507,8 @@ export default function ModuloCobranza() {
         descuento,
         recargo,
         total,
+        deudaAcumulada: jugadorSeleccionado.deudaAcumulada,
+        mesesEnMora: jugadorSeleccionado.mesesEnMora,
         consecutivo: dataHist?.consecutivo || Math.floor(Math.random() * 1000)
       });
       setIsModalPagoOpen(false);
@@ -652,6 +661,8 @@ export default function ModuloCobranza() {
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
+        deudaAcumulada: alumno.deudaAcumulada,
+        mesesEnMora: alumno.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: clubConfig.nombre_club,
@@ -731,6 +742,8 @@ export default function ModuloCobranza() {
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
+        deudaAcumulada: alumno.deudaAcumulada,
+        mesesEnMora: alumno.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: config?.nombre_club,
@@ -838,7 +851,7 @@ export default function ModuloCobranza() {
     // Filtro para excluir jugadores que se inscribieron después del mes seleccionado
     const [anioSelCobranza, mesSelCobranza] = fechaInicio.split('-').map(Number);
     const jugadoresParaMes = jugadores.filter(j => {
-      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
+      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso || j.created_at;
       if (!fechaIngresoExplicita) return true;
 
       const fechaIng = new Date(fechaIngresoExplicita);
@@ -940,7 +953,8 @@ export default function ModuloCobranza() {
       // 1. Si el jugador tiene fecha_ingreso_club o fecha_ingreso (campo explícito) → usar ese
       // 2. Si NO tiene fecha explícita → asumir que empezó el mes actual (NO usar created_at
       //    porque ese es el momento de creación en el sistema, no el inicio real del cobro)
-      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso;
+      // 2. Si NO tiene fecha explícita, se asume su fecha de creación en el sistema
+      const fechaIngresoExplicita = j.fecha_ingreso_club || j.fecha_ingreso || j.created_at;
       
       let primerMesValido: Date;
       if (fechaIngresoExplicita) {
@@ -978,15 +992,19 @@ export default function ModuloCobranza() {
 
         const totalMes = pagosDelMes + abonosMes;
         
-        // --- LÓGICA DE REINICIO DE DEUDA ---
-        // Si encontramos un registro que diga 'REINICIO DE DEUDA', dejamos de buscar hacia atrás
-        const hayReinicio = historialPagos.some(p => {
+        // --- LÓGICA DE SALDO / REINICIO DE DEUDA ---
+        // Si el usuario pagó su deuda histórica en una fecha posterior o igual a este mes, 
+        // dejamos de contar hacia atrás.
+        const haySaldada = historialPagos.some(p => {
           if (p.jugador_id !== j.id || !p.fecha) return false;
           const pFecha = normalizeDate(p.fecha);
-          return pFecha.startsWith(mesStr) && String(p.notas || '').includes('REINICIO DE DEUDA');
+          return pFecha >= mesStr && (
+            String(p.notas || '').includes('REINICIO DE DEUDA') || 
+            String(p.notas || '').includes('SALDA DEUDA HISTÓRICA')
+          );
         });
 
-        if (hayReinicio) break;
+        if (haySaldada) break;
 
         if (totalMes < tarifa) {
           const deudaMes = tarifa - totalMes;
@@ -1048,6 +1066,8 @@ export default function ModuloCobranza() {
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
+        deudaAcumulada: reciboGenerado.deudaAcumulada,
+        mesesEnMora: reciboGenerado.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: clubConfig.nombre_club,
@@ -1128,6 +1148,8 @@ export default function ModuloCobranza() {
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
+        deudaAcumulada: reciboGenerado.deudaAcumulada,
+        mesesEnMora: reciboGenerado.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: config?.nombre_club,
@@ -1181,7 +1203,7 @@ export default function ModuloCobranza() {
     );
   }
 
-  const tarifaBaseActual = jugadorSeleccionado ? (conceptoCobro === 'Mensualidad' ? (jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) : Number(conceptos.find(c => c.nombre === conceptoCobro)?.precio_sugerido || 0)) : 0;
+  const tarifaBaseActual = jugadorSeleccionado ? (conceptoCobro === 'Mensualidad' ? ((jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) + (jugadorSeleccionado.deudaAcumulada || 0)) : Number(conceptos.find(c => c.nombre === conceptoCobro)?.precio_sugerido || 0)) : 0;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
@@ -1667,6 +1689,8 @@ export default function ModuloCobranza() {
                   consecutivo: reciboGenerado.consecutivo,
                   fecha: reciboGenerado.fecha,
                   metodo: reciboGenerado.metodo,
+                  deudaAcumulada: reciboGenerado.deudaAcumulada,
+                  mesesEnMora: reciboGenerado.mesesEnMora,
                   empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
                     nombre_club: config?.nombre_club,

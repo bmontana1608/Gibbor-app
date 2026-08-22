@@ -123,7 +123,10 @@ export default function DirectorioMiembros() {
     const toastId = toast.loading(`Aprobando y creando acceso para ${miembro.nombres}...`);
     
     // 1. Cambiar estado a Activo
-    const { error: errorEstado } = await supabase.from('perfiles').update({ estado_miembro: 'Activo' }).eq('id', miembro.id);
+    const { error: errorEstado } = await supabase.from('perfiles').update({ 
+      estado_miembro: 'Activo',
+      fecha_ingreso_club: new Date().toISOString()
+    }).eq('id', miembro.id);
     
     if (errorEstado) {
       toast.error("Error al cambiar estado: " + errorEstado.message, { id: toastId });
