@@ -653,7 +653,7 @@ export default function ModuloCobranza() {
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
         empresa: {
-          logo_url: tenant?.logo_url,
+          logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
@@ -732,7 +732,7 @@ export default function ModuloCobranza() {
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
         fechaPeriodo: fechaInicio,                           // MES que se está cobrando
         empresa: {
-          logo_url: tenant?.logo_url,
+          logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
@@ -1049,7 +1049,7 @@ export default function ModuloCobranza() {
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
         empresa: {
-          logo_url: tenant?.logo_url,
+          logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
@@ -1129,7 +1129,7 @@ export default function ModuloCobranza() {
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
         empresa: {
-          logo_url: tenant?.logo_url,
+          logo_url: tenant?.config?.logo || tenant?.logo_url,
           nombre_club: config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
@@ -1668,7 +1668,7 @@ export default function ModuloCobranza() {
                   fecha: reciboGenerado.fecha,
                   metodo: reciboGenerado.metodo,
                   empresa: {
-          logo_url: tenant?.logo_url,
+          logo_url: tenant?.config?.logo || tenant?.logo_url,
                     nombre_club: config?.nombre_club,
                     direccion: config?.direccion || 'Sede Deportiva',
                     ciudad: config?.ciudad || 'Colombia',

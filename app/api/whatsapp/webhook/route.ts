@@ -107,11 +107,20 @@ export async function POST(req: NextRequest) {
       const alumno = alumnos[0];
 
       const { data: config } = await supabaseAdmin.from('configuracion_wa').select('*').single();
+
+      // Obtener el logo del club del alumno
+      const { data: clubData } = await supabaseAdmin
+        .from('clubes')
+        .select('logo_url')
+        .eq('id', alumno.club_id)
+        .single();
+
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
         grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
+          logo_url: clubData?.logo_url,
           nombre_club: config?.nombre_club || 'TU CLUB',
           direccion: config?.direccion || 'Sede Deportiva', 
           ciudad: config?.ciudad || 'Cúcuta',
