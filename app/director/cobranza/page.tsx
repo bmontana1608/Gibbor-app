@@ -616,8 +616,10 @@ export default function ModuloCobranza() {
     // Calcular tarifa correcta según período y tipo de plan
     const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
     
-    // Si la tarifa del alumno no está pre-calculada, usar la inteligente
-    const tarifaFinal = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
+    // Tarifa final base (mensualidad actual)
+    const tarifaBase = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
+    // Total con deuda incluida
+    const tarifaFinal = tarifaBase + (alumno.deudaAcumulada || 0);
     
     setLoadingBot(alumno.id);
     
@@ -656,7 +658,7 @@ export default function ModuloCobranza() {
         documento: alumno.documento_identidad,
         grupo: alumno.grupos || 'GENERAL',
         tarifa: tarifaFinal,
-        precioBase: precioBaseCalculado,
+        precioBase: tarifaBase,
         descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
@@ -727,8 +729,11 @@ export default function ModuloCobranza() {
 
       // Calcular tarifa correcta según período y tipo de plan
       const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
-      // Si la tarifa del alumno ya fue pre-calculada y es diferente, usamos la inteligente
-      const tarifaFinal = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
+      
+      // Tarifa final base (mensualidad actual)
+      const tarifaBase = tarifaCalculada > 0 ? tarifaCalculada : (alumno.tarifa || 0);
+      // Total con deuda incluida
+      const tarifaFinal = tarifaBase + (alumno.deudaAcumulada || 0);
 
       // Sin 'metodo' => el PDF sale en Naranja/Rojo PENDIENTE
       const pdfBase64 = await generarReciboPDFBase64({
@@ -737,7 +742,7 @@ export default function ModuloCobranza() {
         documento: alumno.documento_identidad,
         grupo: alumno.grupos || 'GENERAL',
         tarifa: tarifaFinal,
-        precioBase: precioBaseCalculado,
+        precioBase: tarifaBase,
         descuentoProntoPago: descuentoCalculado,
         consecutivo: nuevoConsecutivo,
         fecha: new Date().toISOString().split('T')[0],      // HOY (fecha de emisión real)
@@ -1063,6 +1068,7 @@ export default function ModuloCobranza() {
         documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
         grupo: reciboGenerado.grupo,
         tarifa: reciboGenerado.total,
+        precioBase: reciboGenerado.montoBase - (reciboGenerado.deudaAcumulada || 0),
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
@@ -1145,6 +1151,7 @@ export default function ModuloCobranza() {
         documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
         grupo: reciboGenerado.grupo,
         tarifa: reciboGenerado.total,
+        precioBase: reciboGenerado.montoBase - (reciboGenerado.deudaAcumulada || 0),
         consecutivo: reciboGenerado.consecutivo,
         fecha: reciboGenerado.fecha,
         metodo: reciboGenerado.metodo,
@@ -1686,6 +1693,7 @@ export default function ModuloCobranza() {
                   documento: reciboGenerado.documento || reciboGenerado.documento_identidad || undefined,
                   grupo: reciboGenerado.grupo,
                   tarifa: reciboGenerado.total,
+        precioBase: reciboGenerado.montoBase - (reciboGenerado.deudaAcumulada || 0),
                   consecutivo: reciboGenerado.consecutivo,
                   fecha: reciboGenerado.fecha,
                   metodo: reciboGenerado.metodo,

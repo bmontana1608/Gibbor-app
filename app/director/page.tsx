@@ -417,7 +417,7 @@ export default function DashboardDirector() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={tenant?.config?.color === '#ffffff' ? '#334155' : '#f1f5f9'} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8', fontWeight: 600}} dy={10} />
-                <YAxis hide />
+                <YAxis hide domain={[0, 'dataMax + 5']} />
                 <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
                 <Area type="monotone" dataKey="total" stroke="var(--brand-primary)" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
               </AreaChart>
