@@ -167,7 +167,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUser(user);
 
-    let leadsQuery = supabase.from('atlas_academias').select('id, nombre, telefono, embajador_id');
+    let leadsQuery = supabase.from('atlas_academias').select('*');
     let clubesQuery = supabase.from('clubes').select('id, nombre, telefono_contacto, embajador_id');
     let msgsQuery = supabase.from('crm_whatsapp_messages')
       .select('numero_telefono, mensaje, created_at, leido, es_saliente')
@@ -555,17 +555,37 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         {activeChat ? (
           <div className="w-2/3 flex flex-col bg-slate-50">
             {/* Header */}
-            <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeChat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
-                {activeChat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
+              <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeChat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
+                    {activeChat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900">{activeChat.entity ? activeChat.entity.nombre : 'Prospecto Nuevo'}</h3>
+                    <div className="flex items-center gap-1 text-xs text-slate-500 font-medium"><Phone className="w-3 h-3" /> {activeChat.numero_telefono}</div>
+                  </div>
+                </div>
+                {activeChat.type === 'lead' && activeChat.entity && (
+                  <div className="flex flex-col items-end text-right hidden sm:flex">
+                    <div className="flex items-center gap-1 mb-1">
+                      {activeChat.entity.prioridad && (
+                        <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
+                          activeChat.entity.prioridad === 'Muy Alta' ? 'bg-purple-100 text-purple-700' :
+                          activeChat.entity.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
+                          activeChat.entity.prioridad === 'Media' ? 'bg-orange-100 text-orange-700' :
+                          'bg-slate-100 text-slate-500'
+                        }`}>{activeChat.entity.prioridad}</span>
+                      )}
+                      {activeChat.entity.ciudad && (
+                        <span className="text-[9px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">{activeChat.entity.ciudad}</span>
+                      )}
+                    </div>
+                    {activeChat.entity.direccion && (
+                      <span className="text-[10px] text-slate-400 max-w-[200px] truncate" title={activeChat.entity.direccion}>📍 {activeChat.entity.direccion}</span>
+                    )}
+                  </div>
+                )}
               </div>
-              <div>
-                <h3 className="font-black text-slate-900">{activeChat.entity ? activeChat.entity.nombre : 'Prospecto Nuevo'}</h3>
-                <div className="flex items-center gap-1 text-xs text-slate-500 font-medium"><Phone className="w-3 h-3" /> {activeChat.numero_telefono}</div>
-              </div>
-            </div>
-
-              {/* Follow-up Banner */}
               {(() => {
                 const hasMsg = activeChat.lastMessageTime !== new Date(0).toISOString();
                 const needsFollowUp = activeChat.type === 'lead' && activeChat.lastMessageOutbound === true && activeChat.entity?.etapa && ['Seguimiento', 'Primer contacto', 'Demo'].includes(activeChat.entity.etapa) && hasMsg && (new Date().getTime() - new Date(activeChat.lastMessageTime).getTime() > 2 * 24 * 60 * 60 * 1000);
