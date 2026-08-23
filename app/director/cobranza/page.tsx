@@ -667,7 +667,7 @@ export default function ModuloCobranza() {
         mesesEnMora: alumno.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
-          nombre_club: clubConfig.nombre_club,
+          nombre_club: tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
           nequi: clubConfig.nequi,
@@ -751,7 +751,7 @@ export default function ModuloCobranza() {
         mesesEnMora: alumno.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
-          nombre_club: config?.nombre_club,
+          nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
           nequi: config?.nequi,
@@ -1076,7 +1076,7 @@ export default function ModuloCobranza() {
         mesesEnMora: reciboGenerado.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
-          nombre_club: clubConfig.nombre_club,
+          nombre_club: tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
           nequi: clubConfig.nequi,
@@ -1159,7 +1159,7 @@ export default function ModuloCobranza() {
         mesesEnMora: reciboGenerado.mesesEnMora,
         empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
-          nombre_club: config?.nombre_club,
+          nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
           nequi: config?.nequi,
@@ -1701,7 +1701,7 @@ export default function ModuloCobranza() {
                   mesesEnMora: reciboGenerado.mesesEnMora,
                   empresa: {
           logo_url: tenant?.config?.logo || tenant?.logo_url,
-                    nombre_club: config?.nombre_club,
+                    nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
                     direccion: config?.direccion || 'Sede Deportiva',
                     ciudad: config?.ciudad || 'Colombia',
                     nequi: config?.nequi,
@@ -1941,3 +1941,4 @@ export default function ModuloCobranza() {
     </div>
   );
 }
+
