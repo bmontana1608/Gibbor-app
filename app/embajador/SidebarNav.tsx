@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { PieChart, Target, Wallet, Users, MessageSquare, ShieldCheck } from 'lucide-react';
+import { PieChart, Target, Wallet, Users, MessageSquare, ShieldCheck, Smartphone } from 'lucide-react';
 
 export default function SidebarNav({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export default function SidebarNav({ isSuperAdmin }: { isSuperAdmin: boolean }) 
     { name: 'Comisiones', path: '/embajador/comisiones', icon: <Wallet className="w-5 h-5" /> },
     { name: 'Mis Referidos', path: '/embajador/clubes', icon: <Users className="w-5 h-5" /> },
     { name: 'Chat CRM', path: '/embajador/chat', icon: <MessageSquare className="w-5 h-5" /> },
+    { name: 'Conectar WA', path: '/embajador/whatsapp', icon: <Smartphone className="w-5 h-5" /> },
   ];
 
   return (
@@ -48,3 +49,4 @@ export default function SidebarNav({ isSuperAdmin }: { isSuperAdmin: boolean }) 
     </nav>
   );
 }
+

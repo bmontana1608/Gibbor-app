@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const remoteJid = body.data?.key?.remoteJid;
     const fromMe = body.data?.key?.fromMe;
 
-    if (instance === 'mcm-ventas') {
+    if (instance === 'mcm-ventas' || instance.startsWith('embajador-')) {
       if (!remoteJid || !message) {
         // Log the raw payload for debugging if extraction fails
         await supabaseAdmin.from('crm_whatsapp_messages').insert({
@@ -208,3 +208,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+

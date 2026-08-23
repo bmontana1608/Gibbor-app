@@ -72,25 +72,26 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     // Fetch leads and clubes based on role
     let leadsQuery = supabase.from('atlas_academias').select('id, nombre, telefono, embajador_id');
     let clubesQuery = supabase.from('clubes').select('id, nombre, telefono_contacto, embajador_id');
+    let msgsQuery = supabase.from('crm_whatsapp_messages').select('numero_telefono, mensaje, created_at, leido, es_saliente').order('created_at', { ascending: false });
 
     if (role === 'embajador' && user) {
       const { data: embajador } = await supabase.from('embajadores').select('id').eq('user_id', user.id).maybeSingle();
       if (embajador) {
         leadsQuery = leadsQuery.eq('embajador_id', embajador.id);
         clubesQuery = clubesQuery.eq('embajador_id', embajador.id);
+        msgsQuery = msgsQuery.eq('instancia', `embajador-${embajador.id}`);
       } else {
         leadsQuery = leadsQuery.eq('embajador_id', '00000000-0000-0000-0000-000000000000');
         clubesQuery = clubesQuery.eq('embajador_id', '00000000-0000-0000-0000-000000000000');
+        msgsQuery = msgsQuery.eq('instancia', 'NONE');
       }
     }
+
     const { data: leads } = await leadsQuery;
     const { data: clubes } = await clubesQuery;
 
     // Fetch distinct numbers from messages to show in the sidebar
-    const { data: allMsgs, error } = await supabase
-      .from('crm_whatsapp_messages')
-      .select('numero_telefono, mensaje, created_at, leido, es_saliente')
-      .order('created_at', { ascending: false });
+    const { data: allMsgs, error } = await msgsQuery;
 
     if (error && error.code !== '42P01') {
       toast.error('Error al cargar chats');
@@ -578,3 +579,5 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { createClient } from '@/lib/supabase/server';
 
@@ -17,12 +17,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
     }
 
+    // Identificar la instancia
+    const { data: perfil } = await supabaseAdmin.from('perfiles').select('rol, club_id, clubes(slug)').eq('id', user.id).single();
+    let instance = 'mcm-ventas';
+    
+    if (perfil?.rol === 'Embajador') {
+      const { data: embajador } = await supabaseAdmin.from('embajadores').select('id').eq('user_id', user.id).single();
+      if (embajador) {
+        instance = \embajador-\\;
+      }
+    } else if (perfil?.club_id) {
+      instance = (perfil.clubes as any)?.slug || 'mcm-ventas';
+    }
+
     // Call Evolution API
     const evolutionUrl = process.env.EVOLUTION_API_URL;
     const evolutionKey = process.env.EVOLUTION_API_KEY;
-    const instance = 'mcm-ventas';
 
-    const response = await fetch(`${evolutionUrl}/message/sendText/${instance}`, {
+    const response = await fetch(\\/message/sendText/\\, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -44,19 +56,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Error al enviar mensaje' }, { status: 500 });
     }
 
-    // Guardar el mensaje saliente en la base de datos para que aparezca instantáneamente en el chat
+    // Guardar el mensaje saliente en la base de datos para que aparezca instantneamente en el chat
     await supabaseAdmin.from('crm_whatsapp_messages').insert({
       lead_id: lead_id || null,
       numero_telefono: numero.replace(/\D/g, ''),
       mensaje: mensaje,
-      es_saliente: true,
-      instancia: instance,
-      leido: true
+      leido: true,
+      es_saliente: true
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error('Error send crm wa:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (e: any) {
+    console.error(e);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
