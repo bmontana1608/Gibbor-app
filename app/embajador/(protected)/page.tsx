@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign, Target, CheckCircle2 } from 'lucide-react';
-import CopyButton from './CopyButton';
+import CopyButton from '../CopyButton';
 import { QRCodeSVG } from 'qrcode.react';
 
 export default async function EmbajadorDashboard({
@@ -209,3 +209,4 @@ function MetricCard({ title, value, subtitle, icon, bg }: any) {
     </div>
   );
 }
+
