@@ -250,7 +250,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         const pNum = phoneParam.replace(/\D/g, '');
         let existing = chatList.find(c => { const cn = c.numero_telefono.replace(/\D/g, ''); return cn && pNum && (cn.includes(pNum) || pNum.includes(cn)); });
         if (!existing) {
-          existing = { numero_telefono: phoneParam, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: { nombre: 'Prospecto' } as any, type: 'orphaned' };
+          existing = { numero_telefono: phoneParam, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: { nombre: 'Prospecto' } as any, type: 'orphaned' };
           chatList = [existing, ...chatList];
         }
         if (existing.type === 'club') setActiveTab('clubes'); else setActiveTab('leads');
@@ -442,7 +442,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       if (existing.type === 'club') setActiveTab('clubes'); else setActiveTab('leads');
     } else {
       const { data } = await supabase.from('atlas_academias').insert({ nombre: newName || 'Prospecto Manual', telefono: cleanNum }).select().single();
-      const newChat: any = { numero_telefono: cleanNum, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: data || { nombre: newName || 'Prospecto Manual' }, type: 'lead' };
+      const newChat: any = { numero_telefono: cleanNum, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: data || { nombre: newName || 'Prospecto Manual' }, type: 'lead' };
       setChats(prev => [newChat, ...prev]);
       setActiveChat(newChat);
       setActiveTab('leads');
