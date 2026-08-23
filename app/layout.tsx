@@ -61,6 +61,10 @@ export default async function RootLayout({
 }) {
   const tenant = await getTenant();
   const isMaster = (tenant as any).isMaster || (tenant as any).slug === 'master';
+  const headersList = await headers();
+  const referer = headersList.get('referer') || '';
+  const currentPath = headersList.get('x-invoke-path') || '';
+  const isEmbajador = referer.includes('/embajador') || currentPath.includes('/embajador');
   
   return (
     <html lang="es" suppressHydrationWarning>
@@ -101,3 +105,4 @@ function hexToRgb(hex: string) {
   if (!result) return '234, 88, 12'; // Fallback a orange-600
   return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`;
 }
+
