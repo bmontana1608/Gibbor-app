@@ -3,9 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { LogOut, Home, PieChart, Users, DollarSign, Wallet, Target, MessageSquare } from 'lucide-react';
 import MCMLogo from '@/components/MCMLogo';
-import CampanitaNotificaciones from './CampanitaNotificaciones';
-import SidebarNav from './SidebarNav';
-import EmbajadorMobileMenu from './EmbajadorMobileMenu';
+import CampanitaNotificaciones from '../CampanitaNotificaciones';
+import SidebarNav from '../SidebarNav';
+import EmbajadorMobileMenu from '../EmbajadorMobileMenu';
 
 export default async function EmbajadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -92,4 +92,5 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
     </div>
   );
 }
+
 
