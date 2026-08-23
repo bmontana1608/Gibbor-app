@@ -198,6 +198,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         return acc;
       }, {});
 
+      // Build full list including leads WITHOUT phone (shown grayed out)
       const buildList = (items: any[], phoneField: string, type: string) =>
         (items || []).map(item => {
           const numNorm = item[phoneField] ? item[phoneField].replace(/\D/g, '') : '';
@@ -210,26 +211,36 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
           }
           return {
             numero_telefono: matchedPhone?.replace(/\D/g, '') || '',
+            hasPhone: numNorm.length > 5,
             lastMessage: msgMatch ? msgMatch.mensaje : '',
             lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
             unread: msgMatch ? msgMatch.unread : 0,
             entity: item, type
           };
-        }).filter(c => c.numero_telefono && c.numero_telefono.length > 5);
+        }); // No filter — show ALL assigned leads
 
       const leadsList = buildList(leads || [], 'telefono', 'lead');
       const clubesList = buildList(clubes || [], 'telefono_contacto', 'club');
-      const allKnownNorm = [...leadsList, ...clubesList].map(c => c.numero_telefono);
+      const allKnownNorm = [...leadsList, ...clubesList]
+        .filter(c => c.hasPhone)
+        .map(c => c.numero_telefono);
       const orphanedList = Object.keys(grouped)
         .filter(num => !allKnownNorm.some(k => k.includes(num.replace(/\D/g, '')) || num.replace(/\D/g, '').includes(k)))
         .map(num => ({
-          numero_telefono: num, lastMessage: grouped[num].mensaje,
+          numero_telefono: num, hasPhone: true, lastMessage: grouped[num].mensaje,
           lastMessageTime: grouped[num].created_at, unread: grouped[num].unread,
           entity: null, type: 'orphaned'
         }));
 
-      let chatList = [...leadsList, ...clubesList, ...orphanedList]
-        .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
+      // Sort: chats with messages first (by recency), then no-message leads alphabetically
+      let chatList = [...leadsList, ...clubesList, ...orphanedList].sort((a, b) => {
+        const aHasMsg = a.lastMessageTime !== new Date(0).toISOString();
+        const bHasMsg = b.lastMessageTime !== new Date(0).toISOString();
+        if (aHasMsg && !bHasMsg) return -1;
+        if (!aHasMsg && bHasMsg) return 1;
+        if (aHasMsg && bHasMsg) return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+        return (a.entity?.nombre || '').localeCompare(b.entity?.nombre || '');
+      });
 
       const params = new URLSearchParams(window.location.search);
       let phoneParam = params.get('phone');
@@ -498,24 +509,38 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
           </div>
           <div className="flex-1 overflow-y-auto">
             {filteredChats.length === 0 && <div className="text-center p-6 text-slate-400 text-xs font-bold">No hay contactos disponibles</div>}
-            {filteredChats.map(chat => (
-              <div key={chat.numero_telefono} onClick={() => setActiveChat(chat)}
-                className={`p-4 border-b border-slate-50 cursor-pointer hover:bg-slate-50 transition-colors flex items-start gap-3 ${activeChat?.numero_telefono === chat.numero_telefono ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}`}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${chat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
-                  {chat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-sm text-slate-900 truncate">{chat.entity ? chat.entity.nombre : chat.numero_telefono}</h3>
-                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                      {chat.lastMessageTime !== new Date(0).toISOString() ? new Date(chat.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Nuevo'}
-                    </span>
+            {filteredChats.map(chat => {
+              const isActive = activeChat?.numero_telefono === chat.numero_telefono && activeChat?.entity?.id === chat.entity?.id;
+              const noPhone = !chat.hasPhone;
+              const hasMsg = chat.lastMessageTime !== new Date(0).toISOString();
+              return (
+                <div
+                  key={`${chat.type}-${chat.entity?.id || chat.numero_telefono}`}
+                  onClick={() => !noPhone && setActiveChat(chat)}
+                  className={`p-4 border-b border-slate-50 flex items-start gap-3 transition-colors
+                    ${noPhone ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-slate-50'}
+                    ${isActive ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${chat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
+                    {chat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
                   </div>
-                  <p className="text-xs text-slate-500 truncate">{chat.lastMessage || 'Iniciar conversación...'}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-sm text-slate-900 truncate">{chat.entity ? chat.entity.nombre : chat.numero_telefono}</h3>
+                      <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                        {hasMsg ? new Date(chat.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : noPhone ? '—' : 'Nuevo'}
+                      </span>
+                    </div>
+                    {noPhone ? (
+                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Sin teléfono</span>
+                    ) : (
+                      <p className="text-xs text-slate-500 truncate">{chat.lastMessage || 'Iniciar conversación...'}</p>
+                    )}
+                  </div>
+                  {chat.unread > 0 && <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">{chat.unread}</div>}
                 </div>
-                {chat.unread > 0 && <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">{chat.unread}</div>}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
