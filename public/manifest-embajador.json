@@ -2,7 +2,7 @@
   "name": "Embajador MCM",
   "short_name": "Embajador",
   "description": "Master Club Manager - Panel Embajador",
-  "start_url": "/embajador/clubes",
+  "start_url": "/embajador/login",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#22c55e",
@@ -22,3 +22,4 @@
     }
   ]
 }
+

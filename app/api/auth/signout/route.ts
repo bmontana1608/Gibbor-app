@@ -12,9 +12,10 @@ export async function POST(request: Request) {
 
   // Si estaba en embajador, mandarlo a la raíz, si no a la raíz o referer.
   // El usuario solicitó específicamente que redirija a la raíz para embajadores.
-  const redirectUrl = new URL('/', request.url);
+  const redirectUrl = new URL(referer && referer.includes('/embajador') ? '/embajador/login' : '/', request.url);
   
   return NextResponse.redirect(redirectUrl, {
     status: 302,
   });
 }
+

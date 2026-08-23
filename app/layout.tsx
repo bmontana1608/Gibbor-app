@@ -86,7 +86,7 @@ export default async function RootLayout({
         <Providers>
           <GlobalAnnouncementBanner />
           {children}
-          {!isMaster && <InstallPrompt />}
+          {(!isMaster || isEmbajador) && <InstallPrompt />}
           <SWRegistration />
         </Providers>
       </body>

@@ -12,7 +12,7 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return redirect('/login');
+    return redirect('/embajador/login');
   }
 
   // Verificar que el usuario tenga rol de embajador o super admin
@@ -92,5 +92,6 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
     </div>
   );
 }
+
 
 
