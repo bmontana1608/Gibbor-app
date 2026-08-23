@@ -5,6 +5,7 @@ import { LogOut, Home, PieChart, Users, DollarSign, Wallet, Target, MessageSquar
 import MCMLogo from '@/components/MCMLogo';
 import CampanitaNotificaciones from './CampanitaNotificaciones';
 import SidebarNav from './SidebarNav';
+import EmbajadorMobileMenu from './EmbajadorMobileMenu';
 
 export default async function EmbajadorLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -70,7 +71,10 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
       <main className="flex-1 overflow-x-hidden">
         {/* Mobile Header */}
         <header className="md:hidden bg-slate-900 p-4 flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-widest text-green-500 mb-1">Embajador MCM</span>
+          <div className="flex items-center gap-2">
+            <EmbajadorMobileMenu isSuperAdmin={isSuperAdmin} />
+            <span className="text-xs font-black uppercase tracking-widest text-green-500 mb-1 ml-2">Embajador MCM</span>
+          </div>
           <div className="flex items-center gap-2">
             <CampanitaNotificaciones embajadorId={embajador?.id} />
             <form action="/api/auth/signout" method="post">
@@ -88,3 +92,4 @@ export default async function EmbajadorLayout({ children }: { children: React.Re
     </div>
   );
 }
+
