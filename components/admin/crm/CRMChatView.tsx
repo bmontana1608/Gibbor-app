@@ -8,6 +8,7 @@ import {
   Image as ImageIcon, Film
 } from 'lucide-react';
 import { toast } from 'sonner';
+import SalesGuide from './SalesGuide';
 
 interface CRMChatViewProps {
   role: 'superadmin' | 'embajador';
@@ -590,6 +591,16 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Sales Guide (Only for Embajadores chatting with leads) */}
+            {role === 'embajador' && activeChat.type === 'lead' && (
+              <div className="mt-2">
+                <SalesGuide 
+                  etapaActual={activeChat.entity?.estado} 
+                  onUseMessage={(text) => setNewMessage(text)} 
+                />
               </div>
             )}
 
