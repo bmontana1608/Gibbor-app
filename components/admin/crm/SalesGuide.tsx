@@ -12,16 +12,16 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     tip: 'Aún no has contactado a este lead. El objetivo es romper el hielo de forma natural, sin vender todavía.',
     mensajes: [
       {
-        titulo: 'Presentación suave (Recomendado)',
-        texto: `¡Hola [Nombre]! 👋 Te escribo porque trabajo con academias y escuelas de fútbol en la región y vi que tienen un trabajo increíble con los chicos. Me llamo [Tu nombre] y estoy ayudando a varios clubes a organizar mejor sus procesos internos. ¿Les puedo contar brevemente de qué se trata? No te tomo más de 2 minutos 🙏`
+        titulo: 'El enfoque del "Ego" + Problema (Recomendado)',
+        texto: `¡Hola [Nombre]! 👋 Vi las fotos de [Nombre de su Academia] en redes, ¡qué buen trabajo están haciendo con los chicos! ⚽ Soy [Tu nombre]. Te escribo porque actualmente estoy trabajando con directores de academias en la zona ayudándoles a que dejen de perder dinero por mensualidades atrasadas. ¿Actualmente siguen llevando el control de pagos manualmente o ya usan algún sistema?`
       },
       {
-        titulo: 'Apertura por referido',
-        texto: `Hola [Nombre], buenos días 😊 Me recomendaron contactarte — me dijeron que tienes una academia de fútbol. Soy [Tu nombre] y justo estoy trabajando con algunos clubes de la zona para ayudarlos a mejorar su gestión. ¿Tienes un minuto para que te cuente?`
+        titulo: 'Apertura de Permiso',
+        texto: `Hola [Nombre], ¡buenos días! 😊 Disculpa que te escriba directo a tu WhatsApp. Soy [Tu nombre] y ayudo a escuelas de fútbol a quitarse de encima el estrés de cuadrar cobros y asistencias en Excel o papel. Sé que debes estar a mil con los entrenamientos, ¿me das permiso de enviarte un audio de 1 minutito contándote cómo lo estamos resolviendo para otras academias?`
       },
       {
-        titulo: 'Apertura por dolor conocido',
-        texto: `Hola [Nombre]! Sé que administrar una escuela de fútbol tiene mil cosas al tiempo: pagos, asistencia, padres, jugadores... 😅 Te escribo porque tenemos una herramienta que muchos directores están usando para organizarlo todo desde el celular. ¿Te cuento cómo funciona?`
+        titulo: 'Curiosidad por pares (FOMO)',
+        texto: `Hola [Nombre]. Hablando con otros directores de clubes de la zona, me cuentan que a fin de mes pasan hasta 10 horas persiguiendo papás por WhatsApp para cobrar y cuadrando cuentas. Nosotros les ayudamos a automatizar eso para que el celular trabaje por ellos. ¿En tu caso también te toca hacer toda esa cobranza a mano?`
       }
     ]
   },
@@ -32,15 +32,15 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Preguntas de descubrimiento (Recomendado)',
-        texto: `¡Genial poder hablar contigo! Para entender mejor si te podemos ayudar, cuéntame: ¿cómo manejan actualmente los pagos y la asistencia de los jugadores? ¿Usan Excel, WhatsApp o algún sistema? 🤔`
+        texto: `¡Genial poder hablar contigo! Para entender mejor si los podemos ayudar, cuéntame: ¿cómo manejan actualmente los pagos y la asistencia de los jugadores? ¿Siguen usando Excel, planillas de papel o WhatsApp? 🤔`
       },
       {
         titulo: 'Generar curiosidad',
-        texto: `Justo ayer estaba hablando con otro director de academia que tardaba 3 horas cada fin de mes cuadrando cobros en Excel... ahora lo hace en 15 minutos desde el celular. ¿A ti también te toca hacer eso manualmente? 😅`
+        texto: `Justo ayer estaba hablando con otro director de academia que tardaba 3 horas cada fin de mes cuadrando cobros en Excel... ahora lo hace en 15 minutos desde el celular con nuestro sistema. ¿A ti también te toca hacer toda la revisión manualmente? 😅`
       },
       {
         titulo: 'Follow-up si no respondió',
-        texto: `Hola [Nombre], ¿cómo estás? Solo quería retomar nuestra conversación 😊 Sé que el día a día de una academia es intenso. Si me das 5 minutos esta semana te muestro algo que creo que te va a interesar bastante. ¿Qué día te queda bien?`
+        texto: `Hola [Nombre], ¿cómo estás? Solo quería retomar nuestra conversación 😊 Sé que el día a día de una academia es intenso. Si me das 5 minutos esta semana te muestro algo que creo que te va a quitar un gran peso administrativo de encima. ¿Qué día te queda bien?`
       }
     ]
   },
@@ -51,15 +51,15 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Compartir valor (Recomendado)',
-        texto: `Hola [Nombre]! Te comparto algo que creo que te va a gustar 👇\n\nCon Gibbor, academias como la tuya pueden:\n✅ Cobrar mensualidades y generar recibos automáticos\n✅ Registrar asistencia desde el celular en segundos\n✅ Tener el historial de cada jugador en un solo lugar\n✅ Enviar comunicados a los padres por WhatsApp\n\n¿Cuál de esas cosas te generaría más alivio a ti hoy?`
+        texto: `Hola [Nombre]! Te comparto algo que creo que te va a gustar 👇\n\nCon Master Club Manager (MCM), academias como la tuya pueden:\n✅ Automatizar el cobro de mensualidades\n✅ Registrar asistencia desde la cancha con el celular\n✅ Tener perfiles separados para directores, entrenadores y padres\n✅ Evaluar el rendimiento de cada jugador\n\n¿Cuál de esas cosas te generaría más alivio a ti hoy?`
       },
       {
         titulo: 'Caso de éxito (Social Proof)',
-        texto: `[Nombre], te cuento algo: otra academia aquí en [ciudad] tenía exactamente el mismo reto que tú — llevar todo en WhatsApp y papeles. En el primer mes con Gibbor recuperaron más de $400.000 en pagos que no habían podido cobrar porque no tenían control. ¿Quieres ver cómo lo lograron?`
+        texto: `[Nombre], te cuento algo: otra academia de la zona tenía exactamente el mismo reto que tú — llevar todo en grupos de WhatsApp y cuadernos. En su primer mes con MCM recuperaron el control total de su cartera de pagos y se ahorraron horas de trabajo administrativo. ¿Te gustaría ver cómo funciona el sistema por dentro?`
       },
       {
         titulo: 'Re-activar un lead frío',
-        texto: `Hola [Nombre], buen día! Hace un tiempo hablamos y no quería que se me perdiera el contacto 😊 ¿Cómo van las cosas con la academia? ¿Siguen llevando los pagos de manera manual o ya encontraron alguna solución?`
+        texto: `Hola [Nombre], buen día! Hace un tiempo hablamos y no quería que se me perdiera el contacto 😊 ¿Cómo van las cosas con la academia? ¿Siguen llevando la administración de manera manual o ya encontraron alguna solución tecnológica?`
       }
     ]
   },
@@ -70,15 +70,15 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Confirmación de demo (Recomendado)',
-        texto: `¡Perfecto [Nombre]! Quedamos entonces el [día] a las [hora] para la demostración 🙌\n\nVoy a mostrarte específicamente cómo funciona la gestión de pagos y asistencia para que veas si se adapta a tu academia.\n\nTe llega el link por aquí mismo. ¿Alguna pregunta antes de la sesión?`
+        texto: `¡Perfecto [Nombre]! Quedamos entonces el [día] a las [hora] para la demostración 🙌\n\nVoy a mostrarte específicamente cómo funciona MCM para gestionar los pagos y la asistencia, y que veas lo fácil que es para los entrenadores y papás.\n\nTe llega el link por aquí mismo. ¿Alguna pregunta antes de la sesión?`
       },
       {
         titulo: 'Pre-demo (calentar el terreno)',
-        texto: `[Nombre], antes de nuestra reunión de mañana, cuéntame: ¿cuántos jugadores tienen activos actualmente? Y ¿cuál es el mayor dolor que tienen hoy en la administración? Así llego preparado con ejemplos que apliquen directamente a tu caso 💪`
+        texto: `[Nombre], antes de nuestra reunión de mañana, cuéntame: ¿cuántos jugadores tienen activos actualmente en el club? Y ¿cuál es el dolor de cabeza más grande que tienen hoy en la administración? Así llego a la demo con ejemplos que apliquen directamente a tu caso 💪`
       },
       {
         titulo: 'Post-demo (recoger feedback)',
-        texto: `[Nombre], gracias por tu tiempo hoy! 🙏 ¿Qué fue lo que más te llamó la atención de la plataforma? Y si hay algo que no quedó claro o quieres que profundice, con mucho gusto. ¿Ves cómo podría funcionar para tu academia?`
+        texto: `[Nombre], ¡gracias por tu tiempo hoy! 🙏 ¿Qué fue lo que más te llamó la atención de Master Club Manager? Y si hay algo que no quedó claro o quieres que profundice, con mucho gusto. ¿Ves cómo podría modernizar la gestión de tu academia?`
       }
     ]
   },
@@ -89,19 +89,19 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Manejar objeción de precio (Recomendado)',
-        texto: `Entiendo perfectamente [Nombre], el tema del precio siempre es importante 💯 Déjame preguntarte algo: si con la plataforma recuperas aunque sea 3 o 4 pagos que hoy se te escapan cada mes, ¿eso cubriría el costo de la mensualidad? La mayoría de academias que trabajan con nosotros lo ven como una inversión que se paga sola en el primer mes.`
+        texto: `Entiendo perfectamente [Nombre], el tema del precio siempre es importante 💯 Déjame preguntarte algo: si con MCM recuperas aunque sea 3 o 4 mensualidades que hoy se te escapan o se olvidan cobrar, ¿eso cubriría el costo de la plataforma? La mayoría de clubes lo ven como una inversión que se paga sola desde el primer mes.`
       },
       {
         titulo: 'Manejar objeción "lo pienso"',
-        texto: `Claro, no hay afán [Nombre]! Solo me ayuda saber: ¿hay algo puntual que te genera duda? A veces hay una pregunta detrás del "lo pienso" y prefiero resolvertela directamente antes de que pase tiempo 😊`
+        texto: `Claro, no hay afán [Nombre]! Solo me ayuda saber: ¿hay algo puntual que te genera duda sobre el sistema? A veces hay una pregunta detrás del "lo pienso" y prefiero resolvértela directamente antes de que pase tiempo 😊`
       },
       {
         titulo: 'Crear urgencia suave',
-        texto: `[Nombre], te cuento que tenemos una promoción de arranque para academias nuevas que se activan este mes — incluye el proceso de configuración sin costo adicional y el primer mes con precio especial. Si quieres aprovecharla, sería esta semana. ¿Te interesa que lo tramitemos?`
+        texto: `[Nombre], te cuento que tenemos una promoción de arranque para clubes nuevos que se activan este mes — nosotros mismos nos encargamos de importar a tus jugadores y crear tu escuela en el sistema sin costo adicional. Si quieres aprovechar, sería esta semana. ¿Te interesa que avancemos?`
       },
       {
         titulo: 'Cierre directo',
-        texto: `¡Perfecto [Nombre]! Entonces te confirmo: arrancamos con el plan [X] que incluye [beneficios]. El próximo paso es activar tu cuenta y yo mismo te acompaño en la configuración inicial para que quedes listo desde el día 1. ¿Cuándo te queda bien?`
+        texto: `¡Perfecto [Nombre]! Entonces te confirmo: arrancamos con MCM y centralizamos toda tu operación deportiva. El próximo paso es activar tu cuenta y yo mismo te acompaño en la capacitación para que tu equipo quede listo. ¿Cuándo te queda bien que iniciemos?`
       }
     ]
   },
@@ -112,15 +112,15 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Bienvenida oficial (Recomendado)',
-        texto: `¡Bienvenido a Gibbor, [Nombre]! 🎉🏆\n\nEs un placer tenerte en nuestra familia. Estamos seguros de que la diferencia la vas a sentir desde el primer mes.\n\nEn los próximos días te estaré acompañando en el proceso de configuración para que todo quede listo. Cualquier duda que tengas, escríbeme directamente aquí.\n\n¡Mucho éxito con la academia! ⚽`
+        texto: `¡Bienvenido a Master Club Manager, [Nombre]! 🎉🏆\n\nEs un placer tener a tu academia en nuestra familia. Estamos seguros de que el orden y el control lo vas a sentir desde la primera semana.\n\nEn los próximos días te estaré acompañando en el proceso de configuración y capacitación. Cualquier duda que tengas, escríbeme por aquí.\n\n¡Mucho éxito en la cancha! ⚽`
       },
       {
         titulo: 'Check-in semana 1',
-        texto: `Hola [Nombre], ¿cómo va todo con la plataforma? ¿Ya pudieron hacer el primer registro de asistencia o cobro? Si necesitan ayuda con algo o tienen alguna pregunta, aquí estoy 😊`
+        texto: `Hola [Nombre], ¿cómo va todo con la plataforma? ¿Tus entrenadores ya pudieron tomar la primera asistencia desde el celular? Si necesitan ayuda con algo o tienen alguna pregunta, aquí estoy 😊`
       },
       {
         titulo: 'Pedir referido',
-        texto: `[Nombre], qué bueno saber que todo va bien! Una cosita: ¿conoces algún otro director de academia o escuela deportiva que también esté buscando organizarse mejor? Si me das un contacto y se activa, hay un beneficio especial para ti también 🙌`
+        texto: `[Nombre], ¡qué bueno saber que todo va excelente con el sistema! Una cosita: ¿conoces a algún otro director de academia de fútbol que también necesite dejar el Excel y organizarse mejor? Si me das un contacto y se activa en MCM, hay un beneficio especial para ti también 🙌`
       }
     ]
   },
@@ -131,15 +131,15 @@ const GUIA_VENTAS: Record<string, { color: string; emoji: string; tip: string; m
     mensajes: [
       {
         titulo: 'Cierre con puerta abierta (Recomendado)',
-        texto: `Hola [Nombre], entiendo perfectamente que por ahora no sea el momento indicado 😊 No hay ningún problema. Si en algún momento cambian las condiciones o quieren explorar la solución de nuevo, aquí voy a estar.\n\nMucho éxito con la academia, ¡están haciendo un trabajo muy valioso con los chicos! ⚽`
+        texto: `Hola [Nombre], entiendo perfectamente que por ahora no sea el momento indicado 😊 No hay ningún problema. Si en algún momento deciden dejar atrás el Excel y los procesos manuales, aquí voy a estar.\n\n¡Mucho éxito con la academia, sigan haciendo ese gran trabajo con los chicos! ⚽`
       },
       {
         titulo: 'Entender el motivo (para aprender)',
-        texto: `[Nombre], una última pregunta si me lo permites: ¿hubo algo específico que los llevó a no continuar? ¿Fue el precio, el momento, o algo de la plataforma que no convenció? Tu respuesta me ayuda mucho a mejorar 🙏`
+        texto: `[Nombre], una última pregunta si me lo permites: ¿hubo algo específico que los llevó a no implementar MCM ahora mismo? ¿Fue el presupuesto, el momento, o algo de las funciones que no convenció? Tu respuesta me ayuda muchísimo a mejorar 🙏`
       },
       {
         titulo: 'Reactivación a futuro (para enviar en 90 días)',
-        texto: `Hola [Nombre], ¡buen día! Han pasado unos meses desde que hablamos y quería retomar el contacto. Hemos lanzado varias mejoras en la plataforma y el precio de arranque mejoró bastante. ¿Sigue siendo un tema que tienen en mente? 😊`
+        texto: `Hola [Nombre], ¡buen día! Han pasado unos meses desde que hablamos y quería retomar el contacto. Hemos lanzado nuevas funciones en la plataforma para entrenadores y padres. ¿El tema de organizar la administración sigue estando en la mira para ustedes? 😊`
       }
     ]
   }
