@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(request: Request) {
   try {
-    const { history, leadName } = await request.json();
+    const { history, leadName, intent } = await request.json();
 
     if (!history || !Array.isArray(history)) {
       return NextResponse.json({ error: 'Faltan parámetros o formato incorrecto' }, { status: 400 });
@@ -24,24 +24,32 @@ export async function POST(request: Request) {
       });
     }
 
+    let intentInstruction = 'Tu objetivo es leer el historial de conversación reciente y sugerir la MEJOR respuesta posible para enviar.';
+    if (intent === 'demo') {
+      intentInstruction = 'Tu objetivo principal es convencer al cliente de AGENDAR UNA DEMOSTRACIÓN (Demo) en vivo (Google Meet o presencial). Resalta que en 15 minutos verá cómo solucionar su mayor dolor administrativo.';
+    } else if (intent === 'objection') {
+      intentInstruction = 'Tu objetivo principal es IDENTIFICAR LA ÚLTIMA OBJECIÓN del cliente (precio, tiempo, ya usan Excel, etc.) y REFUTARLA amablemente, demostrando que MCM es una inversión que se paga sola (ahorro de tiempo y recuperación de cartera).';
+    }
+
     const SYSTEM_PROMPT = `
-Eres un experto en ventas SaaS, actuando como el "Copiloto" del equipo comercial de "Master Club Manager" (MCM), una plataforma integral para administrar academias deportivas y clubes de fútbol.
+Eres un experto en ventas B2B SaaS, actuando como el "Copiloto IA" de un embajador de ventas de "Master Club Manager" (MCM).
+MCM es el "sistema operativo para escuelas de fútbol". Centraliza toda la operación: cobros automáticos, asistencia desde la cancha, evaluaciones deportivas y comunicación con padres (cero grupos de WhatsApp).
 
-Tu objetivo es leer el historial de conversación reciente con el prospecto (Lead) llamado "${leadName || 'Cliente'}" y sugerirle al vendedor la MEJOR respuesta posible para enviar.
+${intentInstruction}
 
-REGLAS DE VENTA:
-1. Habla SIEMPRE desde la solución al dolor (ej: ahorrar tiempo, cobrar a tiempo, profesionalizar el club, mejorar comunicación con padres) y NO solo listando módulos de software (ej: "tenemos módulo de cobranza").
-2. Tu meta es cerrar la venta o acercarte al cierre exponiendo beneficios claros.
-3. Mantén un tono formal pero cercano y empático con las necesidades del cliente.
-4. Si en el historial notas que el cliente está dudoso, rebelde o no entiende bien el valor, sugiere AGENDAR UNA REUNIÓN POR GOOGLE MEET para hacerle una demostración en vivo de la plataforma.
-5. Da respuestas listas para copiar y pegar (no digas "Puedes decirle esto: ", simplemente escribe el mensaje final).
-6. Usa lenguaje natural de WhatsApp (puedes usar 1 o 2 emojis relevantes, párrafos cortos). No seas robótico.
-7. Master Club Manager incluye funciones como: Recaudos automáticos, control de asistencia, cartas FIFA para jugadores, convocatorias digitales por WhatsApp, y vitrina de talento.
+REGLAS DE VENTA MCM:
+1. No vendemos "un software", vendemos organización, tiempo libre para el director y control total del club.
+2. Ataca al enemigo: Excel, cuadernos, planillas de papel, y el caos de los grupos de WhatsApp.
+3. Habla desde la solución al dolor. Si dicen que los papás no pagan, háblales de los recordatorios de recaudo automático de MCM.
+4. Mantén un tono casual, humano, pero súper profesional y empático.
+5. Usa lenguaje natural de WhatsApp (párrafos cortos, 1 o 2 emojis). No suenes como un robot corporativo.
+6. Da una respuesta lista para copiar y pegar. NO incluyas introducciones como "Puedes responder esto:".
+7. Dirígete al cliente por su nombre: "${leadName || 'Director'}".
 `;
 
     // Format history for Gemini
     const chatContext = history.map((msg: any) => 
-      `${msg.es_saliente ? 'VENDEDOR' : 'CLIENTE'}: ${msg.mensaje}`
+      `${msg.es_saliente ? 'VENDEDOR (MCM)' : 'CLIENTE'}: ${msg.mensaje}`
     ).join('\n\n');
 
     const promptText = `

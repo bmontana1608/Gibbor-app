@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import {
   Loader2, Search, Send, User, MessageSquare, Phone, Sparkles, Bot,
   Building2, Paperclip, Mic, MicOff, FileText, Download, X, Play, Pause,
-  Image as ImageIcon, Film
+  Image as ImageIcon, Film, Clock, AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import SalesGuide from './SalesGuide';
@@ -215,6 +215,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
             hasPhone: numNorm.length > 5,
             lastMessage: msgMatch ? msgMatch.mensaje : '',
             lastMessageTime: msgMatch ? msgMatch.created_at : new Date(0).toISOString(),
+            lastMessageOutbound: msgMatch ? msgMatch.es_saliente : null,
             unread: msgMatch ? msgMatch.unread : 0,
             entity: item, type
           };
@@ -229,7 +230,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         .filter(num => !allKnownNorm.some(k => k.includes(num.replace(/\D/g, '')) || num.replace(/\D/g, '').includes(k)))
         .map(num => ({
           numero_telefono: num, hasPhone: true, lastMessage: grouped[num].mensaje,
-          lastMessageTime: grouped[num].created_at, unread: grouped[num].unread,
+          lastMessageTime: grouped[num].created_at, lastMessageOutbound: grouped[num].es_saliente, unread: grouped[num].unread,
           entity: null, type: 'orphaned'
         }));
 
@@ -250,7 +251,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
         const pNum = phoneParam.replace(/\D/g, '');
         let existing = chatList.find(c => { const cn = c.numero_telefono.replace(/\D/g, ''); return cn && pNum && (cn.includes(pNum) || pNum.includes(cn)); });
         if (!existing) {
-          existing = { numero_telefono: phoneParam, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: { nombre: 'Prospecto' } as any, type: 'orphaned' };
+          existing = { numero_telefono: phoneParam, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), lastMessageOutbound: null, unread: 0, entity: { nombre: 'Prospecto' } as any, type: 'orphaned' };
           chatList = [existing, ...chatList];
         }
         if (existing.type === 'club') setActiveTab('clubes'); else setActiveTab('leads');
@@ -442,7 +443,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       if (existing.type === 'club') setActiveTab('clubes'); else setActiveTab('leads');
     } else {
       const { data } = await supabase.from('atlas_academias').insert({ nombre: newName || 'Prospecto Manual', telefono: cleanNum }).select().single();
-      const newChat: any = { numero_telefono: cleanNum, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), unread: 0, entity: data || { nombre: newName || 'Prospecto Manual' }, type: 'lead' };
+      const newChat: any = { numero_telefono: cleanNum, hasPhone: true, lastMessage: '', lastMessageTime: new Date().toISOString(), lastMessageOutbound: null, unread: 0, entity: data || { nombre: newName || 'Prospecto Manual' }, type: 'lead' };
       setChats(prev => [newChat, ...prev]);
       setActiveChat(newChat);
       setActiveTab('leads');
@@ -450,13 +451,13 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setNewPhone(''); setNewName('');
   };
 
-  const askCopilot = async () => {
+  const askCopilot = async (intent: string = 'general') => {
     if (!activeChat || messages.length === 0) return;
     setLoadingAI(true); setAiSuggestion('');
     try {
       const res = await fetch('/api/admin/crm/ai-copilot', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ history: messages.slice(-10), leadName: activeChat.entity?.nombre || 'Prospecto' })
+        body: JSON.stringify({ history: messages.slice(-10), leadName: activeChat.entity?.nombre || 'Prospecto', intent })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -514,28 +515,33 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               const isActive = activeChat?.numero_telefono === chat.numero_telefono && activeChat?.entity?.id === chat.entity?.id;
               const noPhone = !chat.hasPhone;
               const hasMsg = chat.lastMessageTime !== new Date(0).toISOString();
+              const needsFollowUp = chat.type === 'lead' && chat.lastMessageOutbound === true && chat.entity?.etapa && ['Seguimiento', 'Primer contacto', 'Demo'].includes(chat.entity.etapa) && hasMsg && (new Date().getTime() - new Date(chat.lastMessageTime).getTime() > 2 * 24 * 60 * 60 * 1000);
+              
               return (
                 <div
                   key={`${chat.type}-${chat.entity?.id || chat.numero_telefono}`}
                   onClick={() => !noPhone && setActiveChat(chat)}
                   className={`p-4 border-b border-slate-50 flex items-start gap-3 transition-colors
                     ${noPhone ? 'opacity-50 cursor-default' : 'cursor-pointer hover:bg-slate-50'}
-                    ${isActive ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}`}
+                    ${isActive ? 'bg-slate-50 border-l-4 border-l-lime-500' : 'border-l-4 border-l-transparent'}
+                    ${needsFollowUp && !isActive ? 'bg-orange-50/30' : ''}`}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${chat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
-                    {chat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${chat.type === 'club' ? 'bg-blue-100' : needsFollowUp ? 'bg-orange-100' : 'bg-lime-100'}`}>
+                    {chat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : needsFollowUp ? <Clock className="w-5 h-5 text-orange-600" /> : <User className="w-5 h-5 text-lime-600" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-bold text-sm text-slate-900 truncate">{chat.entity ? chat.entity.nombre : chat.numero_telefono}</h3>
-                      <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                      <span className={`text-[10px] whitespace-nowrap ${needsFollowUp ? 'text-orange-500 font-bold' : 'text-slate-400'}`}>
                         {hasMsg ? new Date(chat.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : noPhone ? '—' : 'Nuevo'}
                       </span>
                     </div>
                     {noPhone ? (
                       <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Sin teléfono</span>
                     ) : (
-                      <p className="text-xs text-slate-500 truncate">{chat.lastMessage || 'Iniciar conversación...'}</p>
+                      <p className={`text-xs truncate ${needsFollowUp ? 'text-orange-600 font-medium' : 'text-slate-500'}`}>
+                        {needsFollowUp ? '⚠️ Requiere seguimiento' : (chat.lastMessage || 'Iniciar conversación...')}
+                      </p>
                     )}
                   </div>
                   {chat.unread > 0 && <div className="w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0">{chat.unread}</div>}
@@ -559,7 +565,25 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               </div>
             </div>
 
-            {/* Messages */}
+              {/* Follow-up Banner */}
+              {(() => {
+                const hasMsg = activeChat.lastMessageTime !== new Date(0).toISOString();
+                const needsFollowUp = activeChat.type === 'lead' && activeChat.lastMessageOutbound === true && activeChat.entity?.etapa && ['Seguimiento', 'Primer contacto', 'Demo'].includes(activeChat.entity.etapa) && hasMsg && (new Date().getTime() - new Date(activeChat.lastMessageTime).getTime() > 2 * 24 * 60 * 60 * 1000);
+                if (!needsFollowUp) return null;
+                return (
+                  <div className="bg-orange-50 border-b border-orange-200 px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-orange-800 text-sm font-medium">
+                      <AlertCircle className="w-5 h-5 text-orange-600" />
+                      Este lead lleva más de 2 días sin responder. ¡Es hora de hacer seguimiento!
+                    </div>
+                    <button onClick={() => askCopilot('objection')} className="text-xs bg-orange-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-orange-700 transition">
+                      ✨ IA: Sugerir Seguimiento
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {messages.length === 0 && (
                 <div className="text-center py-10 text-slate-400">
@@ -620,10 +644,18 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-slate-200">
-              <div className="flex justify-between mb-2">
-                <button onClick={askCopilot} disabled={loadingAI || messages.length === 0}
-                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50">
-                  <Sparkles className="w-3.5 h-3.5" /> ✨ Sugerir Respuesta IA
+              <div className="flex flex-wrap gap-2 mb-2">
+                <button onClick={() => askCopilot('general')} disabled={loadingAI || messages.length === 0}
+                  className="flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50">
+                  <Sparkles className="w-3.5 h-3.5" /> IA: Respuesta ideal
+                </button>
+                <button onClick={() => askCopilot('demo')} disabled={loadingAI || messages.length === 0}
+                  className="flex items-center gap-1 text-[11px] font-bold text-violet-700 bg-violet-50 border border-violet-100 px-3 py-1.5 rounded-lg hover:bg-violet-100 transition-colors disabled:opacity-50">
+                  <Sparkles className="w-3.5 h-3.5" /> IA: Empujar a Demo
+                </button>
+                <button onClick={() => askCopilot('objection')} disabled={loadingAI || messages.length === 0}
+                  className="flex items-center gap-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50">
+                  <Sparkles className="w-3.5 h-3.5" /> IA: Manejar objeción
                 </button>
               </div>
 
