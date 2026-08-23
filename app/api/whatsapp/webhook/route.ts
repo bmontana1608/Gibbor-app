@@ -41,27 +41,71 @@ export async function POST(req: NextRequest) {
     const fromMe = body.data?.key?.fromMe;
 
     if (instance === 'mcm-ventas' || instance.startsWith('embajador-')) {
-      if (!remoteJid || !message) {
-        // Log the raw payload for debugging if extraction fails
+      if (!remoteJid) {
         await supabaseAdmin.from('crm_whatsapp_messages').insert({
           numero_telefono: 'DEBUG_WEBHOOK',
           mensaje: JSON.stringify(body).substring(0, 500),
-          es_saliente: false,
-          instancia: instance,
-          leido: false
+          es_saliente: false, instancia: instance, leido: false
         });
         return NextResponse.json({ ok: true });
       }
+
       const phone = remoteJid.split('@')[0];
-      
-      // Look up lead by phone
       const { data: leads } = await supabaseAdmin.from('atlas_academias').select('id').like('telefono', `%${phone}%`).limit(1);
       const leadId = leads && leads.length > 0 ? leads[0].id : null;
+
+      // ── Download & store media if present ──────────────────────────────────
+      let mediaUrl: string | null = null;
+      let mediaTypeDb: string | null = null;
+      const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL?.replace(/\/$/, '');
+      const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || '';
+
+      const hasMedia = msgData && (msgData.imageMessage || msgData.audioMessage || msgData.videoMessage || msgData.documentMessage);
+
+      if (hasMedia && EVOLUTION_API_URL && body.data?.key?.id) {
+        try {
+          const mediaRes = await fetch(`${EVOLUTION_API_URL}/chat/getBase64FromMediaMessage/${instance}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': EVOLUTION_API_KEY },
+            body: JSON.stringify({ message: { key: body.data.key } })
+          });
+
+          if (mediaRes.ok) {
+            const mediaData = await mediaRes.json();
+            const base64 = mediaData.base64;
+            const mimeType: string = mediaData.mimetype || 'application/octet-stream';
+
+            if (base64) {
+              const buffer = Buffer.from(base64, 'base64');
+              const ext = mimeType.split('/')[1]?.split(';')[0] || 'bin';
+
+              if (msgData.imageMessage) mediaTypeDb = 'image';
+              else if (msgData.audioMessage) mediaTypeDb = 'audio';
+              else if (msgData.videoMessage) mediaTypeDb = 'video';
+              else if (msgData.documentMessage) mediaTypeDb = 'document';
+
+              const filename = `chat-media/${Date.now()}_${phone}.${ext}`;
+              const { error: uploadError } = await supabaseAdmin.storage
+                .from('chat_media')
+                .upload(filename, buffer, { contentType: mimeType, upsert: false });
+
+              if (!uploadError) {
+                const { data: urlData } = supabaseAdmin.storage.from('chat_media').getPublicUrl(filename);
+                mediaUrl = urlData.publicUrl;
+              }
+            }
+          }
+        } catch (mediaErr) {
+          console.error('Error descargando media del webhook:', mediaErr);
+        }
+      }
 
       await supabaseAdmin.from('crm_whatsapp_messages').insert({
         lead_id: leadId,
         numero_telefono: phone,
-        mensaje: message,
+        mensaje: message || '',
+        media_url: mediaUrl,
+        media_type: mediaTypeDb,
         es_saliente: fromMe,
         instancia: instance,
         leido: fromMe
