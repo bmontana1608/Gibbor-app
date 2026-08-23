@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
     let instance = 'mcm-ventas';
     if (perfil?.rol === 'Embajador') {
       const { data: emb } = await supabaseAdmin.from('embajadores').select('id').eq('user_id', user.id).single();
-      if (emb) instance = `embajador-${emb.id}`;
+      if (emb) {
+        instance = `embajador-${emb.id}`;
+      }
     } else if (perfil?.club_id) {
       instance = (perfil.clubes as any)?.slug || 'mcm-ventas';
     }
