@@ -205,7 +205,7 @@ export default function SalesGuide({ etapaActual, onUseMessage }: SalesGuideProp
       </button>
 
       {open && (
-        <div className="px-4 pb-4 space-y-3">
+        <div className="px-4 pb-4 space-y-3 max-h-[35vh] overflow-y-auto">
           {/* Selector de etapa manual */}
           <div className="flex flex-wrap gap-1">
             {Object.entries(GUIA_VENTAS).map(([etapa, info]) => (
