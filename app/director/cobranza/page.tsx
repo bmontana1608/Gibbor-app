@@ -683,7 +683,7 @@ export default function ModuloCobranza() {
       const textoDescuento = descuentoCalculado > 0 
         ? ` Recuerda que si pagas antes del 5 tienes descuento de $${descuentoCalculado.toLocaleString('es-CO')}.`
         : '';
-      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en el club ✨`;
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'el club'}* ✨`;
 
       const result = await enviarMensajeWhatsApp(
         alumno.telefono,
@@ -725,7 +725,7 @@ export default function ModuloCobranza() {
       const mesActual = meses[fechaPeriodo.getMonth()];
       const anioActual = fechaPeriodo.getFullYear();
       const diaVence = 5;
-      const nombreClub = config?.nombre_club || 'TU CLUB';
+      const nombreClub = tenant?.config?.nombre || tenant?.nombre || config?.nombre_club || 'TU CLUB';
 
       // Calcular tarifa correcta según período y tipo de plan
       const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
@@ -1086,7 +1086,7 @@ export default function ModuloCobranza() {
           banco_numero: clubConfig.banco_numero
         }
       });
-      const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF.`;
+      const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF de *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'nuestro club'}*.`;
 
       // 3. Envío vía API usando motor central
       const result = await enviarMensajeWhatsApp(
@@ -1941,4 +1941,7 @@ export default function ModuloCobranza() {
     </div>
   );
 }
+
+
+
 
