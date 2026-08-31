@@ -59,11 +59,13 @@ export default function BrandBookPage() {
           .slide-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 2rem;
+            /* Alinear a la izquierda para evitar que Flexbox empuje el div original de 1920px fuera de la pantalla */
+            align-items: flex-start;
             padding: 2rem;
             background: #e2e8f0;
             overflow-x: hidden;
+            /* Centrar el contenedor en pantallas grandes */
+            max-width: 100vw;
           }
           .slide {
             width: 1920px;
@@ -72,14 +74,25 @@ export default function BrandBookPage() {
             overflow: hidden;
             background-color: #f8f9fa;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            zoom: min(1, calc((100vw - 5rem) / 1920));
+            
+            /* Escalar desde la esquina superior izquierda */
+            transform-origin: top left;
+            transform: scale(min(1, calc((100vw - 4rem) / 1920)));
+            
+            /* Eliminar el espacio fantasma (bounding box original) que deja el transform */
+            margin-bottom: calc( -1080px * (1 - min(1, calc((100vw - 4rem) / 1920))) + 2rem );
+            margin-right: calc( -1920px * (1 - min(1, calc((100vw - 4rem) / 1920))) );
           }
-          /* Fallback para navegadores que no soportan zoom */
-          @supports not (zoom: 1) {
+          
+          /* Si la pantalla es más grande que 1920px, centramos normalmente */
+          @media (min-width: 1984px) {
+            .slide-container {
+              align-items: center;
+            }
             .slide {
-              transform-origin: top center;
-              transform: scale(min(1, calc((100vw - 5rem) / 1920)));
-              margin-bottom: calc(-1080px * (1 - min(1, calc((100vw - 5rem) / 1920))));
+              transform: scale(1);
+              margin-bottom: 2rem;
+              margin-right: 0;
             }
           }
           .slide-dark {
@@ -582,4 +595,5 @@ export default function BrandBookPage() {
     </div>
   );
 }
+
 
