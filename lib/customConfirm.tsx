@@ -1,9 +1,9 @@
-'use client';
+ï»¿'use client';
 
 import { createRoot } from 'react-dom/client';
 import { AlertTriangle } from 'lucide-react';
 
-export const customConfirm = (message: string, title: string = 'Confirmar Acción'): Promise<boolean> => {
+export const customConfirm = (message: string, title: string = 'Confirmar AcciÃ³n'): Promise<boolean> => {
   return new Promise((resolve) => {
     if (typeof window === 'undefined') {
       resolve(false);
@@ -54,7 +54,7 @@ export const customConfirm = (message: string, title: string = 'Confirmar Acción
               onClick={handleConfirm}
               className="flex-1 bg-rose-500 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-rose-600 transition-colors shadow-sm shadow-rose-200"
             >
-              Sí, proceder
+              SÃ­, proceder
             </button>
           </div>
         </div>
