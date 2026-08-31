@@ -276,22 +276,31 @@ export default function AsistenteWhatsApp() {
                   <p className="text-sm text-slate-500 max-w-sm mb-6">
                     Abre WhatsApp en tu teléfono, toca Configuración y selecciona Dispositivos vinculados para escanear el código.
                   </p>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={generarQR}
+                        disabled={cargando}
+                        className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100 flex items-center gap-2"
+                      >
+                        {cargando ? 'Cargando Servidor...' : qrCode ? 'Generar Nuevo QR' : 'Generar Nuevo Token QR'}
+                      </button>
+                      {qrCode && (
+                         <button 
+                          onClick={() => setConectado(true)}
+                          className="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-50"
+                         >
+                           Confirmar Vinculación
+                         </button>
+                      )}
+                    </div>
                     <button 
-                      onClick={generarQR}
+                      onClick={handleDesvincular}
                       disabled={cargando}
-                      className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-emerald-100 flex items-center gap-2"
+                      className="text-xs text-rose-500 hover:text-rose-700 underline font-medium text-left"
                     >
-                      {cargando ? 'Cargando Servidor...' : qrCode ? 'Generar Nuevo QR' : 'Generar Nuevo Token QR'}
+                      ¿Error al escanear? Forzar reinicio de sesión
                     </button>
-                    {qrCode && (
-                       <button 
-                        onClick={() => setConectado(true)}
-                        className="bg-white border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold hover:bg-slate-50"
-                       >
-                         Confirmar Vinculación
-                       </button>
-                    )}
                   </div>
 
                   {rawResponse && !qrCode && (
