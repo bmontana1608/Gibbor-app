@@ -37,9 +37,9 @@ export default async function EmbajadorDashboard({
     embajador = data;
   }
 
-  if (!embajador) return <div>No se encontr├│ tu perfil de embajador.</div>;
+  if (!embajador) return <div>No se encontró tu perfil de embajador.</div>;
 
-  // 2. Obtener estad├¡sticas (Clubes Referidos)
+  // 2. Obtener estadísticas (Clubes Referidos)
   const { data: clubes } = await supabase
     .from('clubes')
     .select('id, nombre, estado_referido, tarifa_por_jugador, perfiles(count)')
@@ -67,19 +67,19 @@ export default async function EmbajadorDashboard({
   const comisionesPagadas = comisiones?.filter(c => c.estado === 'Pagada').reduce((sum, c) => sum + Number(c.monto), 0) || 0;
   const comisionesPendientes = comisionesTotales - comisionesPagadas;
 
-  // 4. Comisi├│n
+  // 4. Comisión
   const porcentaje = 10;
 
   // 5. URLs de referido con fuente
-  const baseUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.codigo_referido}`;
+  const baseUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.código_referido}`;
   const referralUrlLink = `${baseUrl}&src=link`;
   const referralUrlQr = `${baseUrl}&src=qr`;
 
-  // 6. Tasa de Conversi├│n
+  // 6. Tasa de Conversión
   const leadsTotales = totalClubes;
-  const tasaConversion = leadsTotales > 0 ? Math.round((clubesActivos / leadsTotales) * 100) : 0;
+  const tasaConversión = leadsTotales > 0 ? Math.round((clubesActivos / leadsTotales) * 100) : 0;
 
-  // 7. Actualizar ├║ltima actividad
+  // 7. Actualizar última actividad
   await supabase.from('embajadores').update({ ultima_actividad: new Date().toISOString() }).eq('id', embajador.id);
 
   return (
@@ -88,13 +88,13 @@ export default async function EmbajadorDashboard({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hola, {embajador.nombre_completo.split(' ')[0]} ­ƒæï</h1>
-          <p className="text-slate-500 font-medium mt-1">Aqu├¡ est├í el resumen de tu gesti├│n comercial.</p>
+          <p className="text-slate-500 font-medium mt-1">Aquí está el resumen de tu gestión comercial.</p>
         </div>
         
         <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
-          <span className="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Tu C├│digo:</span>
+          <span className="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Tu Código:</span>
           <span className="bg-green-100 text-green-700 font-black px-3 py-1.5 rounded-lg text-lg tracking-wider">
-            {embajador.codigo_referido}
+            {embajador.código_referido}
           </span>
         </div>
       </div>
@@ -106,7 +106,7 @@ export default async function EmbajadorDashboard({
             <Trophy className="w-8 h-8 text-lime-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Tu Comisi├│n</p>
+            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Tu Comisión</p>
             <div className="flex items-end gap-3">
               <h2 className="text-3xl md:text-4xl font-black tracking-tight">{porcentaje}%</h2>
               <span className="text-lime-400 font-bold mb-1">recurrente</span>
@@ -115,15 +115,15 @@ export default async function EmbajadorDashboard({
         </div>
 
         <div className="w-full md:w-1/2 bg-black/30 rounded-2xl p-4 border border-white/10 text-sm text-slate-300">
-          Ganas el <strong className="text-white">{porcentaje}% mensual</strong> de la suscripci├│n de cada academia que se registre con tu c├│digo, mientras se mantengan activos.
+          Ganas el <strong className="text-white">{porcentaje}% mensual</strong> de la suscripción de cada academia que se registre con tu código, mientras se mantengan activos.
         </div>
       </div>
 
-      {/* M├ëTRICAS DE CONVERSI├ôN Y FINANCIERAS */}
+      {/* MÉTRICAS DE CONVERSI├ôN Y FINANCIERAS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard title="Total Leads" value={leadsTotales} subtitle="Academias registradas" icon={<Users className="w-6 h-6 text-blue-500" />} bg="bg-blue-100" />
         <MetricCard title="Activos" value={clubesActivos} subtitle="Clientes pagando" icon={<CheckCircle2 className="w-6 h-6 text-green-500" />} bg="bg-green-100" />
-        <MetricCard title="Conversi├│n" value={`${tasaConversion}%`} subtitle="Tasa de ├®xito" icon={<Target className="w-6 h-6 text-orange-500" />} bg="bg-orange-100" />
+        <MetricCard title="Conversión" value={`${tasaConversión}%`} subtitle="Tasa de ├éxito" icon={<Target className="w-6 h-6 text-orange-500" />} bg="bg-orange-100" />
         <MetricCard title="MRR Estimado" value={`$${mrr.toLocaleString('es-CO')}`} subtitle="Ingreso recurrente" icon={<DollarSign className="w-6 h-6 text-indigo-500" />} bg="bg-indigo-100" />
       </div>
 
@@ -135,7 +135,7 @@ export default async function EmbajadorDashboard({
           </div>
           <h2 className="text-xl font-black text-slate-900 mb-2">Tu Kit Comercial</h2>
           <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-            Comparte este enlace o el c├│digo QR con cualquier academia. Si se registran, quedar├ín asociados a tu cuenta.
+            Comparte este enlace o el código QR con cualquier academia. Si se registran, quedarán asociados a tu cuenta.
           </p>
 
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6 w-full flex justify-center">
@@ -147,14 +147,14 @@ export default async function EmbajadorDashboard({
           </div>
         </div>
 
-        {/* ├ÜLTIMOS REFERIDOS */}
+        {/* ÚLTIMOS REFERIDOS */}
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-          <h2 className="text-xl font-black text-slate-900 mb-6">├Ültimos Referidos</h2>
+          <h2 className="text-xl font-black text-slate-900 mb-6">Últimos Referidos</h2>
           
           {totalClubes === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-              <p className="text-slate-400 font-medium">A├║n no tienes clubes referidos.</p>
-              <p className="text-sm text-slate-400 mt-1">Comparte tu c├│digo para empezar a ganar.</p>
+              <p className="text-slate-400 font-medium">Aún no tienes clubes referidos.</p>
+              <p className="text-sm text-slate-400 mt-1">Comparte tu código para empezar a ganar.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -215,7 +215,7 @@ export default async function EmbajadorDashboard({
             </div>
           </a>
 
-          {/* Presentacion */}
+          {/* Presentación */}
           <a 
             href="https://www.masterclubmanager.com/presentacion" 
             target="_blank" 

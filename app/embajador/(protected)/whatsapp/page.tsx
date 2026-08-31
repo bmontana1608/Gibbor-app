@@ -143,7 +143,7 @@ export default function EmbajadorWhatsApp() {
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">WhatsApp Conectado</h2>
               <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                Tu número está vinculado al servidor CRM. Ya puedes enviar y recibir mensajes de prospectos.
+                Tu número está vinculado al servidor CRM. Ya puedes envíar y recibir mensajes de prospectos.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
@@ -189,7 +189,7 @@ export default function EmbajadorWhatsApp() {
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Vincular Dispositivo</h2>
               <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                Al conectar tu WhatsApp, el CRM usará tu número para enviar mensajes. Tu celular debe mantenerse encendido.
+                Al conectar tu WhatsApp, el CRM usará tu número para envíar mensajes. Tu celular debe mantenerse encendido.
               </p>
               <div className="flex flex-col items-center gap-4">
                 <button

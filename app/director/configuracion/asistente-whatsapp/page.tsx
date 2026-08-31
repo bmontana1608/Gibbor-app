@@ -118,7 +118,7 @@ export default function AsistenteWhatsApp() {
           if (data.status === 'connected') {
             setConectado(true);
             setQrCode(null);
-            toast.success('¡WhatsApp conectado exitosamente!');
+            toast.success('¡WhatsApp conectado éxitosamente!');
             clearInterval(interval);
           } else if (data.status === 'qr' && data.qr) {
             // Actualizar el QR por si expiró y se generó uno nuevo
@@ -228,7 +228,7 @@ export default function AsistenteWhatsApp() {
                 Asistente Virtual de <span className="text-emerald-400">WhatsApp</span>
               </h1>
               <p className="text-slate-400 max-w-xl text-sm md:text-base font-medium leading-relaxed">
-                Automatiza tu cobranza y comunicación. Tu asistente trabaja las 24 horas enviando recibos, recordatorios y procesando pagos sin que muevas un solo dedo.
+                Automatiza tu cobranza y comunicación. Tu asistente trabaja las 24 horas envíando recibos, recordatorios y procesando pagos sin que muevas un solo dedo.
               </p>
             </div>
           </div>
@@ -323,7 +323,7 @@ export default function AsistenteWhatsApp() {
                     <div className="flex gap-4">
                        <CheckCircle2 className="w-10 h-10 text-emerald-500 shrink-0" />
                        <div>
-                          <h4 className="font-bold text-emerald-800">¡Conexión Exitosa!</h4>
+                          <h4 className="font-bold text-emerald-800">¡Conexión éxitosa!</h4>
                           <p className="text-sm text-emerald-600">La plataforma está gestionando los mensajes a través del servidor central.</p>
                        </div>
                     </div>
@@ -396,7 +396,7 @@ export default function AsistenteWhatsApp() {
                             <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${config.recordatorios ? 'right-1' : 'left-1'}`}></div>
                           </button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">Configura qué días del mes se enviarán los 3 avisos automáticos.</p>
+                        <p className="text-xs text-slate-500 mt-1">Configura qué días del mes se envíarán los 3 avisos automáticos.</p>
                       </div>
                     </div>
                     
