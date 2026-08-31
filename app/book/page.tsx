@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -63,6 +63,7 @@ export default function BrandBookPage() {
             gap: 2rem;
             padding: 2rem;
             background: #e2e8f0;
+            overflow-x: hidden;
           }
           .slide {
             width: 1920px;
@@ -71,9 +72,15 @@ export default function BrandBookPage() {
             overflow: hidden;
             background-color: #f8f9fa;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            transform-origin: top center;
-            transform: scale(min(1, calc(100vw / 2000)));
-            flex-shrink: 0;
+            zoom: min(1, calc((100vw - 5rem) / 1920));
+          }
+          /* Fallback para navegadores que no soportan zoom */
+          @supports not (zoom: 1) {
+            .slide {
+              transform-origin: top center;
+              transform: scale(min(1, calc((100vw - 5rem) / 1920)));
+              margin-bottom: calc(-1080px * (1 - min(1, calc((100vw - 5rem) / 1920))));
+            }
           }
           .slide-dark {
             background-color: #0B101E;
@@ -99,11 +106,11 @@ export default function BrandBookPage() {
             <h1 className="text-8xl font-black text-white leading-[1.1] mb-8">
               Brand Book<br/><span className="text-emerald-500">v2.0</span>
             </h1>
-            <p className="text-4xl text-slate-300 font-light">El documento oficial de identidad, cultura y visión de Master Club Manager.</p>
+            <p className="text-4xl text-slate-300 font-light">El documento oficial de identidad, cultura y visiÃ³n de Master Club Manager.</p>
             
             <div className="absolute bottom-24 left-24 border-l-4 border-emerald-500 pl-6">
               <p className="text-xl font-bold text-white tracking-widest uppercase">Propiedad de MCM</p>
-              <p className="text-lg text-slate-400">© 2026 Todos los derechos reservados</p>
+              <p className="text-lg text-slate-400">Â© 2026 Todos los derechos reservados</p>
             </div>
           </div>
           <div className="w-1/2 relative h-full">
@@ -112,9 +119,9 @@ export default function BrandBookPage() {
           </div>
         </div>
 
-        {/* SLIDE 2: ÍNDICE */}
+        {/* SLIDE 2: ÃNDICE */}
         <div className="slide flex flex-col justify-center p-32">
-          <h2 className="text-6xl font-black text-slate-900 mb-20 border-b-8 border-emerald-500 pb-6 inline-block">Índice del Documento</h2>
+          <h2 className="text-6xl font-black text-slate-900 mb-20 border-b-8 border-emerald-500 pb-6 inline-block">Ãndice del Documento</h2>
           
           <div className="grid grid-cols-3 gap-16">
             <div className="space-y-6">
@@ -127,18 +134,18 @@ export default function BrandBookPage() {
             
             <div className="space-y-6">
               <h3 className="text-4xl font-bold text-emerald-600 mb-8">II. Nuestro ADN</h3>
-              <p className="text-2xl text-slate-600 flex justify-between"><span>Misión y Visión</span> <span className="font-bold">08</span></p>
+              <p className="text-2xl text-slate-600 flex justify-between"><span>MisiÃ³n y VisiÃ³n</span> <span className="font-bold">08</span></p>
               <p className="text-2xl text-slate-600 flex justify-between"><span>El Manifiesto</span> <span className="font-bold">10</span></p>
               <p className="text-2xl text-slate-600 flex justify-between"><span>Valores Centrales</span> <span className="font-bold">12</span></p>
               <p className="text-2xl text-slate-600 flex justify-between"><span>Personalidad de Marca</span> <span className="font-bold">15</span></p>
             </div>
             
             <div className="space-y-6">
-              <h3 className="text-4xl font-bold text-emerald-600 mb-8">III. Visión a Futuro</h3>
+              <h3 className="text-4xl font-bold text-emerald-600 mb-8">III. VisiÃ³n a Futuro</h3>
               <p className="text-2xl text-slate-600 flex justify-between"><span>El Producto</span> <span className="font-bold">20</span></p>
               <p className="text-2xl text-slate-600 flex justify-between"><span>Modelo de Embajadores</span> <span className="font-bold">25</span></p>
-              <p className="text-2xl text-slate-600 flex justify-between"><span>Roadmap a 5 Años</span> <span className="font-bold">30</span></p>
-              <p className="text-2xl text-slate-600 flex justify-between"><span>La Visión LATAM</span> <span className="font-bold">35</span></p>
+              <p className="text-2xl text-slate-600 flex justify-between"><span>Roadmap a 5 AÃ±os</span> <span className="font-bold">30</span></p>
+              <p className="text-2xl text-slate-600 flex justify-between"><span>La VisiÃ³n LATAM</span> <span className="font-bold">35</span></p>
             </div>
           </div>
         </div>
@@ -149,16 +156,16 @@ export default function BrandBookPage() {
             <img src="/brand-book/mcm_brandbook_founder_1782916574844.png" alt="Founder" className="absolute inset-0 w-full h-full object-cover" />
           </div>
           <div className="w-7/12 p-24 flex flex-col justify-center">
-            <h2 className="text-5xl font-black text-slate-900 mb-12">La visión detrás de MCM</h2>
+            <h2 className="text-5xl font-black text-slate-900 mb-12">La visiÃ³n detrÃ¡s de MCM</h2>
             
             <div className="text-2xl leading-relaxed text-slate-700 space-y-8 italic">
-              <p>"Soy un apasionado por la obra social. Creo firmemente que nuestra mayor misión en la tierra es servir a los demás, usando siempre como modelo referente a Jesucristo."</p>
+              <p>"Soy un apasionado por la obra social. Creo firmemente que nuestra mayor misiÃ³n en la tierra es servir a los demÃ¡s, usando siempre como modelo referente a Jesucristo."</p>
               
-              <p>"Esto me llevó a tomar la decisión de abrir la fundación Casa Gibbor en compañía de mi esposa. Visitábamos centros de rehabilitación para llevar espacios culturales a través de la música, visitamos habitantes de calle, y nuestro objetivo siempre ha sido servir a nuestra comunidad."</p>
+              <p>"Esto me llevÃ³ a tomar la decisiÃ³n de abrir la fundaciÃ³n Casa Gibbor en compaÃ±Ã­a de mi esposa. VisitÃ¡bamos centros de rehabilitaciÃ³n para llevar espacios culturales a travÃ©s de la mÃºsica, visitamos habitantes de calle, y nuestro objetivo siempre ha sido servir a nuestra comunidad."</p>
               
-              <p>"De allí surge la idea de abrir un programa deportivo donde los niños y niñas puedan encontrar un espacio seguro lejos de las pandillas, las drogas, las malas compañías y de las pantallas. Creemos que a través del fútbol pueden aprovechar sus capacidades, aprender valores y disciplina."</p>
+              <p>"De allÃ­ surge la idea de abrir un programa deportivo donde los niÃ±os y niÃ±as puedan encontrar un espacio seguro lejos de las pandillas, las drogas, las malas compaÃ±Ã­as y de las pantallas. Creemos que a travÃ©s del fÃºtbol pueden aprovechar sus capacidades, aprender valores y disciplina."</p>
               
-              <p className="font-bold text-emerald-600 mt-12 not-italic">— Alex Toscano, Fundador</p>
+              <p className="font-bold text-emerald-600 mt-12 not-italic">â€” Alex Toscano, Fundador</p>
             </div>
           </div>
         </div>
@@ -174,9 +181,9 @@ export default function BrandBookPage() {
           
           <div className="grid grid-cols-2 gap-24">
             <div className="text-3xl leading-relaxed text-slate-300 space-y-8">
-              <p>Así fue como surgió la escuela de formación deportiva Gibbor. Inicialmente, el proyecto era solo para los chicos de nuestra fundación.</p>
-              <p>Pero poco a poco, otros jóvenes del sector se fueron sumando. Fue así como <span className="text-emerald-400 font-bold">pasamos de 10 a 46 jugadores en solo 2 meses.</span></p>
-              <p>Este crecimiento exponencial trajo un nuevo problema: la administración.</p>
+              <p>AsÃ­ fue como surgiÃ³ la escuela de formaciÃ³n deportiva Gibbor. Inicialmente, el proyecto era solo para los chicos de nuestra fundaciÃ³n.</p>
+              <p>Pero poco a poco, otros jÃ³venes del sector se fueron sumando. Fue asÃ­ como <span className="text-emerald-400 font-bold">pasamos de 10 a 46 jugadores en solo 2 meses.</span></p>
+              <p>Este crecimiento exponencial trajo un nuevo problema: la administraciÃ³n.</p>
             </div>
             
             <div className="bg-white/5 border border-white/10 rounded-3xl p-12 relative overflow-hidden">
@@ -197,26 +204,26 @@ export default function BrandBookPage() {
                 </li>
                 <li className="flex items-start gap-4 text-2xl text-slate-300">
                   <div className="mt-1.5 min-w-[12px] h-[12px] rounded-full bg-red-500"></div>
-                  Comunicación inefectiva por grupos de WhatsApp
+                  ComunicaciÃ³n inefectiva por grupos de WhatsApp
                 </li>
               </ul>
             </div>
           </div>
         </div>
 
-        {/* SLIDE 5: LA SOLUCIÓN (MCM) */}
+        {/* SLIDE 5: LA SOLUCIÃ“N (MCM) */}
         <div className="slide flex">
           <div className="w-1/2 p-32 flex flex-col justify-center">
             <h2 className="text-6xl font-black text-slate-900 mb-12 leading-tight">De resolver un problema propio, a <span className="text-emerald-600">transformar una industria.</span></h2>
             
             <div className="text-2xl leading-relaxed text-slate-600 space-y-8">
-              <p>"Decidí hacer una plataforma para administrar mi escuela. En un principio se llamaba Gibbor App ya que estaba pensada solo para mí."</p>
+              <p>"DecidÃ­ hacer una plataforma para administrar mi escuela. En un principio se llamaba Gibbor App ya que estaba pensada solo para mÃ­."</p>
               
               <div className="p-8 bg-emerald-50 border-l-8 border-emerald-500 rounded-r-2xl my-12">
-                <p className="font-bold text-emerald-800">"Pero luego me di cuenta que el producto final era tan bueno que podía solucionar no solo mi dolor, sino el de cientos de escuelas en Bogotá, Colombia y toda LATAM."</p>
+                <p className="font-bold text-emerald-800">"Pero luego me di cuenta que el producto final era tan bueno que podÃ­a solucionar no solo mi dolor, sino el de cientos de escuelas en BogotÃ¡, Colombia y toda LATAM."</p>
               </div>
               
-              <p>Así nació <strong>Master Club Manager (MCM)</strong>, una plataforma marca blanca donde la identidad de cada club es lo más importante.</p>
+              <p>AsÃ­ naciÃ³ <strong>Master Club Manager (MCM)</strong>, una plataforma marca blanca donde la identidad de cada club es lo mÃ¡s importante.</p>
             </div>
           </div>
           <div className="w-1/2 bg-[#0B101E] relative flex items-center justify-center p-20">
@@ -231,15 +238,15 @@ export default function BrandBookPage() {
           
           <div className="relative z-10 max-w-5xl">
             <h2 className="text-8xl font-black text-emerald-600 mb-16 tracking-tight uppercase">GIBBOR</h2>
-            <h3 className="text-4xl font-bold text-slate-800 mb-12">/ ɡɪˈbɔːr / • Hebreo: "Guerrero Valiente"</h3>
+            <h3 className="text-4xl font-bold text-slate-800 mb-12">/ É¡ÉªËˆbÉ”Ër / â€¢ Hebreo: "Guerrero Valiente"</h3>
             
             <p className="text-3xl leading-relaxed text-slate-700 mb-12">
-              Así llamaban en la Biblia a los valientes de David. Hombres que alguna vez perdieron su propósito de vida, escondidos en una cueva, pero que encontraron esa valentía en Dios y lograron hacer grandes hazañas.
+              AsÃ­ llamaban en la Biblia a los valientes de David. Hombres que alguna vez perdieron su propÃ³sito de vida, escondidos en una cueva, pero que encontraron esa valentÃ­a en Dios y lograron hacer grandes hazaÃ±as.
             </p>
             
             <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-xl inline-block">
               <p className="text-2xl font-bold text-slate-900">
-                En Gibbor creemos que cada niño puede encontrar su propósito de vida y ser valientes para resaltar en una sociedad que cada vez está más en declive.
+                En Gibbor creemos que cada niÃ±o puede encontrar su propÃ³sito de vida y ser valientes para resaltar en una sociedad que cada vez estÃ¡ mÃ¡s en declive.
               </p>
             </div>
           </div>
@@ -250,13 +257,13 @@ export default function BrandBookPage() {
         {/* SLIDE 7: PORTADILLA ADN */}
         <div className="slide slide-green flex items-center justify-center">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-[0.5em] mb-8 text-emerald-100 uppercase">Sección II</h2>
+            <h2 className="text-3xl font-bold tracking-[0.5em] mb-8 text-emerald-100 uppercase">SecciÃ³n II</h2>
             <h1 className="text-8xl font-black text-white">El ADN de MCM</h1>
             <div className="w-32 h-2 bg-white mx-auto mt-12 rounded-full"></div>
           </div>
         </div>
 
-        {/* SLIDE 8: MISIÓN Y VISIÓN */}
+        {/* SLIDE 8: MISIÃ“N Y VISIÃ“N */}
         <div className="slide flex flex-col justify-center p-32">
           <div className="grid grid-cols-2 gap-24 h-full items-center">
             
@@ -264,9 +271,9 @@ export default function BrandBookPage() {
               <div className="absolute -top-10 -right-10 text-emerald-500/20">
                 <Target className="w-64 h-64" />
               </div>
-              <h2 className="text-5xl font-black mb-10 text-emerald-400 relative z-10">Misión</h2>
+              <h2 className="text-5xl font-black mb-10 text-emerald-400 relative z-10">MisiÃ³n</h2>
               <p className="text-3xl leading-relaxed relative z-10">
-                Liberar a los directores deportivos de la carga administrativa, dándoles la tecnología necesaria para que enfoquen su tiempo en lo que realmente importa: <strong>transformar las vidas de sus jugadores.</strong>
+                Liberar a los directores deportivos de la carga administrativa, dÃ¡ndoles la tecnologÃ­a necesaria para que enfoquen su tiempo en lo que realmente importa: <strong>transformar las vidas de sus jugadores.</strong>
               </p>
             </div>
 
@@ -274,9 +281,9 @@ export default function BrandBookPage() {
               <div className="absolute -bottom-10 -right-10 text-slate-100">
                 <Globe className="w-64 h-64" />
               </div>
-              <h2 className="text-5xl font-black mb-10 text-slate-800 relative z-10">Visión</h2>
+              <h2 className="text-5xl font-black mb-10 text-slate-800 relative z-10">VisiÃ³n</h2>
               <p className="text-3xl leading-relaxed text-slate-600 relative z-10">
-                Ser el sistema operativo estándar para la formación deportiva en toda Latinoamérica, conectando a clubes, jugadores, entrenadores y familias en un solo ecosistema de crecimiento profesional.
+                Ser el sistema operativo estÃ¡ndar para la formaciÃ³n deportiva en toda LatinoamÃ©rica, conectando a clubes, jugadores, entrenadores y familias en un solo ecosistema de crecimiento profesional.
               </p>
             </div>
 
@@ -289,11 +296,11 @@ export default function BrandBookPage() {
           
           <div className="grid grid-cols-3 gap-12">
             {[
-              { icon: <Heart className="w-8 h-8"/>, title: "Servicio Primero", desc: "Nuestra mayor misión es servir a los demás. El software es solo nuestro medio para lograrlo." },
-              { icon: <Shield className="w-8 h-8"/>, title: "Identidad Única", desc: "Creemos que cada club tiene un alma. Por eso somos marca blanca: tu escudo es el protagonista." },
-              { icon: <Users className="w-8 h-8"/>, title: "Impacto Comunitario", desc: "Trabajamos para crear espacios seguros lejos de las calles. El fútbol es nuestra herramienta de cambio social." },
-              { icon: <Zap className="w-8 h-8"/>, title: "Cero Fricción", desc: "La tecnología debe simplificar, no complicar. Diseñamos para que cualquiera pueda usarlo sin manuales." },
-              { icon: <Trophy className="w-8 h-8"/>, title: "Formación Integral", desc: "No solo formamos atletas, formamos valientes ('Gibbor') listos para enfrentar la vida." },
+              { icon: <Heart className="w-8 h-8"/>, title: "Servicio Primero", desc: "Nuestra mayor misiÃ³n es servir a los demÃ¡s. El software es solo nuestro medio para lograrlo." },
+              { icon: <Shield className="w-8 h-8"/>, title: "Identidad Ãšnica", desc: "Creemos que cada club tiene un alma. Por eso somos marca blanca: tu escudo es el protagonista." },
+              { icon: <Users className="w-8 h-8"/>, title: "Impacto Comunitario", desc: "Trabajamos para crear espacios seguros lejos de las calles. El fÃºtbol es nuestra herramienta de cambio social." },
+              { icon: <Zap className="w-8 h-8"/>, title: "Cero FricciÃ³n", desc: "La tecnologÃ­a debe simplificar, no complicar. DiseÃ±amos para que cualquiera pueda usarlo sin manuales." },
+              { icon: <Trophy className="w-8 h-8"/>, title: "FormaciÃ³n Integral", desc: "No solo formamos atletas, formamos valientes ('Gibbor') listos para enfrentar la vida." },
               { icon: <CheckCircle2 className="w-8 h-8"/>, title: "Compromiso Total", desc: "No somos solo proveedores de software, somos aliados en el crecimiento de cada academia." }
             ].map((v, i) => (
               <div key={i} className="bg-white p-10 rounded-3xl shadow-lg border border-slate-100">
@@ -316,11 +323,11 @@ export default function BrandBookPage() {
             <h2 className="text-emerald-500 font-bold tracking-[0.3em] uppercase text-2xl mb-8">El Manifiesto MCM</h2>
             
             <p className="text-5xl font-black text-white leading-tight">
-              Creemos que las hojas de cálculo no cambian el mundo. <span className="text-emerald-400">Los entrenadores sí.</span>
+              Creemos que las hojas de cÃ¡lculo no cambian el mundo. <span className="text-emerald-400">Los entrenadores sÃ­.</span>
             </p>
             
             <p className="text-4xl font-light text-slate-300 leading-tight">
-              Creemos que cada hora que un director pasa cobrando mensualidades o llenando asistencias, es una hora menos que pasa formando a la próxima generación de líderes.
+              Creemos que cada hora que un director pasa cobrando mensualidades o llenando asistencias, es una hora menos que pasa formando a la prÃ³xima generaciÃ³n de lÃ­deres.
             </p>
 
             <p className="text-4xl font-light text-slate-300 leading-tight">
@@ -329,7 +336,7 @@ export default function BrandBookPage() {
 
             <p className="text-5xl font-black text-white leading-tight mt-16 pt-16 border-t border-white/10">
               Nosotros construimos la infraestructura.<br/>
-              <span className="text-emerald-400">Tú construyes los talentos.</span>
+              <span className="text-emerald-400">TÃº construyes los talentos.</span>
             </p>
           </div>
         </div>
@@ -342,7 +349,7 @@ export default function BrandBookPage() {
               <div className="space-y-6">
                 <h3 className="text-3xl font-bold text-emerald-600 border-b-4 border-emerald-500 pb-4 inline-block">Somos</h3>
                 <ul className="space-y-4 text-2xl text-slate-700">
-                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Cercanos y Empáticos</li>
+                  <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Cercanos y EmpÃ¡ticos</li>
                   <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Valientes (Gibbor)</li>
                   <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Inspiradores</li>
                   <li className="flex items-center gap-4"><CheckCircle2 className="text-emerald-500 w-8 h-8"/> Profesionales</li>
@@ -351,8 +358,8 @@ export default function BrandBookPage() {
               <div className="space-y-6">
                 <h3 className="text-3xl font-bold text-red-500 border-b-4 border-red-500 pb-4 inline-block">No Somos</h3>
                 <ul className="space-y-4 text-2xl text-slate-500">
-                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Fríos o Corporativos</li>
-                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Un software genérico</li>
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> FrÃ­os o Corporativos</li>
+                  <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Un software genÃ©rico</li>
                   <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Exclusivos o distantes</li>
                   <li className="flex items-center gap-4"><div className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center font-bold">X</div> Complicados</li>
                 </ul>
@@ -361,7 +368,7 @@ export default function BrandBookPage() {
           </div>
         </div>
 
-        {/* PARTE III: FUTURO Y VISIÓN */}
+        {/* PARTE III: FUTURO Y VISIÃ“N */}
 
         {/* SLIDE 11: EL PRODUCTO */}
         <div className="slide flex">
@@ -380,7 +387,7 @@ export default function BrandBookPage() {
                 <ClipboardList className="w-12 h-12 text-blue-400" />
                 <div>
                   <h4 className="text-2xl font-bold text-white">Entrenador</h4>
-                  <p className="text-slate-300 text-lg">Asistencias, evaluaciones, pizarra táctica y convocatorias.</p>
+                  <p className="text-slate-300 text-lg">Asistencias, evaluaciones, pizarra tÃ¡ctica y convocatorias.</p>
                 </div>
               </div>
               <div className="bg-white/10 p-6 rounded-2xl flex items-center gap-6">
@@ -407,12 +414,12 @@ export default function BrandBookPage() {
         <div className="slide flex flex-col justify-center p-32 relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl"></div>
           <h2 className="text-6xl font-black text-slate-900 mb-8 text-center">Modelo de Embajadores</h2>
-          <p className="text-3xl text-emerald-600 font-bold mb-16 text-center">Ayudando a otros a crecer, mientras creces tú.</p>
+          <p className="text-3xl text-emerald-600 font-bold mb-16 text-center">Ayudando a otros a crecer, mientras creces tÃº.</p>
           
           <div className="grid grid-cols-2 gap-16">
             <div className="text-2xl text-slate-700 leading-relaxed space-y-6">
-              <p>MCM no es solo un software para escuelas. Es un motor de oportunidad económica.</p>
-              <p>A través de nuestro programa de embajadores, permitimos que personas apasionadas por el fútbol generen un <strong>ingreso recurrente</strong>.</p>
+              <p>MCM no es solo un software para escuelas. Es un motor de oportunidad econÃ³mica.</p>
+              <p>A travÃ©s de nuestro programa de embajadores, permitimos que personas apasionadas por el fÃºtbol generen un <strong>ingreso recurrente</strong>.</p>
               <div className="bg-emerald-50 p-8 rounded-2xl border-l-8 border-emerald-500 mt-8">
                 <p className="font-bold text-emerald-800">Al recomendar MCM, no solo solucionas el caos administrativo de otras escuelas, sino que construyes tu propia estabilidad financiera, llevando un sustento digno a tu hogar.</p>
               </div>
@@ -425,7 +432,7 @@ export default function BrandBookPage() {
               </div>
               <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-100 flex flex-col items-center text-center justify-center">
                 <div className="text-5xl font-black text-emerald-500 mb-4">10%</div>
-                <p className="text-lg text-slate-600">Comisión mensual recurrente de por vida</p>
+                <p className="text-lg text-slate-600">ComisiÃ³n mensual recurrente de por vida</p>
               </div>
               <div className="col-span-2 bg-[#0B101E] text-white p-8 rounded-3xl flex items-center justify-between">
                 <div>
@@ -438,12 +445,12 @@ export default function BrandBookPage() {
           </div>
         </div>
 
-        {/* SLIDE 13: ROADMAP A 5 AÑOS */}
+        {/* SLIDE 13: ROADMAP A 5 AÃ‘OS */}
         <div className="slide flex flex-col justify-center p-32 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-500/5 rounded-full blur-[100px] -z-10"></div>
           
-          <h2 className="text-6xl font-black text-slate-900 mb-6">El Plan a 5 Años</h2>
-          <p className="text-3xl text-slate-600 mb-20">Hacia dónde vamos y qué estamos construyendo.</p>
+          <h2 className="text-6xl font-black text-slate-900 mb-6">El Plan a 5 AÃ±os</h2>
+          <p className="text-3xl text-slate-600 mb-20">Hacia dÃ³nde vamos y quÃ© estamos construyendo.</p>
           
           <div className="relative">
             {/* Linea central */}
@@ -453,46 +460,46 @@ export default function BrandBookPage() {
               {/* Milestone 1 */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-8 h-8 bg-emerald-500 rounded-full mb-8 shadow-[0_0_0_8px_white]"></div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4">El Estándar Nacional</h3>
-                <p className="text-lg text-slate-600">Posicionar a MCM como la plataforma para escuelas de fútbol más importante y utilizada de toda Colombia.</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-4">El EstÃ¡ndar Nacional</h3>
+                <p className="text-lg text-slate-600">Posicionar a MCM como la plataforma para escuelas de fÃºtbol mÃ¡s importante y utilizada de toda Colombia.</p>
               </div>
 
               {/* Milestone 2 */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-8 h-8 bg-emerald-500 rounded-full mb-8 shadow-[0_0_0_8px_white]"></div>
-                <h3 className="text-2xl font-bold text-slate-800 mb-4">Expansión LATAM</h3>
-                <p className="text-lg text-slate-600">Abrir mercados y consolidar presencia oficial en Ecuador, México y Argentina.</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-4">ExpansiÃ³n LATAM</h3>
+                <p className="text-lg text-slate-600">Abrir mercados y consolidar presencia oficial en Ecuador, MÃ©xico y Argentina.</p>
               </div>
 
               {/* Milestone 3 */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-8 h-8 bg-emerald-500 rounded-full mb-8 shadow-[0_0_0_8px_white]"></div>
                 <h3 className="text-2xl font-bold text-slate-800 mb-4">Motor de Empleo</h3>
-                <p className="text-lg text-slate-600">Tener un equipo de trabajo amplio, brindando oportunidades para que muchas familias lleven un alimento digno a sus hogares a través de MCM.</p>
+                <p className="text-lg text-slate-600">Tener un equipo de trabajo amplio, brindando oportunidades para que muchas familias lleven un alimento digno a sus hogares a travÃ©s de MCM.</p>
               </div>
 
               {/* Milestone 4 */}
               <div className="flex flex-col items-center text-center">
                 <div className="w-8 h-8 bg-[#0B101E] rounded-full mb-8 shadow-[0_0_0_8px_white]"></div>
                 <h3 className="text-2xl font-bold text-emerald-600 mb-4">El Complejo Deportivo</h3>
-                <p className="text-lg text-slate-600">Convertir a MCM en el principal patrocinador de Gibbor FC para lograr el gran sueño: construir nuestro propio complejo deportivo.</p>
+                <p className="text-lg text-slate-600">Convertir a MCM en el principal patrocinador de Gibbor FC para lograr el gran sueÃ±o: construir nuestro propio complejo deportivo.</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* SLIDE 12: EL GRAN SUEÑO (VISUAL) */}
+        {/* SLIDE 12: EL GRAN SUEÃ‘O (VISUAL) */}
         <div className="slide flex">
           <div className="w-1/2 p-32 flex flex-col justify-center bg-emerald-900 text-white relative">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
             <div className="relative z-10">
               <h2 className="text-6xl font-black mb-12 leading-tight">El Complejo Deportivo<br/>Gibbor</h2>
               <p className="text-3xl font-light leading-relaxed mb-12">
-                Nuestra meta última no es solo ser una empresa de software exitosa. El software es el vehículo para financiar nuestro verdadero sueño.
+                Nuestra meta Ãºltima no es solo ser una empresa de software exitosa. El software es el vehÃ­culo para financiar nuestro verdadero sueÃ±o.
               </p>
               <div className="p-8 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
                 <p className="text-2xl italic font-medium">
-                  "MCM debe convertirse en el principal patrocinador de Gibbor para lograr el sueño de construir nuestro propio complejo deportivo, un santuario para la juventud."
+                  "MCM debe convertirse en el principal patrocinador de Gibbor para lograr el sueÃ±o de construir nuestro propio complejo deportivo, un santuario para la juventud."
                 </p>
               </div>
             </div>
@@ -511,8 +518,8 @@ export default function BrandBookPage() {
           
           <div className="max-w-4xl mb-16">
             <p className="text-3xl text-slate-600 leading-relaxed font-light">
-              Hoy, MCM es liderado e impulsado por su fundador. Pero la visión demanda multiplicar esfuerzos. 
-              Estamos sentando las bases culturales para el equipo que vendrá.
+              Hoy, MCM es liderado e impulsado por su fundador. Pero la visiÃ³n demanda multiplicar esfuerzos. 
+              Estamos sentando las bases culturales para el equipo que vendrÃ¡.
             </p>
           </div>
 
@@ -521,13 +528,13 @@ export default function BrandBookPage() {
               <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
                 <Briefcase className="text-emerald-500" /> Oportunidad
               </h3>
-              <p className="text-lg text-slate-600">Crear empleos dignos en LATAM para que más familias prosperen junto con el crecimiento tecnológico.</p>
+              <p className="text-lg text-slate-600">Crear empleos dignos en LATAM para que mÃ¡s familias prosperen junto con el crecimiento tecnolÃ³gico.</p>
             </div>
             <div className="bg-slate-50 p-10 rounded-3xl border border-slate-200">
               <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
                 <UserCheck className="text-emerald-500" /> Humildad
               </h3>
-              <p className="text-lg text-slate-600">Cero egos. El mejor argumento gana, sin importar el título de quien lo proponga.</p>
+              <p className="text-lg text-slate-600">Cero egos. El mejor argumento gana, sin importar el tÃ­tulo de quien lo proponga.</p>
             </div>
           </div>
         </div>
@@ -538,13 +545,13 @@ export default function BrandBookPage() {
             <MCMLogo />
             <div className="text-right">
               <p className="text-emerald-500 font-bold text-xl mb-2">Master Club Manager</p>
-              <p className="text-slate-400 text-lg">Bogotá, Colombia</p>
+              <p className="text-slate-400 text-lg">BogotÃ¡, Colombia</p>
             </div>
           </div>
 
           <div className="max-w-4xl">
             <h2 className="text-7xl font-black text-white mb-12">Designed for football.<br/>Built with passion.</h2>
-            <p className="text-3xl text-slate-400">Únete a la revolución de la gestión deportiva.</p>
+            <p className="text-3xl text-slate-400">Ãšnete a la revoluciÃ³n de la gestiÃ³n deportiva.</p>
           </div>
 
           <div className="w-full flex justify-between items-end border-t border-white/10 pt-12">
@@ -575,3 +582,4 @@ export default function BrandBookPage() {
     </div>
   );
 }
+
