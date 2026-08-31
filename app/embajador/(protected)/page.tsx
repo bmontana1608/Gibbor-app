@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { ArrowUpRight, Copy, Download, Users, Wallet, Trophy, DollarSign, Target, CheckCircle2, BookOpen, Presentation, ExternalLink } from 'lucide-react';
 import CopyButton from '../CopyButton';
 import { QRCodeSVG } from 'qrcode.react';
@@ -37,9 +37,9 @@ export default async function EmbajadorDashboard({
     embajador = data;
   }
 
-  if (!embajador) return <div>No se encontrÃ³ tu perfil de embajador.</div>;
+  if (!embajador) return <div>No se encontr├│ tu perfil de embajador.</div>;
 
-  // 2. Obtener estadÃ­sticas (Clubes Referidos)
+  // 2. Obtener estad├¡sticas (Clubes Referidos)
   const { data: clubes } = await supabase
     .from('clubes')
     .select('id, nombre, estado_referido, tarifa_por_jugador, perfiles(count)')
@@ -67,7 +67,7 @@ export default async function EmbajadorDashboard({
   const comisionesPagadas = comisiones?.filter(c => c.estado === 'Pagada').reduce((sum, c) => sum + Number(c.monto), 0) || 0;
   const comisionesPendientes = comisionesTotales - comisionesPagadas;
 
-  // 4. ComisiÃ³n
+  // 4. Comisi├│n
   const porcentaje = 10;
 
   // 5. URLs de referido con fuente
@@ -75,11 +75,11 @@ export default async function EmbajadorDashboard({
   const referralUrlLink = `${baseUrl}&src=link`;
   const referralUrlQr = `${baseUrl}&src=qr`;
 
-  // 6. Tasa de ConversiÃ³n
+  // 6. Tasa de Conversi├│n
   const leadsTotales = totalClubes;
   const tasaConversion = leadsTotales > 0 ? Math.round((clubesActivos / leadsTotales) * 100) : 0;
 
-  // 7. Actualizar Ãºltima actividad
+  // 7. Actualizar ├║ltima actividad
   await supabase.from('embajadores').update({ ultima_actividad: new Date().toISOString() }).eq('id', embajador.id);
 
   return (
@@ -87,26 +87,26 @@ export default async function EmbajadorDashboard({
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hola, {embajador.nombre_completo.split(' ')[0]} ðŸ‘‹</h1>
-          <p className="text-slate-500 font-medium mt-1">AquÃ­ estÃ¡ el resumen de tu gestiÃ³n comercial.</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hola, {embajador.nombre_completo.split(' ')[0]} ­ƒæï</h1>
+          <p className="text-slate-500 font-medium mt-1">Aqu├¡ est├í el resumen de tu gesti├│n comercial.</p>
         </div>
         
         <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
-          <span className="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Tu CÃ³digo:</span>
+          <span className="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Tu C├│digo:</span>
           <span className="bg-green-100 text-green-700 font-black px-3 py-1.5 rounded-lg text-lg tracking-wider">
             {embajador.codigo_referido}
           </span>
         </div>
       </div>
 
-      {/* COMISIÃ“N BANNER */}
+      {/* COMISI├ôN BANNER */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 shadow-lg text-white flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-6">
           <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
             <Trophy className="w-8 h-8 text-lime-400" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Tu ComisiÃ³n</p>
+            <p className="text-sm font-medium text-slate-300 uppercase tracking-widest mb-1">Tu Comisi├│n</p>
             <div className="flex items-end gap-3">
               <h2 className="text-3xl md:text-4xl font-black tracking-tight">{porcentaje}%</h2>
               <span className="text-lime-400 font-bold mb-1">recurrente</span>
@@ -115,15 +115,15 @@ export default async function EmbajadorDashboard({
         </div>
 
         <div className="w-full md:w-1/2 bg-black/30 rounded-2xl p-4 border border-white/10 text-sm text-slate-300">
-          Ganas el <strong className="text-white">{porcentaje}% mensual</strong> de la suscripciÃ³n de cada academia que se registre con tu cÃ³digo, mientras se mantengan activos.
+          Ganas el <strong className="text-white">{porcentaje}% mensual</strong> de la suscripci├│n de cada academia que se registre con tu c├│digo, mientras se mantengan activos.
         </div>
       </div>
 
-      {/* MÃ‰TRICAS DE CONVERSIÃ“N Y FINANCIERAS */}
+      {/* M├ëTRICAS DE CONVERSI├ôN Y FINANCIERAS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard title="Total Leads" value={leadsTotales} subtitle="Academias registradas" icon={<Users className="w-6 h-6 text-blue-500" />} bg="bg-blue-100" />
         <MetricCard title="Activos" value={clubesActivos} subtitle="Clientes pagando" icon={<CheckCircle2 className="w-6 h-6 text-green-500" />} bg="bg-green-100" />
-        <MetricCard title="ConversiÃ³n" value={`${tasaConversion}%`} subtitle="Tasa de Ã©xito" icon={<Target className="w-6 h-6 text-orange-500" />} bg="bg-orange-100" />
+        <MetricCard title="Conversi├│n" value={`${tasaConversion}%`} subtitle="Tasa de ├®xito" icon={<Target className="w-6 h-6 text-orange-500" />} bg="bg-orange-100" />
         <MetricCard title="MRR Estimado" value={`$${mrr.toLocaleString('es-CO')}`} subtitle="Ingreso recurrente" icon={<DollarSign className="w-6 h-6 text-indigo-500" />} bg="bg-indigo-100" />
       </div>
 
@@ -135,7 +135,7 @@ export default async function EmbajadorDashboard({
           </div>
           <h2 className="text-xl font-black text-slate-900 mb-2">Tu Kit Comercial</h2>
           <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-            Comparte este enlace o el cÃ³digo QR con cualquier academia. Si se registran, quedarÃ¡n asociados a tu cuenta.
+            Comparte este enlace o el c├│digo QR con cualquier academia. Si se registran, quedar├ín asociados a tu cuenta.
           </p>
 
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 mb-6 w-full flex justify-center">
@@ -147,14 +147,14 @@ export default async function EmbajadorDashboard({
           </div>
         </div>
 
-        {/* ÃšLTIMOS REFERIDOS */}
+        {/* ├ÜLTIMOS REFERIDOS */}
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-          <h2 className="text-xl font-black text-slate-900 mb-6">Ãšltimos Referidos</h2>
+          <h2 className="text-xl font-black text-slate-900 mb-6">├Ültimos Referidos</h2>
           
           {totalClubes === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-100 rounded-2xl">
-              <p className="text-slate-400 font-medium">AÃºn no tienes clubes referidos.</p>
-              <p className="text-sm text-slate-400 mt-1">Comparte tu cÃ³digo para empezar a ganar.</p>
+              <p className="text-slate-400 font-medium">A├║n no tienes clubes referidos.</p>
+              <p className="text-sm text-slate-400 mt-1">Comparte tu c├│digo para empezar a ganar.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -250,52 +250,7 @@ function MetricCard({ title, value, subtitle, icon, bg }: any) {
       </div>
       <p className="text-3xl font-black text-slate-900 tracking-tight">{value}</p>
       <p className="text-xs font-medium text-slate-400 mt-2">{subtitle}</p>
-      {/* MATERIALES Y RECURSOS (EL ALMA DE MCM) */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
-        <h2 className="text-xl font-black text-slate-900 mb-2">Recursos Oficiales de Venta</h2>
-        <p className="text-slate-500 text-sm mb-6">El alma de MCM. Comparte o estudia estos documentos para cerrar más ventas y entender nuestro valor diferenciador.</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Libro */}
-          <a 
-            href="https://www.masterclubmanager.com/book" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group relative overflow-hidden bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:border-emerald-300 hover:shadow-md transition-all flex items-start gap-4"
-          >
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-              <BookOpen className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                El Libro MCM <ExternalLink className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </h3>
-              <p className="text-sm text-slate-500 mt-1 leading-relaxed">Nuestra filosofía y metodología detallada. Ideal para que los directores entiendan el impacto profundo de la plataforma.</p>
-            </div>
-          </a>
-
-          {/* Presentacion */}
-          <a 
-            href="https://www.masterclubmanager.com/presentacion" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="group relative overflow-hidden bg-slate-50 border border-slate-200 rounded-2xl p-6 hover:border-blue-300 hover:shadow-md transition-all flex items-start gap-4"
-          >
-            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-              <Presentation className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-                Presentación Comercial <ExternalLink className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </h3>
-              <p className="text-sm text-slate-500 mt-1 leading-relaxed">El pitch deck oficial de MCM. Visual y directo al punto para reuniones o envíos por WhatsApp.</p>
-            </div>
-          </a>
-        </div>
-      </div>
-
     </div>
   );
 }
-
 
