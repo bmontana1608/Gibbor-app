@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -119,7 +119,7 @@ export default function PresentacionMCM() {
               <MCMLogo />
             </div>
             <h1 className="text-7xl font-black text-white leading-[1.1] mb-12">
-              El sistema operativo<br/>para escuelas<br/>de fÃºtbol.
+              El sistema operativo<br/>para escuelas<br/>de fútbol.
             </h1>
             <p className="text-4xl font-bold text-emerald-500">Organiza. Controla. Crece.</p>
           </div>
@@ -133,11 +133,11 @@ export default function PresentacionMCM() {
         <div className="slide flex">
           <div className="w-1/2 p-24 flex flex-col justify-center relative">
             <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">2</div>
-            <h2 className="text-6xl font-black text-slate-900 leading-tight mb-16">NOSOTROS TAMBIÃ‰N<br/>VIVIMOS ESTE PROBLEMA</h2>
+            <h2 className="text-6xl font-black text-slate-900 leading-tight mb-16">NOSOTROS TAMBIÉN<br/>VIVIMOS ESTE PROBLEMA</h2>
             <div className="space-y-12 text-3xl text-slate-600 font-medium">
               <p>No nacimos como una empresa de software.</p>
-              <p className="text-slate-900 font-bold">Nacimos dentro de una escuela de fÃºtbol.</p>
-              <p>Durante aÃ±os vivimos exactamente los mismos desafÃ­os que viven cientos de directores todos los dÃ­as.</p>
+              <p className="text-slate-900 font-bold">Nacimos dentro de una escuela de fútbol.</p>
+              <p>Durante años vivimos exactamente los mismos desafíos que viven cientos de directores todos los días.</p>
             </div>
           </div>
           <div className="w-1/2 relative h-full">
@@ -154,7 +154,7 @@ export default function PresentacionMCM() {
         <div className="slide flex flex-col items-center justify-center p-24 relative">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">3</div>
           <h2 className="text-6xl font-black text-emerald-600 mb-8 self-start">EL PROBLEMA</h2>
-          <p className="text-3xl text-slate-700 font-medium self-start mb-24">La mayorÃ­a de escuelas todavÃ­a administran<br/>su operaciÃ³n con:</p>
+          <p className="text-3xl text-slate-700 font-medium self-start mb-24">La mayoría de escuelas todavía administran<br/>su operación con:</p>
           
           <div className="flex justify-between w-full max-w-5xl mb-32">
             <div className="flex flex-col items-center gap-6"><FileSpreadsheet className="w-32 h-32 text-green-600"/><span className="text-3xl font-bold text-slate-800">Excel</span></div>
@@ -164,7 +164,7 @@ export default function PresentacionMCM() {
           </div>
 
           <div className="grid grid-cols-2 gap-x-32 gap-y-12 w-full max-w-5xl">
-            <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-red-500"/> InformaciÃ³n perdida</div>
+            <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-red-500"/> Información perdida</div>
             <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-red-500"/> Padres desinformados</div>
             <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-red-500"/> Pagos atrasados</div>
             <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-red-500"/> Tiempo desperdiciado</div>
@@ -186,11 +186,11 @@ export default function PresentacionMCM() {
               </div>
               <div className="flex flex-col gap-4">
                 <RefreshCw className="w-12 h-12 text-emerald-500"/>
-                <span className="text-2xl font-bold text-slate-700">InformaciÃ³n<br/>siempre actualizada</span>
+                <span className="text-2xl font-bold text-slate-700">Información<br/>siempre actualizada</span>
               </div>
               <div className="flex flex-col gap-4">
                 <MessageCircle className="w-12 h-12 text-emerald-500"/>
-                <span className="text-2xl font-bold text-slate-700">ComunicaciÃ³n<br/>efectiva</span>
+                <span className="text-2xl font-bold text-slate-700">Comunicación<br/>efectiva</span>
               </div>
               <div className="flex flex-col gap-4">
                 <BarChart className="w-12 h-12 text-emerald-500"/>
@@ -209,12 +209,12 @@ export default function PresentacionMCM() {
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">5</div>
           <div className="w-full max-w-6xl flex justify-between items-center mb-32">
             <div className="w-[60%]">
-              <h2 className="text-6xl font-black text-slate-900 mb-4">Â¿QUÃ‰ ES<br/><span className="text-emerald-600">MASTER CLUB MANAGER?</span></h2>
+              <h2 className="text-6xl font-black text-slate-900 mb-4">¿QUÉ ES<br/><span className="text-emerald-600">MASTER CLUB MANAGER?</span></h2>
               <p className="text-3xl text-slate-600 mt-12 mb-8 max-w-2xl">
-                Master Club Manager es una plataforma diseÃ±ada <strong>exclusivamente para escuelas de fÃºtbol.</strong>
+                Master Club Manager es una plataforma diseñada <strong>exclusivamente para escuelas de fútbol.</strong>
               </p>
               <p className="text-3xl text-slate-600 max-w-2xl">
-                Centraliza toda la operaciÃ³n del club en un solo lugar.
+                Centraliza toda la operación del club en un solo lugar.
               </p>
             </div>
             <div className="w-[40%] flex justify-end">
@@ -235,7 +235,7 @@ export default function PresentacionMCM() {
         <div className="slide flex flex-col p-24 relative">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">6</div>
           <h2 className="text-6xl font-black text-slate-900 mb-8">UN PERFIL PARA<br/><span className="text-emerald-600">CADA PERSONA</span></h2>
-          <p className="text-3xl text-slate-600 mb-20 max-w-3xl">Cada usuario tiene lo que necesita, con una experiencia diseÃ±ada para su rol.</p>
+          <p className="text-3xl text-slate-600 mb-20 max-w-3xl">Cada usuario tiene lo que necesita, con una experiencia diseñada para su rol.</p>
           
           <div className="grid grid-cols-3 gap-12 w-full h-[600px]">
             <div className="bg-[#0B101E] rounded-3xl overflow-hidden flex flex-col shadow-2xl">
@@ -256,7 +256,7 @@ export default function PresentacionMCM() {
               <img src="/presentacion/presentation_kid_phone_1782909775735.png" alt="Jugador" className="w-full h-[65%] object-cover" />
               <div className="p-10 flex-1 flex flex-col justify-center items-center">
                 <span className="text-emerald-500 font-bold text-2xl mb-4 flex items-center gap-4"><UserCheck className="w-8 h-8"/> FUTBOLISTA</span>
-                <p className="text-white text-xl text-center">Accede a su informaciÃ³n y actividades</p>
+                <p className="text-white text-xl text-center">Accede a su información y actividades</p>
               </div>
             </div>
           </div>
@@ -270,12 +270,12 @@ export default function PresentacionMCM() {
             <p className="text-3xl text-slate-600 mb-16">Todo el control del club<br/>desde un solo lugar.</p>
             
             <div className="space-y-10">
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> AdministraciÃ³n completa</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Administración completa</div>
               <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Asistencia y entrenamientos</div>
               <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Pagos y cartera</div>
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> CategorÃ­as y equipos</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Categorías y equipos</div>
               <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Entrenadores y staff</div>
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> EstadÃ­sticas y reportes</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Estadísticas y reportes</div>
             </div>
           </div>
           <div className="w-1/2 relative h-full flex items-center justify-center overflow-hidden">
@@ -288,7 +288,7 @@ export default function PresentacionMCM() {
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl z-20">8</div>
           <div className="w-1/2 p-24 flex flex-col justify-center relative z-10">
             <h2 className="text-6xl font-black text-slate-900 mb-8">EL <span className="text-emerald-600">ENTRENADOR</span></h2>
-            <p className="text-3xl text-slate-600 mb-16">Toda la informaciÃ³n de sus<br/>jugadores en la palma de su mano.</p>
+            <p className="text-3xl text-slate-600 mb-16">Toda la información de sus<br/>jugadores en la palma de su mano.</p>
             
             <p className="text-3xl text-slate-800 font-bold mb-10">Puede registrar:</p>
             <div className="space-y-10">
@@ -314,11 +314,11 @@ export default function PresentacionMCM() {
             <p className="text-3xl text-slate-600 mb-16">Cada jugador puede consultar:</p>
             
             <div className="space-y-10">
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> PrÃ³ximos entrenamientos</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Próximos entrenamientos</div>
               <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Asistencia</div>
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> InformaciÃ³n personal</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Información personal</div>
               <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Evaluaciones</div>
-              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Y prÃ³ximamente mucho mÃ¡s</div>
+              <div className="flex items-center gap-6 text-3xl font-bold text-slate-700"><CheckCircle2 className="w-10 h-10 text-emerald-500"/> Y próximamente mucho más</div>
             </div>
           </div>
           <div className="w-1/2 relative h-full flex items-center justify-center">
@@ -340,11 +340,11 @@ export default function PresentacionMCM() {
           <div className="grid grid-cols-3 gap-y-32 relative z-10 w-full max-w-6xl mx-auto">
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-3xl flex items-center justify-center"><Folder className="w-16 h-16 text-emerald-500"/></div>
-              <span className="text-4xl font-bold text-white text-center">MÃ¡s<br/>organizaciÃ³n</span>
+              <span className="text-4xl font-bold text-white text-center">Más<br/>organización</span>
             </div>
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-full flex items-center justify-center"><Clock className="w-16 h-16 text-emerald-500"/></div>
-              <span className="text-4xl font-bold text-white text-center">MÃ¡s<br/>tiempo</span>
+              <span className="text-4xl font-bold text-white text-center">Más<br/>tiempo</span>
             </div>
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-3xl flex items-center justify-center"><ClipboardList className="w-16 h-16 text-emerald-500"/></div>
@@ -352,7 +352,7 @@ export default function PresentacionMCM() {
             </div>
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-full flex items-center justify-center"><MessageCircle className="w-16 h-16 text-emerald-500"/></div>
-              <span className="text-4xl font-bold text-white text-center">Mejor<br/>comunicaciÃ³n</span>
+              <span className="text-4xl font-bold text-white text-center">Mejor<br/>comunicación</span>
             </div>
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-full flex items-center justify-center"><Target className="w-16 h-16 text-emerald-500"/></div>
@@ -360,7 +360,7 @@ export default function PresentacionMCM() {
             </div>
             <div className="flex flex-col items-center gap-8">
               <div className="w-32 h-32 border-4 border-emerald-500 rounded-3xl flex items-center justify-center"><TrendingUp className="w-16 h-16 text-emerald-500"/></div>
-              <span className="text-4xl font-bold text-white text-center">MÃ¡s<br/>crecimiento</span>
+              <span className="text-4xl font-bold text-white text-center">Más<br/>crecimiento</span>
             </div>
           </div>
         </div>
@@ -369,12 +369,12 @@ export default function PresentacionMCM() {
         <div className="slide flex">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl z-20">11</div>
           <div className="w-1/2 p-24 flex flex-col justify-center relative z-10">
-            <h2 className="text-6xl font-black text-slate-900 mb-16">Â¿POR QUÃ‰ <span className="text-emerald-600">ELEGIR MCM?</span></h2>
+            <h2 className="text-6xl font-black text-slate-900 mb-16">¿POR QUÉ <span className="text-emerald-600">ELEGIR MCM?</span></h2>
             
             <div className="space-y-12 text-3xl text-slate-700 font-medium leading-normal">
-              <p>No es un software genÃ©rico.</p>
-              <p className="text-slate-900 font-black text-4xl leading-snug">Fue creado especÃ­ficamente<br/>para escuelas de fÃºtbol.</p>
-              <p>Eso significa que entendemos<br/>la realidad del dÃ­a a dÃ­a y<br/>seguimos mejorando junto<br/>a entrenadores y directores<br/>como tÃº.</p>
+              <p>No es un software genérico.</p>
+              <p className="text-slate-900 font-black text-4xl leading-snug">Fue creado específicamente<br/>para escuelas de fútbol.</p>
+              <p>Eso significa que entendemos<br/>la realidad del día a día y<br/>seguimos mejorando junto<br/>a entrenadores y directores<br/>como tú.</p>
             </div>
           </div>
           <div className="w-1/2 relative h-full">
@@ -397,7 +397,7 @@ export default function PresentacionMCM() {
                 // Forzar precios 30 USD mensual y 300 USD anual
                 const isAnual = plan.nombre.toLowerCase().includes('anual') || plan.precio_base > 200000;
                 const precioUSD = isAnual ? 300 : 30;
-                const sufijoPago = isAnual ? 'aÃ±o' : 'mes';
+                const sufijoPago = isAnual ? 'año' : 'mes';
 
                 return (
                   <div key={plan.id} className={`w-[450px] rounded-[40px] p-12 flex flex-col shadow-2xl relative ${isPro ? 'bg-[#0B101E] text-white border-4 border-emerald-500 scale-105' : 'bg-white border-2 border-slate-200 text-slate-900'}`}>
@@ -437,10 +437,10 @@ export default function PresentacionMCM() {
           )}
         </div>
 
-        {/* SLIDE 13: IMPLEMENTACIÃ“N */}
+        {/* SLIDE 13: IMPLEMENTACIÓN */}
         <div className="slide flex flex-col p-24 relative">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl">13</div>
-          <h2 className="text-6xl font-black text-slate-900 mb-4">IMPLEMENTACIÃ“N</h2>
+          <h2 className="text-6xl font-black text-slate-900 mb-4">IMPLEMENTACIÓN</h2>
           <h2 className="text-6xl font-black text-emerald-600 mb-40">SENCILLA</h2>
           
           <div className="flex justify-between w-full max-w-6xl mx-auto mb-32 relative">
@@ -479,28 +479,28 @@ export default function PresentacionMCM() {
             </div>
           </div>
           
-          <p className="text-center text-3xl font-bold text-slate-800">Sin procesos complicados. Sin letras pequeÃ±as.</p>
+          <p className="text-center text-3xl font-bold text-slate-800">Sin procesos complicados. Sin letras pequeñas.</p>
         </div>
 
         {/* SLIDE 14: SOPORTE */}
         <div className="slide flex">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl z-20">14</div>
           <div className="w-[55%] p-24 flex flex-col justify-center relative z-10">
-            <h2 className="text-6xl font-black text-slate-900 mb-12">SOPORTE QUE <span className="text-emerald-600">TE ACOMPAÃ‘A</span></h2>
+            <h2 className="text-6xl font-black text-slate-900 mb-12">SOPORTE QUE <span className="text-emerald-600">TE ACOMPAÑA</span></h2>
             
             <div className="space-y-4 text-3xl text-slate-700 font-medium mb-32">
               <p>No vendemos un software.</p>
-              <p className="text-slate-900 font-bold">AcompaÃ±amos el crecimiento<br/>de tu escuela.</p>
+              <p className="text-slate-900 font-bold">Acompañamos el crecimiento<br/>de tu escuela.</p>
             </div>
             
             <div className="flex justify-between w-full pr-12">
                <div className="flex flex-col items-center text-center gap-6">
                  <Clock className="w-16 h-16 text-slate-800"/>
-                 <span className="text-2xl font-bold text-slate-800">Soporte<br/>rÃ¡pido</span>
+                 <span className="text-2xl font-bold text-slate-800">Soporte<br/>rápido</span>
                </div>
                <div className="flex flex-col items-center text-center gap-6">
                  <BookOpen className="w-16 h-16 text-slate-800"/>
-                 <span className="text-2xl font-bold text-slate-800">CapacitaciÃ³n<br/>continua</span>
+                 <span className="text-2xl font-bold text-slate-800">Capacitación<br/>continua</span>
                </div>
                <div className="flex flex-col items-center text-center gap-6">
                  <RefreshCw className="w-16 h-16 text-slate-800"/>
@@ -522,11 +522,11 @@ export default function PresentacionMCM() {
         <div className="slide flex">
           <div className="absolute top-16 left-16 bg-emerald-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl z-20">15</div>
           <div className="w-1/2 p-24 flex flex-col justify-center relative z-10">
-            <h2 className="text-6xl font-black text-slate-900 mb-16">NUESTRA <span className="text-emerald-600">VISIÃ“N</span></h2>
+            <h2 className="text-6xl font-black text-slate-900 mb-16">NUESTRA <span className="text-emerald-600">VISIÓN</span></h2>
             
             <div className="text-8xl text-emerald-500 font-serif mb-8">"</div>
             <p className="text-4xl text-slate-800 font-medium leading-relaxed">
-              Queremos ayudar a<br/>miles de escuelas de fÃºtbol<br/>de LatinoamÃ©rica a dedicar<br/>menos tiempo a la administraciÃ³n<br/>y mÃ¡s tiempo a formar jugadores<br/>y transformar vidas.
+              Queremos ayudar a<br/>miles de escuelas de fútbol<br/>de Latinoamérica a dedicar<br/>menos tiempo a la administración<br/>y más tiempo a formar jugadores<br/>y transformar vidas.
             </p>
           </div>
           <div className="w-1/2 relative h-full">
@@ -543,7 +543,7 @@ export default function PresentacionMCM() {
              <div className="w-[45%] pr-24 border-r-2 border-white/10 flex flex-col h-full justify-center">
                 <h2 className="text-8xl font-black text-emerald-500 mb-12">GRACIAS</h2>
                 <p className="text-4xl text-white font-medium mb-32 leading-snug">
-                  Solicita una demostraciÃ³n<br/>personalizada sin compromiso.
+                  Solicita una demostración<br/>personalizada sin compromiso.
                 </p>
                 <div className="scale-[2.0] origin-left">
                   <MCMLogo />
@@ -592,5 +592,3 @@ export default function PresentacionMCM() {
     </div>
   );
 }
-
-
