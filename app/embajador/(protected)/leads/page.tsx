@@ -84,11 +84,7 @@ export default function MisLeadsPage() {
     e.preventDefault();
   };
 
-  const handleDrop = async (e: React.DragEvent, nuevoEstado: string) => {
-    e.preventDefault();
-    const leadId = e.dataTransfer.getData('leadId');
-    if (!leadId) return;
-
+  const moverLead = async (leadId: string, nuevoEstado: string) => {
     const lead = leads.find(l => l.id === leadId);
     if (!lead || lead.estado === nuevoEstado) return;
 
@@ -116,6 +112,13 @@ export default function MisLeadsPage() {
         });
       }
     }
+  };
+
+  const handleDrop = async (e: React.DragEvent, nuevoEstado: string) => {
+    e.preventDefault();
+    const leadId = e.dataTransfer.getData('leadId');
+    if (!leadId) return;
+    await moverLead(leadId, nuevoEstado);
   };
 
   if (loading) return <div className="p-20 flex justify-center"><Loader2 className="w-10 h-10 animate-spin text-green-500" /></div>;
@@ -162,7 +165,7 @@ export default function MisLeadsPage() {
                       onDragStart={(e) => handleDragStart(e, lead.id)}
                       className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:border-slate-300 hover:shadow-md transition-all group"
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex justify-between items-start mb-2 gap-2">
                         <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-md ${
                           lead.prioridad === 'Muy Alta' ? 'bg-purple-100 text-purple-700' :
                           lead.prioridad === 'Alta' ? 'bg-red-100 text-red-700' :
@@ -171,6 +174,16 @@ export default function MisLeadsPage() {
                         }`}>
                           {lead.prioridad}
                         </span>
+                        
+                        <select 
+                          value={lead.estado}
+                          onChange={(e) => moverLead(lead.id, e.target.value)}
+                          className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 rounded-md py-0.5 px-1 w-24 md:w-28 truncate hover:bg-slate-100 cursor-pointer focus:outline-none focus:ring-1 focus:ring-green-500"
+                        >
+                          {ESTADOS.map(est => (
+                            <option key={est} value={est}>{est}</option>
+                          ))}
+                        </select>
                       </div>
                       
                       <h4 className="font-bold text-slate-900 leading-tight mb-3">{lead.nombre}</h4>
