@@ -73,7 +73,11 @@ export default function EmbajadorWhatsApp() {
 
   const desconectar = async () => {
     if (!slug) return;
-    if (!window.confirm('¿Seguro que quieres desconectar tu número?')) return;
+    
+    const { customConfirm } = await import('@/lib/customConfirm');
+    const confirmed = await customConfirm('¿Seguro que quieres desconectar tu número? Perderás temporalmente la conexión con el CRM.', 'Desconectar WhatsApp');
+    if (!confirmed) return;
+
     setCargando(true);
     try {
       const res = await fetch(`/api/whatsapp/instance?slug=${slug}`, { method: 'DELETE' });

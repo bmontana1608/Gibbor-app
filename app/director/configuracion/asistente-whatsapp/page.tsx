@@ -78,7 +78,12 @@ export default function AsistenteWhatsApp() {
   };
 
   const handleDesvincular = async () => {
-    if (!window.confirm("¿Estás seguro de que deseas desvincular este dispositivo de WhatsApp? Se detendrán los flujos de mensajería automática.")) return;
+    const { customConfirm } = await import('@/lib/customConfirm');
+    const confirmed = await customConfirm(
+      "¿Estás seguro de que deseas desvincular este dispositivo de WhatsApp? Se detendrán los flujos de mensajería automática para este club.",
+      "Desvincular Número"
+    );
+    if (!confirmed) return;
     
     setCargando(true);
     try {
