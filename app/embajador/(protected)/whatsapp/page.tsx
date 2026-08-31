@@ -167,9 +167,16 @@ export default function EmbajadorWhatsApp() {
                 <RefreshCw className="w-5 h-5 text-emerald-500 animate-spin" />
                 Esperando conexión...
               </h2>
-              <p className="text-slate-500 text-sm max-w-sm mx-auto">
+              <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
                 Abre WhatsApp en tu celular → Dispositivos Vinculados → Vincular un dispositivo → Escanea este código.
               </p>
+              <button
+                onClick={desconectar}
+                disabled={cargando}
+                className="text-xs text-rose-500 hover:text-rose-700 underline font-medium transition-colors"
+              >
+                ¿Error al escanear? Forzar reinicio de sesión
+              </button>
             </div>
           ) : (
             <div className="py-10">
@@ -180,14 +187,23 @@ export default function EmbajadorWhatsApp() {
               <p className="text-slate-500 mb-8 max-w-md mx-auto">
                 Al conectar tu WhatsApp, el CRM usará tu número para enviar mensajes. Tu celular debe mantenerse encendido.
               </p>
-              <button
-                onClick={generarQR}
-                disabled={cargando}
-                className="bg-slate-900 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-slate-800 hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
-              >
-                {cargando ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Bot className="w-5 h-5" />}
-                {cargando ? 'Conectando...' : 'Generar Código QR'}
-              </button>
+              <div className="flex flex-col items-center gap-4">
+                <button
+                  onClick={generarQR}
+                  disabled={cargando}
+                  className="bg-slate-900 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-slate-800 hover:-translate-y-0.5 transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
+                >
+                  {cargando ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Bot className="w-5 h-5" />}
+                  {cargando ? 'Conectando...' : 'Generar Código QR'}
+                </button>
+                <button
+                  onClick={desconectar}
+                  disabled={cargando}
+                  className="text-xs text-slate-400 hover:text-rose-600 underline font-medium transition-colors"
+                >
+                  Limpiar sesión anterior (Si hay problemas)
+                </button>
+              </div>
             </div>
           )}
         </div>
