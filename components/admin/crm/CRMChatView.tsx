@@ -14,7 +14,7 @@ interface CRMChatViewProps {
   role: 'superadmin' | 'embajador';
 }
 
-// ─── Media Bubble ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Media Bubble â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function MediaBubble({ msg, isSaliente }: { msg: any; isSaliente: boolean }) {
   const [playing, setPlaying] = useState(false);
   const [imgOpen, setImgOpen] = useState(false);
@@ -110,7 +110,7 @@ function MediaBubble({ msg, isSaliente }: { msg: any; isSaliente: boolean }) {
   );
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function CRMChatView({ role }: CRMChatViewProps) {
   const [chats, setChats] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'leads' | 'clubes'>('leads');
@@ -219,7 +219,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
             unread: msgMatch ? msgMatch.unread : 0,
             entity: item, type
           };
-        }); // No filter — show ALL assigned leads
+        }); // No filter â€” show ALL assigned leads
 
       const leadsList = buildList(leads || [], 'telefono', 'lead');
       const clubesList = buildList(clubes || [], 'telefono_contacto', 'club');
@@ -289,7 +289,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setChats(prev => prev.map(c => c.numero_telefono === numero ? { ...c, unread: 0 } : c));
   };
 
-  // ─── Upload media to Supabase ─────────────────────────────────────────────
+  // â”€â”€â”€ Upload media to Supabase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const uploadMedia = async (file: File | Blob, type: string, filename?: string): Promise<string> => {
     const ext = type === 'audio' ? 'ogg' : (file as File).name?.split('.').pop() || 'bin';
     const path = `chat-media/${Date.now()}_${filename || 'audio'}.${ext}`;
@@ -299,7 +299,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     return data.publicUrl;
   };
 
-  // ─── File picker handler ──────────────────────────────────────────────────
+  // â”€â”€â”€ File picker handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -315,7 +315,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
   const clearMedia = () => { setMediaFile(null); setMediaPreview(null); setMediaType(null); };
 
-  // ─── Voice recording ──────────────────────────────────────────────────────
+  // â”€â”€â”€ Voice recording â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -329,7 +329,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       setRecordingSeconds(0);
       recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
     } catch {
-      toast.error('No se pudo acceder al micrófono. Verifica los permisos.');
+      toast.error('No se pudo acceder al micrÃ³fono. Verifica los permisos.');
     }
   };
 
@@ -341,7 +341,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
 
     await new Promise(r => setTimeout(r, 300));
     const blob = new Blob(audioChunksRef.current, { type: 'audio/webm;codecs=opus' });
-    if (blob.size < 500) { toast.error('La grabación fue demasiado corta'); return; }
+    if (blob.size < 500) { toast.error('La grabaciÃ³n fue demasiado corta'); return; }
 
     setSending(true);
     try {
@@ -361,7 +361,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     setRecordingSeconds(0);
   };
 
-  // ─── Send media helper ─────────────────────────────────────────────────────
+  // â”€â”€â”€ Send media helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const sendMedia = async (mediaUrl: string, type: string, caption?: string) => {
     if (!activeChat) return;
     const res = await fetch('/api/admin/crm/whatsapp/send', {
@@ -390,7 +390,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
       ? { ...c, lastMessage: caption || `[${type}]`, lastMessageTime: sentMsg.created_at } : c));
   };
 
-  // ─── Main send ────────────────────────────────────────────────────────────
+  // â”€â”€â”€ Main send â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeChat) return;
@@ -436,7 +436,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
   const handleNewManualChat = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanNum = newPhone.replace(/\D/g, '');
-    if (cleanNum.length < 8) { toast.error('Número inválido. Usa código de país ej: 573012345678'); return; }
+    if (cleanNum.length < 8) { toast.error('NÃºmero invÃ¡lido. Usa cÃ³digo de paÃ­s ej: 573012345678'); return; }
     let existing = chats.find(c => c.numero_telefono.includes(cleanNum) || cleanNum.includes(c.numero_telefono));
     if (existing) {
       setActiveChat(existing);
@@ -482,7 +482,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
     <div className="flex h-[calc(100vh-100px)] bg-slate-50 p-4 md:p-6 overflow-hidden">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex w-full max-w-6xl mx-auto overflow-hidden">
 
-        {/* ── Sidebar ── */}
+        {/* â”€â”€ Sidebar â”€â”€ */}
         <div className="w-1/3 border-r border-slate-200 flex flex-col bg-white">
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-lg font-black text-slate-900 mb-3">Chat CRM</h2>
@@ -490,7 +490,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               <input type="text" placeholder="Nombre del prospecto..." value={newName} onChange={e => setNewName(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500" />
               <div className="flex gap-2">
-                <input type="text" placeholder="Teléfono (ej: 57301...)" value={newPhone} onChange={e => setNewPhone(e.target.value)}
+                <input type="text" placeholder="TelÃ©fono (ej: 57301...)" value={newPhone} onChange={e => setNewPhone(e.target.value)}
                   className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-lime-500" />
                 <button type="submit" className="bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition whitespace-nowrap">+ Iniciar</button>
               </div>
@@ -533,14 +533,14 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-bold text-sm text-slate-900 truncate">{chat.entity ? chat.entity.nombre : chat.numero_telefono}</h3>
                       <span className={`text-[10px] whitespace-nowrap ${needsFollowUp ? 'text-orange-500 font-bold' : 'text-slate-400'}`}>
-                        {hasMsg ? new Date(chat.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : noPhone ? '—' : 'Nuevo'}
+                        {hasMsg ? new Date(chat.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : noPhone ? 'â€”' : 'Nuevo'}
                       </span>
                     </div>
                     {noPhone ? (
-                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Sin teléfono</span>
+                      <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">Sin telÃ©fono</span>
                     ) : (
                       <p className={`text-xs truncate ${needsFollowUp ? 'text-orange-600 font-medium' : 'text-slate-500'}`}>
-                        {needsFollowUp ? '⚠️ Requiere seguimiento' : (chat.lastMessage || 'Iniciar conversación...')}
+                        {needsFollowUp ? 'âš ï¸ Requiere seguimiento' : (chat.lastMessage || 'Iniciar conversaciÃ³n...')}
                       </p>
                     )}
                   </div>
@@ -551,20 +551,22 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
           </div>
         </div>
 
-        {/* ── Chat Area ── */}
+        {/* â”€â”€ Chat Area â”€â”€ */}
         {activeChat ? (
           <div className="w-2/3 flex flex-col bg-slate-50">
             {/* Header */}
-              <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeChat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
-                    {activeChat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-900">{activeChat.entity ? activeChat.entity.nombre : 'Prospecto Nuevo'}</h3>
-                    <div className="flex items-center gap-1 text-xs text-slate-500 font-medium"><Phone className="w-3 h-3" /> {activeChat.numero_telefono}</div>
-                  </div>
+            <div className="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeChat.type === 'club' ? 'bg-blue-100' : 'bg-lime-100'}`}>
+                  {activeChat.type === 'club' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-lime-600" />}
                 </div>
+                <div>
+                  <h3 className="font-black text-slate-900">{activeChat.entity ? activeChat.entity.nombre : 'Prospecto Nuevo'}</h3>
+                  <div className="flex items-center gap-1 text-xs text-slate-500 font-medium"><Phone className="w-3 h-3" /> {activeChat.numero_telefono}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
                 {activeChat.type === 'lead' && activeChat.entity && (
                   <div className="flex flex-col items-end text-right hidden sm:flex">
                     <div className="flex items-center gap-1 mb-1">
@@ -583,8 +585,19 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
                     {activeChat.entity.direccion && (
                       <span className="text-[10px] text-slate-400 max-w-[200px] truncate" title={activeChat.entity.direccion}>📍 {activeChat.entity.direccion}</span>
                     )}
+                    <a
+                      href={`https://wa.me/${activeChat.numero_telefono?.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                      title="Abrir chat directamente en la App oficial de WhatsApp"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      Abrir en WhatsApp Oficial
+                    </a>
                   </div>
                 )}
+              </div>
               </div>
               {(() => {
                 const hasMsg = activeChat.lastMessageTime !== new Date(0).toISOString();
@@ -594,10 +607,10 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
                   <div className="bg-orange-50 border-b border-orange-200 px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-orange-800 text-sm font-medium">
                       <AlertCircle className="w-5 h-5 text-orange-600" />
-                      Este lead lleva más de 2 días sin responder. ¡Es hora de hacer seguimiento!
+                      Este lead lleva mÃ¡s de 2 dÃ­as sin responder. Â¡Es hora de hacer seguimiento!
                     </div>
                     <button onClick={() => askCopilot('objection')} className="text-xs bg-orange-600 text-white px-4 py-1.5 rounded-lg font-bold hover:bg-orange-700 transition">
-                      ✨ IA: Sugerir Seguimiento
+                      âœ¨ IA: Sugerir Seguimiento
                     </button>
                   </div>
                 );
@@ -608,8 +621,8 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               {messages.length === 0 && (
                 <div className="text-center py-10 text-slate-400">
                   <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                  <p className="text-sm font-bold">Aún no hay mensajes.</p>
-                  <p className="text-xs">¡Escribe abajo para iniciar la conversación!</p>
+                  <p className="text-sm font-bold">AÃºn no hay mensajes.</p>
+                  <p className="text-xs">Â¡Escribe abajo para iniciar la conversaciÃ³n!</p>
                 </div>
               )}
               {messages.map(msg => (
@@ -625,7 +638,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
               <div className="mx-4 mt-2 mb-0 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl">
                 <div className="flex items-center gap-2 mb-2"><Bot className="w-4 h-4 text-indigo-600" /><span className="text-xs font-bold text-indigo-900">Copiloto IA sugiere:</span></div>
                 {loadingAI ? (
-                  <div className="flex items-center gap-2 text-indigo-400 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analizando conversación...</div>
+                  <div className="flex items-center gap-2 text-indigo-400 text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Analizando conversaciÃ³n...</div>
                 ) : (
                   <div>
                     <p className="text-sm text-indigo-800 whitespace-pre-wrap mb-3">{aiSuggestion}</p>
@@ -675,7 +688,7 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
                 </button>
                 <button onClick={() => askCopilot('objection')} disabled={loadingAI || messages.length === 0}
                   className="flex items-center gap-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-100 px-3 py-1.5 rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50">
-                  <Sparkles className="w-3.5 h-3.5" /> IA: Manejar objeción
+                  <Sparkles className="w-3.5 h-3.5" /> IA: Manejar objeciÃ³n
                 </button>
               </div>
 
@@ -730,10 +743,12 @@ export default function CRMChatView({ role }: CRMChatViewProps) {
           <div className="w-2/3 flex flex-col items-center justify-center bg-slate-50 text-slate-400">
             <MessageSquare className="w-16 h-16 mb-4 opacity-20" />
             <h3 className="text-xl font-black text-slate-300">WhatsApp CRM</h3>
-            <p className="text-sm">Selecciona una conversación para comenzar</p>
+            <p className="text-sm">Selecciona una conversaciÃ³n para comenzar</p>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
