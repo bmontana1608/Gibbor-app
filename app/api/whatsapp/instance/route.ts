@@ -203,8 +203,14 @@ export async function DELETE(request: Request) {
       method: 'DELETE',
       headers: { 'apikey': EVOLUTION_API_KEY! }
     });
+
+    // Purgar completamente la instancia de la base de datos de Evolution para limpiar sesiones fantasma
+    await fetch(`${cleanUrl}/instance/delete/${instanceName}`, {
+      method: 'DELETE',
+      headers: { 'apikey': EVOLUTION_API_KEY! }
+    });
     
-    return NextResponse.json({ success: true, message: 'Desconectado' });
+    return NextResponse.json({ success: true, message: 'Desconectado y purgado' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
