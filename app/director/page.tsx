@@ -202,6 +202,7 @@ export default function DashboardDirector() {
           });
 
           const ingresosReales = pagosFiltrados.reduce((acc: number, current: any) => acc + (Number(current.total || current.monto || current.monto_base) || 0), 0);
+          const asistValidas = asistData ? asistData.filter(a => a.estado !== 'Excusa') : [];
 
           setStats({
             totalMiembros: total,
@@ -211,7 +212,7 @@ export default function DashboardDirector() {
             conDeuda: total - alDiaCount,
             ingresosProyectados: totalProyectado,
             deudaEstimada: totalProyectado - ingresosReales,
-            tasaAsistencia: asistData && asistData.length > 0 ? Math.round((asistData.filter(a => a.estado === 'Presente').length / asistData.length) * 100) : 0
+            tasaAsistencia: asistValidas.length > 0 ? Math.round((asistValidas.filter(a => a.estado === 'Presente').length / asistValidas.length) * 100) : 0
           });
 
           setTodasLasAlertas([...morosos, ...alertasBajaAsistencia]);

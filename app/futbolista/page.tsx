@@ -524,9 +524,9 @@ export default function DashboardFutbolista() {
             {asistenciasLogs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {asistenciasLogs.slice(0, 12).map((log, idx) => (
-                  <div key={idx} className={`p-5 rounded-[2rem] border ${log.estado === 'Presente' ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                  <div key={idx} className={`p-5 rounded-[2rem] border ${log.estado === 'Presente' ? 'bg-emerald-50 border-emerald-100' : log.estado === 'Excusa' ? 'bg-amber-50 border-amber-100' : 'bg-rose-50 border-rose-100'}`}>
                     <div className="flex justify-between items-start mb-4">
-                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>{log.estado}</span>
+                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : log.estado === 'Excusa' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>{log.estado}</span>
                       <span className="text-[10px] font-bold text-slate-400">{new Date(log.fecha).toLocaleDateString()}</span>
                     </div>
                     <p className="text-sm font-black text-slate-800 leading-none">{log.tipo_sesion || 'Entrenamiento'}</p>

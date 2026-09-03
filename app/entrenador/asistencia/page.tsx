@@ -189,7 +189,7 @@ export default function AsistenciaEntrenador() {
       hace30.setDate(hace30.getDate() - 30);
       const desde = hace30.toISOString().split('T')[0];
 
-      const { data: histData } = await supabase
+      const { data } = await supabase
         .from('asistencias')
         .select('jugador_id, estado')
         .in('jugador_id', jugs.map(j => j.id))
@@ -198,10 +198,11 @@ export default function AsistenciaEntrenador() {
 
       const pcts: Record<string, number | null> = {};
       jugs.forEach(j => {
-        const registros = (histData || []).filter(r => r.jugador_id === j.id);
-        if (registros.length === 0) { pcts[j.id] = null; return; }
-        const presentes = registros.filter(r => r.estado === 'Presente').length;
-        pcts[j.id] = Math.round((presentes / registros.length) * 100);
+        const registros = data?.filter(r => r.jugador_id === j.id) || [];
+        const registrosValidos = registros.filter(r => r.estado !== 'Excusa');
+        if (registrosValidos.length === 0) { pcts[j.id] = null; return; }
+        const presentes = registrosValidos.filter(r => r.estado === 'Presente').length;
+        pcts[j.id] = Math.round((presentes / registrosValidos.length) * 100);
       });
       setHistorialPct(pcts);
     }

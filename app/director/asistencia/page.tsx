@@ -125,16 +125,43 @@ export default function ReporteAsistenciaDirector() {
     setSesionesAgrupadas(Object.values(grupos));
   };
 
+  const cambiarEstadoAsistencia = async (id: string, nuevoEstado: string) => {
+    try {
+      const { error } = await supabase.from('asistencias').update({ estado: nuevoEstado }).eq('id', id);
+      if (error) throw error;
+      
+      const newAsistencias = asistencias.map(a => a.id === id ? { ...a, estado: nuevoEstado } : a);
+      setAsistencias(newAsistencias);
+      agruparPorSesion(newAsistencias);
+      
+      setSesionSeleccionada((prev: any) => {
+        if (!prev) return prev;
+        const newJugadores = prev.jugadores.map((j: any) => j.id === id ? { ...j, estado: nuevoEstado } : j);
+        return {
+          ...prev,
+          jugadores: newJugadores,
+          presentes: newJugadores.filter((j: any) => j.estado === 'Presente').length,
+          ausentes: newJugadores.filter((j: any) => j.estado === 'Ausente').length,
+          excusas: newJugadores.filter((j: any) => j.estado === 'Excusa').length,
+        };
+      });
+      toast.success('Estado actualizado a ' + nuevoEstado);
+    } catch (err: any) {
+      toast.error('Error: ' + err.message);
+    }
+  };
+
   const handleRefresh = () => {
     if (tenant?.id) cargarDatosBD(tenant.id);
   };
 
   // KPIs
+  const asistenciasValidas = asistencias.filter(a => a.estado !== 'Excusa');
   const totales = {
     presentes: asistencias.filter(a => a.estado === 'Presente').length,
     ausentes: asistencias.filter(a => a.estado === 'Ausente').length,
     total: asistencias.length,
-    tasa: asistencias.length > 0 ? ((asistencias.filter(a => a.estado === 'Presente').length / asistencias.length) * 100).toFixed(1) : "0"
+    tasa: asistenciasValidas.length > 0 ? ((asistenciasValidas.filter(a => a.estado === 'Presente').length / asistenciasValidas.length) * 100).toFixed(1) : "0"
   };
 
   const gruposUnicos = ['Todos los grupos', ...Array.from(new Set(asistencias.map(a => a.grupo).filter(Boolean)))];
@@ -230,7 +257,8 @@ export default function ReporteAsistenciaDirector() {
              </div>
            ) : (
              sesionesFiltradas.map(sesion => {
-               const tasa = ((sesion.presentes / sesion.total) * 100).toFixed(0);
+               const totalValido = sesion.total - (sesion.excusas || 0);
+               const tasa = totalValido > 0 ? ((sesion.presentes / totalValido) * 100).toFixed(0) : "0";
                return (
                  <div 
                    key={sesion.id}
@@ -327,13 +355,18 @@ export default function ReporteAsistenciaDirector() {
                                </p>
                             </div>
                          </div>
-                         <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                         <select 
+                           value={reg.estado}
+                           onChange={(e) => cambiarEstadoAsistencia(reg.id, e.target.value)}
+                           className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest outline-none cursor-pointer border-none appearance-none ${
                             reg.estado === 'Presente' ? 'bg-emerald-500 text-white' : 
                             reg.estado === 'Ausente' ? 'bg-rose-500 text-white' : 
                             'bg-amber-500 text-white'
                          }`}>
-                            {reg.estado}
-                         </span>
+                            <option value="Presente" className="bg-white text-slate-800">Presente</option>
+                            <option value="Ausente" className="bg-white text-slate-800">Ausente</option>
+                            <option value="Excusa" className="bg-white text-slate-800">Excusa</option>
+                         </select>
                       </div>
                     ))}
                  </div>

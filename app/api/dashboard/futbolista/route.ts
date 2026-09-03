@@ -114,8 +114,9 @@ export async function GET(request: Request) {
     // Procesar Asistencia
     let asistenciaPct = 0;
     if (asisRes.data && asisRes.data.length > 0) {
-      const presentes = asisRes.data.filter(a => a.estado === 'Presente').length;
-      asistenciaPct = Math.round((presentes / asisRes.data.length) * 100);
+      const validos = asisRes.data.filter(a => a.estado !== 'Excusa');
+      const presentes = validos.filter(a => a.estado === 'Presente').length;
+      asistenciaPct = validos.length > 0 ? Math.round((presentes / validos.length) * 100) : 0;
     }
 
     return NextResponse.json({
