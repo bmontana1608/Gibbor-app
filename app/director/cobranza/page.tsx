@@ -612,7 +612,10 @@ export default function ModuloCobranza() {
 
   const [loadingBot, setLoadingBot] = useState<string | null>(null);
 
-  const handleNotificar = async (alumno: any) => {
+  const handleNotificar = async (alumnoBase: any) => {
+    // Tomar alumno de jugadoresFin para tener los cálculos de deuda recientes
+    const alumno = typeof jugadoresFin !== 'undefined' ? (jugadoresFin.find((j: any) => j.id === alumnoBase.id) || alumnoBase) : alumnoBase;
+    
     // Calcular tarifa correcta según período y tipo de plan
     const { tarifa: tarifaCalculada, descuento: descuentoCalculado, precioBase: precioBaseCalculado } = calcularTarifaPeriodo(alumno.tipo_plan, fechaInicio);
     
@@ -710,8 +713,9 @@ export default function ModuloCobranza() {
     }
   };
 
-  // Cobro manual — descarga el PDF y abre WhatsApp directo al contacto con texto pre-escrito
-  const cobrarManual = async (alumno: any) => {
+  // Cobrar manual — descarga el PDF y abre WhatsApp directo al contacto con texto pre-escrito
+  const cobrarManual = async (alumnoBase: any) => {
+    const alumno = typeof jugadoresFin !== 'undefined' ? (jugadoresFin.find((j: any) => j.id === alumnoBase.id) || alumnoBase) : alumnoBase;
     if (!alumno.tarifa) alumno.tarifa = calcularTarifa(alumno.tipo_plan);
     setLoadingBot(`manual-${alumno.id}`);
     const toastId = toast.loading(`Preparando recibo para ${alumno.nombres}...`);
@@ -987,7 +991,8 @@ export default function ModuloCobranza() {
           .filter(p => {
             if (!p.jugador_id || p.jugador_id !== j.id || !p.fecha) return false;
             const pFecha = normalizeDate(p.fecha);
-            return pFecha.startsWith(mesStr);
+            const esMensualidad = !p.concepto || String(p.concepto).toLowerCase().includes('mensualidad');
+            return pFecha.startsWith(mesStr) && esMensualidad;
           })
           .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0) + parseFloat(p.descuento || 0), 0);
 

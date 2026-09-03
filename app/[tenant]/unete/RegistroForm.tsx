@@ -312,7 +312,15 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
                   {(archivos as any)[key] ? <span className="text-emerald-500">✓ {(archivos as any)[key].name}</span> : sub}
                 </p>
                 <input type="file" accept="image/*,.pdf,.doc,.docx"
-                  onChange={(e) => setArchivos(prev => ({ ...prev, [key]: e.target.files?.[0] || null }))}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file && file.size > 5 * 1024 * 1024) {
+                      toast.error('El archivo ' + label + ' es muy pesado (máx 5MB). Por favor comprime la imagen.');
+                      e.target.value = '';
+                      return;
+                    }
+                    setArchivos(prev => ({ ...prev, [key]: file || null }));
+                  }}
                   className="absolute inset-0 opacity-0 cursor-pointer" />
               </div>
             ))}
