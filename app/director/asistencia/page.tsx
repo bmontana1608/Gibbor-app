@@ -244,65 +244,76 @@ export default function ReporteAsistenciaDirector() {
            </div>
         </div>
 
-        {/* GRID DE SESIONES (TARJETAS) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
-           {cargando ? (
-             Array.from({ length: 6 }).map((_, i) => (
-               <div key={i} className="bg-white dark:bg-slate-900 h-64 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 animate-pulse" />
-             ))
-           ) : sesionesFiltradas.length === 0 ? (
-             <div className="col-span-full p-20 text-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
-               <BookOpen className="w-16 h-16 text-slate-200 mx-auto mb-4" />
-               <p className="text-slate-400 font-bold italic">No se encontraron sesiones registradas.</p>
-             </div>
-           ) : (
-             sesionesFiltradas.map(sesion => {
-               const totalValido = sesion.total - (sesion.excusas || 0);
-               const tasa = totalValido > 0 ? ((sesion.presentes / totalValido) * 100).toFixed(0) : "0";
-               return (
-                 <div 
-                   key={sesion.id}
-                   className="text-brand transition-all flex flex-col group relative overflow-hidden"
-                 >
-                    {/* Badge de Tasa de Asistencia */}
-                    <div className="absolute top-6 right-6">
-                       <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-black text-xs ${parseInt(tasa) > 80 ? 'border-emerald-500 text-emerald-500' : 'text-brand text-brand'}`}>
-                          {tasa}%
-                       </div>
-                    </div>
-
-                    <div className="mb-6">
-                       <p className="text-[10px] font-black text-brand uppercase tracking-widest mb-1 italic">{sesion.fecha}</p>
-                       <h4 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter leading-none">{sesion.grupo}</h4>
-                    </div>
-
-                    <div className="space-y-4 mb-8">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><Users className="w-4 h-4" /></div>
-                          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Quórum: <span className="text-slate-900 dark:text-white">{sesion.total} jugadores convocados</span></p>
-                       </div>
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500"><CheckCircle className="w-4 h-4 text-emerald-500" /></div>
-                          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Asistieron: <span className="text-emerald-600 font-black">{sesion.presentes}</span></p>
-                       </div>
-                    </div>
-
-                    <div className="mt-auto pt-6 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
-                       <div className="overflow-hidden">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Registrado por</p>
-                          <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate">{sesion.registrado_por}</p>
-                       </div>
-                       <button 
-                         onClick={() => setSesionSeleccionada(sesion)}
-                         className="bg-brand text-white rounded-xl shadow-lg shadow-slate-900/10 hover:scale-110 active:scale-95 transition-all"
-                       >
-                         <ChevronRight className="w-5 h-5" />
-                       </button>
-                    </div>
-                 </div>
-               );
-             })
-           )}
+        {/* TABLA DE SESIONES */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-sm pb-2">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase tracking-widest font-black text-slate-400">
+                  <th className="p-5 font-black">Fecha</th>
+                  <th className="p-5 font-black">Grupo</th>
+                  <th className="p-5 font-black">Entrenador</th>
+                  <th className="p-5 font-black text-center">Asistencia</th>
+                  <th className="p-5 font-black text-center">Tasa %</th>
+                  <th className="p-5 font-black text-center">Detalle</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                {cargando ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="p-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-20"></div></td>
+                      <td className="p-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-24"></div></td>
+                      <td className="p-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-32"></div></td>
+                      <td className="p-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-16 mx-auto"></div></td>
+                      <td className="p-5"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-10 mx-auto"></div></td>
+                      <td className="p-5"><div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-8 mx-auto"></div></td>
+                    </tr>
+                  ))
+                ) : sesionesFiltradas.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="p-20 text-center">
+                      <BookOpen className="w-12 h-12 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
+                      <p className="text-slate-400 font-bold italic">No se encontraron sesiones registradas.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  sesionesFiltradas.map(sesion => {
+                    const totalValido = sesion.total - (sesion.excusas || 0);
+                    const tasa = totalValido > 0 ? ((sesion.presentes / totalValido) * 100).toFixed(0) : "0";
+                    const isGood = parseInt(tasa) >= 80;
+                    return (
+                      <tr key={sesion.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                        <td className="p-5 text-sm font-bold text-slate-500 whitespace-nowrap">{sesion.fecha}</td>
+                        <td className="p-5 text-sm font-black text-slate-800 dark:text-white uppercase italic tracking-tighter">{sesion.grupo}</td>
+                        <td className="p-5 text-xs font-bold text-slate-600 dark:text-slate-400">{sesion.registrado_por}</td>
+                        <td className="p-5">
+                          <div className="flex items-center justify-center gap-2 text-xs font-bold">
+                            <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400 px-2 py-1 rounded-md">{sesion.presentes} P</span>
+                            <span className="text-rose-600 bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400 px-2 py-1 rounded-md">{sesion.ausentes} A</span>
+                            {sesion.excusas > 0 && <span className="text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-1 rounded-md">{sesion.excusas} E</span>}
+                          </div>
+                        </td>
+                        <td className="p-5 text-center">
+                          <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isGood ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-brand/10 text-brand'}`}>
+                            {tasa}%
+                          </span>
+                        </td>
+                        <td className="p-5 text-center">
+                          <button 
+                            onClick={() => setSesionSeleccionada(sesion)}
+                            className="p-2 bg-white dark:bg-slate-800 text-slate-400 hover:text-brand hover:bg-brand/10 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all inline-block"
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
