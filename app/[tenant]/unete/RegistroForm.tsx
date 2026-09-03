@@ -23,11 +23,11 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
     tipo_sangre: '', eps: '', talla_uniforme: '', patologias: '',
     emergencia_nombre: '', emergencia_telefono: '', grupos: '',
     rol: 'Futbolista', estado_miembro: 'Pendiente', estado_pago: 'Pendiente', tipo_plan: 'Regular',
-    doc_jugador_url: '', doc_eps_url: '', doc_acudiente_url: ''
+    doc_jugador_url: '', doc_eps_url: '', doc_acudiente_url: '', doc_extra_url: ''
   });
 
-  const [archivos, setArchivos] = useState<{ jugador: File | null; eps: File | null; acudiente: File | null }>
-    ({ jugador: null, eps: null, acudiente: null });
+  const [archivos, setArchivos] = useState<{ jugador: File | null; eps: File | null; acudiente: File | null; extra: File | null }>
+    ({ jugador: null, eps: null, acudiente: null, extra: null });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -86,6 +86,7 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
       if (archivos.jugador)   currentFormData.doc_jugador_url   = await uploadFile(archivos.jugador,   'jugadores');
       if (archivos.eps)       currentFormData.doc_eps_url        = await uploadFile(archivos.eps,        'eps');
       if (archivos.acudiente) currentFormData.doc_acudiente_url  = await uploadFile(archivos.acudiente,  'acudientes');
+      if (archivos.extra)     currentFormData.doc_extra_url      = await uploadFile(archivos.extra,      'extras');
 
       // Insertar perfil CON el club_id del club detectado
       const { error } = await supabase.from('perfiles').insert([{
@@ -303,7 +304,8 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
             {[
               { key: 'jugador', label: 'Doc. Identidad Jugador', sub: 'T.I / C.C', icon: <FileText className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
               { key: 'eps',     label: 'Registro EPS',           sub: 'Carné o Certificado', icon: <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
-              { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: 'md:col-span-2' },
+              { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
+              { key: 'extra', label: 'Documento Adicional', sub: 'Ficha o doc. extra (Opcional)', icon: <FileText className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
             ].map(({ key, label, sub, icon, col }) => (
               <div key={key} className={`${col} group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:border-slate-300 transition-all cursor-pointer shadow-sm`} style={{ '--hover-bg': `${color}10` } as any}>
                 <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors group-hover:bg-white" style={{ color }}>{icon}</div>

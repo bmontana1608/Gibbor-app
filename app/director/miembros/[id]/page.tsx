@@ -141,7 +141,7 @@ export default function FichaDelJugador() {
     setGuardando(false);
   };
 
-  const handleSubirDocumento = async (e: React.ChangeEvent<HTMLInputElement>, tipoCampo: 'doc_jugador_url' | 'doc_eps_url' | 'doc_acudiente_url', carpeta: string) => {
+  const handleSubirDocumento = async (e: React.ChangeEvent<HTMLInputElement>, tipoCampo: 'doc_jugador_url' | 'doc_eps_url' | 'doc_acudiente_url' | 'doc_extra_url', carpeta: string) => {
     try {
       if (!e.target.files || e.target.files.length === 0) return;
       const file = e.target.files[0];
@@ -520,7 +520,7 @@ export default function FichaDelJugador() {
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
           <FileText className="w-4 h-4 text-amber-500" /> Documentos Adjuntos
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
             <span className="text-sm font-bold text-slate-700">Identificación Jugador</span>
             {jugador.doc_jugador_url ? (
@@ -558,6 +558,19 @@ export default function FichaDelJugador() {
               {subiendoDoc === 'doc_acudiente_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
               {subiendoDoc === 'doc_acudiente_url' ? 'Subiendo...' : (jugador.doc_acudiente_url ? 'Actualizar' : 'Cargar Documento')}
               <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_acudiente_url', 'acudientes')} disabled={subiendoDoc !== null} />
+            </label>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
+            <span className="text-sm font-bold text-slate-700">Documento Adicional</span>
+            {jugador.doc_extra_url ? (
+              <a href={jugador.doc_extra_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+            ) : (
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+            )}
+            <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
+              {subiendoDoc === 'doc_extra_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+              {subiendoDoc === 'doc_extra_url' ? 'Subiendo...' : (jugador.doc_extra_url ? 'Actualizar' : 'Cargar Documento')}
+              <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_extra_url', 'extras')} disabled={subiendoDoc !== null} />
             </label>
           </div>
         </div>
