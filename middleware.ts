@@ -12,6 +12,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/_next') || 
     pathname.startsWith('/admin') ||
     pathname.startsWith('/superadmin') ||
+    pathname.startsWith('/f/') ||
+    pathname === '/f' ||
     pathname.startsWith('/favicon.ico') ||
     pathname.endsWith('/manifest.json') ||
     pathname.endsWith('/manifest.webmanifest') ||
@@ -22,7 +24,7 @@ export async function middleware(request: NextRequest) {
 
   // 2. DETECCIÓN DE SLUG POR RUTA O SUBDOMINIO
   const pathParts = pathname.split('/').filter(Boolean);
-  const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin', 'superadmin', 'registro-club', 'privacidad', 'terminos', 'flyer', 'unete-embajador', 'embajador', 'presentacion', 'book'];
+  const reservedPaths = ['director', 'entrenador', 'futbolista', 'login', 'perfil', 'api', 'admin', 'superadmin', 'registro-club', 'privacidad', 'terminos', 'flyer', 'unete-embajador', 'embajador', 'presentacion', 'book', 'f'];
   
   let slug = '';
   let finalPathname = pathname;
