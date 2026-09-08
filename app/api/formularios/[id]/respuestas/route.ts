@@ -111,3 +111,44 @@ export async function POST(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const respuestaId = searchParams.get('respuestaId');
+    const deleteAll = searchParams.get('deleteAll') === 'true';
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID de formulario es requerido' }, { status: 400 });
+    }
+
+    if (respuestaId) {
+      const { error } = await supabaseAdmin
+        .from('formulario_respuestas')
+        .delete()
+        .eq('id', respuestaId)
+        .eq('formulario_id', id);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, message: 'Respuesta eliminada' });
+    } else if (deleteAll) {
+      const { error } = await supabaseAdmin
+        .from('formulario_respuestas')
+        .delete()
+        .eq('formulario_id', id);
+
+      if (error) throw error;
+      return NextResponse.json({ success: true, message: 'Todas las respuestas han sido eliminadas' });
+    } else {
+      return NextResponse.json({ error: 'Debe especificar respuestaId o deleteAll=true' }, { status: 400 });
+    }
+  } catch (error: any) {
+    console.error('Error DELETE /api/formularios/[id]/respuestas:', error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
