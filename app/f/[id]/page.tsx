@@ -191,22 +191,17 @@ export default function FormularioPublicoPage() {
       <Toaster position="top-center" richColors />
 
       <div className="max-w-2xl w-full space-y-6">
-        <div className="flex flex-col items-center justify-center gap-2 py-3">
-          {logoMostrar && (
+        {logoMostrar && (
+          <div className="flex flex-col items-center justify-center py-2">
             <div className="bg-white p-3 md:p-4 rounded-3xl shadow-sm border border-slate-200/80 flex items-center justify-center">
               <img 
                 src={logoMostrar} 
-                alt={formulario.titulo || club?.nombre || 'Logo'} 
+                alt={formulario.titulo || 'Logo'} 
                 className="h-20 md:h-24 max-w-[280px] object-contain" 
               />
             </div>
-          )}
-          {club && (
-            <span className="text-xs font-black uppercase tracking-widest text-slate-500 mt-1">
-              {club.nombre}
-            </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {enviadoExitoso ? (
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 text-center shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-300">
@@ -438,13 +433,13 @@ export default function FormularioPublicoPage() {
                 )}
               </button>
             </div>
-
-            <div className="text-center py-6 text-slate-400 text-xs flex items-center justify-center gap-1.5 font-medium">
-              <ShieldCheck className="w-4 h-4 text-slate-400" />
-              Formulario seguro alojado en Gibbor Multiclub
-            </div>
           </form>
         )}
+
+        <div className="text-center py-6 text-slate-400 text-xs flex items-center justify-center gap-1.5 font-medium">
+          <ShieldCheck className="w-4 h-4 text-slate-400" />
+          Formulario seguro alojado en Master Club Manager
+        </div>
       </div>
     </div>
   );
