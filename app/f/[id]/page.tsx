@@ -39,6 +39,31 @@ export default function FormularioPublicoPage() {
     cargar();
   }, [formId]);
 
+  // Actualizar dinámicamente el favicon y título de la pestaña con la imagen del banner o logo
+  useEffect(() => {
+    if (!formulario) return;
+
+    // Prioridad: 1. Banner, 2. Logo del formulario, 3. Logo del club
+    const faviconUrl = formulario.banner_url || formulario.logo_url || formulario.clubes?.logo_url;
+    if (faviconUrl) {
+      const existingIcons = document.querySelectorAll<HTMLLinkElement>("link[rel*='icon']");
+      if (existingIcons.length > 0) {
+        existingIcons.forEach(icon => {
+          icon.href = faviconUrl;
+        });
+      } else {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = faviconUrl;
+        document.head.appendChild(link);
+      }
+    }
+
+    if (formulario.titulo) {
+      document.title = `${formulario.titulo} | Master Club Manager`;
+    }
+  }, [formulario]);
+
   const handleInputChange = (campoId: string, valor: any) => {
     setRespuestas(prev => ({ ...prev, [campoId]: valor }));
   };
