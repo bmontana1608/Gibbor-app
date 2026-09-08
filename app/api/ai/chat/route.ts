@@ -74,26 +74,11 @@ Si te preguntan algo fuera del alcance o que no sepas, diles amablemente que con
       });
     }
 
-    // 2. Obtener Clave de Gemini desde configuracion_superadmin
-    const { data: configData } = await supabaseAdmin
-      .from('configuracion_superadmin')
-      .select('gemini_api_key')
-      .eq('id', 1)
-      .maybeSingle();
-
-    const GEMINI_API_KEY = configData?.gemini_api_key || process.env.GEMINI_API_KEY;
-    
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json({ 
-        reply: "🦁 Hola, necesito que el administrador configure mi clave de Gemini desde el panel SuperAdmin para poder pensar y responderte.",
-        usage: { used, max: maxQuota }
-      });
-    }
-
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    // 2. Llamar a Gemini con el pool de rotación de claves
+    let reply = "No pude entender eso.";
+    try {
+      const { callGeminiWithRotation } = await import('@/lib/gemini-pool');
+      const resultado = await callGeminiWithRotation({
         contents: [
           { role: 'user', parts: [{ text: message }] }
         ],
@@ -105,15 +90,14 @@ Si te preguntan algo fuera del alcance o que no sepas, diles amablemente que con
           temperature: 0.7,
           maxOutputTokens: 1000
         }
-      })
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error?.message || 'Error en Gemini API');
+      });
+      reply = resultado.text;
+    } catch (aiErr: any) {
+      return NextResponse.json({
+        reply: "🦁 " + (aiErr.message || "Lo siento, tuve un problema al procesar tu consulta con la IA."),
+        usage: { used, max: maxQuota }
+      });
     }
-
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude entender eso.";
 
     // 3. Actualizar Cuota
     await supabaseAdmin.from('clubes').update({
