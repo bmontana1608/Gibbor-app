@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { 
   CheckCircle2, AlertCircle, UploadCloud, FileText, 
-  Loader2, Check, ArrowRight, ShieldCheck, Image as ImageIcon
+  Loader2, ArrowRight, ShieldCheck
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -18,9 +18,7 @@ export default function FormularioPublicoPage() {
   const [enviando, setEnviando] = useState(false);
   const [enviadoExitoso, setEnviadoExitoso] = useState(false);
 
-  // Valores de los campos: { [campoId]: valor }
   const [respuestas, setRespuestas] = useState<Record<string, any>>({});
-  // Estado de subida de archivos: { [campoId]: { subiendo: boolean, url: string, nombre: string } }
   const [archivosEstado, setArchivosEstado] = useState<Record<string, { subiendo: boolean; url: string; nombre: string }>>({});
 
   useEffect(() => {
@@ -28,7 +26,7 @@ export default function FormularioPublicoPage() {
       if (!formId) return;
       setCargando(true);
       try {
-        const res = await fetch(/api/formularios/);
+        const res = await fetch(`/api/formularios/${formId}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'No se pudo cargar el formulario');
         setFormulario(data.formulario);
@@ -54,14 +52,12 @@ export default function FormularioPublicoPage() {
     }
   };
 
-  // Subida de archivos al bucket de Supabase
   const handleSubirArchivo = async (campoId: string, file: File) => {
     if (!file) return;
 
-    // Validación de peso máximo: 5MB
     const MAX_SIZE_MB = 5;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      toast.error(El archivo es demasiado grande. El límite máximo es de MB.);
+      toast.error(`El archivo es demasiado grande. El límite máximo es de ${MAX_SIZE_MB}MB.`);
       return;
     }
 
@@ -72,7 +68,7 @@ export default function FormularioPublicoPage() {
 
     try {
       const extension = file.name.split('.').pop() || 'bin';
-      const cleanFileName = ${formId}/__.;
+      const cleanFileName = `${formId}/${campoId}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${extension}`;
 
       const { data, error } = await supabase.storage
         .from('formularios_adjuntos')
@@ -92,9 +88,8 @@ export default function FormularioPublicoPage() {
         [campoId]: { subiendo: false, url: publicUrl, nombre: file.name }
       }));
 
-      // Guardar la URL en las respuestas del formulario
       handleInputChange(campoId, publicUrl);
-      toast.success(Archivo \"\" cargado con éxito);
+      toast.success(`Archivo "${file.name}" cargado con éxito`);
     } catch (err: any) {
       console.error('Error subiendo archivo:', err);
       toast.error('Error al subir el archivo: ' + err.message);
@@ -108,19 +103,17 @@ export default function FormularioPublicoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validar campos requeridos
     const campos: any[] = formulario?.campos || [];
     for (const campo of campos) {
       if (campo.requerido) {
         const val = respuestas[campo.id];
         if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
-          toast.error(Por favor completa el campo obligatorio: \"\");
+          toast.error(`Por favor completa el campo obligatorio: "${campo.label}"`);
           return;
         }
       }
     }
 
-    // Comprobar si hay algún archivo que todavía se esté subiendo
     const hayArchivosSubiendo = Object.values(archivosEstado).some(a => a.subiendo);
     if (hayArchivosSubiendo) {
       toast.error('Por favor espera a que terminen de subirse todos los archivos.');
@@ -129,7 +122,7 @@ export default function FormularioPublicoPage() {
 
     setEnviando(true);
     try {
-      const res = await fetch(/api/formularios//respuestas, {
+      const res = await fetch(`/api/formularios/${formId}/respuestas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -152,10 +145,10 @@ export default function FormularioPublicoPage() {
 
   if (cargando) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-slate-100 p-4\">
-        <div className=\"text-center space-y-3\">
-          <Loader2 className=\"w-10 h-10 animate-spin text-slate-800 mx-auto\" />
-          <p className=\"text-xs font-black uppercase tracking-widest text-slate-400\">Cargando formulario...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+        <div className="text-center space-y-3">
+          <Loader2 className="w-10 h-10 animate-spin text-slate-800 mx-auto" />
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Cargando formulario...</p>
         </div>
       </div>
     );
@@ -163,11 +156,11 @@ export default function FormularioPublicoPage() {
 
   if (!formulario) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-slate-100 p-4\">
-        <div className=\"max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-200\">
-          <AlertCircle className=\"w-12 h-12 text-rose-500 mx-auto mb-3\" />
-          <h2 className=\"text-xl font-black text-slate-900 uppercase\">Formulario No Disponible</h2>
-          <p className=\"text-xs text-slate-500 mt-2\">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-200">
+          <AlertCircle className="w-12 h-12 text-rose-500 mx-auto mb-3" />
+          <h2 className="text-xl font-black text-slate-900 uppercase">Formulario No Disponible</h2>
+          <p className="text-xs text-slate-500 mt-2">
             El formulario que intentas abrir no existe o ha sido retirado.
           </p>
         </div>
@@ -177,11 +170,11 @@ export default function FormularioPublicoPage() {
 
   if (formulario.estado !== 'activo') {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-slate-100 p-4\">
-        <div className=\"max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-200\">
-          <AlertCircle className=\"w-12 h-12 text-amber-500 mx-auto mb-3\" />
-          <h2 className=\"text-xl font-black text-slate-900 uppercase\">Formulario Cerrado</h2>
-          <p className=\"text-xs text-slate-500 mt-2\">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center shadow-xl border border-slate-200">
+          <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+          <h2 className="text-xl font-black text-slate-900 uppercase">Formulario Cerrado</h2>
+          <p className="text-xs text-slate-500 mt-2">
             Este formulario ya no está recibiendo más respuestas en este momento.
           </p>
         </div>
@@ -193,69 +186,65 @@ export default function FormularioPublicoPage() {
   const brandColor = club?.color_primario || '#0f172a';
 
   return (
-    <div className=\"min-h-screen bg-slate-100 text-slate-900 py-8 px-4 font-sans flex flex-col items-center justify-start\">
-      <Toaster position=\"top-center\" richColors />
+    <div className="min-h-screen bg-slate-100 text-slate-900 py-8 px-4 font-sans flex flex-col items-center justify-start">
+      <Toaster position="top-center" richColors />
 
-      <div className=\"max-w-2xl w-full space-y-6\">
-        {/* Cabecera del Club si tiene logo */}
+      <div className="max-w-2xl w-full space-y-6">
         {club && (
-          <div className=\"flex items-center justify-center gap-3 py-2\">
+          <div className="flex items-center justify-center gap-3 py-2">
             {club.logo_url && (
-              <img src={club.logo_url} alt={club.nombre} className=\"w-10 h-10 object-contain rounded-full shadow-sm bg-white p-1\" />
+              <img src={club.logo_url} alt={club.nombre} className="w-10 h-10 object-contain rounded-full shadow-sm bg-white p-1" />
             )}
-            <span className=\"text-xs font-black uppercase tracking-widest text-slate-600\">
+            <span className="text-xs font-black uppercase tracking-widest text-slate-600">
               {club.nombre}
             </span>
           </div>
         )}
 
-        {/* Pantalla de Éxito al Enviar */}
         {enviadoExitoso ? (
-          <div className=\"bg-white rounded-[2.5rem] p-8 md:p-12 text-center shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-300\">
-            <div className=\"w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner\">
-              <CheckCircle2 className=\"w-10 h-10\" />
+          <div className="bg-white rounded-[2.5rem] p-8 md:p-12 text-center shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-300">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h2 className=\"text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight\">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight">
               ¡Respuesta Enviada!
             </h2>
-            <p className=\"text-sm text-slate-600 max-w-md mx-auto\">
+            <p className="text-sm text-slate-600 max-w-md mx-auto">
               Tu información y documentos adjuntos se han registrado exitosamente en la academia.
             </p>
-            <div className=\"pt-4\">
+            <div className="pt-4">
               <button
-                type=\"button\"
+                type="button"
                 onClick={() => {
                   setRespuestas({});
                   setArchivosEstado({});
                   setEnviadoExitoso(false);
                 }}
-                className=\"inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-800 transition-all\"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-wider hover:bg-slate-800 transition-all cursor-pointer"
               >
                 Enviar otra respuesta
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className=\"space-y-4\">
-            {/* Tarjeta de Título y Descripción */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div 
-              className=\"bg-white rounded-[2.5rem] p-6 md:p-8 shadow-sm border border-slate-200 border-t-8\"
+              className="bg-white rounded-[2.5rem] p-6 md:p-8 shadow-sm border border-slate-200 border-t-8"
               style={{ borderTopColor: brandColor }}
             >
-              <h1 className=\"text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight\">
+              <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tight">
                 {formulario.titulo}
               </h1>
               {formulario.descripcion && (
-                <p className=\"text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-line\">
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-line">
                   {formulario.descripcion}
                 </p>
               )}
-              <div className=\"mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-rose-500\">
+              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-bold text-rose-500">
                 <span>* Los campos marcados con asterisco son obligatorios</span>
               </div>
             </div>
 
-            {/* Render Dinámico de Campos */}
             {(formulario.campos || []).map((campo: any, index: number) => {
               const valor = respuestas[campo.id] || '';
               const archivoInfo = archivosEstado[campo.id];
@@ -263,14 +252,13 @@ export default function FormularioPublicoPage() {
               return (
                 <div 
                   key={campo.id}
-                  className=\"bg-white rounded-[2rem] p-6 shadow-sm border border-slate-200 space-y-3\"
+                  className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-200 space-y-3"
                 >
-                  <label className=\"block text-sm font-black text-slate-900 leading-snug\">
+                  <label className="block text-sm font-black text-slate-900 leading-snug">
                     {campo.label}
-                    {campo.requerido && <span className=\"text-rose-500 ml-1\">*</span>}
+                    {campo.requerido && <span className="text-rose-500 ml-1">*</span>}
                   </label>
 
-                  {/* Campo de Texto Corto, Número, Email, Tel */}
                   {['text', 'number', 'email', 'tel'].includes(campo.tipo) && (
                     <input
                       type={campo.tipo}
@@ -278,22 +266,20 @@ export default function FormularioPublicoPage() {
                       value={valor}
                       onChange={(e) => handleInputChange(campo.id, e.target.value)}
                       placeholder={campo.placeholder || 'Escribe tu respuesta aquí...'}
-                      className=\"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all\"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all"
                     />
                   )}
 
-                  {/* Campo de Fecha */}
                   {campo.tipo === 'date' && (
                     <input
-                      type=\"date\"
+                      type="date"
                       required={campo.requerido}
                       value={valor}
                       onChange={(e) => handleInputChange(campo.id, e.target.value)}
-                      className=\"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all\"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all"
                     />
                   )}
 
-                  {/* Campo de Párrafo / Textarea */}
                   {campo.tipo === 'textarea' && (
                     <textarea
                       rows={3}
@@ -301,72 +287,68 @@ export default function FormularioPublicoPage() {
                       value={valor}
                       onChange={(e) => handleInputChange(campo.id, e.target.value)}
                       placeholder={campo.placeholder || 'Escribe tu respuesta detallada...'}
-                      className=\"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all resize-none\"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all resize-none"
                     />
                   )}
 
-                  {/* Menú Desplegable (Select) */}
                   {campo.tipo === 'select' && (
                     <select
                       required={campo.requerido}
                       value={valor}
                       onChange={(e) => handleInputChange(campo.id, e.target.value)}
-                      className=\"w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all cursor-pointer\"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 transition-all cursor-pointer"
                     >
-                      <option value=\"\">Selecciona una opción...</option>
+                      <option value="">Selecciona una opción...</option>
                       {(campo.opciones || []).map((opt: string, i: number) => (
                         <option key={i} value={opt}>{opt}</option>
                       ))}
                     </select>
                   )}
 
-                  {/* Opción Múltiple (Radio - Única respuesta) */}
                   {campo.tipo === 'radio' && (
-                    <div className=\"space-y-2 pt-1\">
+                    <div className="space-y-2 pt-1">
                       {(campo.opciones || []).map((opt: string, i: number) => (
-                        <label key={i} className=\"flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200\">
+                        <label key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200">
                           <input
-                            type=\"radio\"
+                            type="radio"
                             name={campo.id}
                             value={opt}
                             required={campo.requerido && !valor}
                             checked={valor === opt}
                             onChange={(e) => handleInputChange(campo.id, e.target.value)}
-                            className=\"w-4 h-4 text-slate-900 focus:ring-slate-900 border-slate-300\"
+                            className="w-4 h-4 text-slate-900 focus:ring-slate-900 border-slate-300"
                           />
-                          <span className=\"text-sm font-medium text-slate-700\">{opt}</span>
+                          <span className="text-sm font-medium text-slate-700">{opt}</span>
                         </label>
                       ))}
                     </div>
                   )}
 
-                  {/* Casillas de Verificación (Checkbox - Múltiple respuesta) */}
                   {campo.tipo === 'checkbox' && (
-                    <div className=\"space-y-2 pt-1\">
+                    <div className="space-y-2 pt-1">
                       {(campo.opciones || []).map((opt: string, i: number) => {
                         const seleccionados: string[] = Array.isArray(valor) ? valor : [];
                         const isChecked = seleccionados.includes(opt);
                         return (
-                          <label key={i} className=\"flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200\">
+                          <label key={i} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200">
                             <input
-                              type=\"checkbox\"
+                              type="checkbox"
                               checked={isChecked}
                               onChange={(e) => handleCheckboxChange(campo.id, opt, e.target.checked)}
-                              className=\"w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300\"
+                              className="w-4 h-4 rounded text-slate-900 focus:ring-slate-900 border-slate-300"
                             />
-                            <span className=\"text-sm font-medium text-slate-700\">{opt}</span>
+                            <span className="text-sm font-medium text-slate-700">{opt}</span>
                           </label>
                         );
                       })}
                     </div>
                   )}
 
-                  {/* Subir Archivo (Foto / Documento PDF) */}
                   {campo.tipo === 'file' && (
-                    <div className=\"space-y-2 pt-1\">
-                      <div className=\"border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-2xl p-6 text-center transition-all bg-slate-50/50 relative\">
+                    <div className="space-y-2 pt-1">
+                      <div className="border-2 border-dashed border-slate-200 hover:border-slate-400 rounded-2xl p-6 text-center transition-all bg-slate-50/50 relative">
                         <input
-                          type=\"file\"
+                          type="file"
                           accept={
                             campo.archivoTipos === 'imagen' 
                               ? 'image/*' 
@@ -379,28 +361,28 @@ export default function FormularioPublicoPage() {
                             const f = e.target.files?.[0];
                             if (f) handleSubirArchivo(campo.id, f);
                           }}
-                          className=\"absolute inset-0 w-full h-full opacity-0 cursor-pointer\"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
 
                         {archivoInfo?.subiendo ? (
-                          <div className=\"flex flex-col items-center gap-2 py-2\">
-                            <Loader2 className=\"w-8 h-8 animate-spin text-slate-700\" />
-                            <p className=\"text-xs font-black uppercase tracking-wider text-slate-600\">
+                          <div className="flex flex-col items-center gap-2 py-2">
+                            <Loader2 className="w-8 h-8 animate-spin text-slate-700" />
+                            <p className="text-xs font-black uppercase tracking-wider text-slate-600">
                               Subiendo {archivoInfo.nombre}...
                             </p>
                           </div>
                         ) : valor ? (
-                          <div className=\"flex items-center justify-center gap-2 text-emerald-600 font-black text-xs uppercase tracking-wider py-1\">
-                            <CheckCircle2 className=\"w-5 h-5\" />
+                          <div className="flex items-center justify-center gap-2 text-emerald-600 font-black text-xs uppercase tracking-wider py-1">
+                            <CheckCircle2 className="w-5 h-5" />
                             <span>Archivo cargado: {archivoInfo?.nombre || 'Ver Documento'}</span>
                           </div>
                         ) : (
-                          <div className=\"flex flex-col items-center gap-1.5\">
-                            <UploadCloud className=\"w-8 h-8 text-slate-400\" />
-                            <p className=\"text-xs font-black uppercase tracking-wider text-slate-700\">
+                          <div className="flex flex-col items-center gap-1.5">
+                            <UploadCloud className="w-8 h-8 text-slate-400" />
+                            <p className="text-xs font-black uppercase tracking-wider text-slate-700">
                               Haz clic para seleccionar o arrastra el archivo aquí
                             </p>
-                            <p className=\"text-[11px] text-slate-400\">
+                            <p className="text-[11px] text-slate-400">
                               {campo.archivoTipos === 'imagen' 
                                 ? 'Formatos permitidos: JPG, PNG (Máx 5MB)' 
                                 : campo.archivoTipos === 'pdf' 
@@ -412,14 +394,14 @@ export default function FormularioPublicoPage() {
                       </div>
 
                       {valor && (
-                        <div className=\"flex justify-end\">
+                        <div className="flex justify-end">
                           <a
                             href={valor}
-                            target=\"_blank\"
-                            rel=\"noopener noreferrer\"
-                            className=\"text-[11px] font-bold text-slate-600 hover:text-slate-900 underline flex items-center gap-1\"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] font-bold text-slate-600 hover:text-slate-900 underline flex items-center gap-1"
                           >
-                            <FileText className=\"w-3.5 h-3.5\" /> Previsualizar archivo subido
+                            <FileText className="w-3.5 h-3.5" /> Previsualizar archivo subido
                           </a>
                         </div>
                       )}
@@ -429,31 +411,29 @@ export default function FormularioPublicoPage() {
               );
             })}
 
-            {/* Botón de Envío */}
-            <div className=\"pt-4\">
+            <div className="pt-4">
               <button
-                type=\"submit\"
+                type="submit"
                 disabled={enviando}
-                className=\"w-full py-4 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-wider hover:bg-slate-800 shadow-xl shadow-slate-900/10 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2\"
+                className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-wider hover:bg-slate-800 shadow-xl shadow-slate-900/10 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 style={{ backgroundColor: brandColor }}
               >
                 {enviando ? (
                   <>
-                    <Loader2 className=\"w-5 h-5 animate-spin\" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Enviando respuestas...
                   </>
                 ) : (
                   <>
                     <span>Enviar Formulario</span>
-                    <ArrowRight className=\"w-4 h-4\" />
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </div>
 
-            {/* Footer de marca segura */}
-            <div className=\"text-center py-6 text-slate-400 text-xs flex items-center justify-center gap-1.5 font-medium\">
-              <ShieldCheck className=\"w-4 h-4 text-slate-400\" />
+            <div className="text-center py-6 text-slate-400 text-xs flex items-center justify-center gap-1.5 font-medium">
+              <ShieldCheck className="w-4 h-4 text-slate-400" />
               Formulario seguro alojado en Gibbor Multiclub
             </div>
           </form>

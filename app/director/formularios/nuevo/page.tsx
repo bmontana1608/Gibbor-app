@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -52,7 +52,7 @@ export default function NuevoFormularioPage() {
       if (!res.ok) throw new Error(data.error || 'Error al guardar formulario');
 
       toast.success('¡Formulario creado con éxito!');
-      router.push(route(/director/formularios/));
+      router.push(route(`/director/formularios/${data.formulario.id}`));
     } catch (err: any) {
       toast.error(err.message || 'Error al crear formulario');
     } finally {
@@ -61,7 +61,7 @@ export default function NuevoFormularioPage() {
   };
 
   return (
-    <div className=\"min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans text-slate-800 dark:text-slate-100 transition-colors\">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans text-slate-800 dark:text-slate-100 transition-colors">
       <FormBuilder
         clubId={tenant?.id || ''}
         onSave={handleGuardar}

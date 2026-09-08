@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(
@@ -79,7 +79,7 @@ export async function POST(
       if (campo.requerido) {
         const val = respuestas[campo.id];
         if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
-          return NextResponse.json({ error: El campo \"\" es obligatorio. }, { status: 400 });
+          return NextResponse.json({ error: `El campo "${campo.label}" es obligatorio.` }, { status: 400 });
         }
       }
     }
