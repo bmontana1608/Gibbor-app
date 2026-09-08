@@ -5,9 +5,11 @@ import {
   Sparkles, Plus, Trash2, ArrowUp, ArrowDown, Copy, 
   FileText, AlignLeft, Hash, 
   Mail, Phone, Calendar, ChevronDown, CheckSquare, 
-  Radio, UploadCloud, Save, Eye, Loader2, ArrowLeft
+  Radio, UploadCloud, Save, Eye, Loader2, ArrowLeft,
+  Image as ImageIcon, X
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 export type TipoCampo = 
   | 'text' 
@@ -37,10 +39,11 @@ interface FormBuilderProps {
     titulo: string;
     descripcion?: string;
     estado?: 'activo' | 'inactivo' | 'cerrado';
+    logo_url?: string;
     campos: FormField[];
   };
   clubId: string;
-  onSave: (data: { titulo: string; descripcion: string; estado: string; campos: FormField[] }) => Promise<void>;
+  onSave: (data: { titulo: string; descripcion: string; estado: string; campos: FormField[]; logo_url?: string }) => Promise<void>;
   saving?: boolean;
   onBack?: () => void;
   publicUrl?: string;
@@ -77,6 +80,8 @@ export default function FormBuilder({
   const [titulo, setTitulo] = useState(initialData?.titulo || '');
   const [descripcion, setDescripcion] = useState(initialData?.descripcion || '');
   const [estado, setEstado] = useState<'activo' | 'inactivo' | 'cerrado'>(initialData?.estado || 'activo');
+  const [logoUrl, setLogoUrl] = useState(initialData?.logo_url || '');
+  const [subiendoLogo, setSubiendoLogo] = useState(false);
   const [campos, setCampos] = useState<FormField[]>(
     initialData?.campos && initialData.campos.length > 0 
       ? initialData.campos 
@@ -216,6 +221,48 @@ export default function FormBuilder({
     }
   };
 
+  // Subir logo personalizado del formulario
+  const handleSubirLogo = async (file: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido (PNG, JPG, WEBP, SVG).');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar los 5MB.');
+      return;
+    }
+
+    setSubiendoLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const cleanFileName = `logos/${clubId || 'general'}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${ext}`;
+
+      const { data, error } = await supabase.storage
+        .from('formularios_adjuntos')
+        .upload(cleanFileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('formularios_adjuntos')
+        .getPublicUrl(cleanFileName);
+
+      setLogoUrl(publicUrl);
+      toast.success('¡Logo personalizado cargado con éxito!');
+    } catch (err: any) {
+      console.error('Error subiendo logo:', err);
+      toast.error('Error al subir el logo: ' + err.message);
+    } finally {
+      setSubiendoLogo(false);
+    }
+  };
+
   // Guardar formulario
   const handleGuardar = async () => {
     if (!titulo.trim()) {
@@ -231,7 +278,8 @@ export default function FormBuilder({
       titulo: titulo.trim(),
       descripcion: descripcion.trim(),
       estado,
-      campos
+      campos,
+      logo_url: logoUrl || undefined
     });
   };
 
@@ -380,8 +428,82 @@ export default function FormBuilder({
         )}
       </div>
 
-      {/* CABECERA DEL FORMULARIO (TÍTULO Y DESCRIPCIÓN) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 border-t-4 border-t-brand">
+      {/* CABECERA DEL FORMULARIO (TÍTULO, DESCRIPCIÓN Y LOGO) */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 border-t-4 border-t-brand">
+        {/* SECCIÓN LOGO PERSONALIZADO */}
+        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {logoUrl ? (
+              <div className="relative group w-20 h-20 rounded-2xl bg-white p-2 border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
+                <img src={logoUrl} alt="Logo Formulario" className="max-w-full max-h-full object-contain" />
+                <button
+                  type="button"
+                  onClick={() => setLogoUrl('')}
+                  className="absolute -top-2 -right-2 p-1 bg-rose-500 text-white rounded-full shadow hover:bg-rose-600 transition-colors"
+                  title="Eliminar logo personalizado (usar el del club)"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-2xl bg-slate-200/70 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 shrink-0">
+                <ImageIcon className="w-7 h-7 stroke-[1.5]" />
+              </div>
+            )}
+            <div>
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                Logo del Formulario / Torneo
+                {logoUrl && (
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                    Personalizado
+                  </span>
+                )}
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm leading-snug">
+                {logoUrl
+                  ? 'Este logo se mostrará de forma destacada en la parte superior del formulario público.'
+                  : 'Opcional. Si no subes ninguno, se mostrará automáticamente el escudo oficial de tu academia.'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <label className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 shadow-sm cursor-pointer transition-all">
+              {subiendoLogo ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Subiendo...
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-3.5 h-3.5 text-brand" />
+                  {logoUrl ? 'Cambiar Logo' : 'Subir Logo Propio'}
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={subiendoLogo}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleSubirLogo(file);
+                }}
+              />
+            </label>
+
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={() => setLogoUrl('')}
+                className="px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+              >
+                Quitar
+              </button>
+            )}
+          </div>
+        </div>
+
         <div>
           <label className="block text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
             Título del Formulario *

@@ -184,22 +184,29 @@ export default function FormularioPublicoPage() {
 
   const club = formulario.clubes;
   const brandColor = club?.color_primario || '#0f172a';
+  const logoMostrar = formulario.logo_url || club?.logo_url;
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 py-8 px-4 font-sans flex flex-col items-center justify-start">
       <Toaster position="top-center" richColors />
 
       <div className="max-w-2xl w-full space-y-6">
-        {club && (
-          <div className="flex items-center justify-center gap-3 py-2">
-            {club.logo_url && (
-              <img src={club.logo_url} alt={club.nombre} className="w-10 h-10 object-contain rounded-full shadow-sm bg-white p-1" />
-            )}
-            <span className="text-xs font-black uppercase tracking-widest text-slate-600">
+        <div className="flex flex-col items-center justify-center gap-2 py-3">
+          {logoMostrar && (
+            <div className="bg-white p-3 md:p-4 rounded-3xl shadow-sm border border-slate-200/80 flex items-center justify-center">
+              <img 
+                src={logoMostrar} 
+                alt={formulario.titulo || club?.nombre || 'Logo'} 
+                className="h-20 md:h-24 max-w-[280px] object-contain" 
+              />
+            </div>
+          )}
+          {club && (
+            <span className="text-xs font-black uppercase tracking-widest text-slate-500 mt-1">
               {club.nombre}
             </span>
-          </div>
-        )}
+          )}
+        </div>
 
         {enviadoExitoso ? (
           <div className="bg-white rounded-[2.5rem] p-8 md:p-12 text-center shadow-xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-300">

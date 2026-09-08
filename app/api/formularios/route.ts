@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const { data: formularios, error } = await supabaseAdmin
       .from('formularios')
-      .select('id, club_id, titulo, descripcion, estado, created_at, updated_at, campos')
+      .select('id, club_id, titulo, descripcion, estado, created_at, updated_at, campos, logo_url')
       .eq('club_id', clubId)
       .order('created_at', { ascending: false });
 
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { clubId, titulo, descripcion, campos, estado = 'activo', creadoPor } = body;
+    const { clubId, titulo, descripcion, campos, estado = 'activo', creadoPor, logo_url } = body;
 
     if (!clubId || !titulo) {
       return NextResponse.json({ error: 'clubId y titulo son requeridos' }, { status: 400 });
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
         descripcion: (descripcion || '').trim(),
         campos: Array.isArray(campos) ? campos : [],
         estado,
+        logo_url: logo_url || null,
         creado_por: creadoPor || null
       })
       .select()

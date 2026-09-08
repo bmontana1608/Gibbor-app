@@ -31,6 +31,7 @@ export default function NuevoFormularioPage() {
     descripcion: string;
     estado: string;
     campos: FormField[];
+    logo_url?: string;
   }) => {
     if (!tenant?.id) {
       toast.error('No se pudo identificar la academia.');

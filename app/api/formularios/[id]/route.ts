@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(
@@ -36,7 +36,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { titulo, descripcion, campos, estado } = body;
+    const { titulo, descripcion, campos, estado, logo_url } = body;
 
     const updateData: Record<string, any> = {
       updated_at: new Date().toISOString()
@@ -46,6 +46,7 @@ export async function PUT(
     if (descripcion !== undefined) updateData.descripcion = descripcion.trim();
     if (campos !== undefined) updateData.campos = Array.isArray(campos) ? campos : [];
     if (estado !== undefined) updateData.estado = estado;
+    if (logo_url !== undefined) updateData.logo_url = logo_url;
 
     const { data: actualizado, error } = await supabaseAdmin
       .from('formularios')
