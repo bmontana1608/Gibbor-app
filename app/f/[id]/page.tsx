@@ -185,22 +185,47 @@ export default function FormularioPublicoPage() {
   const club = formulario.clubes;
   const brandColor = club?.color_primario || '#0f172a';
   const logoMostrar = formulario.logo_url || club?.logo_url;
+  const bannerUrl = formulario.banner_url;
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 py-8 px-4 font-sans flex flex-col items-center justify-start">
       <Toaster position="top-center" richColors />
 
       <div className="max-w-2xl w-full space-y-6">
-        {logoMostrar && (
-          <div className="flex flex-col items-center justify-center py-2">
-            <div className="bg-white p-3 md:p-4 rounded-3xl shadow-sm border border-slate-200/80 flex items-center justify-center">
+        {/* ENCABEZADO: BANNER Y/O LOGO (ESTILO GOOGLE FORMS) */}
+        {bannerUrl ? (
+          <div className="relative">
+            <div className="w-full h-40 sm:h-52 md:h-60 rounded-[2.5rem] overflow-hidden shadow-md border border-slate-200 bg-slate-200">
               <img 
-                src={logoMostrar} 
-                alt={formulario.titulo || 'Logo'} 
-                className="h-20 md:h-24 max-w-[280px] object-contain" 
+                src={bannerUrl} 
+                alt="Banner del Formulario" 
+                className="w-full h-full object-cover" 
               />
             </div>
+            {logoMostrar && (
+              <div className="-mt-12 sm:-mt-14 flex justify-center relative z-10">
+                <div className="bg-white p-2.5 sm:p-3 rounded-3xl shadow-xl border-2 border-white flex items-center justify-center max-w-[240px]">
+                  <img 
+                    src={logoMostrar} 
+                    alt={formulario.titulo || 'Logo'} 
+                    className="h-16 sm:h-20 max-w-[200px] object-contain" 
+                  />
+                </div>
+              </div>
+            )}
           </div>
+        ) : (
+          logoMostrar && (
+            <div className="flex flex-col items-center justify-center py-2">
+              <div className="bg-white p-3 md:p-4 rounded-3xl shadow-sm border border-slate-200/80 flex items-center justify-center">
+                <img 
+                  src={logoMostrar} 
+                  alt={formulario.titulo || 'Logo'} 
+                  className="h-20 md:h-24 max-w-[280px] object-contain" 
+                />
+              </div>
+            </div>
+          )
         )}
 
         {enviadoExitoso ? (

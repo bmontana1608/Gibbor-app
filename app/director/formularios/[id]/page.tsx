@@ -58,6 +58,7 @@ export default function FormularioDetallePage() {
     estado: string;
     campos: FormField[];
     logo_url?: string;
+    banner_url?: string;
   }) => {
     setGuardando(true);
     try {
@@ -184,6 +185,7 @@ export default function FormularioDetallePage() {
               descripcion: formulario.descripcion,
               estado: formulario.estado,
               logo_url: formulario.logo_url,
+              banner_url: formulario.banner_url,
               campos: formulario.campos || []
             }}
             clubId={formulario.club_id}

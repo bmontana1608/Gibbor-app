@@ -40,10 +40,18 @@ interface FormBuilderProps {
     descripcion?: string;
     estado?: 'activo' | 'inactivo' | 'cerrado';
     logo_url?: string;
+    banner_url?: string;
     campos: FormField[];
   };
   clubId: string;
-  onSave: (data: { titulo: string; descripcion: string; estado: string; campos: FormField[]; logo_url?: string }) => Promise<void>;
+  onSave: (data: { 
+    titulo: string; 
+    descripcion: string; 
+    estado: string; 
+    campos: FormField[]; 
+    logo_url?: string;
+    banner_url?: string;
+  }) => Promise<void>;
   saving?: boolean;
   onBack?: () => void;
   publicUrl?: string;
@@ -82,6 +90,8 @@ export default function FormBuilder({
   const [estado, setEstado] = useState<'activo' | 'inactivo' | 'cerrado'>(initialData?.estado || 'activo');
   const [logoUrl, setLogoUrl] = useState(initialData?.logo_url || '');
   const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState(initialData?.banner_url || '');
+  const [subiendoBanner, setSubiendoBanner] = useState(false);
   const [campos, setCampos] = useState<FormField[]>(
     initialData?.campos && initialData.campos.length > 0 
       ? initialData.campos 
@@ -263,6 +273,48 @@ export default function FormBuilder({
     }
   };
 
+  // Subir banner personalizado del formulario
+  const handleSubirBanner = async (file: File) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido (PNG, JPG, WEBP).');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error('La imagen del banner no debe superar los 8MB.');
+      return;
+    }
+
+    setSubiendoBanner(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const cleanFileName = `banners/${clubId || 'general'}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}.${ext}`;
+
+      const { data, error } = await supabase.storage
+        .from('formularios_adjuntos')
+        .upload(cleanFileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('formularios_adjuntos')
+        .getPublicUrl(cleanFileName);
+
+      setBannerUrl(publicUrl);
+      toast.success('¡Banner de cabecera cargado con éxito!');
+    } catch (err: any) {
+      console.error('Error subiendo banner:', err);
+      toast.error('Error al subir el banner: ' + err.message);
+    } finally {
+      setSubiendoBanner(false);
+    }
+  };
+
   // Guardar formulario
   const handleGuardar = async () => {
     if (!titulo.trim()) {
@@ -279,7 +331,8 @@ export default function FormBuilder({
       descripcion: descripcion.trim(),
       estado,
       campos,
-      logo_url: logoUrl || undefined
+      logo_url: logoUrl || undefined,
+      banner_url: bannerUrl || undefined
     });
   };
 
@@ -428,8 +481,87 @@ export default function FormBuilder({
         )}
       </div>
 
-      {/* CABECERA DEL FORMULARIO (TÍTULO, DESCRIPCIÓN Y LOGO) */}
-      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-5 border-t-4 border-t-brand">
+      {/* CABECERA DEL FORMULARIO (TÍTULO, DESCRIPCIÓN, BANNER Y LOGO) */}
+      <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6 border-t-4 border-t-brand">
+        {/* SECCIÓN BANNER DE CABECERA (ESTILO GOOGLE FORMS) */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">
+              Banner Superior (Estilo Google Forms)
+            </span>
+            {bannerUrl && (
+              <button
+                type="button"
+                onClick={() => setBannerUrl('')}
+                className="text-xs font-bold text-rose-500 hover:text-rose-600 transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" /> Quitar banner
+              </button>
+            )}
+          </div>
+
+          {bannerUrl ? (
+            <div className="relative group w-full h-36 md:h-44 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-100 dark:bg-slate-800">
+              <img src={bannerUrl} alt="Banner Formulario" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-black uppercase tracking-wider shadow-lg hover:scale-105 transition-all cursor-pointer">
+                  {subiendoBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                  Cambiar Banner
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={subiendoBanner}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleSubirBanner(file);
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setBannerUrl('')}
+                  className="p-2 rounded-xl bg-rose-500 text-white shadow-lg hover:bg-rose-600 transition-colors cursor-pointer"
+                  title="Eliminar banner"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <label className="border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-brand dark:hover:border-brand rounded-2xl p-6 flex flex-col items-center justify-center gap-2 bg-slate-50/50 dark:bg-slate-800/30 cursor-pointer transition-all hover:bg-slate-50">
+              {subiendoBanner ? (
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+                  <Loader2 className="w-5 h-5 animate-spin text-brand" />
+                  <span>Subiendo banner panorámico...</span>
+                </div>
+              ) : (
+                <>
+                  <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700 text-brand">
+                    <UploadCloud className="w-6 h-6" />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                    Subir Imagen de Portada / Banner
+                  </p>
+                  <p className="text-[11px] text-slate-400 text-center max-w-sm">
+                    Recomendado: panorámico (1200x300 px o ratio 4:1). Se mostrará en la parte superior como en Google Forms.
+                  </p>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={subiendoBanner}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleSubirBanner(file);
+                }}
+              />
+            </label>
+          )}
+        </div>
+
         {/* SECCIÓN LOGO PERSONALIZADO */}
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
