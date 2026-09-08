@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import GibbiAssistant from "@/components/GibbiAssistant";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star, FileSpreadsheet } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
 
@@ -136,6 +136,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     { name: 'Comunicados', path: `${basePath}/director/comunicados`, icon: <Megaphone className="w-5 h-5" /> },
     { name: 'Historial WA', path: `${basePath}/director/whatsapp`, icon: <MessageSquare className="w-5 h-5" /> },
     { name: 'Directorio Comercial', path: `${basePath}/director/directorio`, icon: <Store className="w-5 h-5" /> },
+    { name: 'Formularios', path: `${basePath}/director/formularios`, icon: <FileSpreadsheet className="w-5 h-5" /> },
     { name: 'Asistente WA', path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <Bot className="w-5 h-5" /> },
     { name: 'Uniformes', path: `${basePath}/director/uniformes`, icon: <Shirt className="w-5 h-5" /> },
     { name: 'Ajustes del Club', path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
