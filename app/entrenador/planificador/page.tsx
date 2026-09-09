@@ -8,11 +8,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useTenant } from '@/lib/hooks/useTenant';
 import { getEmbedUrl, extractVideosFromDescription, resolveShortUrl } from '@/lib/utils/videos';
-
 
 export default function PlanificadorEntrenador() {
   const router = useRouter();
+  const { route } = useTenant();
   const [planes, setPlanes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -203,7 +204,7 @@ export default function PlanificadorEntrenador() {
         </div>
         <div className="flex gap-3">
           <button 
-            onClick={() => window.location.href = '/entrenador/pizarra'}
+            onClick={() => window.location.href = route('/entrenador/pizarra')}
             className="bg-white border-2 border-slate-200 text-slate-700 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
           >
             <PenTool className="text-brand" /> Pizarra Táctica
@@ -390,7 +391,7 @@ export default function PlanificadorEntrenador() {
                   </label>
                   <button 
                     type="button" 
-                    onClick={() => router.push('/entrenador/biblioteca')}
+                    onClick={() => router.push(route('/entrenador/biblioteca'))}
                     className="bg-brand/10 px-2 py-1 rounded-md transition-colors"
                   >
                     <Library className="w-3 h-3" /> Explorar Biblioteca

@@ -125,9 +125,41 @@ export default function AsistenciaEntrenador() {
         }
 
         try {
-          const res = await fetch(`/api/categorias?slug=${tenantSlug}&entrenador_id=${usuario.id}`);
+          const res = await fetch(`/api/categorias?slug=${tenantSlug}&club_id=${clubId || ''}&entrenador_id=${usuario.id}`);
           const cats = await res.json();
-          if (Array.isArray(cats)) setCategorias(cats);
+          let loadedCats: any[] = [];
+          if (Array.isArray(cats) && cats.length > 0) {
+            loadedCats = cats;
+          } else if (clubId) {
+            // Fallback directo a Supabase
+            const { data: dbCats } = await supabase.from('categorias').select('*').eq('club_id', clubId);
+            if (dbCats && dbCats.length > 0) {
+              const coachFullName = `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim().toLowerCase();
+              const coachGroups = (usuario.grupos || '').split(',').map((g: string) => g.trim().toLowerCase()).filter(Boolean);
+              const filtered = dbCats.filter(cat => {
+                const matchByName = coachGroups.includes((cat.nombre || '').trim().toLowerCase());
+                const matchByTrainer = (cat.entrenadores || '').toLowerCase().includes(coachFullName);
+                return matchByName || matchByTrainer;
+              });
+              loadedCats = filtered.length > 0 ? filtered : (usuario.rol === 'Director' || usuario.rol === 'SuperAdmin' ? dbCats : []);
+            }
+          }
+
+          if (loadedCats.length > 0) {
+            setCategorias(loadedCats);
+
+            // Auto-seleccionar categoría si viene en los parámetros de la URL
+            if (typeof window !== 'undefined') {
+              const params = new URLSearchParams(window.location.search);
+              const catIdParam = params.get('categoria_id');
+              if (catIdParam) {
+                const found = loadedCats.find((c: any) => c.id === catIdParam || c.nombre?.toLowerCase() === catIdParam.toLowerCase());
+                if (found) {
+                  seleccionarCategoria(found);
+                }
+              }
+            }
+          }
         } catch (err) {
           toast.error('Error al cargar categorías');
         }

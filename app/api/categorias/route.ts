@@ -10,14 +10,35 @@ const supabaseAdmin = createClient(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const slug = searchParams.get('slug');
-  const tenant = await getTenant(slug) as any;
-  const club_id = tenant?.id;
+  const clubIdParam = searchParams.get('club_id');
+  const entrenador_id = searchParams.get('entrenador_id');
+
+  let club_id = clubIdParam;
+
+  // Si se pasa entrenador_id, podemos consultar el club_id real del entrenador para máxima resiliencia
+  let coachProfile: any = null;
+  if (entrenador_id) {
+    const { data } = await supabaseAdmin
+      .from('perfiles')
+      .select('id, club_id, nombres, apellidos, grupos, rol')
+      .eq('id', entrenador_id)
+      .maybeSingle();
+    coachProfile = data;
+
+    // Si el entrenador tiene un club_id asignado y no vino club_id o el slug cayó en fallback genérico, usar su club_id
+    if (coachProfile?.club_id && (!club_id || slug === 'gibbor' || slug === 'default' || slug === 'localhost')) {
+      club_id = coachProfile.club_id;
+    }
+  }
+
+  if (!club_id && slug) {
+    const tenant = await getTenant(slug) as any;
+    club_id = tenant?.id;
+  }
 
   if (!club_id) {
     return NextResponse.json({ error: 'Club ID no identificado' }, { status: 401 });
   }
-
-  const entrenador_id = searchParams.get('entrenador_id');
 
   let query = supabaseAdmin
     .from('categorias')
@@ -31,11 +52,14 @@ export async function GET(request: Request) {
   }
 
   if (entrenador_id && data) {
-    const { data: coachProfile } = await supabaseAdmin
-      .from('perfiles')
-      .select('nombres, apellidos, grupos')
-      .eq('id', entrenador_id)
-      .single();
+    if (!coachProfile) {
+      const { data: cp } = await supabaseAdmin
+        .from('perfiles')
+        .select('id, club_id, nombres, apellidos, grupos, rol')
+        .eq('id', entrenador_id)
+        .single();
+      coachProfile = cp;
+    }
 
     if (coachProfile) {
       const coachFullName = `${coachProfile.nombres || ''} ${coachProfile.apellidos || ''}`.trim().toLowerCase();
@@ -49,8 +73,23 @@ export async function GET(request: Request) {
         const matchByTrainer = (cat.entrenadores || '')
           .toLowerCase()
           .includes(coachFullName);
-        return matchByName || matchByTrainer;
+
+        // Coincidencia flexible de nombres y apellidos
+        const coachFirstName = (coachProfile.nombres || '').trim().toLowerCase().split(' ')[0];
+        const coachLastName = (coachProfile.apellidos || '').trim().toLowerCase().split(' ')[0];
+        const matchByParts = Boolean(
+          coachFirstName && coachLastName && 
+          (cat.entrenadores || '').toLowerCase().includes(coachFirstName) && 
+          (cat.entrenadores || '').toLowerCase().includes(coachLastName)
+        );
+
+        return matchByName || matchByTrainer || matchByParts;
       });
+
+      // Si es Director o SuperAdmin y no tiene categorías asignadas individualmente, permitir ver todas las del club
+      if (filtered.length === 0 && (coachProfile.rol === 'Director' || coachProfile.rol === 'SuperAdmin')) {
+        return NextResponse.json(data);
+      }
 
       return NextResponse.json(filtered);
     }
