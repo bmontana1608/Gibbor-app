@@ -36,7 +36,16 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
 
-    const canales = configAdmin?.canales_pago || {};
+    let canales = configAdmin?.canales_pago;
+    if (!canales && configAdmin?.mensaje_cobro) {
+      try {
+        const parsed = JSON.parse(configAdmin.mensaje_cobro);
+        if (parsed && typeof parsed === 'object') {
+          canales = parsed.canales_pago || parsed;
+        }
+      } catch (_) {}
+    }
+    canales = canales || {};
 
     const lineasCanales: string[] = [];
     if (canales.banco_nombre && canales.banco_numero) {

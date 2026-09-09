@@ -90,11 +90,35 @@ export default function ConfiguracionPage() {
 
   const cargarConfiguracion = async () => {
     setLoading(true);
-    const { data } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
-    setConfigAdmin(data || {});
 
-    if (data?.canales_pago) {
-      setCanalesPago(prev => ({ ...prev, ...data.canales_pago }));
+    let configData: any = null;
+    try {
+      const resApi = await fetch('/api/admin/configuracion');
+      if (resApi.ok) {
+        const json = await resApi.json();
+        if (json.data) configData = json.data;
+      }
+    } catch (_) {}
+
+    if (!configData) {
+      const { data } = await supabase.from('configuracion_superadmin').select('*').order('id', { ascending: true }).limit(1).maybeSingle();
+      configData = data;
+    }
+
+    setConfigAdmin(configData || {});
+
+    let canales = configData?.canales_pago;
+    if (!canales && configData?.mensaje_cobro) {
+      try {
+        const parsed = JSON.parse(configData.mensaje_cobro);
+        if (parsed && typeof parsed === 'object') {
+          canales = parsed.canales_pago || parsed;
+        }
+      } catch (_) {}
+    }
+
+    if (canales) {
+      setCanalesPago(prev => ({ ...prev, ...canales }));
     }
 
     // Cargar pool de claves de Gemini
@@ -191,7 +215,8 @@ export default function ConfiguracionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ canales_pago: canalesPago })
       });
-      if (!res.ok) throw new Error('Error al guardar canales de pago en la base de datos.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al guardar canales de pago.');
       toast.success('¡Canales de pago actualizados exitosamente!');
     } catch (err: any) {
       toast.error(err.message);

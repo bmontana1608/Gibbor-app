@@ -120,8 +120,18 @@ export default function SaasCobranzaPage() {
         .limit(1)
         .maybeSingle();
 
-      if (configAdmin?.canales_pago) {
-        setCanalesPago(prev => ({ ...prev, ...configAdmin.canales_pago }));
+      let canales = configAdmin?.canales_pago;
+      if (!canales && configAdmin?.mensaje_cobro) {
+        try {
+          const parsed = JSON.parse(configAdmin.mensaje_cobro);
+          if (parsed && typeof parsed === 'object') {
+            canales = parsed.canales_pago || parsed;
+          }
+        } catch (_) {}
+      }
+
+      if (canales) {
+        setCanalesPago(prev => ({ ...prev, ...canales }));
       }
 
       if (clubesData) setClubes(clubesData);
