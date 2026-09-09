@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', user.id).single();
     if (perfil?.rol !== 'SuperAdmin') return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
-    const { correo_director, password_director, dias_prueba, ...clubData } = await request.json();
+    const { correo_director, password_director, dias_prueba, embajador_id, ...clubData } = await request.json();
 
     // 1. Obtener el plan SaaS por defecto (el primero disponible)
     const { data: planes, error: planError } = await supabaseAdmin
@@ -40,11 +40,17 @@ export async function POST(request: Request) {
       fechaFinPrueba = date.toISOString();
     }
 
+    const valEmbajador = !embajador_id || embajador_id === 'none' ? null : embajador_id;
+
     // 2. Insertar el club con el plan_id correcto
     const { data: clubResult, error: clubError } = await supabaseAdmin
       .from('clubes')
       .insert([{
         ...clubData,
+        embajador_id: valEmbajador,
+        estado_referido: valEmbajador ? 'Cliente Activo' : null,
+        fuente_referido: valEmbajador ? 'manual' : null,
+        fecha_activacion: valEmbajador ? new Date().toISOString() : null,
         estado: 'Activo',
         plan: 'Premium',
         plan_id: planId,
@@ -55,6 +61,18 @@ export async function POST(request: Request) {
 
     if (clubError) throw clubError;
     const nuevoClub = clubResult[0];
+
+    if (valEmbajador) {
+      try {
+        await supabaseAdmin.from('notificaciones_embajadores').insert({
+          embajador_id: valEmbajador,
+          tipo: 'NUEVO_CLUB',
+          mensaje: `Se te ha asignado el nuevo club "${nuevoClub.nombre}" como referido comercial.`
+        });
+      } catch (notifErr) {
+        console.warn('No se pudo enviar notificación al embajador:', notifErr);
+      }
+    }
 
     try {
       // 2. Crear el Usuario / Dueño del Club en Supabase Auth

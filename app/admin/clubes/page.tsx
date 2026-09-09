@@ -41,10 +41,17 @@ const ClubRow = ({ club, count, onToggle, onAudit, onEdit, onDelete }: any) => {
           </div>
           <div>
             <p className="font-bold text-gray-900 leading-tight">{club.nombre}</p>
-            <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-1 font-mono">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: club.color_primario || '#ccc' }}></span>
-              {club.slug}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-[11px] text-gray-400 flex items-center gap-1 font-mono">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: club.color_primario || '#ccc' }}></span>
+                {club.slug}
+              </p>
+              {club.embajadores?.nombre_completo && (
+                <span className="text-[10px] font-bold text-lime-800 bg-lime-50 border border-lime-200 px-1.5 py-0.5 rounded-md">
+                  🤝 {club.embajadores.nombre_completo}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </td>
@@ -126,12 +133,13 @@ export default function ClubesPage() {
   const [clubAudit, setClubAudit] = useState<any>(null);
 
   const [formData, setFormData] = useState({
-    nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7'
+    nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7', embajador_id: ''
   });
   const [editFormData, setEditFormData] = useState({
-    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000, plan_id: '' as string | number
+    nombre: '', correo_administrativo: '', telefono_contacto: '', direccion: '', nombre_legal: '', sync_director_email: false, director_password: '', director_id: '', fecha_fin_prueba: '', tarifa_por_jugador: 2000, plan_id: '' as string | number, embajador_id: '', estado_referido: 'Cliente Activo'
   });
   const [planesSaaS, setPlanesSaaS] = useState<any[]>([]);
+  const [embajadores, setEmbajadores] = useState<any[]>([]);
 
   useEffect(() => {
     cargarTodo();
@@ -139,14 +147,16 @@ export default function ClubesPage() {
 
   const cargarTodo = async () => {
     setFetching(true);
-    const [resClubes, resMetrics, resPlanes] = await Promise.all([
-      supabase.from('clubes').select('*, planes_saas(id, nombre, tipo_cobro, precio_base, limite_jugadores_base), created_at').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
+    const [resClubes, resMetrics, resPlanes, resEmb] = await Promise.all([
+      supabase.from('clubes').select('*, planes_saas(id, nombre, tipo_cobro, precio_base, limite_jugadores_base), embajadores(id, nombre_completo), created_at').neq('estado', 'Eliminado').order('created_at', { ascending: false }),
       fetch('/api/admin/metrics').then(r => r.json()),
-      supabase.from('planes_saas').select('*').order('id', { ascending: true })
+      supabase.from('planes_saas').select('*').order('id', { ascending: true }),
+      supabase.from('embajadores').select('id, nombre_completo').order('nombre_completo')
     ]);
     setClubes(resClubes.data || []);
     setMetrics(resMetrics);
     setPlanesSaaS(resPlanes.data || []);
+    setEmbajadores(resEmb.data || []);
     setFetching(false);
   };
 
@@ -156,9 +166,9 @@ export default function ClubesPage() {
       const response = await fetch('/api/admin/clubes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      setClubes([data, ...clubes]);
+      cargarTodo();
       setShowModal(false);
-      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7' });
+      setFormData({ nombre: '', slug: '', logo_url: '', color_primario: '#84cc16', correo_director: '', password_director: '', dias_prueba: '7', embajador_id: '' });
       toast.success('¡Academia registrada con éxito!');
     } catch (err: any) { toast.error('Error: ' + err.message); }
     finally { setFetching(false); }
@@ -318,7 +328,9 @@ export default function ClubesPage() {
                         nombre: c.nombre, correo_administrativo: c.correo_administrativo || '', telefono_contacto: c.telefono_contacto || '',
                         direccion: c.direccion || '', nombre_legal: c.nombre_legal || '', sync_director_email: false, director_password: '', director_id: '',
                         fecha_fin_prueba: c.fecha_fin_prueba ? new Date(c.fecha_fin_prueba).toISOString().split('T')[0] : '', tarifa_por_jugador: c.tarifa_por_jugador || 2000,
-                        plan_id: c.plan_id || ''
+                        plan_id: c.plan_id || '',
+                        embajador_id: c.embajador_id || '',
+                        estado_referido: c.estado_referido || 'Cliente Activo'
                       });
                       setShowEditModal(true);
                     }}
@@ -349,6 +361,20 @@ export default function ClubesPage() {
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Color de Marca</label>
                 <input value={formData.color_primario} onChange={e => setFormData({ ...formData, color_primario: e.target.value })} type="color" className="w-full border border-gray-200 rounded-xl h-12 p-1.5 cursor-pointer" />
+              </div>
+              <div className="bg-lime-50/70 border border-lime-200 rounded-xl p-3 space-y-1.5">
+                <label className="block text-xs font-black text-lime-900 uppercase tracking-wider">Embajador Comercial (Opcional)</label>
+                <select 
+                  value={formData.embajador_id} 
+                  onChange={e => setFormData({ ...formData, embajador_id: e.target.value })}
+                  className="w-full border border-lime-300 rounded-xl px-3 py-2 text-sm bg-white font-medium text-slate-800 outline-none focus:ring-2 focus:ring-lime-500"
+                >
+                  <option value="">Ninguno (Registro directo MCM)</option>
+                  {embajadores.map(e => (
+                    <option key={e.id} value={e.id}>{e.nombre_completo}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-lime-800 leading-tight">Si se asigna, el club se registrará directamente en la cuenta del embajador como Cliente Activo.</p>
               </div>
               <div className="border-t border-gray-100 pt-4">
                 <h4 className="text-xs font-bold text-lime-600 uppercase tracking-widest mb-3">Credenciales del Director</h4>
@@ -424,6 +450,42 @@ export default function ClubesPage() {
                       </div>
                     </div>
                   </div>
+              </div>
+
+              {/* ASIGNACIÓN DE EMBAJADOR COMERCIAL */}
+              <div className="bg-lime-50/70 border border-lime-200 rounded-xl p-4 space-y-3">
+                <label className="block text-xs font-black text-lime-900 uppercase tracking-wider">
+                  Embajador Comercial & Red de Afiliados
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Embajador Asignado</label>
+                    <select
+                      value={editFormData.embajador_id || ''}
+                      onChange={e => setEditFormData({ ...editFormData, embajador_id: e.target.value })}
+                      className="w-full border border-lime-300 rounded-xl px-3 py-2 text-xs font-medium bg-white text-slate-800 outline-none focus:ring-2 focus:ring-lime-500"
+                    >
+                      <option value="">Sin embajador</option>
+                      {embajadores.map(e => (
+                        <option key={e.id} value={e.id}>{e.nombre_completo}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Estado Referido</label>
+                    <select
+                      value={editFormData.estado_referido || 'Cliente Activo'}
+                      onChange={e => setEditFormData({ ...editFormData, estado_referido: e.target.value })}
+                      className="w-full border border-lime-300 rounded-xl px-3 py-2 text-xs font-bold bg-white text-slate-800 outline-none focus:ring-2 focus:ring-lime-500"
+                      disabled={!editFormData.embajador_id}
+                    >
+                      <option value="Cliente Activo">Cliente Activo (Gera Comisión)</option>
+                      <option value="Demo">En Demo / Prueba</option>
+                      <option value="Registrado">Registrado</option>
+                      <option value="Suspendido">Suspendido</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">

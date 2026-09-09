@@ -71,7 +71,8 @@ export default async function EmbajadorDashboard({
   const porcentaje = 10;
 
   // 5. URLs de referido con fuente
-  const baseUrl = `https://masterclubmanager.com/registro-club?ref=${embajador.código_referido}`;
+  const codigoRef = embajador.codigo_referido || embajador.código_referido || '';
+  const baseUrl = `https://masterclubmanager.com/registro-club?ref=${codigoRef}`;
   const referralUrlLink = `${baseUrl}&src=link`;
   const referralUrlQr = `${baseUrl}&src=qr`;
 
@@ -87,14 +88,14 @@ export default async function EmbajadorDashboard({
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hola, {embajador.nombre_completo.split(' ')[0]} ­ƒæï</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Hola, {embajador.nombre_completo.split(' ')[0]} 👋</h1>
           <p className="text-slate-500 font-medium mt-1">Aquí está el resumen de tu gestión comercial.</p>
         </div>
         
         <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
           <span className="text-xs font-bold text-slate-400 px-2 uppercase tracking-widest">Tu Código:</span>
           <span className="bg-green-100 text-green-700 font-black px-3 py-1.5 rounded-lg text-lg tracking-wider">
-            {embajador.código_referido}
+            {codigoRef}
           </span>
         </div>
       </div>

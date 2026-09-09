@@ -147,7 +147,9 @@ export async function PATCH(
       fecha_fin_prueba,
       tarifa_por_jugador,
       plan_id,
-      proximo_corte
+      proximo_corte,
+      embajador_id,
+      estado_referido
     } = await request.json();
 
     // 1. Actualizar datos del club
@@ -169,12 +171,38 @@ export async function PATCH(
         updatePayload.plan_id = plan_id || null;
       }
 
+      if (embajador_id !== undefined) {
+        const valEmb = (!embajador_id || embajador_id === 'none') ? null : embajador_id;
+        updatePayload.embajador_id = valEmb;
+        const estRef = valEmb ? (estado_referido || 'Cliente Activo') : null;
+        updatePayload.estado_referido = estRef;
+        updatePayload.fuente_referido = valEmb ? 'manual' : null;
+        if (valEmb && estRef === 'Cliente Activo') {
+          updatePayload.fecha_activacion = new Date().toISOString();
+        }
+      } else if (estado_referido !== undefined) {
+        updatePayload.estado_referido = estado_referido;
+      }
+
       const { error: updateError } = await supabaseAdmin
         .from('clubes')
         .update(updatePayload)
         .eq('id', id);
 
     if (updateError) throw updateError;
+
+    if (embajador_id && embajador_id !== 'none') {
+      try {
+        const clubNom = nombre || 'Club';
+        await supabaseAdmin.from('notificaciones_embajadores').insert({
+          embajador_id: embajador_id,
+          tipo: 'NUEVO_CLUB',
+          mensaje: `Se te ha asignado el club "${clubNom}" como referido comercial.`
+        });
+      } catch {
+        // Silently continue
+      }
+    }
 
     if (sync_director_email && correo_administrativo) {
       // Buscar el ID del director si no viene (es el perfil con rol Director vinculado a este club)
