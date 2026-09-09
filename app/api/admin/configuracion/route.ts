@@ -17,21 +17,33 @@ export async function GET() {
       console.warn('GET /api/admin/configuracion warning:', error.message);
     }
 
-    let canales = data?.canales_pago;
-    if (!canales && data?.mensaje_cobro) {
+    // Desglosar respaldo de mensaje_cobro si existe
+    let storeJson: any = {};
+    if (data?.mensaje_cobro) {
       try {
         const parsed = JSON.parse(data.mensaje_cobro);
         if (parsed && typeof parsed === 'object') {
-          canales = parsed.canales_pago || parsed;
+          storeJson = parsed;
         }
       } catch (_) {}
     }
+
+    const canales = data?.canales_pago || storeJson.canales_pago || {};
+    const geminiKeys = data?.gemini_api_keys || storeJson.gemini_api_keys || (data?.gemini_api_key ? [data.gemini_api_key] : (storeJson.gemini_api_key ? [storeJson.gemini_api_key] : []));
+    const geminiKey = data?.gemini_api_key || storeJson.gemini_api_key || (geminiKeys[0] || '');
+    const telefonoSoporte = data?.telefono_soporte || storeJson.telefono_soporte || '';
+    const slackWebhook = data?.slack_webhook_url || storeJson.slack_webhook_url || '';
 
     return NextResponse.json(
       { 
         data: {
           ...(data || {}),
-          canales_pago: canales || data?.canales_pago || {}
+          ...storeJson,
+          telefono_soporte: telefonoSoporte,
+          slack_webhook_url: slackWebhook,
+          gemini_api_keys: geminiKeys,
+          gemini_api_key: geminiKey,
+          canales_pago: canales
         } 
       },
       {
@@ -70,29 +82,30 @@ export async function POST(request: Request) {
       .limit(1)
       .maybeSingle();
 
-    let mergedCanales = body.canales_pago;
-    if (mergedCanales && typeof mergedCanales === 'object') {
-      let oldCanales = existing?.canales_pago;
-      if (!oldCanales && existing?.mensaje_cobro) {
-        try {
-          const parsed = JSON.parse(existing.mensaje_cobro);
-          if (parsed && typeof parsed === 'object') {
-            oldCanales = parsed.canales_pago || parsed;
-          }
-        } catch (_) {}
-      }
-      if (oldCanales && typeof oldCanales === 'object') {
-        mergedCanales = { ...oldCanales, ...mergedCanales };
-      }
+    // 3. Extraer almacén JSON de respaldo en mensaje_cobro
+    let storeJson: any = {};
+    if (existing?.mensaje_cobro) {
+      try {
+        const parsed = JSON.parse(existing.mensaje_cobro);
+        if (parsed && typeof parsed === 'object') storeJson = parsed;
+      } catch (_) {}
     }
 
-    // Preparar payload con canales_pago y también en mensaje_cobro como respaldo infalible
-    const payloadCompleto: any = { ...body };
-    if (mergedCanales) {
-      payloadCompleto.canales_pago = mergedCanales;
-      // Siempre guardamos una copia en mensaje_cobro (que es columna TEXT que existe desde siempre)
-      payloadCompleto.mensaje_cobro = JSON.stringify({ canales_pago: mergedCanales });
+    // Actualizar el almacén JSON con todos los datos recibidos
+    const updatedStore = {
+      ...storeJson,
+      ...body,
+      updated_at: new Date().toISOString()
+    };
+    if (body.canales_pago) {
+      updatedStore.canales_pago = body.canales_pago;
     }
+
+    // Preparar el payload completo con respaldo en mensaje_cobro
+    const payloadCompleto: any = { 
+      ...body,
+      mensaje_cobro: JSON.stringify(updatedStore)
+    };
 
     let error: any = null;
 
@@ -109,12 +122,15 @@ export async function POST(request: Request) {
       error = resInsert.error;
     }
 
-    // Si Postgres indica que la columna 'canales_pago' no existe en la tabla física
-    if (error && (error.message?.includes('canales_pago') || error.code === 'PGRST204' || error.message?.toLowerCase().includes('column'))) {
-      console.warn('[configuracion] Columna canales_pago no existe en PostgreSQL, guardando mediante fallback mensaje_cobro.');
+    // Si Postgres falla por alguna columna que no existe en el esquema físico:
+    if (error && (error.code === 'PGRST204' || error.message?.toLowerCase().includes('column'))) {
+      console.warn('[configuracion] Error de columna física en PostgreSQL, guardando sólo columnas base y respaldo JSON:', error.message);
       
-      const payloadFallback: any = { ...payloadCompleto };
-      delete payloadFallback.canales_pago;
+      // Guardar únicamente en mensaje_cobro y columnas básicas garantizadas
+      const payloadFallback: any = {
+        mensaje_cobro: JSON.stringify(updatedStore)
+      };
+      if (body.telefono_soporte) payloadFallback.telefono_soporte = body.telefono_soporte;
 
       if (existing?.id) {
         const resFallback = await supabaseAdmin
@@ -135,7 +151,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, canales_pago: mergedCanales });
+    return NextResponse.json({ 
+      success: true, 
+      data: updatedStore,
+      canales_pago: updatedStore.canales_pago 
+    });
   } catch (error: any) {
     console.error('Error en POST /api/admin/configuracion:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

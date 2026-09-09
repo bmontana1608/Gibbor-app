@@ -36,16 +36,17 @@ export default function ConfiguracionPage() {
 
   // Canales de Pago SuperAdmin para Cuentas de Cobro y Facturas SaaS
   const [canalesPago, setCanalesPago] = useState({
-    banco_nombre: 'Bancolombia Ahorros',
+    banco_nombre: '',
     banco_numero: '',
     nequi: '',
     daviplata: '',
     bre_b: '',
-    titular: 'Master Club Manager',
+    titular: '',
     nit_titular: '',
     instrucciones_adicionales: ''
   });
   const [guardandoCanales, setGuardandoCanales] = useState(false);
+  const [guardandoCampo, setGuardandoCampo] = useState<string | null>(null);
 
   useEffect(() => {
     cargarConfiguracion();
@@ -118,7 +119,16 @@ export default function ConfiguracionPage() {
     }
 
     if (canales && typeof canales === 'object') {
-      setCanalesPago(prev => ({ ...prev, ...canales }));
+      setCanalesPago({
+        banco_nombre: canales.banco_nombre || '',
+        banco_numero: canales.banco_numero || '',
+        nequi: canales.nequi || '',
+        daviplata: canales.daviplata || '',
+        bre_b: canales.bre_b || '',
+        titular: canales.titular || '',
+        nit_titular: canales.nit_titular || '',
+        instrucciones_adicionales: canales.instrucciones_adicionales || ''
+      });
     }
 
     // Cargar pool de claves de Gemini
@@ -183,7 +193,9 @@ export default function ConfiguracionPage() {
           gemini_api_key: limpias[0] || ''
         })
       });
-      if (!res.ok) throw new Error('Error al guardar claves en la base de datos.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al guardar claves en la base de datos.');
+      setConfigAdmin((prev: any) => ({ ...prev, gemini_api_keys: limpias, gemini_api_key: limpias[0] || '' }));
       toast.success(`¡Pool de IA guardado con éxito! (${limpias.length} claves activas)`);
     } catch (err: any) {
       toast.error(err.message);
@@ -227,6 +239,7 @@ export default function ConfiguracionPage() {
   };
 
   const guardarConfiguracion = async (campo: string, valor: string, mensajeExito: string) => {
+    setGuardandoCampo(campo);
     try {
       const payload: any = {};
       payload[campo] = valor;
@@ -235,11 +248,14 @@ export default function ConfiguracionPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('Error al guardar en la base de datos.');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error al guardar en la base de datos.');
       setConfigAdmin((prev: any) => ({ ...prev, [campo]: valor }));
       toast.success(mensajeExito);
     } catch (err: any) {
       toast.error(err.message);
+    } finally {
+      setGuardandoCampo(null);
     }
   };
 
@@ -268,10 +284,13 @@ export default function ConfiguracionPage() {
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
           />
           <button 
+            type="button"
+            disabled={guardandoCampo === 'telefono_soporte'}
             onClick={() => guardarConfiguracion('telefono_soporte', configAdmin.telefono_soporte, 'Teléfono actualizado')}
-            className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
+            className="bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-white font-bold px-6 rounded-xl transition-colors flex items-center justify-center gap-2 min-w-[110px]"
           >
-            Guardar
+            {guardandoCampo === 'telefono_soporte' ? <Loader2 size={16} className="animate-spin" /> : null}
+            {guardandoCampo === 'telefono_soporte' ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">A este número se redirigirán los clubes suspendidos por mora.</p>
@@ -524,10 +543,13 @@ export default function ConfiguracionPage() {
             className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-lime-400 outline-none bg-gray-50"
           />
           <button 
+            type="button"
+            disabled={guardandoCampo === 'slack_webhook_url'}
             onClick={() => guardarConfiguracion('slack_webhook_url', configAdmin.slack_webhook_url, 'Webhook de Slack guardado.')}
-            className="bg-lime-500 hover:bg-lime-400 text-white font-bold px-6 rounded-xl transition-colors"
+            className="bg-lime-500 hover:bg-lime-400 disabled:opacity-50 text-white font-bold px-6 rounded-xl transition-colors flex items-center justify-center gap-2 min-w-[110px]"
           >
-            Guardar
+            {guardandoCampo === 'slack_webhook_url' ? <Loader2 size={16} className="animate-spin" /> : null}
+            {guardandoCampo === 'slack_webhook_url' ? 'Guardando...' : 'Guardar'}
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">Los nuevos tickets se enviarán automáticamente a este canal de Slack.</p>
