@@ -164,24 +164,26 @@ export async function generarReciboSaaSPDFBase64(datos: {
   // 5. SECCIÓN DE CANALES DE PAGO (SI ES COBRO)
   let currentY = tableY + 45;
   if (esCobro && datos.canalesPago) {
+    const canalesLines = datos.canalesPago.split('\n').filter(Boolean);
+    const boxHeight = 11 + (canalesLines.length * 4.5);
+
     doc.setFillColor(254, 252, 232); // yellow-50
     doc.setDrawColor(254, 240, 138); // yellow-200
-    doc.roundedRect(15, currentY, 180, 24, 2, 2, 'FD');
+    doc.roundedRect(15, currentY, 180, boxHeight, 2, 2, 'FD');
 
     doc.setTextColor(113, 63, 18); // yellow-900
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    doc.text('CANALES OFICIALES DE PAGO PARA MASTER CLUB MANAGER:', 20, currentY + 7);
+    doc.text('CANALES OFICIALES DE PAGO PARA MASTER CLUB MANAGER:', 20, currentY + 6.5);
 
     doc.setFontSize(7.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(133, 77, 14);
-    const canalesLines = datos.canalesPago.split('\n').filter(Boolean);
-    canalesLines.slice(0, 3).forEach((linea, idx) => {
-      doc.text(linea, 20, currentY + 13 + (idx * 4.5));
+    canalesLines.forEach((linea, idx) => {
+      doc.text(linea, 20, currentY + 11.5 + (idx * 4.3));
     });
 
-    currentY += 32;
+    currentY += boxHeight + 6;
   }
 
   // 6. PIE DE PÁGINA

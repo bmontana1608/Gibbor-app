@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Settings, Bot, LifeBuoy, Smartphone, Zap, RefreshCw, CheckCircle2, Plus, Trash2, Sparkles, Key, Eye, EyeOff, Play } from 'lucide-react';
+import { Loader2, Settings, Bot, LifeBuoy, Smartphone, Zap, RefreshCw, CheckCircle2, Plus, Trash2, Sparkles, Key, Eye, EyeOff, Play, CreditCard, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import Image from 'next/image';
 
@@ -33,6 +33,19 @@ export default function ConfiguracionPage() {
   const [conectadoVentas, setConectadoVentas] = useState(false);
   const [cargandoVentas, setCargandoVentas] = useState(false);
   const [qrCodeVentas, setQrCodeVentas] = useState<string | null>(null);
+
+  // Canales de Pago SuperAdmin para Cuentas de Cobro y Facturas SaaS
+  const [canalesPago, setCanalesPago] = useState({
+    banco_nombre: 'Bancolombia Ahorros',
+    banco_numero: '',
+    nequi: '',
+    daviplata: '',
+    bre_b: '',
+    titular: 'Master Club Manager',
+    nit_titular: '',
+    instrucciones_adicionales: ''
+  });
+  const [guardandoCanales, setGuardandoCanales] = useState(false);
 
   useEffect(() => {
     cargarConfiguracion();
@@ -79,6 +92,10 @@ export default function ConfiguracionPage() {
     setLoading(true);
     const { data } = await supabase.from('configuracion_superadmin').select('*').eq('id', 1).maybeSingle();
     setConfigAdmin(data || {});
+
+    if (data?.canales_pago) {
+      setCanalesPago(prev => ({ ...prev, ...data.canales_pago }));
+    }
 
     // Cargar pool de claves de Gemini
     const keys: string[] = [];
@@ -165,6 +182,24 @@ export default function ConfiguracionPage() {
     }
   };
 
+  const guardarCanalesPago = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setGuardandoCanales(true);
+    try {
+      const res = await fetch('/api/admin/configuracion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ canales_pago: canalesPago })
+      });
+      if (!res.ok) throw new Error('Error al guardar canales de pago en la base de datos.');
+      toast.success('¡Canales de pago actualizados exitosamente!');
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setGuardandoCanales(false);
+    }
+  };
+
   const guardarConfiguracion = async (campo: string, valor: string, mensajeExito: string) => {
     try {
       const payload: any = {};
@@ -212,6 +247,148 @@ export default function ConfiguracionPage() {
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-2">A este número se redirigirán los clubes suspendidos por mora.</p>
+      </div>
+
+      {/* CANALES Y MÉTODOS DE PAGO OFICIALES (COBRO SAAS WHATSAPP Y PDF) */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-lime-100 flex items-center justify-center text-lime-700">
+              <CreditCard size={20} />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-800 text-base">Métodos de Pago Oficiales (SaaS)</h4>
+              <p className="text-xs text-gray-500">Estos canales se insertan automáticamente en los mensajes de WhatsApp y en los PDFs de Cuentas de Cobro enviados a los directores de los clubes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Banco y Tipo de Cuenta</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Bancolombia Ahorros"
+                value={canalesPago.banco_nombre || ''} 
+                onChange={e => setCanalesPago({...canalesPago, banco_nombre: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Número de Cuenta</label>
+              <input 
+                type="text" 
+                placeholder="Ej: 3124265170"
+                value={canalesPago.banco_numero || ''} 
+                onChange={e => setCanalesPago({...canalesPago, banco_numero: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Nequi</label>
+              <input 
+                type="text" 
+                placeholder="Ej: 3124265170"
+                value={canalesPago.nequi || ''} 
+                onChange={e => setCanalesPago({...canalesPago, nequi: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Daviplata</label>
+              <input 
+                type="text" 
+                placeholder="Ej: 3124265170"
+                value={canalesPago.daviplata || ''} 
+                onChange={e => setCanalesPago({...canalesPago, daviplata: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Llave Bre-B / Transfiya</label>
+              <input 
+                type="text" 
+                placeholder="Ej: 3124265170"
+                value={canalesPago.bre_b || ''} 
+                onChange={e => setCanalesPago({...canalesPago, bre_b: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">Titular de la Cuenta</label>
+              <input 
+                type="text" 
+                placeholder="Ej: Master Club Manager"
+                value={canalesPago.titular || ''} 
+                onChange={e => setCanalesPago({...canalesPago, titular: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1.5">NIT o Cédula (Opcional)</label>
+              <input 
+                type="text" 
+                placeholder="Ej: 901.234.567-8"
+                value={canalesPago.nit_titular || ''} 
+                onChange={e => setCanalesPago({...canalesPago, nit_titular: e.target.value})}
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-gray-600 mb-1.5">Instrucciones Adicionales (Opcional)</label>
+            <input 
+              type="text" 
+              placeholder="Ej: Enviar comprobante con el nombre de la academia y mes a cancelar."
+              value={canalesPago.instrucciones_adicionales || ''} 
+              onChange={e => setCanalesPago({...canalesPago, instrucciones_adicionales: e.target.value})}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:border-lime-400 outline-none bg-gray-50 font-medium"
+            />
+          </div>
+
+          {/* Vista previa en vivo del formato que saldrá en el mensaje */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+              <Wallet size={12} className="text-lime-600" />
+              Vista Previa del Bloque de Cobro en WhatsApp:
+            </p>
+            <div className="font-mono text-xs text-slate-700 whitespace-pre-line bg-white p-2.5 rounded-lg border border-slate-200">
+              {(() => {
+                const preview = [
+                  `💳 *Canales de Pago Oficiales:*`,
+                  canalesPago.banco_nombre && canalesPago.banco_numero ? `• ${canalesPago.banco_nombre}: *${canalesPago.banco_numero}*` : '',
+                  canalesPago.nequi ? `• Nequi: *${canalesPago.nequi}*` : '',
+                  canalesPago.daviplata ? `• Daviplata: *${canalesPago.daviplata}*` : '',
+                  canalesPago.bre_b ? `• Llave Bre-B: *${canalesPago.bre_b}*` : '',
+                  canalesPago.titular ? `• Titular: *${canalesPago.titular}*` : '',
+                  canalesPago.nit_titular ? `• NIT / Doc: *${canalesPago.nit_titular}*` : '',
+                  canalesPago.instrucciones_adicionales ? `• Nota: ${canalesPago.instrucciones_adicionales}` : ''
+                ].filter(Boolean).join('\n');
+                return preview;
+              })()}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button 
+              type="button"
+              onClick={() => guardarCanalesPago()}
+              disabled={guardandoCanales}
+              className="inline-flex items-center gap-2 bg-lime-500 hover:bg-lime-400 text-white font-bold text-xs uppercase tracking-wider px-6 py-3 rounded-xl shadow-sm transition-all disabled:opacity-50"
+            >
+              {guardandoCanales ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+              Guardar Métodos de Pago
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between border-t pt-6 mb-4 gap-2">

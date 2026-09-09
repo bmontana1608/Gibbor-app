@@ -28,29 +28,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Se requiere pago_id, factura_id o club_id' }, { status: 400 });
     }
 
-    // 1. Cargar canales de pago configurados en configuracion_superadmin
+    // 1. Cargar canales de pago configurados en configuracion_superadmin (Ajustes)
     const { data: configAdmin } = await supabaseAdmin
       .from('configuracion_superadmin')
       .select('*')
-      .eq('id', 1)
+      .order('id', { ascending: true })
+      .limit(1)
       .maybeSingle();
 
-    const canales = configAdmin?.canales_pago || {
-      banco_nombre: 'Bancolombia Ahorros',
-      banco_numero: '3124265170',
-      nequi: '3124265170',
-      daviplata: '3124265170',
-      bre_b: '3124265170',
-      titular: 'Master Club Manager'
-    };
+    const canales = configAdmin?.canales_pago || {};
 
-    const canalesTexto = [
-      canales.banco_nombre && canales.banco_numero ? `• ${canales.banco_nombre}: *${canales.banco_numero}*` : '',
-      canales.nequi ? `• Nequi: *${canales.nequi}*` : '',
-      canales.daviplata ? `• Daviplata: *${canales.daviplata}*` : '',
-      canales.bre_b ? `• Llave Bre-B: *${canales.bre_b}*` : '',
-      canales.titular ? `• Titular: *${canales.titular}*` : '',
-    ].filter(Boolean).join('\n');
+    const lineasCanales: string[] = [];
+    if (canales.banco_nombre && canales.banco_numero) {
+      lineasCanales.push(`• ${canales.banco_nombre}: *${canales.banco_numero}*`);
+    } else if (canales.banco_numero) {
+      lineasCanales.push(`• Cuenta Bancaria: *${canales.banco_numero}*`);
+    }
+    if (canales.nequi) lineasCanales.push(`• Nequi: *${canales.nequi}*`);
+    if (canales.daviplata) lineasCanales.push(`• Daviplata: *${canales.daviplata}*`);
+    if (canales.bre_b) lineasCanales.push(`• Llave Bre-B: *${canales.bre_b}*`);
+    if (canales.titular) lineasCanales.push(`• Titular: *${canales.titular}*`);
+    if (canales.nit_titular) lineasCanales.push(`• NIT / Doc: *${canales.nit_titular}*`);
+    if (canales.instrucciones_adicionales) lineasCanales.push(`• Nota: ${canales.instrucciones_adicionales}`);
+
+    const canalesTexto = lineasCanales.length > 0 
+      ? lineasCanales.join('\n') 
+      : '• Transferencia Bancolombia / Nequi / Daviplata';
+
+    // Helper: Contar ÚNICAMENTE miembros con rol 'Futbolista' y 'Activo' (excluyendo entrenadores y directores)
+    const contarSoloFutbolistasActivos = async (cId: string) => {
+      const { count } = await supabaseAdmin
+        .from('perfiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('club_id', cId)
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo');
+      return count || 0;
+    };
 
     let club: any = null;
     let base64PDF = '';
@@ -86,6 +100,10 @@ export async function POST(request: Request) {
         factura = facturaData;
       }
 
+      // Contar futbolistas estrictamente (solo rol 'Futbolista')
+      const futbolistasActivos = await contarSoloFutbolistasActivos(club.id);
+      const numJugadores = futbolistasActivos > 0 ? futbolistasActivos : (factura?.cantidad_jugadores || atletas || 0);
+
       const mesNombre = factura?.periodo_mes ? MESES[factura.periodo_mes - 1] : MESES[new Date(pago.fecha_pago || Date.now()).getMonth()];
       const anio = factura?.periodo_anio || new Date(pago.fecha_pago || Date.now()).getFullYear();
       const consecutivo = `REC-${pago.id.slice(0, 6).toUpperCase()}`;
@@ -96,7 +114,7 @@ export async function POST(request: Request) {
         clubDocumento: club?.nombre_legal || 'N/A',
         clubTelefono: club?.telefono_contacto,
         mesCobrado: `${mesNombre} ${anio}`,
-        cantidadJugadores: factura?.cantidad_jugadores || atletas || 0,
+        cantidadJugadores: numJugadores,
         montoTotal: Number(pago.monto_pagado),
         consecutivo: consecutivo,
         metodoPago: pago.metodo_pago || 'Transferencia',
@@ -119,6 +137,10 @@ export async function POST(request: Request) {
       if (errorFac || !factura) throw new Error('Factura no encontrada');
       club = factura.clubes;
 
+      // Contar futbolistas estrictamente (solo rol 'Futbolista')
+      const futbolistasActivos = await contarSoloFutbolistasActivos(club.id);
+      const numJugadores = futbolistasActivos > 0 ? futbolistasActivos : (factura.cantidad_jugadores || 0);
+
       const mesNombre = factura.periodo_mes ? MESES[factura.periodo_mes - 1] : MESES[new Date().getMonth()];
       const anio = factura.periodo_anio || new Date().getFullYear();
       const esPagado = factura.estado_pago === 'pagado';
@@ -131,7 +153,7 @@ export async function POST(request: Request) {
         clubDocumento: club?.nombre_legal || 'N/A',
         clubTelefono: club?.telefono_contacto,
         mesCobrado: `${mesNombre} ${anio}`,
-        cantidadJugadores: factura.cantidad_jugadores || 0,
+        cantidadJugadores: numJugadores,
         montoTotal: Number(factura.total_pagar),
         consecutivo: consecutivo,
         fechaPago: esPagado ? new Date().toISOString().split('T')[0] : undefined,
@@ -143,7 +165,7 @@ export async function POST(request: Request) {
       if (esPagado) {
         mensajeTexto = mensaje_override || `¡Hola directores de *${club?.nombre || 'Club'}*! 👋\n\nAdjuntamos el comprobante de su factura de suscripción a Master Club Manager correspondiente a *${mesNombre} ${anio}* por valor de *$${Number(factura.total_pagar).toLocaleString('es-CO')} COP*, la cual se encuentra registrada como *PAGADA*.\n\n¡Gracias por su puntualidad y confianza! ⚽✨`;
       } else {
-        mensajeTexto = mensaje_override || `Hola directores de *${club?.nombre || 'Club'}* 👋\n\nLes compartimos la *Cuenta de Cobro* correspondiente al periodo de *${mesNombre} ${anio}* por la suscripción a la plataforma tecnológica Master Club Manager.\n\n📋 *Detalle del Servicio:*\n• Academia: *${club?.nombre}*\n• Atletas Activos: *${factura.cantidad_jugadores || 0}*\n• Total a Pagar: *$${Number(factura.total_pagar).toLocaleString('es-CO')} COP*\n• Fecha Límite / Corte: *${fechaVenc}*\n\n💳 *Canales de Pago Oficiales:*\n${canalesTexto}\n\nAdjuntamos la cuenta de cobro en formato PDF. Al realizar la consignación, por favor envíenos el soporte de pago por este medio.\n\n¡Gracias por confiar en *Master Club Manager*! ⚽🚀`;
+        mensajeTexto = mensaje_override || `Hola directores de *${club?.nombre || 'Club'}* 👋\n\nLes compartimos la *Cuenta de Cobro* correspondiente al periodo de *${mesNombre} ${anio}* por la suscripción a la plataforma tecnológica Master Club Manager.\n\n📋 *Detalle del Servicio:*\n• Academia: *${club?.nombre}*\n• Atletas Activos: *${numJugadores}*\n• Total a Pagar: *$${Number(factura.total_pagar).toLocaleString('es-CO')} COP*\n• Fecha Límite / Corte: *${fechaVenc}*\n\n💳 *Canales de Pago Oficiales:*\n${canalesTexto}\n\nAdjuntamos la cuenta de cobro en formato PDF. Al realizar la consignación, por favor envíenos el soporte de pago por este medio.\n\n¡Gracias por confiar en *Master Club Manager*! ⚽🚀`;
       }
     }
     // ==========================================
@@ -159,17 +181,9 @@ export async function POST(request: Request) {
       if (errorClub || !clubData) throw new Error('Club no encontrado');
       club = clubData;
 
-      // Calcular atletas activos si no vienen dados
-      let numAtletas = atletas;
-      if (numAtletas === undefined) {
-        const { count } = await supabaseAdmin
-          .from('perfiles')
-          .select('id', { count: 'exact', head: true })
-          .eq('club_id', club.id)
-          .eq('estado_miembro', 'Activo')
-          .eq('rol', 'Futbolista');
-        numAtletas = count || 0;
-      }
+      // Calcular estrictamente futbolistas activos (solo rol 'Futbolista' y 'Activo', sin entrenadores)
+      const futbolistasActivos = await contarSoloFutbolistasActivos(club.id);
+      const numAtletas = futbolistasActivos > 0 ? futbolistasActivos : (atletas || 0);
 
       // Calcular valor si no viene dado
       let totalCobro = monto;

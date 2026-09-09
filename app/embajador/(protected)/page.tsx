@@ -42,16 +42,31 @@ export default async function EmbajadorDashboard({
   // 2. Obtener estadísticas (Clubes Referidos)
   const { data: clubes } = await supabase
     .from('clubes')
-    .select('id, nombre, estado_referido, tarifa_por_jugador, perfiles(count)')
+    .select('id, nombre, estado_referido, tarifa_por_jugador')
     .eq('embajador_id', embajador.id);
+
+  const clubIds = clubes?.map(c => c.id) || [];
+  const { data: futbolistasData } = clubIds.length > 0
+    ? await supabase
+        .from('perfiles')
+        .select('club_id')
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo')
+        .in('club_id', clubIds)
+    : { data: [] };
+
+  const futbolistasPorClub: Record<string, number> = {};
+  futbolistasData?.forEach((p: any) => {
+    if (p.club_id) futbolistasPorClub[p.club_id] = (futbolistasPorClub[p.club_id] || 0) + 1;
+  });
 
   const totalClubes = clubes?.length || 0;
   const clubesActivos = clubes?.filter(c => c.estado_referido === 'Cliente Activo').length || 0;
   
-  // Calcular MRR generado por el embajador (10% de los ingresos de sus clubes)
+  // Calcular MRR generado por el embajador (10% de los ingresos de sus clubes, solo futbolistas)
   const mrr = clubes?.filter(c => c.estado_referido === 'Cliente Activo').reduce((sum, club) => {
     const basePlan = 100000; // Base de 100,000 COP
-    const totalJugadores = club.perfiles && club.perfiles[0] ? club.perfiles[0].count : 0;
+    const totalJugadores = futbolistasPorClub[club.id] || 0;
     const jugadoresExtra = Math.max(0, totalJugadores - 60); // A partir de 60
     const mrrDelClub = basePlan + (jugadoresExtra * 2000); // + 2,000 COP por extra
     return sum + (mrrDelClub * 0.10); // El embajador gana el 10%

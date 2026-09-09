@@ -84,25 +84,40 @@ export default function SaasCobranzaPage() {
         if (resultPagos.data) setPagos(resultPagos.data);
       }
 
-      // 4. Calcular atletas activos por club para el MRR
-      const { data: perfilesData } = await supabase
-        .from('perfiles')
-        .select('club_id')
-        .eq('estado_miembro', 'Activo')
-        .eq('rol', 'Futbolista');
-
-      const conteoMap: Record<string, number> = {};
-      perfilesData?.forEach((p: any) => {
-        if (p.club_id) {
-          conteoMap[p.club_id] = (conteoMap[p.club_id] || 0) + 1;
+      // 4. Calcular atletas activos por club para el MRR (solo rol 'Futbolista' y 'Activo')
+      let conteoMap: Record<string, number> = {};
+      try {
+        const resMetrics = await fetch('/api/admin/metrics');
+        if (resMetrics.ok) {
+          const metricsData = await resMetrics.json();
+          if (metricsData.alumnosPorClub) {
+            conteoMap = { ...metricsData.alumnosPorClub };
+          }
         }
-      });
+      } catch (errMetrics) {
+        console.warn('Fallback a consulta directa perfiles:', errMetrics);
+      }
 
-      // 5. Cargar canales de pago del SuperAdmin
+      if (Object.keys(conteoMap).length === 0) {
+        const { data: perfilesData } = await supabase
+          .from('perfiles')
+          .select('club_id')
+          .eq('estado_miembro', 'Activo')
+          .eq('rol', 'Futbolista');
+
+        perfilesData?.forEach((p: any) => {
+          if (p.club_id) {
+            conteoMap[p.club_id] = (conteoMap[p.club_id] || 0) + 1;
+          }
+        });
+      }
+
+      // 5. Cargar canales de pago del SuperAdmin (Ajustes)
       const { data: configAdmin } = await supabase
         .from('configuracion_superadmin')
         .select('*')
-        .eq('id', 1)
+        .order('id', { ascending: true })
+        .limit(1)
         .maybeSingle();
 
       if (configAdmin?.canales_pago) {

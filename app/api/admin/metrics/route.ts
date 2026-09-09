@@ -22,11 +22,12 @@ export async function GET() {
       Eliminado: clubesData?.filter(c => c.estado === 'Eliminado').length || 0,
     };
 
-    // 2. Contador de Jugadores (Solo los que pertenecen a clubes válidos)
+    // 2. Contador de Jugadores (Solo futbolistas activos que pertenecen a clubes válidos)
     const { data: perfiles } = await supabaseAdmin
       .from('perfiles')
       .select('club_id')
       .eq('rol', 'Futbolista')
+      .eq('estado_miembro', 'Activo')
       .in('club_id', validClubIds);
 
     const totalJugadores = perfiles?.length || 0;

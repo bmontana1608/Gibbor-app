@@ -41,9 +41,24 @@ export default async function MisClubesPage({
 
   const { data: clubes } = await supabase
     .from('clubes')
-    .select('id, nombre, estado_referido, tarifa_por_jugador, created_at, ciudad, perfiles(count)')
+    .select('id, nombre, estado_referido, tarifa_por_jugador, created_at, ciudad')
     .eq('embajador_id', embajador.id)
     .order('created_at', { ascending: false });
+
+  const clubIds = clubes?.map(c => c.id) || [];
+  const { data: futbolistasData } = clubIds.length > 0
+    ? await supabase
+        .from('perfiles')
+        .select('club_id')
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo')
+        .in('club_id', clubIds)
+    : { data: [] };
+
+  const futbolistasPorClub: Record<string, number> = {};
+  futbolistasData?.forEach((p: any) => {
+    if (p.club_id) futbolistasPorClub[p.club_id] = (futbolistasPorClub[p.club_id] || 0) + 1;
+  });
 
   return (
     <div className="space-y-8">
@@ -95,7 +110,7 @@ export default async function MisClubesPage({
                        ${(() => {
                          if (club.estado_referido !== 'Cliente Activo') return 0;
                          const basePlan = 100000;
-                         const totalJugadores = club.perfiles && club.perfiles[0] ? club.perfiles[0].count : 0;
+                         const totalJugadores = futbolistasPorClub[club.id] || 0;
                          const jugadoresExtra = Math.max(0, totalJugadores - 60);
                          const mrrDelClub = basePlan + (jugadoresExtra * 2000);
                          return (mrrDelClub * 0.10).toLocaleString('es-CO');

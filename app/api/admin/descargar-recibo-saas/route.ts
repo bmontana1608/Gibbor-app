@@ -40,13 +40,27 @@ export async function GET(request: Request) {
     const mesNombre = factura?.periodo_mes ? meses[factura.periodo_mes - 1] : 'Mensualidad';
     const anio = factura?.periodo_anio || new Date().getFullYear();
 
+    // Contar futbolistas activos estrictamente (rol = 'Futbolista' y estado_miembro = 'Activo')
+    let cantidadJugadores = factura?.cantidad_jugadores || 0;
+    if (pago.club_id) {
+      const { count } = await supabaseAdmin
+        .from('perfiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('club_id', pago.club_id)
+        .eq('rol', 'Futbolista')
+        .eq('estado_miembro', 'Activo');
+      if (count !== null && count !== undefined && count > 0) {
+        cantidadJugadores = count;
+      }
+    }
+
     // 2. Generar PDF en Base64
     const base64PDF = await generarReciboSaaSPDFBase64({
       clubNombre: club.nombre || 'Club Sin Nombre',
       clubDocumento: club.nombre_legal || 'N/A',
       clubTelefono: club.telefono_contacto || '',
       mesCobrado: `${mesNombre} ${anio}`,
-      cantidadJugadores: factura?.cantidad_jugadores || 0,
+      cantidadJugadores: cantidadJugadores,
       montoTotal: Number(pago.monto_pagado),
       consecutivo: pago.id.split('-')[0], 
       metodoPago: pago.metodo_pago || 'Transferencia',
