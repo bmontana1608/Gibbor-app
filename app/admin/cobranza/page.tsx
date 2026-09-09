@@ -6,8 +6,10 @@ import { toast } from 'sonner';
 import { 
   Building2, CreditCard, DollarSign, Calendar, Search, 
   CheckCircle, FileText, Trash2, PlusCircle, X, 
-  Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle
+  Loader2, Activity, Users, ArrowUpRight, TrendingUp, AlertTriangle,
+  Smartphone, Bot, Settings, Check, Sparkles
 } from 'lucide-react';
+import { generarReciboSaaSPDFBase64, descargarReciboSaaSPDF } from '@/lib/recibo-saas-utils';
 
 export default function SaasCobranzaPage() {
   const [cargando, setCargando] = useState(true);
@@ -15,6 +17,21 @@ export default function SaasCobranzaPage() {
   const [facturas, setFacturas] = useState<any[]>([]);
   const [pagos, setPagos] = useState<any[]>([]);
   const [activosPorClub, setActivosPorClub] = useState<Record<string, number>>({});
+  
+  // Estado para envíos WhatsApp Bot y Manual
+  const [loadingBot, setLoadingBot] = useState<string | null>(null);
+
+  // Canales de pago SuperAdmin para cuentas de cobro
+  const [canalesPago, setCanalesPago] = useState({
+    banco_nombre: 'Bancolombia Ahorros',
+    banco_numero: '3124265170',
+    nequi: '3124265170',
+    daviplata: '3124265170',
+    bre_b: '3124265170',
+    titular: 'Master Club Manager'
+  });
+  const [isModalCanalesOpen, setIsModalCanalesOpen] = useState(false);
+  const [guardandoCanales, setGuardandoCanales] = useState(false);
   
   // Filtros y Pestañas
   const [activeTab, setActiveTab] = useState<'estado_cuentas' | 'facturas' | 'pagos'>('estado_cuentas');
@@ -54,10 +71,10 @@ export default function SaasCobranzaPage() {
         .neq('estado', 'Eliminado')
         .order('nombre');
       
-      // 2. Cargar todas las facturas
+      // 2. Cargar todas las facturas con datos completos de club
       const { data: facturasData } = await supabase
         .from('facturacion_mensual')
-        .select('*, clubes(nombre, slug)')
+        .select('*, clubes(id, nombre, slug, telefono_contacto, nombre_legal, proximo_corte)')
         .order('created_at', { ascending: false });
 
       // 3. Cargar todos los pagos (vía API para saltar RLS)
@@ -80,6 +97,17 @@ export default function SaasCobranzaPage() {
           conteoMap[p.club_id] = (conteoMap[p.club_id] || 0) + 1;
         }
       });
+
+      // 5. Cargar canales de pago del SuperAdmin
+      const { data: configAdmin } = await supabase
+        .from('configuracion_superadmin')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (configAdmin?.canales_pago) {
+        setCanalesPago(prev => ({ ...prev, ...configAdmin.canales_pago }));
+      }
 
       if (clubesData) setClubes(clubesData);
       if (facturasData) setFacturas(facturasData);
@@ -196,20 +224,324 @@ export default function SaasCobranzaPage() {
     }
   };
 
-  const enviarReciboManual = async (pago: any) => {
-    const toastId = toast.loading('Generando y enviando recibo...');
+  const formatearTextoCanales = () => {
+    return [
+      canalesPago.banco_nombre && canalesPago.banco_numero ? `• ${canalesPago.banco_nombre}: *${canalesPago.banco_numero}*` : '',
+      canalesPago.nequi ? `• Nequi: *${canalesPago.nequi}*` : '',
+      canalesPago.daviplata ? `• Daviplata: *${canalesPago.daviplata}*` : '',
+      canalesPago.bre_b ? `• Llave Bre-B: *${canalesPago.bre_b}*` : '',
+      canalesPago.titular ? `• Titular: *${canalesPago.titular}*` : '',
+    ].filter(Boolean).join('\n');
+  };
+
+  const guardarCanales = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGuardandoCanales(true);
+    try {
+      const res = await fetch('/api/admin/configuracion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ canales_pago: canalesPago })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      toast.success('Canales de pago guardados exitosamente');
+      setIsModalCanalesOpen(false);
+    } catch (err: any) {
+      toast.error('Error al guardar canales de pago: ' + err.message);
+    } finally {
+      setGuardandoCanales(false);
+    }
+  };
+
+  // --- COBRANZA WHATSAPP: TAB 1 (ESTADO DE CUENTAS POR CLUB) ---
+  const cobrarClubManual = async (club: any) => {
+    const atletas = activosPorClub[club.id] || 0;
+    const plan = club.planes_saas;
+    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+    const extras = Math.max(0, atletas - limiteBase);
+    const mrrEstimado = precioBase + (extras * precioExtra);
+
+    // Deuda activa si tiene facturas pendientes
+    const facturasPendientes = facturas.filter(f => f.club_id === club.id && f.estado_pago !== 'pagado');
+    const deuda = facturasPendientes.reduce((sum, f) => sum + Number(f.total_pagar), 0);
+    const totalCobro = deuda > 0 ? deuda : mrrEstimado;
+
+    const hoy = new Date();
+    const mesNombre = nombreMes(hoy.getMonth() + 1);
+    const anio = hoy.getFullYear();
+    const fechaVenc = club.proximo_corte || `10/${hoy.getMonth() + 1}/${anio}`;
+    const consecutivo = `COB-${anio}${String(hoy.getMonth() + 1).padStart(2, '0')}-${club.id.slice(0, 4).toUpperCase()}`;
+    const filename = `Cuenta_Cobro_${mesNombre}_${anio}_${club.nombre.replace(/\s+/g, '_')}.pdf`;
+
+    setLoadingBot(`manual-club-${club.id}`);
+    const toastId = toast.loading(`Preparando cuenta de cobro para ${club.nombre}...`);
+
+    try {
+      const pdfBase64 = await generarReciboSaaSPDFBase64({
+        clubNombre: club.nombre,
+        clubDocumento: club.nombre_legal || 'N/A',
+        clubTelefono: club.telefono_contacto,
+        mesCobrado: `${mesNombre} ${anio}`,
+        cantidadJugadores: atletas,
+        montoTotal: totalCobro,
+        consecutivo: consecutivo,
+        fechaVencimiento: fechaVenc,
+        estado: 'COBRO',
+        canalesPago: formatearTextoCanales(),
+        planNombre: club.planes_saas?.nombre || 'Plan SaaS'
+      });
+
+      // 1. Descargar PDF
+      descargarReciboSaaSPDF(pdfBase64, filename);
+
+      // 2. Formatear teléfono
+      let telefono = String(club.telefono_contacto || '').replace(/\D/g, '');
+      if (telefono.length === 10) telefono = `57${telefono}`;
+
+      // 3. Texto del mensaje
+      const mensaje = [
+        `Hola directores de *${club.nombre}* 👋`,
+        ``,
+        `Les compartimos la *Cuenta de Cobro* correspondiente al periodo de *${mesNombre} ${anio}* por la suscripción a la plataforma tecnológica Master Club Manager.`,
+        ``,
+        `📋 *Detalle del Servicio:*`,
+        `• Academia: *${club.nombre}*`,
+        `• Atletas Activos: *${atletas}*`,
+        `• Total a Pagar: *${formatearDinero(totalCobro)} COP*`,
+        `• Fecha Límite / Corte: *${fechaVenc}*`,
+        ``,
+        `💳 *Canales de Pago Oficiales:*`,
+        formatearTextoCanales() || 'Transferencia Bancolombia / Nequi / Daviplata',
+        ``,
+        `Adjuntamos la cuenta de cobro en formato PDF con el desglose del servicio. Al realizar la consignación, por favor envíenos el soporte de pago por este medio.`,
+        ``,
+        `¡Gracias por confiar en *Master Club Manager*! ⚽🚀`
+      ].join('\n');
+
+      toast.dismiss(toastId);
+
+      if (telefono.length >= 10) {
+        const waUrl = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(waUrl, '_blank');
+        toast.success(`✅ PDF descargado. WhatsApp abierto con ${club.nombre}`);
+      } else {
+        toast.warning(`PDF descargado. ${club.nombre} no tiene número de teléfono registrado.`);
+      }
+    } catch (err: any) {
+      toast.error('Error al generar cobro: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  const cobrarClubBot = async (club: any) => {
+    const atletas = activosPorClub[club.id] || 0;
+    const plan = club.planes_saas;
+    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+    const extras = Math.max(0, atletas - limiteBase);
+    const mrrEstimado = precioBase + (extras * precioExtra);
+
+    const facturasPendientes = facturas.filter(f => f.club_id === club.id && f.estado_pago !== 'pagado');
+    const deuda = facturasPendientes.reduce((sum, f) => sum + Number(f.total_pagar), 0);
+    const totalCobro = deuda > 0 ? deuda : mrrEstimado;
+
+    setLoadingBot(`bot-club-${club.id}`);
+    const toastId = toast.loading(`Enviando cuenta de cobro por WhatsApp Bot a ${club.nombre}...`);
     try {
       const res = await fetch('/api/admin/enviar-recibo-saas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pago_id: pago.id })
+        body: JSON.stringify({
+          club_id: club.id,
+          atletas,
+          monto: totalCobro,
+          fecha_vencimiento: club.proximo_corte
+        })
       });
       const result = await res.json();
       if (result.error) throw new Error(result.error);
-      
-      toast.success('Recibo enviado correctamente', { id: toastId });
-    } catch (e: any) {
-      toast.error('Error al enviar: ' + e.message, { id: toastId });
+      toast.success(`Cuenta de cobro enviada a ${club.nombre} vía Bot 🚀`, { id: toastId });
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  // --- COBRANZA WHATSAPP: TAB 2 (FACTURAS EMITIDAS) ---
+  const cobrarFacturaManual = async (fac: any) => {
+    const club = fac.clubes || clubes.find(c => c.id === fac.club_id);
+    const mesNombre = nombreMes(fac.periodo_mes);
+    const anio = fac.periodo_anio;
+    const esPagado = fac.estado_pago === 'pagado';
+    const fechaVenc = fac.fecha_vencimiento || club?.proximo_corte || `10/${fac.periodo_mes}/${anio}`;
+    const consecutivo = `FAC-${anio}${String(fac.periodo_mes).padStart(2, '0')}-${fac.id.slice(0, 4).toUpperCase()}`;
+    const filename = `${esPagado ? 'Recibo_Pago' : 'Cuenta_Cobro'}_${mesNombre}_${anio}_${(club?.nombre || 'Club').replace(/\s+/g, '_')}.pdf`;
+
+    setLoadingBot(`manual-fac-${fac.id}`);
+    const toastId = toast.loading(`Preparando documento para ${club?.nombre || 'el club'}...`);
+
+    try {
+      const pdfBase64 = await generarReciboSaaSPDFBase64({
+        clubNombre: club?.nombre || 'Club Deportivo',
+        clubDocumento: club?.nombre_legal || 'N/A',
+        clubTelefono: club?.telefono_contacto,
+        mesCobrado: `${mesNombre} ${anio}`,
+        cantidadJugadores: fac.cantidad_jugadores || 0,
+        montoTotal: Number(fac.total_pagar),
+        consecutivo: consecutivo,
+        fechaPago: esPagado ? new Date().toISOString().split('T')[0] : undefined,
+        fechaVencimiento: fechaVenc,
+        estado: esPagado ? 'PAGADO' : 'COBRO',
+        canalesPago: formatearTextoCanales()
+      });
+
+      descargarReciboSaaSPDF(pdfBase64, filename);
+
+      let telefono = String(club?.telefono_contacto || '').replace(/\D/g, '');
+      if (telefono.length === 10) telefono = `57${telefono}`;
+
+      let mensaje = '';
+      if (esPagado) {
+        mensaje = [
+          `¡Hola directores de *${club?.nombre || 'Club'}*! 👋`,
+          ``,
+          `Les compartimos el comprobante de su factura de suscripción a Master Club Manager correspondiente a *${mesNombre} ${anio}* por valor de *${formatearDinero(fac.total_pagar)} COP*, registrada como *PAGADA*.`,
+          ``,
+          `¡Gracias por su puntualidad y confianza en nuestra plataforma! ⚽✨`
+        ].join('\n');
+      } else {
+        mensaje = [
+          `Hola directores de *${club?.nombre || 'Club'}* 👋`,
+          ``,
+          `Les compartimos la *Cuenta de Cobro* correspondiente al periodo de *${mesNombre} ${anio}* por la suscripción a Master Club Manager.`,
+          ``,
+          `📋 *Detalle:*`,
+          `• Academia: *${club?.nombre}*`,
+          `• Atletas: *${fac.cantidad_jugadores || 0}*`,
+          `• Total a Pagar: *${formatearDinero(fac.total_pagar)} COP*`,
+          `• Vence: *${fechaVenc}*`,
+          ``,
+          `💳 *Canales de Pago:*`,
+          formatearTextoCanales() || 'Transferencia Bancolombia / Nequi / Daviplata',
+          ``,
+          `Adjuntamos el PDF de cobro. Al consignar por favor envíenos el comprobante. ¡Gracias! ⚽🚀`
+        ].join('\n');
+      }
+
+      toast.dismiss(toastId);
+
+      if (telefono.length >= 10) {
+        const waUrl = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(waUrl, '_blank');
+        toast.success(`✅ PDF descargado. WhatsApp abierto con ${club?.nombre || 'el club'}`);
+      } else {
+        toast.warning('PDF descargado. Teléfono no registrado para abrir WhatsApp.');
+      }
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  const cobrarFacturaBot = async (fac: any) => {
+    setLoadingBot(`bot-fac-${fac.id}`);
+    const toastId = toast.loading('Enviando documento por WhatsApp Bot...');
+    try {
+      const res = await fetch('/api/admin/enviar-recibo-saas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ factura_id: fac.id })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      toast.success('Documento enviado vía WhatsApp Bot 🚀', { id: toastId });
+    } catch (err: any) {
+      toast.error('Error al enviar: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  // --- COBRANZA WHATSAPP: TAB 3 (HISTORIAL DE PAGOS) ---
+  const enviarReciboPagoManual = async (p: any) => {
+    const club = p.clubes || clubes.find(c => c.id === p.club_id);
+    const hoy = new Date(p.fecha_pago || Date.now());
+    const mesNombre = nombreMes(hoy.getMonth() + 1);
+    const anio = hoy.getFullYear();
+    const consecutivo = `REC-${p.id.slice(0, 6).toUpperCase()}`;
+    const filename = `Recibo_Pago_${mesNombre}_${anio}_${(club?.nombre || 'Club').replace(/\s+/g, '_')}.pdf`;
+
+    setLoadingBot(`manual-pago-${p.id}`);
+    const toastId = toast.loading(`Generando recibo de pago para ${club?.nombre || 'el club'}...`);
+
+    try {
+      const pdfBase64 = await generarReciboSaaSPDFBase64({
+        clubNombre: club?.nombre || 'Club Deportivo',
+        clubDocumento: club?.nombre_legal || 'N/A',
+        clubTelefono: club?.telefono_contacto,
+        mesCobrado: `${mesNombre} ${anio}`,
+        cantidadJugadores: activosPorClub[p.club_id] || 0,
+        montoTotal: Number(p.monto_pagado),
+        consecutivo: consecutivo,
+        metodoPago: p.metodo_pago || 'Transferencia',
+        fechaPago: p.fecha_pago,
+        estado: 'PAGADO'
+      });
+
+      descargarReciboSaaSPDF(pdfBase64, filename);
+
+      let telefono = String(club?.telefono_contacto || '').replace(/\D/g, '');
+      if (telefono.length === 10) telefono = `57${telefono}`;
+
+      const mensaje = [
+        `¡Hola directores de *${club?.nombre || 'Club'}*! 👋`,
+        ``,
+        `Hemos recibido y confirmado exitosamente su pago de suscripción a Master Club Manager por un valor de *${formatearDinero(p.monto_pagado)} COP* correspondiente a *${mesNombre} ${anio}*.`,
+        ``,
+        `Adjuntamos su *Recibo Oficial de Pago*. Su membresía y servicios continúan activos al 100%.`,
+        ``,
+        `¡Gracias por seguir creciendo junto a nosotros! ⚽✨`
+      ].join('\n');
+
+      toast.dismiss(toastId);
+
+      if (telefono.length >= 10) {
+        const waUrl = `https://wa.me/${telefono}?text=${encodeURIComponent(mensaje)}`;
+        window.open(waUrl, '_blank');
+        toast.success(`✅ Recibo descargado. WhatsApp abierto con ${club?.nombre || 'el club'}`);
+      } else {
+        toast.warning('Recibo descargado. Teléfono no registrado para abrir WhatsApp.');
+      }
+    } catch (err: any) {
+      toast.error('Error: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
+    }
+  };
+
+  const enviarReciboPagoBot = async (p: any) => {
+    setLoadingBot(`bot-pago-${p.id}`);
+    const toastId = toast.loading('Enviando recibo oficial por WhatsApp Bot...');
+    try {
+      const res = await fetch('/api/admin/enviar-recibo-saas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pago_id: p.id })
+      });
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      toast.success('Recibo de pago enviado exitosamente vía Bot 🚀', { id: toastId });
+    } catch (err: any) {
+      toast.error('Error al enviar recibo: ' + err.message, { id: toastId });
+    } finally {
+      setLoadingBot(null);
     }
   };
 
@@ -339,7 +671,14 @@ export default function SaasCobranzaPage() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Cobranza Multiclub</h1>
           <p className="text-slate-500 font-medium mt-1">Controla los pagos de membresías SaaS, emite cobros e ingresa abonos de los clubes.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={() => setIsModalCanalesOpen(true)}
+            className="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold px-4 py-3 rounded-2xl text-sm transition-all flex items-center gap-2 shadow-sm"
+            title="Configurar cuentas bancarias de Master Club Manager que aparecerán en los cobros"
+          >
+            <CreditCard size={18} className="text-lime-600" /> Canales de Pago MCM
+          </button>
           <button 
             onClick={() => setIsModalGenerarOpen(true)}
             className="bg-slate-950 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-2xl text-sm transition-all flex items-center gap-2"
@@ -468,6 +807,7 @@ export default function SaasCobranzaPage() {
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Membresía</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Próximo Corte</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-right">Deuda Activa</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Cobro WhatsApp</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -499,7 +839,7 @@ export default function SaasCobranzaPage() {
                         <div className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">futbolistas</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-bold text-slate-800 text-sm">{plan.nombre}</div>
+                        <div className="font-bold text-slate-800 text-sm">{plan?.nombre || 'Plan Estándar'}</div>
                         <div className="text-xs text-slate-500 mt-1">Est. {formatearDinero(mrrEstimado)}/mes</div>
                       </td>
                       <td className="px-6 py-4 text-center">
@@ -560,6 +900,39 @@ export default function SaasCobranzaPage() {
                           <div className="text-emerald-600 font-bold text-sm">Al día ✅</div>
                         )}
                       </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => cobrarClubBot(club)}
+                            disabled={loadingBot !== null}
+                            className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold"
+                            title="Enviar Cuenta de Cobro por WhatsApp Bot (Automático)"
+                          >
+                            {loadingBot === `bot-club-${club.id}` ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Bot className="w-3.5 h-3.5" />
+                            )}
+                            <span>Bot</span>
+                          </button>
+                          <button
+                            onClick={() => cobrarClubManual(club)}
+                            disabled={loadingBot !== null}
+                            className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold"
+                            title="Descargar PDF de Cuenta de Cobro y abrir WhatsApp al contacto del club"
+                          >
+                            {loadingBot === `manual-club-${club.id}` ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Smartphone className="w-3.5 h-3.5" />
+                            )}
+                            <span>Manual</span>
+                          </button>
+                        </div>
+                        {!club.telefono_contacto && (
+                          <span className="text-[10px] text-amber-600 font-semibold block mt-1">Sin teléfono</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -607,16 +980,71 @@ export default function SaasCobranzaPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {fac.estado_pago !== 'pagado' ? (
-                        <button 
-                          onClick={() => abrirModalPago(fac)}
-                          className="bg-lime-500 hover:bg-lime-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-sm"
-                        >
-                          Registrar Pago
-                        </button>
-                      ) : (
-                        <span className="text-xs text-slate-400 font-medium">Completada</span>
-                      )}
+                      <div className="flex items-center justify-center gap-1.5">
+                        {fac.estado_pago !== 'pagado' ? (
+                          <>
+                            <button 
+                              onClick={() => abrirModalPago(fac)}
+                              className="bg-lime-500 hover:bg-lime-600 text-white font-bold text-xs px-3 py-1.5 rounded-xl transition-all shadow-sm"
+                              title="Registrar pago manual"
+                            >
+                              Pagar
+                            </button>
+                            <button
+                              onClick={() => cobrarFacturaBot(fac)}
+                              disabled={loadingBot !== null}
+                              className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white p-1.5 rounded-xl transition-all shadow-sm flex items-center text-xs font-bold"
+                              title="Enviar cobro por WhatsApp Bot (Automático)"
+                            >
+                              {loadingBot === `bot-fac-${fac.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Bot className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => cobrarFacturaManual(fac)}
+                              disabled={loadingBot !== null}
+                              className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white p-1.5 rounded-xl transition-all shadow-sm flex items-center text-xs font-bold"
+                              title="Descargar PDF de Cuenta de Cobro y abrir WhatsApp"
+                            >
+                              {loadingBot === `manual-fac-${fac.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Smartphone className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">Pagada</span>
+                            <button
+                              onClick={() => cobrarFacturaBot(fac)}
+                              disabled={loadingBot !== null}
+                              className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white p-1.5 rounded-xl transition-all shadow-sm flex items-center text-xs font-bold"
+                              title="Reenviar comprobante oficial por WhatsApp Bot"
+                            >
+                              {loadingBot === `bot-fac-${fac.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Bot className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => cobrarFacturaManual(fac)}
+                              disabled={loadingBot !== null}
+                              className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white p-1.5 rounded-xl transition-all shadow-sm flex items-center text-xs font-bold"
+                              title="Descargar recibo y abrir WhatsApp"
+                            >
+                              {loadingBot === `manual-fac-${fac.id}` ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Smartphone className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -684,13 +1112,41 @@ export default function SaasCobranzaPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => eliminarPago(p)}
-                        className="text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors"
-                        title="Eliminar registro de pago"
-                      >
-                        <Trash2 size={16}/>
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => enviarReciboPagoBot(p)}
+                          disabled={loadingBot !== null}
+                          className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white px-2.5 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1 text-xs font-bold"
+                          title="Enviar recibo de pago por WhatsApp Bot (Automático)"
+                        >
+                          {loadingBot === `bot-pago-${p.id}` ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Bot className="w-3.5 h-3.5" />
+                          )}
+                          <span>Bot</span>
+                        </button>
+                        <button
+                          onClick={() => enviarReciboPagoManual(p)}
+                          disabled={loadingBot !== null}
+                          className="bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white px-2.5 py-1.5 rounded-xl transition-all shadow-sm flex items-center gap-1 text-xs font-bold"
+                          title="Descargar recibo oficial y abrir WhatsApp al contacto"
+                        >
+                          {loadingBot === `manual-pago-${p.id}` ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Smartphone className="w-3.5 h-3.5" />
+                          )}
+                          <span>Manual</span>
+                        </button>
+                        <button 
+                          onClick={() => eliminarPago(p)}
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-xl transition-colors"
+                          title="Eliminar registro de pago"
+                        >
+                          <Trash2 size={16}/>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -823,6 +1279,122 @@ export default function SaasCobranzaPage() {
                   className="w-full bg-slate-950 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm"
                 >
                   Emitir Facturación Mensual
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CONFIGURAR CANALES DE PAGO MCM */}
+      {isModalCanalesOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-lime-100 flex items-center justify-center text-lime-700">
+                  <CreditCard size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">Canales de Pago MCM</h3>
+                  <p className="text-xs text-slate-500 font-medium">Cuentas visibles en cobros y WhatsApp</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsModalCanalesOpen(false)} 
+                className="text-slate-400 hover:bg-slate-100 p-2 rounded-xl transition-colors"
+              >
+                <X size={20}/>
+              </button>
+            </div>
+
+            <form onSubmit={guardarCanales} className="p-6 space-y-4">
+              <p className="text-xs text-slate-500 leading-relaxed font-medium bg-amber-50 border border-amber-200 p-3 rounded-xl text-amber-800">
+                💡 Estas cuentas bancarias aparecerán automáticamente en el PDF oficial de <strong>Cuenta de Cobro</strong> y en el mensaje de WhatsApp enviado a los directores de los clubes.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Banco / Tipo de Cuenta</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.banco_nombre} 
+                    onChange={e => setCanalesPago({ ...canalesPago, banco_nombre: e.target.value })} 
+                    placeholder="Ej. Bancolombia Ahorros" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Número de Cuenta</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.banco_numero} 
+                    onChange={e => setCanalesPago({ ...canalesPago, banco_numero: e.target.value })} 
+                    placeholder="Ej. 3124265170" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Nequi</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.nequi} 
+                    onChange={e => setCanalesPago({ ...canalesPago, nequi: e.target.value })} 
+                    placeholder="Ej. 3124265170" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Daviplata</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.daviplata} 
+                    onChange={e => setCanalesPago({ ...canalesPago, daviplata: e.target.value })} 
+                    placeholder="Ej. 3124265170" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Llave Bre-B</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.bre_b} 
+                    onChange={e => setCanalesPago({ ...canalesPago, bre_b: e.target.value })} 
+                    placeholder="Ej. 3124265170" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Titular de la Cuenta / Razón Social</label>
+                <input 
+                  type="text" 
+                  value={canalesPago.titular} 
+                  onChange={e => setCanalesPago({ ...canalesPago, titular: e.target.value })} 
+                  placeholder="Ej. Master Club Manager / Alex Toscano" 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                />
+              </div>
+
+              <div className="pt-3 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModalCanalesOpen(false)}
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition-colors text-sm"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={guardandoCanales}
+                  className="flex-1 bg-lime-500 hover:bg-lime-600 disabled:bg-slate-300 text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2 text-sm"
+                >
+                  {guardandoCanales ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {guardandoCanales ? 'Guardando...' : 'Guardar Canales'}
                 </button>
               </div>
             </form>

@@ -84,7 +84,7 @@ export async function GET() {
   try {
     const { data: pagosData, error } = await supabaseAdmin
       .from('pagos_saas')
-      .select('*, clubes(nombre)')
+      .select('*, clubes(nombre, telefono_contacto, nombre_legal)')
       .order('fecha_pago', { ascending: false });
 
     if (error) throw error;
