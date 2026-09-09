@@ -129,40 +129,62 @@ export async function generarReciboSaaSPDFBase64(datos: {
   
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
   doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
-  doc.text('CANTIDAD', 120, tableY + 6.5, { align: 'center' });
+  doc.text('CANTIDAD', 122, tableY + 6.5, { align: 'center' });
   doc.text('TOTAL', 185, tableY + 6.5, { align: 'right' });
 
   // Fila de datos
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
   const planTexto = datos.planNombre ? ` (${datos.planNombre})` : '';
-  doc.text(`Suscripción Mensual Master Club Manager${planTexto} - ${datos.mesCobrado}`, 20, tableY + 18);
-  doc.text(`${datos.cantidadJugadores} Atletas`, 120, tableY + 18, { align: 'center' });
+  const descTexto = `Suscripción Mensual Master Club Manager${planTexto} - ${datos.mesCobrado}`;
+
+  // Dividir la descripción en renglones con ancho máximo de 82mm para no sobreponerse en la columna de cantidad
+  const descLines: string[] = doc.splitTextToSize(descTexto, 82);
+  const lineSpacing = 4.5;
+  const startDescY = tableY + 16;
+
+  // Imprimir cada renglón de la descripción
+  descLines.forEach((linea: string, idx: number) => {
+    doc.text(linea, 20, startDescY + (idx * lineSpacing));
+  });
+
+  // Alinear verticalmente la cantidad de atletas y el total con la descripción
+  const verticalCenterY = startDescY + ((descLines.length - 1) * lineSpacing / 2);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8.5);
+  doc.text(`${datos.cantidadJugadores} Atletas`, 122, verticalCenterY, { align: 'center' });
   
   doc.setFont("helvetica", "bold");
-  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
+  doc.setFontSize(9);
+  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 185, verticalCenterY, { align: 'right' });
+
+  // Altura dinámica de la fila para que la línea de cierre y el total se adapten al número de renglones
+  const rowEndY = Math.max(tableY + 23, startDescY + (descLines.length * lineSpacing) + 3);
 
   // Línea de cierre de tabla
   doc.setDrawColor(230, 230, 230);
   doc.setLineWidth(0.1);
-  doc.line(15, tableY + 25, 195, tableY + 25);
+  doc.line(15, rowEndY, 195, rowEndY);
 
   // Cuadro de Total Final
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.rect(125, tableY + 25, 70, 12, 'F');
+  doc.rect(125, rowEndY, 70, 12, 'F');
   doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
   if (esCobro) {
     doc.setTextColor(amber[0], amber[1], amber[2]);
-    doc.text('TOTAL A PAGAR:', 130, tableY + 33);
+    doc.text('TOTAL A PAGAR:', 130, rowEndY + 8);
   } else {
     doc.setTextColor(green[0], green[1], green[2]);
-    doc.text('TOTAL PAGADO:', 130, tableY + 33);
+    doc.text('TOTAL PAGADO:', 130, rowEndY + 8);
   }
-  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 190, tableY + 33, { align: 'right' });
+  doc.text(`$ ${datos.montoTotal.toLocaleString('es-CO')}`, 190, rowEndY + 8, { align: 'right' });
 
   // 5. SECCIÓN DE CANALES DE PAGO (SI ES COBRO)
-  let currentY = tableY + 45;
+  let currentY = rowEndY + 18;
   if (esCobro && datos.canalesPago) {
     const canalesLines = datos.canalesPago.split('\n').filter(Boolean);
     const boxHeight = 11 + (canalesLines.length * 4.5);
