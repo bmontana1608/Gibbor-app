@@ -93,7 +93,7 @@ export default function ConfiguracionPage() {
 
     let configData: any = null;
     try {
-      const resApi = await fetch('/api/admin/configuracion');
+      const resApi = await fetch('/api/admin/configuracion', { cache: 'no-store' });
       if (resApi.ok) {
         const json = await resApi.json();
         if (json.data) configData = json.data;
@@ -117,24 +117,24 @@ export default function ConfiguracionPage() {
       } catch (_) {}
     }
 
-    if (canales) {
+    if (canales && typeof canales === 'object') {
       setCanalesPago(prev => ({ ...prev, ...canales }));
     }
 
     // Cargar pool de claves de Gemini
     const keys: string[] = [];
-    if (Array.isArray(data?.gemini_api_keys)) {
-      keys.push(...data.gemini_api_keys);
-    } else if (typeof data?.gemini_api_keys === 'string') {
+    if (Array.isArray(configData?.gemini_api_keys)) {
+      keys.push(...configData.gemini_api_keys);
+    } else if (typeof configData?.gemini_api_keys === 'string') {
       try {
-        const p = JSON.parse(data.gemini_api_keys);
+        const p = JSON.parse(configData.gemini_api_keys);
         if (Array.isArray(p)) keys.push(...p);
       } catch {
-        keys.push(...data.gemini_api_keys.split(/[\n,]+/).map((k: string) => k.trim()).filter(Boolean));
+        keys.push(...configData.gemini_api_keys.split(/[\n,]+/).map((k: string) => k.trim()).filter(Boolean));
       }
     }
-    if (keys.length === 0 && data?.gemini_api_key) {
-      keys.push(data.gemini_api_key);
+    if (keys.length === 0 && configData?.gemini_api_key) {
+      keys.push(configData.gemini_api_key);
     }
     if (keys.length === 0) {
       keys.push('');
@@ -217,6 +217,7 @@ export default function ConfiguracionPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Error al guardar canales de pago.');
+      setConfigAdmin((prev: any) => ({ ...prev, canales_pago: canalesPago }));
       toast.success('¡Canales de pago actualizados exitosamente!');
     } catch (err: any) {
       toast.error(err.message);
@@ -231,9 +232,11 @@ export default function ConfiguracionPage() {
       payload[campo] = valor;
       const res = await fetch('/api/admin/configuracion', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
       if (!res.ok) throw new Error('Error al guardar en la base de datos.');
+      setConfigAdmin((prev: any) => ({ ...prev, [campo]: valor }));
       toast.success(mensajeExito);
     } catch (err: any) {
       toast.error(err.message);

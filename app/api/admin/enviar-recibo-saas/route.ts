@@ -8,6 +8,8 @@ const MESES = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ];
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -62,7 +64,7 @@ export async function POST(request: Request) {
 
     const canalesTexto = lineasCanales.length > 0 
       ? lineasCanales.join('\n') 
-      : '• Transferencia Bancolombia / Nequi / Daviplata';
+      : '• Consultar canales oficiales de pago con soporte';
 
     // Helper: Contar ÚNICAMENTE miembros con rol 'Futbolista' y 'Activo' (excluyendo entrenadores y directores)
     const contarSoloFutbolistasActivos = async (cId: string) => {

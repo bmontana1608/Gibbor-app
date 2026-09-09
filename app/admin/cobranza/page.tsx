@@ -23,12 +23,14 @@ export default function SaasCobranzaPage() {
 
   // Canales de pago SuperAdmin para cuentas de cobro
   const [canalesPago, setCanalesPago] = useState({
-    banco_nombre: 'Bancolombia Ahorros',
-    banco_numero: '3124265170',
-    nequi: '3124265170',
-    daviplata: '3124265170',
-    bre_b: '3124265170',
-    titular: 'Master Club Manager'
+    banco_nombre: '',
+    banco_numero: '',
+    nequi: '',
+    daviplata: '',
+    bre_b: '',
+    titular: '',
+    nit_titular: '',
+    instrucciones_adicionales: ''
   });
   const [isModalCanalesOpen, setIsModalCanalesOpen] = useState(false);
   const [guardandoCanales, setGuardandoCanales] = useState(false);
@@ -113,24 +115,35 @@ export default function SaasCobranzaPage() {
       }
 
       // 5. Cargar canales de pago del SuperAdmin (Ajustes)
-      const { data: configAdmin } = await supabase
-        .from('configuracion_superadmin')
-        .select('*')
-        .order('id', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+      let canales: any = null;
+      try {
+        const resConfig = await fetch('/api/admin/configuracion', { cache: 'no-store' });
+        if (resConfig.ok) {
+          const jsonConfig = await resConfig.json();
+          canales = jsonConfig.data?.canales_pago;
+        }
+      } catch (_) {}
 
-      let canales = configAdmin?.canales_pago;
-      if (!canales && configAdmin?.mensaje_cobro) {
-        try {
-          const parsed = JSON.parse(configAdmin.mensaje_cobro);
-          if (parsed && typeof parsed === 'object') {
-            canales = parsed.canales_pago || parsed;
-          }
-        } catch (_) {}
+      if (!canales) {
+        const { data: configAdmin } = await supabase
+          .from('configuracion_superadmin')
+          .select('*')
+          .order('id', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        canales = configAdmin?.canales_pago;
+        if (!canales && configAdmin?.mensaje_cobro) {
+          try {
+            const parsed = JSON.parse(configAdmin.mensaje_cobro);
+            if (parsed && typeof parsed === 'object') {
+              canales = parsed.canales_pago || parsed;
+            }
+          } catch (_) {}
+        }
       }
 
-      if (canales) {
+      if (canales && typeof canales === 'object') {
         setCanalesPago(prev => ({ ...prev, ...canales }));
       }
 
@@ -251,11 +264,13 @@ export default function SaasCobranzaPage() {
 
   const formatearTextoCanales = () => {
     return [
-      canalesPago.banco_nombre && canalesPago.banco_numero ? `• ${canalesPago.banco_nombre}: *${canalesPago.banco_numero}*` : '',
+      canalesPago.banco_nombre && canalesPago.banco_numero ? `• ${canalesPago.banco_nombre}: *${canalesPago.banco_numero}*` : (canalesPago.banco_numero ? `• Cuenta Bancaria: *${canalesPago.banco_numero}*` : ''),
       canalesPago.nequi ? `• Nequi: *${canalesPago.nequi}*` : '',
       canalesPago.daviplata ? `• Daviplata: *${canalesPago.daviplata}*` : '',
       canalesPago.bre_b ? `• Llave Bre-B: *${canalesPago.bre_b}*` : '',
       canalesPago.titular ? `• Titular: *${canalesPago.titular}*` : '',
+      canalesPago.nit_titular ? `• NIT / Doc: *${canalesPago.nit_titular}*` : '',
+      canalesPago.instrucciones_adicionales ? `• Nota: ${canalesPago.instrucciones_adicionales}` : '',
     ].filter(Boolean).join('\n');
   };
 
@@ -339,7 +354,7 @@ export default function SaasCobranzaPage() {
         `• Fecha Límite / Corte: *${fechaVenc}*`,
         ``,
         `💳 *Canales de Pago Oficiales:*`,
-        formatearTextoCanales() || 'Transferencia Bancolombia / Nequi / Daviplata',
+        formatearTextoCanales() || '• Consultar canales oficiales de pago con soporte',
         ``,
         `Adjuntamos la cuenta de cobro en formato PDF con el desglose del servicio. Al realizar la consignación, por favor envíenos el soporte de pago por este medio.`,
         ``,
@@ -453,7 +468,7 @@ export default function SaasCobranzaPage() {
           `• Vence: *${fechaVenc}*`,
           ``,
           `💳 *Canales de Pago:*`,
-          formatearTextoCanales() || 'Transferencia Bancolombia / Nequi / Daviplata',
+          formatearTextoCanales() || '• Consultar canales oficiales de pago con soporte',
           ``,
           `Adjuntamos el PDF de cobro. Al consignar por favor envíenos el comprobante. ¡Gracias! ⚽🚀`
         ].join('\n');
@@ -1355,7 +1370,7 @@ export default function SaasCobranzaPage() {
                     type="text" 
                     value={canalesPago.banco_numero} 
                     onChange={e => setCanalesPago({ ...canalesPago, banco_numero: e.target.value })} 
-                    placeholder="Ej. 3124265170" 
+                    placeholder="Ej. 123-456789-00" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
                   />
                 </div>
@@ -1368,7 +1383,7 @@ export default function SaasCobranzaPage() {
                     type="text" 
                     value={canalesPago.nequi} 
                     onChange={e => setCanalesPago({ ...canalesPago, nequi: e.target.value })} 
-                    placeholder="Ej. 3124265170" 
+                    placeholder="Ej. 3001234567" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
                   />
                 </div>
@@ -1378,7 +1393,7 @@ export default function SaasCobranzaPage() {
                     type="text" 
                     value={canalesPago.daviplata} 
                     onChange={e => setCanalesPago({ ...canalesPago, daviplata: e.target.value })} 
-                    placeholder="Ej. 3124265170" 
+                    placeholder="Ej. 3001234567" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
                   />
                 </div>
@@ -1388,19 +1403,42 @@ export default function SaasCobranzaPage() {
                     type="text" 
                     value={canalesPago.bre_b} 
                     onChange={e => setCanalesPago({ ...canalesPago, bre_b: e.target.value })} 
-                    placeholder="Ej. 3124265170" 
+                    placeholder="Ej. 3001234567" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Titular de la Cuenta / Razón Social</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.titular} 
+                    onChange={e => setCanalesPago({ ...canalesPago, titular: e.target.value })} 
+                    placeholder="Ej. Master Club Manager" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">NIT / Cédula del Titular</label>
+                  <input 
+                    type="text" 
+                    value={canalesPago.nit_titular} 
+                    onChange={e => setCanalesPago({ ...canalesPago, nit_titular: e.target.value })} 
+                    placeholder="Ej. 901234567-8" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Titular de la Cuenta / Razón Social</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Instrucciones Adicionales / Notas</label>
                 <input 
                   type="text" 
-                  value={canalesPago.titular} 
-                  onChange={e => setCanalesPago({ ...canalesPago, titular: e.target.value })} 
-                  placeholder="Ej. Master Club Manager / Alex Toscano" 
+                  value={canalesPago.instrucciones_adicionales} 
+                  onChange={e => setCanalesPago({ ...canalesPago, instrucciones_adicionales: e.target.value })} 
+                  placeholder="Ej. Enviar comprobante al WhatsApp oficial" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-lime-500 outline-none transition-all font-bold text-slate-800"
                 />
               </div>

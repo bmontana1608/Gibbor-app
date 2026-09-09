@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
     const { data, error } = await supabaseAdmin
@@ -24,12 +27,19 @@ export async function GET() {
       } catch (_) {}
     }
 
-    return NextResponse.json({ 
-      data: {
-        ...(data || {}),
-        canales_pago: canales || data?.canales_pago || {}
-      } 
-    });
+    return NextResponse.json(
+      { 
+        data: {
+          ...(data || {}),
+          canales_pago: canales || data?.canales_pago || {}
+        } 
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+        }
+      }
+    );
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -52,15 +62,13 @@ export async function POST(request: Request) {
       } catch (_) {}
     }
 
-    // 2. Obtener la fila existente sin requerir selectivamente 'canales_pago' (para que no rompa si no existe la columna)
+    // 2. Obtener la fila existente
     const { data: existing } = await supabaseAdmin
       .from('configuracion_superadmin')
       .select('*')
       .order('id', { ascending: true })
       .limit(1)
       .maybeSingle();
-
-    const targetId = existing?.id || 1;
 
     let mergedCanales = body.canales_pago;
     if (mergedCanales && typeof mergedCanales === 'object') {
@@ -79,30 +87,47 @@ export async function POST(request: Request) {
     }
 
     // Preparar payload con canales_pago y también en mensaje_cobro como respaldo infalible
-    const payloadCompleto: any = { ...body, id: targetId };
+    const payloadCompleto: any = { ...body };
     if (mergedCanales) {
       payloadCompleto.canales_pago = mergedCanales;
       // Siempre guardamos una copia en mensaje_cobro (que es columna TEXT que existe desde siempre)
       payloadCompleto.mensaje_cobro = JSON.stringify({ canales_pago: mergedCanales });
     }
 
-    // Intentar upsert con canales_pago
-    let { error } = await supabaseAdmin
-      .from('configuracion_superadmin')
-      .upsert(payloadCompleto);
+    let error: any = null;
+
+    if (existing?.id) {
+      const resUpdate = await supabaseAdmin
+        .from('configuracion_superadmin')
+        .update(payloadCompleto)
+        .eq('id', existing.id);
+      error = resUpdate.error;
+    } else {
+      const resInsert = await supabaseAdmin
+        .from('configuracion_superadmin')
+        .insert({ ...payloadCompleto, id: 1 });
+      error = resInsert.error;
+    }
 
     // Si Postgres indica que la columna 'canales_pago' no existe en la tabla física
-    if (error && (error.message.includes('canales_pago') || error.code === 'PGRST204' || error.message.toLowerCase().includes('column'))) {
+    if (error && (error.message?.includes('canales_pago') || error.code === 'PGRST204' || error.message?.toLowerCase().includes('column'))) {
       console.warn('[configuracion] Columna canales_pago no existe en PostgreSQL, guardando mediante fallback mensaje_cobro.');
       
       const payloadFallback: any = { ...payloadCompleto };
       delete payloadFallback.canales_pago;
 
-      const resFallback = await supabaseAdmin
-        .from('configuracion_superadmin')
-        .upsert(payloadFallback);
-
-      error = resFallback.error;
+      if (existing?.id) {
+        const resFallback = await supabaseAdmin
+          .from('configuracion_superadmin')
+          .update(payloadFallback)
+          .eq('id', existing.id);
+        error = resFallback.error;
+      } else {
+        const resFallback = await supabaseAdmin
+          .from('configuracion_superadmin')
+          .insert({ ...payloadFallback, id: 1 });
+        error = resFallback.error;
+      }
     }
 
     if (error) {
@@ -110,7 +135,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, canales_pago: mergedCanales });
   } catch (error: any) {
     console.error('Error en POST /api/admin/configuracion:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
