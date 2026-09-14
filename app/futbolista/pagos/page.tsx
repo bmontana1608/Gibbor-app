@@ -137,7 +137,7 @@ export default function PagosFutbolista() {
           // Obtenemos los canales de pago
           const { data: configData } = await supabase
             .from("configuracion_wa")
-            .select("nequi, daviplata, bre_b, banco_nombre, banco_numero")
+            .select("nequi, daviplata, bre_b, banco_nombre, banco_numero, metodos_pago")
             .eq("club_id", userData.club_id)
             .single();
           if (configData) setConfigPago(configData);
@@ -282,6 +282,36 @@ export default function PagosFutbolista() {
              <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded-lg uppercase tracking-widest">Toca para copiar y abrir</span>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(() => {
+                let metodosPagoList: any[] = [];
+                try {
+                  if (configPago.metodos_pago) {
+                    metodosPagoList = typeof configPago.metodos_pago === 'string' ? JSON.parse(configPago.metodos_pago) : configPago.metodos_pago;
+                  }
+                } catch (e) {}
+                
+                return metodosPagoList.map((m: any, idx: number) => (
+                  <button 
+                    key={idx}
+                    onClick={() => handleOpenApp(m.numero, '', m.nombre)}
+                    className="bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl border border-slate-100 flex items-center justify-between gap-4 transition-all group text-left w-full"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-slate-200/50 text-slate-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                         <Wallet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{m.nombre}</p>
+                        <p className="font-bold text-slate-800">{m.numero}</p>
+                        {m.instrucciones && <p className="text-[10px] text-slate-500 mt-0.5">{m.instrucciones}</p>}
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-colors" />
+                  </button>
+                ));
+              })()}
+              
+              {/* Backwards compatibility for old static fields */}
               {configPago.nequi && (
                 <button 
                   onClick={() => handleOpenApp(configPago.nequi, 'nequi://', 'Nequi')}

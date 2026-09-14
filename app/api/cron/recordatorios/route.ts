@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     // 1. Obtener clubes con webhook activo y sus configuraciones de días
     const { data: configsWA, error: waError } = await supabaseAdmin
       .from('configuracion_wa')
-      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, link_pago, recordatorio_1, recordatorio_2, recordatorio_3')
+      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, metodos_pago, link_pago, recordatorio_1, recordatorio_2, recordatorio_3')
       .eq('active_webhook', true);
 
     if (waError || !configsWA || configsWA.length === 0) {
@@ -104,7 +104,15 @@ export async function GET(request: Request) {
 
       if (montoPagar <= 0) continue; 
 
+      let metodosPagoList: any[] = [];
+      try {
+        if (configClub.metodos_pago) {
+          metodosPagoList = typeof configClub.metodos_pago === 'string' ? JSON.parse(configClub.metodos_pago) : configClub.metodos_pago;
+        }
+      } catch (e) {}
+
       const metodosPago = [
+        ...metodosPagoList.map((m: any) => `${m.nombre}: *${m.numero}*`),
         configClub.nequi ? `Nequi: *${configClub.nequi}*` : '',
         configClub.daviplata ? `Daviplata: *${configClub.daviplata}*` : '',
         configClub.bre_b ? `Bre-B: *${configClub.bre_b}*` : '',

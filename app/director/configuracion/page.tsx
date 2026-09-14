@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { 
   Settings, Save, MapPin, CreditCard, Bot, 
-  Smartphone, Building, Globe, Key, ShieldCheck, Zap, Wallet, X, Search, PlusCircle, Palette, Upload, Loader2, Image as ImageIcon
+  Smartphone, Building, Globe, Key, ShieldCheck, Zap, Wallet, X, Search, PlusCircle, Palette, Upload, Loader2, Image as ImageIcon, Trash2
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { COUNTRY_CATALOG, getCountryInfo } from '@/lib/currency-utils';
@@ -25,13 +25,14 @@ export default function ConfiguracionGeneral() {
   const [nuevaContrasenaGlobal, setNuevaContrasenaGlobal] = useState('');
   const [cambiandoContrasena, setCambiandoContrasena] = useState(false);
 
-  const [config, setConfig] = useState({
+  const [config, setConfig] = useState<any>({
     api_url: '', api_key: '', instance_name: 'Club_App',
     direccion: '', ciudad: '', nequi: '', daviplata: '',
     bre_b: '', banco_nombre: '', banco_numero: '', link_pago: '',
     hijos_config: '',
     nombre_club: 'TU CLUB',
-    temporada_actual: 'TEMPORADA 2024'
+    temporada_actual: 'TEMPORADA 2024',
+    metodos_pago: []
   });
 
   const [identidad, setIdentidad] = useState({
@@ -69,13 +70,21 @@ export default function ConfiguracionGeneral() {
         const añoActual = new Date().getFullYear();
         
         if (data) {
+          let parsedMetodos = [];
+          try {
+            if (data.metodos_pago) {
+              parsedMetodos = typeof data.metodos_pago === 'string' ? JSON.parse(data.metodos_pago) : data.metodos_pago;
+            }
+          } catch(e) {}
+
           setConfig(prev => ({
             ...prev,
             ...data,
             nombre_club: data.nombre_club || tenantData.config?.nombre || 'MI CLUB',
             temporada_actual: data.temporada_actual || `TEMPORADA ${añoActual}`,
             hijos_config: data.hijos_config || '',
-            link_pago: data.link_pago || ''
+            link_pago: data.link_pago || '',
+            metodos_pago: Array.isArray(parsedMetodos) ? parsedMetodos : []
           }));
           if (data.hijos_config) setHijosIds(data.hijos_config.split(','));
         } else {
@@ -531,24 +540,84 @@ export default function ConfiguracionGeneral() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><Smartphone className="w-3 h-3 text-purple-500" /> Nequi</label>
-                  <input type="text" value={config.nequi} onChange={(e) => setConfig({...config, nequi: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-black text-sm" />
+              <div className="pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">
+                    <Wallet className="w-3 h-3 text-blue-500" /> Cuentas Bancarias y Billeteras
+                  </label>
+                  <button 
+                    onClick={() => {
+                      const list = [...(config.metodos_pago || [])];
+                      list.push({ id: Date.now().toString(), nombre: '', numero: '', instrucciones: '' });
+                      setConfig({ ...config, metodos_pago: list });
+                    }}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Agregar Método
+                  </button>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><Smartphone className="w-3 h-3 text-red-500" /> Daviplata</label>
-                  <input type="text" value={config.daviplata} onChange={(e) => setConfig({...config, daviplata: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-black text-sm" />
+
+                <div className="space-y-3">
+                  {(config.metodos_pago || []).map((metodo: any, index: number) => (
+                    <div key={metodo.id || index} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row gap-4 items-start md:items-center relative group">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 w-full">
+                        <input 
+                          type="text" 
+                          placeholder="Ej: Yape, Zelle, Cuenta Ahorros" 
+                          value={metodo.nombre}
+                          onChange={(e) => {
+                            const list = [...config.metodos_pago];
+                            list[index].nombre = e.target.value;
+                            setConfig({ ...config, metodos_pago: list });
+                          }}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Número / CBU / Alias" 
+                          value={metodo.numero}
+                          onChange={(e) => {
+                            const list = [...config.metodos_pago];
+                            list[index].numero = e.target.value;
+                            setConfig({ ...config, metodos_pago: list });
+                          }}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="Instrucciones adicionales (Opcional)" 
+                          value={metodo.instrucciones || ''}
+                          onChange={(e) => {
+                            const list = [...config.metodos_pago];
+                            list[index].instrucciones = e.target.value;
+                            setConfig({ ...config, metodos_pago: list });
+                          }}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs"
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const list = [...config.metodos_pago];
+                          list.splice(index, 1);
+                          setConfig({ ...config, metodos_pago: list });
+                        }}
+                        className="text-red-400 hover:text-red-600 p-2 md:opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Eliminar método"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {(!config.metodos_pago || config.metodos_pago.length === 0) && (
+                    <div className="text-center py-6 bg-slate-50 border border-slate-100 border-dashed rounded-xl">
+                      <p className="text-xs text-slate-400 font-bold">No hay métodos de pago configurados.</p>
+                      <p className="text-[10px] text-slate-400">Agrega las cuentas de tu club para que los jugadores sepan dónde pagar.</p>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><Zap className="w-3 h-3 text-yellow-500" /> Bre-B</label>
-                  <input type="text" value={config.bre_b} onChange={(e) => setConfig({...config, bre_b: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-black text-sm" />
-                </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-3 block flex items-center gap-2"><Wallet className="w-3 h-3 text-blue-500" /> Banco</label>
-                  <input type="text" placeholder="Nombre Banco" value={config.banco_nombre} onChange={(e) => setConfig({...config, banco_nombre: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold mb-2" />
-                  <input type="text" placeholder="Nº Cuenta" value={config.banco_numero} onChange={(e) => setConfig({...config, banco_numero: e.target.value})} className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-bold" />
-                </div>
+
+                <div className="mt-6">
+
                 <div className="col-span-1 md:col-span-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><CreditCard className="w-3 h-3 text-emerald-500" /> Link de Pago (MercadoPago, Bold, Wompi)</label>
                   <input type="text" placeholder="https://link.mercadopago.com/..." value={config.link_pago} onChange={(e) => setConfig({...config, link_pago: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-medium text-sm text-emerald-700" />

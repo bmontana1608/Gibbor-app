@@ -136,6 +136,7 @@ export default function ModuloCobranza() {
   const [montoEgreso, setMontoEgreso] = useState('');
   const [catEgreso, setCatEgreso] = useState('Otros');
   const [tenant, setTenant] = useState<any>(null);
+  const [metodosPagoDisponibles, setMetodosPagoDisponibles] = useState<any[]>([]);
 
   // Historial de Pagos (Ingresos)
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
@@ -313,6 +314,14 @@ export default function ModuloCobranza() {
       .select('*')
       .eq('club_id', tenantData.id);
     if (abonosData) setAbonos(abonosData);
+
+    const { data: waConfig } = await supabase.from('configuracion_wa').select('metodos_pago').eq('club_id', tenantData.id).maybeSingle();
+    if (waConfig?.metodos_pago) {
+      try {
+        const parsed = typeof waConfig.metodos_pago === 'string' ? JSON.parse(waConfig.metodos_pago) : waConfig.metodos_pago;
+        setMetodosPagoDisponibles(Array.isArray(parsed) ? parsed : []);
+      } catch (e) {}
+    }
 
     setCargando(false);
   };
@@ -784,11 +793,14 @@ export default function ModuloCobranza() {
       const telefono = formatInternationalWhatsAppPhone(alumno.telefono, tenant?.dialCode || tenant?.pais);
 
       // 3. Texto del mensaje personalizado
-      const metodosPago = [
-        config?.nequi ? `Nequi: *${config.nequi}*` : '',
-        config?.daviplata ? `Daviplata: *${config.daviplata}*` : '',
-        config?.bre_b ? `Bre-B: *${config.bre_b}*` : '',
-      ].filter(Boolean).join('\n');
+      let metodosPagoList: any[] = [];
+      try {
+        if (config?.metodos_pago) {
+          metodosPagoList = typeof config.metodos_pago === 'string' ? JSON.parse(config.metodos_pago) : config.metodos_pago;
+        }
+      } catch (e) {}
+      
+      const metodosPago = metodosPagoList.map((m: any) => `${m.nombre}: *${m.numero}*`).filter(Boolean).join('\n');
 
       const textoDescuento = descuentoCalculado > 0
         ? `\n🎁 *¡Paga antes del día ${diaVence} y ahorra ${formatCurrency(descuentoCalculado, tenant?.pais || tenant?.moneda)}!*`
@@ -1791,8 +1803,11 @@ export default function ModuloCobranza() {
                   <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold bg-white">
                     <option value="Efectivo">Efectivo</option>
                     <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                    <option value="Nequi / Daviplata">Nequi / Daviplata</option>
+                    {metodosPagoDisponibles.map(m => (
+                      <option key={m.nombre} value={m.nombre}>{m.nombre}</option>
+                    ))}
                     <option value="Tarjeta">Tarjeta</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
               </div>
@@ -1892,7 +1907,11 @@ export default function ModuloCobranza() {
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
                 <select value={metodoPagoAbono} onChange={(e) => setMetodoPagoAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white">
-                  {["Efectivo", "Nequi", "Daviplata", "Transferencia", "Bre-B", "Otro"].map(m => (<option key={m} value={m}>{m}</option>))}
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                  {metodosPagoDisponibles.map(m => (<option key={m.nombre} value={m.nombre}>{m.nombre}</option>))}
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Otro">Otro</option>
                 </select>
               </div>
               <div>
@@ -1931,7 +1950,11 @@ export default function ModuloCobranza() {
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
                 <select value={editMetodo} onChange={(e) => setEditMetodo(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-bold bg-white">
-                  {["Efectivo", "Nequi", "Daviplata", "Transferencia", "Bre-B", "Otro"].map(m => (<option key={m} value={m}>{m}</option>))}
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                  {metodosPagoDisponibles.map(m => (<option key={m.nombre} value={m.nombre}>{m.nombre}</option>))}
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Otro">Otro</option>
                 </select>
               </div>
               <div>
