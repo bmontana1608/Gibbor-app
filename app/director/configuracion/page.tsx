@@ -77,7 +77,7 @@ export default function ConfiguracionGeneral() {
             }
           } catch(e) {}
 
-          setConfig(prev => ({
+          setConfig((prev: any) => ({
             ...prev,
             ...data,
             nombre_club: data.nombre_club || tenantData.config?.nombre || 'MI CLUB',
@@ -88,7 +88,7 @@ export default function ConfiguracionGeneral() {
           }));
           if (data.hijos_config) setHijosIds(data.hijos_config.split(','));
         } else {
-          setConfig(prev => ({
+          setConfig((prev: any) => ({
             ...prev,
             nombre_club: tenantData.config?.nombre || 'MI CLUB',
             temporada_actual: `TEMPORADA ${añoActual}`
