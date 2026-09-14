@@ -81,12 +81,16 @@ export default function LoginForm({ tenant }: LoginFormProps) {
     e.preventDefault();
     setLoading(true);
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
+      email: cleanEmail,
+      password: cleanPassword,
     });
 
     if (authError) {
+      console.error("Error al iniciar sesión:", authError.message);
       alert('Error: Correo o contraseña incorrectos.');
       setLoading(false);
       return;
@@ -104,7 +108,7 @@ export default function LoginForm({ tenant }: LoginFormProps) {
         const fixRes = await fetch('/api/auth/fix-profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: authData.user.id, email: authData.user.email })
+          body: JSON.stringify({ userId: authData.user.id, email: authData.user.email || cleanEmail })
         });
         
         if (fixRes.ok) {

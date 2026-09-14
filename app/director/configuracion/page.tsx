@@ -7,6 +7,7 @@ import {
   Smartphone, Building, Globe, Key, ShieldCheck, Zap, Wallet, X, Search, PlusCircle, Palette, Upload, Loader2, Image as ImageIcon
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { COUNTRY_CATALOG, getCountryInfo } from '@/lib/currency-utils';
 
 export default function ConfiguracionGeneral() {
   const [cargando, setCargando] = useState(false);
@@ -18,6 +19,8 @@ export default function ConfiguracionGeneral() {
   const [planes, setPlanes] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
   const { slug: tenantSlug } = useTenant();
+
+  const [paisClub, setPaisClub] = useState('Colombia');
 
   const [nuevaContrasenaGlobal, setNuevaContrasenaGlobal] = useState('');
   const [cambiandoContrasena, setCambiandoContrasena] = useState(false);
@@ -83,13 +86,16 @@ export default function ConfiguracionGeneral() {
           }));
         }
 
-        const { data: clubData } = await supabase.from('clubes').select('logo_url, color_primario, color_secundario').eq('id', tenantData.id).single();
+        const { data: clubData } = await supabase.from('clubes').select('logo_url, color_primario, color_secundario, pais').eq('id', tenantData.id).single();
         if (clubData) {
           setIdentidad({
             logo_url: clubData.logo_url || '',
             color_primario: clubData.color_primario || '#06b6d4',
             color_secundario: clubData.color_secundario || '#0284c7'
           });
+          if (clubData.pais) {
+            setPaisClub(clubData.pais);
+          }
         }
         setLoadingConfig(false);
 
@@ -222,7 +228,8 @@ export default function ConfiguracionGeneral() {
           nombre: config.nombre_club,
           logo_url: identidad.logo_url,
           color_primario: identidad.color_primario,
-          color_secundario: identidad.color_secundario
+          color_secundario: identidad.color_secundario,
+          pais: paisClub
         }
       })
     });
@@ -396,6 +403,21 @@ export default function ConfiguracionGeneral() {
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Ciudad</label>
                 <input type="text" value={config.ciudad} onChange={(e) => setConfig({...config, ciudad: e.target.value})} className="text-brand font-bold text-sm" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">País y Divisa Oficial</label>
+                <select
+                  value={paisClub}
+                  onChange={(e) => setPaisClub(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer focus:ring-1 focus:ring-brand"
+                >
+                  {COUNTRY_CATALOG.map((c) => (
+                    <option key={c.code} value={c.name}>
+                      {c.flag} {c.name} ({c.currency} - {c.symbol})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[9px] text-slate-400 mt-1">Define la moneda y formato monetario para recibos, planes y cobranza.</p>
               </div>
             </div>
           </div>

@@ -119,7 +119,11 @@ export default function ModuloNomina() {
     const cLocal = localStorage.getItem(`club_ciudad_${clubId}`);
     if (cLocal) setCiudadEmision(cLocal);
     const tLocal = localStorage.getItem(`club_telefono_${clubId}`);
-    if (tLocal) setTelefonoEmision(tLocal);
+    if (tLocal) {
+      setTelefonoEmision(tLocal);
+    } else if (tenant?.dialCode) {
+      setTelefonoEmision(`(${tenant.dialCode}) 000 000 0000`);
+    }
     const fLocal = localStorage.getItem(`club_firma_director_${clubId}`);
     if (fLocal) setFirmaDirector(fLocal);
 

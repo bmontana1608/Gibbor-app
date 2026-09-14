@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 // Multi-tenant configuration and tenant resolution logic for Gibbor App
 // Updated: 2024-05-14 to stabilize routing
 import { createClient } from '@supabase/supabase-js';
+import { getCountryInfo } from './currency-utils';
 
 // Cliente Admin para bypass de RLS en la detección de Tenant
 const supabaseAdmin = createClient(
@@ -69,11 +70,15 @@ export async function getTenant(overrideSlug?: string | null) {
     }
   }
 
-  // Quitamos el fallback forzado a 'gibbor' para permitir que el dominio raíz use 'master'
-
   // Branding Neutro y Profesional del SaaS Matriz (Master Club Manager)
+  const defaultCountryInfo = getCountryInfo('Colombia');
   const saasMaster = {
     slug: 'master',
+    pais: 'Colombia',
+    ciudad: '',
+    moneda: defaultCountryInfo.currency,
+    dialCode: defaultCountryInfo.dialCode,
+    simboloMoneda: defaultCountryInfo.symbol,
     config: {
       nombre: 'Master Club Manager (MCM)',
       color: '#10b981', // Verde MCM
@@ -98,10 +103,17 @@ export async function getTenant(overrideSlug?: string | null) {
     return { ...saasMaster, isMaster: true };
   }
 
+  const countryInfo = getCountryInfo(currentClub.pais || 'Colombia');
+
   return {
     id: currentClub.id,
     slug: currentClub.slug,
     isMaster: false,
+    pais: currentClub.pais || 'Colombia',
+    ciudad: currentClub.ciudad || '',
+    moneda: currentClub.moneda || countryInfo.currency,
+    dialCode: countryInfo.dialCode,
+    simboloMoneda: countryInfo.symbol,
     mp_access_token: currentClub.mp_access_token,
     mp_public_key: currentClub.mp_public_key,
     fecha_fin_prueba: currentClub.fecha_fin_prueba,

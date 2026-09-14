@@ -595,32 +595,37 @@ export default function FichaDelJugador() {
           </div>
           
           <div className="flex-1 w-full flex flex-col gap-3 pt-5">
-            {jugador.email ? (
+            {(jugador.email || jugador.email_contacto) ? (
               <button onClick={async () => { 
-                if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
-                if(!window.confirm(`¿Seguro que deseas resetear la clave de este usuario a: ${claveAcceso} ?`)) return; 
+                const cleanPass = claveAcceso.trim();
+                if(!cleanPass || cleanPass.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
+                if(!window.confirm(`¿Seguro que deseas resetear la clave de este usuario a: ${cleanPass} ?`)) return; 
                 setGenerandoAcceso(true); 
                 const tid = toast.loading("Reseteando clave..."); 
                 const res = await fetch('/api/admin/reset-password', { 
                   method: 'POST', 
-                  body: JSON.stringify({ userId: jugador.id, newPassword: claveAcceso }) 
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ userId: jugador.id, newPassword: cleanPass }) 
                 }); 
-                if(res.ok) toast.success(`Clave reseteada a ${claveAcceso}`, {id: tid});
+                if(res.ok) toast.success(`Clave reseteada a ${cleanPass}`, {id: tid});
                 else toast.error("Error al resetear clave", {id: tid});
                 setGenerandoAcceso(false); 
               }} disabled={generandoAcceso} className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md">Resetear Clave</button>
             ) : (
               <button onClick={async () => { 
-                if(!emailAcceso) return toast.error("Por favor ingresa un correo"); 
-                if(!claveAcceso || claveAcceso.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
+                const cleanMail = emailAcceso.trim().toLowerCase();
+                const cleanPass = claveAcceso.trim();
+                if(!cleanMail) return toast.error("Por favor ingresa un correo"); 
+                if(!cleanPass || cleanPass.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
                 setGenerandoAcceso(true); 
                 const tid = toast.loading("Activando acceso...");
                 try {
                   const res = await fetch('/api/admin/crear-usuario', { 
                     method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                      email: emailAcceso, 
-                      password: claveAcceso, 
+                      email: cleanMail, 
+                      password: cleanPass, 
                       rol: jugador.rol || 'Futbolista', 
                       perfilId: jugador.id 
                     }) 
@@ -628,7 +633,7 @@ export default function FichaDelJugador() {
                   const data = await res.json();
                   if(res.ok) { 
                     toast.success("¡Acceso activado correctamente!", { id: tid }); 
-                    setJugador({...jugador, email: emailAcceso});
+                    setJugador({...jugador, email: cleanMail, email_contacto: cleanMail});
                   } else { 
                     toast.error("Error: " + (data.error || "Fallo desconocido"), { id: tid }); 
                   }
@@ -640,7 +645,11 @@ export default function FichaDelJugador() {
             )}
             
             <button onClick={() => {
-              const msg = `¡Hola! Tu acceso a Gibbor App ha sido configurado.\n\n📧 Correo: ${emailAcceso}\n🔑 Clave temporal: ${claveAcceso}\n\nPuedes ingresar en: https://www.masterclubmanager.com/${tenantSlug || 'tenant'}/login`;
+              const cleanMail = emailAcceso.trim().toLowerCase();
+              const cleanPass = claveAcceso.trim();
+              const appHost = typeof window !== 'undefined' ? window.location.origin : 'https://www.masterclubmanager.com';
+              const loginUrl = `${appHost}/${tenantSlug || 'tenant'}/login`;
+              const msg = `¡Hola! Tu acceso a ${tenant?.nombre || 'la plataforma'} ha sido configurado.\n\n📧 Correo: ${cleanMail}\n🔑 Clave temporal: ${cleanPass}\n\nPuedes ingresar en: ${loginUrl}`;
               window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
             }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
           </div>

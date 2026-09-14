@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { getCountryInfo } from '@/lib/currency-utils';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -148,13 +149,15 @@ export async function POST(request: Request) {
         api_url: 'https://evolution-api-production-c6137.up.railway.app'
       }]);
 
+      const countryData = getCountryInfo(solicitud.pais || 'Colombia');
+
       await supabaseAdmin.from('planes').insert([{
         club_id: nuevoClub.id,
         nombre: 'Mensualidad Regular',
-        precio_base: 70000,
+        precio_base: countryData.precioSugerido || 70000,
         dia_cobro_mensual: 1,
         dias_limite_pronto_pago: 5,
-        descuento_pronto_pago: 10000
+        descuento_pronto_pago: countryData.descuentoSugerido || 10000
       }]);
 
       // 8. Marcar solicitud como Aprobada

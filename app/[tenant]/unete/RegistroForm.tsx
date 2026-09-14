@@ -5,11 +5,16 @@ import { supabase } from '@/lib/supabase';
 import {
   User, MapPin, ShieldCheck,
   HeartPulse, FileText, CheckCircle2, Loader2,
-  ArrowRight, Target, AlertCircle, Smartphone
+  ArrowRight, Target, AlertCircle, Smartphone, ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { COUNTRY_CATALOG, getCountryInfo, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
 
 export default function RegistroForm({ club, categoriasIniciales }: { club: any, categoriasIniciales: any[] }) {
+  const initialCountry = getCountryInfo(club?.pais || 'Colombia');
+  const [selectedCountryCode, setSelectedCountryCode] = useState(initialCountry.code);
+  const selectedCountry = COUNTRY_CATALOG.find(c => c.code === selectedCountryCode) || initialCountry;
+
   const [isMinor, setIsMinor] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [registroExitoso, setRegistroExitoso] = useState(false);
@@ -72,6 +77,8 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
 
     try {
       const currentFormData = { ...formData };
+      // Normalizar número telefónico con el código de marcado internacional seleccionado
+      currentFormData.telefono = formatInternationalWhatsAppPhone(formData.telefono, selectedCountry.dialCode);
 
       const uploadFile = async (file: File, folder: string) => {
         const fileExt = file.name.split('.').pop();
@@ -88,9 +95,13 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
       if (archivos.acudiente) currentFormData.doc_acudiente_url  = await uploadFile(archivos.acudiente,  'acudientes');
       if (archivos.extra)     currentFormData.doc_extra_url      = await uploadFile(archivos.extra,      'extras');
 
+      const cleanContactEmail = currentFormData.email_contacto ? currentFormData.email_contacto.trim().toLowerCase() : '';
+
       // Insertar perfil CON el club_id del club detectado
       const { error } = await supabase.from('perfiles').insert([{
         ...currentFormData,
+        email: cleanContactEmail || null,
+        email_contacto: cleanContactEmail,
         club_id: club.id,
         estado_miembro: 'Pendiente',
       }]);
@@ -199,7 +210,22 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">WhatsApp *</label>
               <div className="flex">
-                <span className="bg-slate-100 border border-slate-200 border-r-0 rounded-l-2xl px-4 py-4 text-slate-400 font-bold">+57</span>
+                <div className="relative flex items-center bg-slate-100 border border-slate-200 border-r-0 rounded-l-2xl px-3 py-4 text-slate-700 font-bold text-sm">
+                  <span className="mr-1.5 text-base">{selectedCountry.flag}</span>
+                  <span>{selectedCountry.dialCode}</span>
+                  <select
+                    value={selectedCountryCode}
+                    onChange={(e) => setSelectedCountryCode(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    title="Seleccionar país"
+                  >
+                    {COUNTRY_CATALOG.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.name} ({c.dialCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="300 000 0000" className="w-full bg-white border border-slate-100 rounded-r-2xl px-5 py-4 outline-none font-bold text-slate-700" required />
               </div>
             </div>

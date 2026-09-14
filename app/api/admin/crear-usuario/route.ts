@@ -4,10 +4,15 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
-    const { email, password, perfilId, rol } = await request.json();
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
-    if (!email || !password || !perfilId) {
+    if (!cleanEmail || !cleanPassword || !perfilId) {
       return NextResponse.json({ error: 'Datos incompletos' }, { status: 400 });
+    }
+
+    if (cleanPassword.length < 6) {
+      return NextResponse.json({ error: 'La contraseña debe tener mínimo 6 caracteres' }, { status: 400 });
     }
 
     // 1. Autenticar al usuario llamante
@@ -53,21 +58,116 @@ export async function POST(request: Request) {
 
     // 5. Intentar crear el usuario en Supabase Auth
     const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
+      email: cleanEmail,
+      password: cleanPassword,
       email_confirm: true,
-      user_metadata: { rol }
+      user_metadata: { rol: rol || perfilOriginal.rol || 'Futbolista' }
     });
 
+    let finalAuthUserId = authUser?.user?.id;
+
     if (authError) {
-      // SI EL USUARIO YA EXISTE (CASO DE HERMANOS/FAMILIA)
-      if (authError.message.includes('already been registered') || authError.status === 422) {
-        // No creamos usuario nuevo, solo activamos el perfil y lo vinculamos por email_contacto
+      const isAlreadyRegistered = 
+        authError.message.toLowerCase().includes('already') || 
+        authError.message.toLowerCase().includes('exists') || 
+        authError.status === 422;
+
+      if (!isAlreadyRegistered) {
+        console.error('Error Auth:', authError.message);
+        return NextResponse.json({ error: authError.message }, { status: 500 });
+      }
+
+      // CASO: EL USUARIO YA EXISTE EN SUPABASE AUTH
+      // Buscamos el usuario en Auth por su email
+      let existingAuthUser: any = null;
+      let page = 1;
+      while (!existingAuthUser && page <= 5) {
+        const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (listError || !listData?.users || listData.users.length === 0) break;
+        existingAuthUser = listData.users.find((u: any) => u.email?.toLowerCase().trim() === cleanEmail);
+        if (existingAuthUser || listData.users.length < 1000) break;
+        page++;
+      }
+
+      if (!existingAuthUser) {
+        return NextResponse.json({ error: 'El usuario figura como registrado en Auth pero no se pudo recuperar.' }, { status: 500 });
+      }
+
+      finalAuthUserId = existingAuthUser.id;
+
+      // ACTUALIZAR OBLIGATORIAMENTE LA CONTRASEÑA EN AUTH CON LA CLAVE TEMPORAL PROPORCIONADA
+      const { error: updateAuthErr } = await supabaseAdmin.auth.admin.updateUserById(
+        existingAuthUser.id,
+        { 
+          password: cleanPassword,
+          email_confirm: true
+        }
+      );
+
+      if (updateAuthErr) {
+        console.error('Error al actualizar contraseña de usuario existente:', updateAuthErr.message);
+        return NextResponse.json({ error: 'Error al actualizar credenciales: ' + updateAuthErr.message }, { status: 500 });
+      }
+
+      // Verificar si ya existe un perfil con ese ID de Auth
+      const { data: profileWithAuthId } = await supabaseAdmin
+        .from('perfiles')
+        .select('id')
+        .eq('id', existingAuthUser.id)
+        .maybeSingle();
+
+      if (!profileWithAuthId) {
+        // Ningún perfil usa el ID de Auth todavía: podemos migrar el perfil original a este ID
+        if (perfilOriginal.id !== existingAuthUser.id) {
+          const { error: cloneErr } = await supabaseAdmin
+            .from('perfiles')
+            .insert([{
+              ...perfilOriginal,
+              id: existingAuthUser.id,
+              email: cleanEmail,
+              email_contacto: cleanEmail,
+              estado_miembro: 'Activo'
+            }]);
+
+          if (!cloneErr) {
+            const tablasDependientes = ['pagos_ingresos', 'asistencias', 'evaluaciones_tecnicas', 'clubes_usuarios'];
+            for (const tabla of tablasDependientes) {
+              await supabaseAdmin
+                .from(tabla)
+                .update({ [tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id']: existingAuthUser.id })
+                .eq(tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id', perfilId);
+            }
+            await supabaseAdmin.from('perfiles').delete().eq('id', perfilId);
+          } else {
+            // Si falla el insert, actualizar el perfil actual
+            await supabaseAdmin
+              .from('perfiles')
+              .update({ 
+                estado_miembro: 'Activo',
+                email: cleanEmail,
+                email_contacto: cleanEmail 
+              })
+              .eq('id', perfilId);
+          }
+        } else {
+          await supabaseAdmin
+            .from('perfiles')
+            .update({ 
+              estado_miembro: 'Activo',
+              email: cleanEmail,
+              email_contacto: cleanEmail 
+            })
+            .eq('id', existingAuthUser.id);
+        }
+      } else {
+        // Ya existe otro perfil con ese ID (caso de hermanos/cuenta familiar)
+        // El perfil actual mantiene su perfilId pero se activa y sincroniza email
         const { error: activateError } = await supabaseAdmin
           .from('perfiles')
           .update({ 
             estado_miembro: 'Activo',
-            email_contacto: email 
+            email: cleanEmail,
+            email_contacto: cleanEmail 
           })
           .eq('id', perfilId);
 
@@ -77,80 +177,70 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
           success: true, 
-          message: 'Perfil vinculado a cuenta familiar existente',
-          isFamilyLink: true 
+          message: 'Perfil vinculado a cuenta familiar y contraseña actualizada',
+          isFamilyLink: true,
+          userId: existingAuthUser.id
         });
       }
+    } else {
+      // 6. MIGRACIÓN SEGURA PARA USUARIO NUEVO (Copiar -> Migrar -> Eliminar)
+      const { error: createError } = await supabaseAdmin
+        .from('perfiles')
+        .insert([{
+          ...perfilOriginal,
+          id: authUser.user.id,
+          email: cleanEmail,
+          email_contacto: cleanEmail,
+          estado_miembro: 'Activo'
+        }]);
 
-      console.error('Error Auth:', authError.message);
-      return NextResponse.json({ error: authError.message }, { status: 500 });
+      if (createError) {
+        await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
+        return NextResponse.json({ error: 'Error al clonar perfil: ' + createError.message }, { status: 500 });
+      }
+
+      // Migrar dependencias al nuevo ID
+      const tablasDependientes = ['pagos_ingresos', 'asistencias', 'evaluaciones_tecnicas', 'clubes_usuarios'];
+      for (const tabla of tablasDependientes) {
+        await supabaseAdmin
+          .from(tabla)
+          .update({ [tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id']: authUser.user.id })
+          .eq(tabla === 'clubes_usuarios' ? 'usuario_id' : 'jugador_id', perfilId);
+      }
+
+      // Eliminar el perfil antiguo
+      await supabaseAdmin.from('perfiles').delete().eq('id', perfilId);
     }
-
-    // 6. MIGRACIÓN SEGURA (Copiar -> Migrar -> Eliminar)
-
-    // 2.2 Crear el NUEVO perfil (Clon con nuevo ID)
-    const { error: createError } = await supabaseAdmin
-      .from('perfiles')
-      .insert([{
-        ...perfilOriginal,
-        id: authUser.user.id,
-        email_contacto: email
-      }]);
-
-    if (createError) {
-      await supabaseAdmin.auth.admin.deleteUser(authUser.user.id);
-      return NextResponse.json({ error: 'Error al clonar perfil: ' + createError.message }, { status: 500 });
-    }
-
-    // 2.3 Migrar dependencias al nuevo ID
-    const tablasDependientes = ['pagos_ingresos', 'asistencias', 'evaluaciones_tecnicas'];
-    for (const tabla of tablasDependientes) {
-      await supabaseAdmin
-        .from(tabla)
-        .update({ jugador_id: authUser.user.id })
-        .eq('jugador_id', perfilId);
-    }
-
-    // 2.4 Eliminar el perfil antiguo (El temporal)
-    await supabaseAdmin.from('perfiles').delete().eq('id', perfilId);
 
     // ==========================================
-    // 3. MENSAJE DE BIENVENIDA (WHATSAPP)
+    // 7. MENSAJE DE BIENVENIDA (WHATSAPP)
     // ==========================================
     try {
-      // 3.1 Buscar el club al que pertenece el nuevo usuario
-      const { data: rel } = await supabaseAdmin
-        .from('clubes_usuarios')
-        .select('club_id')
-        .eq('usuario_id', authUser.user.id)
-        .limit(1)
-        .single();
+      const clubTargetId = perfilOriginal.club_id;
 
-      if (rel && rel.club_id) {
-        // 3.2 Buscar el club y su configuracion WA
+      if (clubTargetId) {
         const { data: clubInfo } = await supabaseAdmin
           .from('clubes')
           .select('slug, nombre')
-          .eq('id', rel.club_id)
+          .eq('id', clubTargetId)
           .single();
 
         const { data: waConfig } = await supabaseAdmin
           .from('configuracion_wa')
           .select('active_webhook')
-          .eq('club_id', rel.club_id)
+          .eq('club_id', clubTargetId)
           .single();
 
-        // Asumimos bienvenida activa si tienen WA configurado (hasta que se agregue la columna booleana real)
         const bienvenidaActiva = waConfig?.active_webhook === true;
 
         if (clubInfo && bienvenidaActiva && perfilOriginal?.telefono) {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://portalgibbor.com';
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.masterclubmanager.com';
           const clubLoginUrl = `${appUrl}/${clubInfo.slug}/login`;
           
-          const mensajeBienvenida = `¡Hola ${perfilOriginal.nombres}! 👋⚽\n\nNos emociona darte la bienvenida oficial a *${clubInfo.nombre}*. ¡Qué alegría tenerte en nuestro equipo!\n\nTu perfil en nuestra plataforma deportiva ya está listo. Desde allí podrás ver tus evaluaciones, llevar control de tu asistencia y gestionar tus pagos de manera súper fácil.\n\nAquí tienes tus credenciales de acceso seguro:\n\n📧 *Usuario:* ${email}\n🔑 *Contraseña:* ${password}\n\n👉 *Ingresa a tu portal aquí:* ${clubLoginUrl}\n\nSi tienes alguna pregunta, ¡no dudes en escribirnos por aquí mismo! Estamos para ayudarte a brillar en la cancha. 🏆✨`;
+          const mensajeBienvenida = `¡Hola ${perfilOriginal.nombres}! 👋⚽\n\nNos emociona darte la bienvenida oficial a *${clubInfo.nombre}*. ¡Qué alegría tenerte en nuestro equipo!\n\nTu perfil en nuestra plataforma deportiva ya está listo. Desde allí podrás ver tus evaluaciones, llevar control de tu asistencia y gestionar tus pagos de manera súper fácil.\n\nAquí tienes tus credenciales de acceso seguro:\n\n📧 *Usuario:* ${cleanEmail}\n🔑 *Contraseña:* ${cleanPassword}\n\n👉 *Ingresa a tu portal aquí:* ${clubLoginUrl}\n\nSi tienes alguna pregunta, ¡no dudes en escribirnos por aquí mismo! Estamos para ayudarte a brillar en la cancha. 🏆✨`;
 
           await supabaseAdmin.from('mensajes_cola').insert({
-            club_id: rel.club_id,
+            club_id: clubTargetId,
             telefono_destino: perfilOriginal.telefono,
             mensaje: mensajeBienvenida,
             estado: 'Pendiente',
@@ -161,10 +251,9 @@ export async function POST(request: Request) {
       }
     } catch (waError) {
       console.error('Error al encolar mensaje de bienvenida:', waError);
-      // No bloqueamos la creación del usuario si falla WhatsApp
     }
 
-    return NextResponse.json({ success: true, userId: authUser.user.id });
+    return NextResponse.json({ success: true, userId: finalAuthUserId });
 
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

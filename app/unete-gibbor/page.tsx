@@ -9,6 +9,7 @@ import {
   ArrowRight, Target, AlertCircle, Smartphone
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { COUNTRY_CATALOG, getCountryInfo, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
 
 export default function RegistroPublicoPorClub() {
   // Al ser una ruta estática en /registro/gibbor, forzamos el slug
@@ -17,6 +18,9 @@ export default function RegistroPublicoPorClub() {
   const [club, setClub] = useState<any>(null);
   const [cargandoClub, setCargandoClub] = useState(true);
   const [clubNoEncontrado, setClubNoEncontrado] = useState(false);
+  const [selectedCountryCode, setSelectedCountryCode] = useState('CO');
+
+  const selectedCountry = COUNTRY_CATALOG.find(c => c.code === selectedCountryCode) || COUNTRY_CATALOG[0];
 
   const [isMinor, setIsMinor] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -43,7 +47,7 @@ export default function RegistroPublicoPorClub() {
     async function cargarClub() {
       const { data, error } = await supabase
         .from('clubes')
-        .select('id, nombre, logo_url, color_primario, slug')
+        .select('id, nombre, logo_url, color_primario, slug, pais')
         .eq('slug', slug)
         .single();
 
@@ -51,6 +55,10 @@ export default function RegistroPublicoPorClub() {
         setClubNoEncontrado(true);
       } else {
         setClub(data);
+        if (data.pais) {
+          const cInfo = getCountryInfo(data.pais);
+          setSelectedCountryCode(cInfo.code);
+        }
         // Cargar categorías del club
         const { data: cats } = await supabase
           .from('categorias')
@@ -107,6 +115,7 @@ export default function RegistroPublicoPorClub() {
 
     try {
       const currentFormData = { ...formData };
+      currentFormData.telefono = formatInternationalWhatsAppPhone(formData.telefono, selectedCountry.dialCode);
 
       const uploadFile = async (file: File, folder: string) => {
         const fileExt = file.name.split('.').pop();
@@ -254,7 +263,22 @@ export default function RegistroPublicoPorClub() {
             <div>
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">WhatsApp *</label>
               <div className="flex">
-                <span className="bg-slate-100 border border-slate-200 border-r-0 rounded-l-2xl px-4 py-4 text-slate-400 font-bold">+57</span>
+                <div className="relative flex items-center bg-slate-100 border border-slate-200 border-r-0 rounded-l-2xl px-3 py-4 text-slate-700 font-bold text-sm">
+                  <span className="mr-1.5 text-base">{selectedCountry.flag}</span>
+                  <span>{selectedCountry.dialCode}</span>
+                  <select
+                    value={selectedCountryCode}
+                    onChange={(e) => setSelectedCountryCode(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    title="Seleccionar país"
+                  >
+                    {COUNTRY_CATALOG.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.name} ({c.dialCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="300 000 0000" className="w-full bg-white border border-slate-100 rounded-r-2xl px-5 py-4 outline-none font-bold text-slate-700" required />
               </div>
             </div>

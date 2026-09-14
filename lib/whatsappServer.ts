@@ -6,8 +6,8 @@ export async function enviarMensajeWhatsAppServer(
   mensaje: string, 
   mediaBase64?: string, 
   tipoMedia: 'document' | 'image' = 'document',
-  fileName: string = 'Archivo_Gibbor.pdf',
-  instanceName: string = 'gibbor',
+  fileName: string = 'Archivo.pdf',
+  instanceName?: string,
   pais?: string
 ) {
   try {
@@ -18,10 +18,14 @@ export async function enviarMensajeWhatsAppServer(
       throw new Error('Faltan variables de entorno EVOLUTION_API_URL o EVOLUTION_API_KEY');
     }
 
+    if (!instanceName) {
+      throw new Error('No se especificó la instancia de WhatsApp correspondiente al club.');
+    }
+
     let finalPhone = formatInternationalWhatsAppPhone(telefono, pais);
 
     const cleanUrl = EVOLUTION_API_URL.endsWith('/') ? EVOLUTION_API_URL.slice(0, -1) : EVOLUTION_API_URL;
-    let instance = encodeURIComponent(instanceName || 'gibbor');
+    const instance = encodeURIComponent(instanceName);
 
     let instanceReady = false;
     try {
@@ -53,38 +57,8 @@ export async function enviarMensajeWhatsAppServer(
       }
     } catch (e) {}
 
-    if (!instanceReady && instance !== 'gibbor') {
-      instance = 'gibbor';
-      try {
-        const statusRes = await fetch(`${cleanUrl}/instance/connectionState/gibbor`, {
-          headers: { 'apikey': EVOLUTION_API_KEY }
-        });
-        const statusData = await statusRes.json();
-        const rawState = statusData?.instance?.state || statusData?.state || 'disconnected';
-        let gibborConnected = rawState === 'open';
-
-        if (gibborConnected) {
-          const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-            headers: { 'apikey': EVOLUTION_API_KEY },
-            signal: AbortSignal.timeout(5000)
-          });
-          if (listRes.ok) {
-            const listData = await listRes.json();
-            const gibborInst = listData.find((i: any) => i.name === 'gibbor' || i.instanceName === 'gibbor');
-            if (gibborInst && gibborInst.connectionStatus !== 'open') {
-              gibborConnected = false;
-            }
-          }
-        }
-        
-        if (gibborConnected) {
-          instanceReady = true;
-        }
-      } catch (e) {}
-    }
-
     if (!instanceReady) {
-      throw new Error('El canal de WhatsApp ha sido desvinculado o está desconectado.');
+      throw new Error(`El canal de WhatsApp del club (${instanceName}) no está conectado o configurado. Por favor vincula tu WhatsApp en Configuración > Asistente WhatsApp.`);
     }
 
     const endpoint = mediaBase64 ? 'sendMedia' : 'sendText';

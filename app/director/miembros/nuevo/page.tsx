@@ -8,6 +8,7 @@ import { User, Users, Hospital, ShieldAlert, ArrowLeft, Trophy, Save, RefreshCw 
 import { toast } from 'sonner';
 
 import { useTenant } from '@/lib/hooks/useTenant';
+import { COUNTRY_CATALOG, getCountryInfo, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
 
 export default function NuevoMiembro() {
   const router = useRouter();
@@ -18,7 +19,10 @@ export default function NuevoMiembro() {
   const [planes, setPlanes] = useState<any[]>([]);
   const [todosLosJugadores, setTodosLosJugadores] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
+  const [selectedCountryCode, setSelectedCountryCode] = useState('CO');
   const { slug: tenantSlug } = useTenant();
+
+  const selectedCountry = COUNTRY_CATALOG.find(c => c.code === selectedCountryCode) || COUNTRY_CATALOG[0];
 
   useEffect(() => {
     async function cargarDatosInscripcion() {
@@ -27,6 +31,11 @@ export default function NuevoMiembro() {
       const tenantRes = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
       const tenantData = await tenantRes.json();
       setTenant(tenantData);
+
+      if (tenantData?.pais) {
+        const cInfo = getCountryInfo(tenantData.pais);
+        setSelectedCountryCode(cInfo.code);
+      }
 
       // Cargar categorías activas
       const { data: catData } = await supabase.from('categorias').select('nombre, id').eq('club_id', tenantData.id).eq('estado', 'Activo');
@@ -59,43 +68,50 @@ export default function NuevoMiembro() {
     telefono: '',
     email_contacto: '',
     direccion: '',
-    
-    // Acudiente
     acudiente_nombre: '',
     acudiente_identificacion: '',
-    
-    // Médico y Emergencias
-    tipo_sangre: '',
+    acudiente_telefono: '',
+    acudiente_parentesco: 'Padre',
+    acudiente_direccion: '',
+    tipo_sangre: 'O+',
     eps: '',
-    talla_uniforme: '',
+    poliza_medica: '',
+    alergias: '',
     patologias: '',
-    emergencia_nombre: '',
-    emergencia_telefono: '',
-
-    // Club
+    medicamentos: '',
+    talla_uniforme: 'M',
+    posicion_juego: 'Delantero',
+    pierna_habil: 'Derecha',
+    categoria_id: '',
     grupos: '',
-    tipo_plan: 'Regular',
-    rol: 'Futbolista',
-    estado_pago: 'Pendiente',
     estado_miembro: 'Activo',
-    hijos_config: '',
+    rol: 'Futbolista',
+    tipo_plan: 'Mensual',
+    vinculo_jugador_id: '',
     override_categoria: false,
-    fecha_ingreso: new Date().toISOString().split('T')[0], // Por defecto: hoy
+    fecha_ingreso: new Date().toISOString().split('T')[0]
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const dateValue = e.target.value;
-    setFormData(prev => ({ ...prev, fecha_nacimiento: dateValue }));
-    
-    if (dateValue) {
-      const year = new Date(dateValue).getFullYear();
-      const currentYear = new Date().getFullYear();
-      setIsMinor((currentYear - year) < 18);
+    const birthDate = e.target.value;
+    setFormData(prev => ({ ...prev, fecha_nacimiento: birthDate }));
+    if (birthDate) {
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      setIsMinor(age < 18);
     } else {
       setIsMinor(false);
     }
@@ -111,8 +127,19 @@ export default function NuevoMiembro() {
     setGuardando(true);
     const toastId = toast.loading("Guardando jugador...");
 
+    const normalizedPhone = formatInternationalWhatsAppPhone(formData.telefono, selectedCountry.dialCode);
+    const normalizedAcudientePhone = formData.acudiente_telefono 
+      ? formatInternationalWhatsAppPhone(formData.acudiente_telefono, selectedCountry.dialCode)
+      : '';
+
+    const cleanContactEmail = formData.email_contacto ? formData.email_contacto.trim().toLowerCase() : '';
+
     const payload = {
       ...formData,
+      email: cleanContactEmail || null,
+      email_contacto: cleanContactEmail,
+      telefono: normalizedPhone,
+      acudiente_telefono: normalizedAcudientePhone || formData.acudiente_telefono,
       grupos: formData.override_categoria && formData.grupos ? `${formData.grupos}|MANUAL` : formData.grupos,
       club_id: tenant?.id
     };
@@ -186,8 +213,23 @@ export default function NuevoMiembro() {
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Teléfono Móvil / WhatsApp *</label>
                 <div className="flex">
-                  <span className="bg-slate-100 border border-slate-300 border-r-0 rounded-l-lg px-3 py-2.5 text-slate-500 text-sm font-medium">+57</span>
-                  <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required className="text-brand outline-none text-sm" />
+                  <div className="relative flex items-center bg-slate-100 border border-slate-300 border-r-0 rounded-l-lg px-2.5 py-2 text-slate-700 font-bold text-xs">
+                    <span className="mr-1 text-sm">{selectedCountry.flag}</span>
+                    <span>{selectedCountry.dialCode}</span>
+                    <select
+                      value={selectedCountryCode}
+                      onChange={(e) => setSelectedCountryCode(e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      title="Seleccionar país"
+                    >
+                      {COUNTRY_CATALOG.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.flag} {c.name} ({c.dialCode})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} required className="text-brand outline-none text-sm w-full" />
                 </div>
               </div>
               <div>

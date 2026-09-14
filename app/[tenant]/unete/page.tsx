@@ -56,8 +56,14 @@ export default async function UnetePage({ params }: any) {
     nombre: tenant.config.nombre,
     logo_url: tenant.config.logo,
     color_primario: tenant.config.color,
-    slug: tenant.slug
+    slug: tenant.slug,
+    pais: (tenant as any).pais,
+    ciudad: (tenant as any).ciudad,
+    moneda: (tenant as any).moneda,
+    dialCode: (tenant as any).dialCode,
+    simboloMoneda: (tenant as any).simboloMoneda,
   };
 
   return <RegistroForm club={clubData} categoriasIniciales={categorias || []} />;
 }
+

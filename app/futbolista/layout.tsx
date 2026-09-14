@@ -51,11 +51,11 @@ export default async function FutbolistaLayout({ children }: { children: React.R
   }
 
   // Cargar familia (Lógica existente simplificada para servidor)
-  const cleanEmail = user.email?.trim().replace(/\.+@/g, '@').replace(/\.+$/,'');
+  const cleanEmail = (user.email || '').trim().toLowerCase().replace(/\.+@/g, '@').replace(/\.+$/,'');
   const { data: misPerfiles } = await supabase
     .from('perfiles')
     .select('*')
-    .or(`email.eq.${cleanEmail},id.eq.${user.id}`);
+    .or(`email.ilike.${cleanEmail},email_contacto.ilike.${cleanEmail},id.eq.${user.id}`);
 
   return (
     <FutbolistaLayoutClient 

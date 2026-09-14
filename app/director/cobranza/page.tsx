@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
+import { formatCurrency, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
 
 import { useTenant } from '@/lib/hooks/useTenant';
 
@@ -74,7 +75,7 @@ export default function ModuloCobranza() {
   };
 
   const eliminarAbono = async (id: string, monto: number) => {
-    if (!window.confirm(`¿Eliminar el abono de $${Number(monto).toLocaleString('es-CO')}? Esto afectará el saldo del alumno.`)) return;
+    if (!window.confirm(`¿Eliminar el abono de ${formatCurrency(Number(monto), tenant?.pais || tenant?.moneda)}? Esto afectará el saldo del alumno.`)) return;
     const toastId = toast.loading('Eliminando abono...');
     try {
       const { data: abono } = await supabase.from('abonos').select('*').eq('id', id).single();
@@ -561,7 +562,7 @@ export default function ModuloCobranza() {
         club_id: tenant?.id,
       }]);
 
-      toast.success(`✅ Abono de $${Number(montoAbono).toLocaleString('es-CO')} registrado`, { id: toastId });
+      toast.success(`✅ Abono de ${formatCurrency(Number(montoAbono), tenant?.pais || tenant?.moneda)} registrado`, { id: toastId });
       setIsModalAbonoOpen(false);
       cargarDatos();
     } catch (err: any) {
@@ -673,6 +674,8 @@ export default function ModuloCobranza() {
           nombre_club: tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
+          pais: tenant?.pais,
+          moneda: tenant?.moneda,
           nequi: clubConfig.nequi,
           daviplata: clubConfig.daviplata,
           bre_b: clubConfig.bre_b,
@@ -684,9 +687,9 @@ export default function ModuloCobranza() {
       // Mensaje de WhatsApp
       const vencimiento = `5/${fechaPeriodo.getMonth() + 1}/${anioActual}`;
       const textoDescuento = descuentoCalculado > 0 
-        ? ` Recuerda que si pagas antes del 5 tienes descuento de $${descuentoCalculado.toLocaleString('es-CO')}.`
+        ? ` Recuerda que si pagas antes del 5 tienes descuento de ${formatCurrency(descuentoCalculado, tenant?.pais || tenant?.moneda)}.`
         : '';
-      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por $ ${tarifaFinal.toLocaleString('es-CO')} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'el club'}* ✨`;
+      const texto = `Hola ${alumno.nombres} 👋, aquí tienes tu recibo de Mensualidad de *${mesNombre}* por ${formatCurrency(tarifaFinal, tenant?.pais || tenant?.moneda)} (vence ${vencimiento}).${textoDescuento} Gracias por confiar en *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'el club'}* ✨`;
 
       const result = await enviarMensajeWhatsApp(
         alumno.telefono,
@@ -758,6 +761,8 @@ export default function ModuloCobranza() {
           nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
+          pais: tenant?.pais,
+          moneda: tenant?.moneda,
           nequi: config?.nequi,
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
@@ -775,9 +780,8 @@ export default function ModuloCobranza() {
       link.download = filename;
       link.click();
 
-      // 2. Formatear número de teléfono con código de país
-      let telefono = String(alumno.telefono || '').replace(/\D/g, '');
-      if (telefono.length === 10) telefono = `57${telefono}`;
+      // 2. Formatear número de teléfono con código de país inteligente
+      const telefono = formatInternationalWhatsAppPhone(alumno.telefono, tenant?.dialCode || tenant?.pais);
 
       // 3. Texto del mensaje personalizado
       const metodosPago = [
@@ -787,7 +791,7 @@ export default function ModuloCobranza() {
       ].filter(Boolean).join('\n');
 
       const textoDescuento = descuentoCalculado > 0
-        ? `\n🎁 *¡Paga antes del día ${diaVence} y ahorra $${descuentoCalculado.toLocaleString('es-CO')}!*`
+        ? `\n🎁 *¡Paga antes del día ${diaVence} y ahorra ${formatCurrency(descuentoCalculado, tenant?.pais || tenant?.moneda)}!*`
         : '';
 
       const mensaje = [
@@ -798,7 +802,7 @@ export default function ModuloCobranza() {
         `📋 *Detalle:*`,
         `• Alumno: *${alumno.nombres} ${alumno.apellidos}*`,
         `• Categoría: *${alumno.grupos || 'General'}*`,
-        `• Valor: *$${tarifaFinal.toLocaleString('es-CO')}*`,
+        `• Valor: *${formatCurrency(tarifaFinal, tenant?.pais || tenant?.moneda)}*`,
         `• Vence: *Día ${diaVence} de ${mesActual}*`,
         textoDescuento,
         ``,
@@ -1062,9 +1066,8 @@ export default function ModuloCobranza() {
       const { data: config } = await supabase.from('configuracion_wa').select('*').single();
       const clubConfig = config || {};
 
-      // 1. Limpiar número
-      let cleanedNumber = String(reciboGenerado.telefono || '').replace(/\D/g, '');
-      if (cleanedNumber.length === 10) cleanedNumber = `57${cleanedNumber}`;
+      // 1. Limpiar y formatear número inteligente
+      const cleanedNumber = formatInternationalWhatsAppPhone(reciboGenerado.telefono, tenant?.dialCode || tenant?.pais);
 
       // 2. Generar PDF Profesional usando la librería central
       const pdfBase64 = await generarReciboPDFBase64({
@@ -1084,6 +1087,8 @@ export default function ModuloCobranza() {
           nombre_club: tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club,
           direccion: clubConfig.direccion || 'Sede Deportiva',
           ciudad: clubConfig.ciudad || 'Colombia',
+          pais: tenant?.pais,
+          moneda: tenant?.moneda,
           nequi: clubConfig.nequi,
           daviplata: clubConfig.daviplata,
           bre_b: clubConfig.bre_b,
@@ -1091,7 +1096,7 @@ export default function ModuloCobranza() {
           banco_numero: clubConfig.banco_numero
         }
       });
-      const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de $${reciboGenerado.total.toLocaleString()}. Aquí tienes tu comprobante oficial en PDF de *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'nuestro club'}*.`;
+      const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de ${formatCurrency(reciboGenerado.total, tenant?.pais || tenant?.moneda)}. Aquí tienes tu comprobante oficial en PDF de *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'nuestro club'}*.`;
 
       // 3. Envío vía API usando motor central
       const result = await enviarMensajeWhatsApp(
@@ -1167,6 +1172,8 @@ export default function ModuloCobranza() {
           nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
           direccion: config?.direccion || 'Sede Deportiva',
           ciudad: config?.ciudad || 'Colombia',
+          pais: tenant?.pais,
+          moneda: tenant?.moneda,
           nequi: config?.nequi,
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
@@ -1342,32 +1349,32 @@ export default function ModuloCobranza() {
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Proyectado</p>
-            <h3 className="text-2xl font-black text-slate-800">${totalProyectado.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-slate-800">{formatCurrency(totalProyectado, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Estimado este mes</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
-            <h3 className="text-2xl font-black text-emerald-600">${ingresosRecaudados.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-emerald-600">{formatCurrency(ingresosRecaudados, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{porcentajeRecaudo}% del mes</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos</p>
-            <h3 className="text-2xl font-black text-red-600">${egresosTotales.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-red-600">{formatCurrency(egresosTotales, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Gastos del mes</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Balance Neto</p>
-            <h3 className="text-2xl font-black text-indigo-600">${utilidadNeta.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-indigo-600">{formatCurrency(utilidadNeta, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Dinero real en caja</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
-            <h3 className="text-2xl font-black text-amber-600">${ingresosPendientesMes.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-amber-600">{formatCurrency(ingresosPendientesMes, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Saldo mes actual</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mora Histórica</p>
-            <h3 className="text-2xl font-black text-rose-600">${moraHistoricaTotal.toLocaleString('es-CO')}</h3>
+            <h3 className="text-2xl font-black text-rose-600">{formatCurrency(moraHistoricaTotal, tenant?.pais || tenant?.moneda)}</h3>
             <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Meses anteriores</p>
           </div>
         </div>
@@ -1430,13 +1437,13 @@ export default function ModuloCobranza() {
                             </td>
                             <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || 'Ninguna'}</td>
                             <td className="p-4 md:px-6">
-                              <select value={jugador.tipo_plan || 'Regular'} onChange={(e) => actualizarPlan(jugador.id, e.target.value, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-slate-100 border-none text-[11px] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-slate-300">
+                                <select value={jugador.tipo_plan || 'Regular'} onChange={(e) => actualizarPlan(jugador.id, e.target.value, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-slate-100 border-none text-[11px] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-slate-300">
                                 {planes.map(p => (
-                                  <option key={p.id} value={p.nombre}>{p.nombre} (${Number(p.precio_base).toLocaleString('es-CO')})</option>
+                                  <option key={p.id} value={p.nombre}>{p.nombre} ({formatCurrency(Number(p.precio_base), tenant?.pais || tenant?.moneda)})</option>
                                 ))}
                               </select>
                             </td>
-                            <td className="p-4 md:px-6 font-black text-slate-700">${jugador.tarifa.toLocaleString('es-CO')}</td>
+                            <td className="p-4 md:px-6 font-black text-slate-700">{formatCurrency(jugador.tarifa, tenant?.pais || tenant?.moneda)}</td>
                             <td className="p-4 md:px-6">
                               {jugador.esBeca100 ? (
                                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center w-fit gap-1.5 shadow-sm">
@@ -1450,19 +1457,19 @@ export default function ModuloCobranza() {
                                   {/* Abono parcial registrado */}
                                   {jugador.abonosDelPeriodo > 0 && !esAlDia && (
                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">
-                                      Abonado: ${jugador.abonosDelPeriodo.toLocaleString('es-CO')} · Saldo: ${jugador.saldoPendientePeriodo.toLocaleString('es-CO')}
+                                      Abonado: {formatCurrency(jugador.abonosDelPeriodo, tenant?.pais || tenant?.moneda)} · Saldo: {formatCurrency(jugador.saldoPendientePeriodo, tenant?.pais || tenant?.moneda)}
                                     </span>
                                   )}
                                   {/* Deuda de meses anteriores */}
                                   {jugador.deudaAcumulada > 0 && (
                                     <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter flex items-center gap-1">
-                                      🔴 Mora histórica: ${jugador.deudaAcumulada.toLocaleString('es-CO')} ({jugador.mesesEnMora.slice(0, 2).join(', ')})
+                                      🔴 Mora histórica: {formatCurrency(jugador.deudaAcumulada, tenant?.pais || tenant?.moneda)} ({jugador.mesesEnMora.slice(0, 2).join(', ')})
                                     </span>
                                   )}
                                   {/* Deuda total si tiene mora + pendiente actual */}
                                   {jugador.deudaTotal > jugador.tarifa && (
                                     <span className="text-[10px] font-black text-red-800 uppercase tracking-tighter">
-                                      ⚠️ Deuda total: ${jugador.deudaTotal.toLocaleString('es-CO')}
+                                      ⚠️ Deuda total: {formatCurrency(jugador.deudaTotal, tenant?.pais || tenant?.moneda)}
                                     </span>
                                   )}
                                   {(jugador.tipo_plan || '').toLowerCase().includes('50') && (
@@ -1578,7 +1585,7 @@ export default function ModuloCobranza() {
                           <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
                           <td className="p-4 md:px-6 text-slate-600 font-medium">{pago.fecha ? pago.fecha.split('-').reverse().join('/') : '---'}</td>
                           <td className="p-4 md:px-6 uppercase font-bold text-[10px] text-slate-500">{pago.metodo_pago}</td>
-                          <td className="p-4 md:px-6 text-right font-black text-emerald-600">${parseFloat(pago.total || "0").toLocaleString('es-CO')}</td>
+                          <td className="p-4 md:px-6 text-right font-black text-emerald-600">{formatCurrency(parseFloat(pago.total || "0"), tenant?.pais || tenant?.moneda)}</td>
                           <td className="p-4 md:px-6 text-right">
                             <div className="flex items-center justify-end gap-2">
                               <button onClick={async () => { 
@@ -1650,7 +1657,7 @@ export default function ModuloCobranza() {
                                             <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold uppercase">{eg.categoria}</span>
                                         </td>
                                         <td className="p-4 md:px-6 text-slate-50">{eg.fecha ? eg.fecha.split('-').reverse().join('/') : '---'}</td>
-                                        <td className="p-4 md:px-6 text-right font-black text-rose-600">${parseFloat(eg.monto).toLocaleString('es-CO')}</td>
+                                        <td className="p-4 md:px-6 text-right font-black text-rose-600">{formatCurrency(parseFloat(eg.monto), tenant?.pais || tenant?.moneda)}</td>
                                         <td className="p-4 md:px-6 text-right">
                                             <button onClick={() => eliminarEgreso(eg.id)} className="text-slate-300 hover:text-rose-500 p-2 transition-colors">
                                                 <X className="w-5 h-5" />
@@ -1677,7 +1684,7 @@ export default function ModuloCobranza() {
               <CheckCircle className="w-10 h-10 text-emerald-500" />
             </div>
             <h3 className="text-2xl font-black text-slate-800 mb-2">¡Pago Exitoso!</h3>
-            <p className="text-slate-500 mb-8 text-sm">El pago de <strong>{reciboGenerado.nombres}</strong> por ${reciboGenerado.total.toLocaleString('es-CO')} se registró correctamente.</p>
+            <p className="text-slate-500 mb-8 text-sm">El pago de <strong>{reciboGenerado.nombres}</strong> por {formatCurrency(reciboGenerado.total, tenant?.pais || tenant?.moneda)} se registró correctamente.</p>
             <div className="flex flex-col gap-3">
               <button 
                 onClick={enviarReciboAutomatico} 
@@ -1705,10 +1712,12 @@ export default function ModuloCobranza() {
                   deudaAcumulada: reciboGenerado.deudaAcumulada,
                   mesesEnMora: reciboGenerado.mesesEnMora,
                   empresa: {
-          logo_url: tenant?.config?.logo || tenant?.logo_url,
+                    logo_url: tenant?.config?.logo || tenant?.logo_url,
                     nombre_club: tenant?.config?.nombre || tenant?.nombre || config?.nombre_club,
                     direccion: config?.direccion || 'Sede Deportiva',
                     ciudad: config?.ciudad || 'Colombia',
+                    pais: tenant?.pais,
+                    moneda: tenant?.moneda,
                     nequi: config?.nequi,
                     daviplata: config?.daviplata,
                     bre_b: config?.bre_b,
@@ -1744,7 +1753,7 @@ export default function ModuloCobranza() {
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Monto Base</p></div>
-                <p className="text-sm font-bold text-slate-800">${tarifaBaseActual.toLocaleString('es-CO')}</p>
+                <p className="text-sm font-bold text-slate-800">{formatCurrency(tarifaBaseActual, tenant?.pais || tenant?.moneda)}</p>
               </div>
             </div>
             <div className="flex-1 p-6 md:p-8 overflow-y-auto">
@@ -1773,7 +1782,7 @@ export default function ModuloCobranza() {
                   >
                     <option value="Mensualidad">Mensualidad (Plan)</option>
                     {conceptos.map(c => (
-                      <option key={c.id} value={c.nombre}>{c.nombre} (${parseFloat(c.precio_sugerido).toLocaleString('es-CO')})</option>
+                      <option key={c.id} value={c.nombre}>{c.nombre} ({formatCurrency(parseFloat(c.precio_sugerido), tenant?.pais || tenant?.moneda)})</option>
                     ))}
                   </select>
                 </div>
@@ -1799,7 +1808,7 @@ export default function ModuloCobranza() {
               </div>
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-8 flex justify-between items-center">
                  <p className="text-emerald-800 font-black text-lg">Total a Cobrar:</p>
-                 <p className="text-3xl font-black text-emerald-600">${(tarifaBaseActual - descuento + recargo).toLocaleString('es-CO')}</p>
+                 <p className="text-3xl font-black text-emerald-600">{formatCurrency(tarifaBaseActual - descuento + recargo, tenant?.pais || tenant?.moneda)}</p>
               </div>
               <div className="flex justify-end gap-3">
                 <button onClick={() => setIsModalPagoOpen(false)} className="px-8 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">Cancelar</button>
@@ -1862,9 +1871,9 @@ export default function ModuloCobranza() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Abono Parcial</p>
                   <h2 className="text-xl font-black">{jugadorAbono.nombres} {jugadorAbono.apellidos}</h2>
-                  <p className="text-sm opacity-80 mt-1">Tarifa: ${jugadorAbono.tarifa?.toLocaleString("es-CO")}{jugadorAbono.abonosDelPeriodo > 0 ? ` - Ya abonado: ${jugadorAbono.abonosDelPeriodo?.toLocaleString("es-CO")}` : ""}</p>
+                  <p className="text-sm opacity-80 mt-1">Tarifa: {formatCurrency(jugadorAbono.tarifa, tenant?.pais || tenant?.moneda)}{jugadorAbono.abonosDelPeriodo > 0 ? ` - Ya abonado: ${formatCurrency(jugadorAbono.abonosDelPeriodo, tenant?.pais || tenant?.moneda)}` : ""}</p>
                   {jugadorAbono.deudaTotal > jugadorAbono.tarifa && (
-                    <p className="text-xs font-black text-yellow-300 mt-1">Deuda total: ${jugadorAbono.deudaTotal?.toLocaleString("es-CO")} (meses anteriores)</p>
+                    <p className="text-xs font-black text-yellow-300 mt-1">Deuda total: {formatCurrency(jugadorAbono.deudaTotal, tenant?.pais || tenant?.moneda)} (meses anteriores)</p>
                   )}
                 </div>
                 <button onClick={() => setIsModalAbonoOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30">
@@ -1877,7 +1886,7 @@ export default function ModuloCobranza() {
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto del Abono ($) *</label>
                 <input type="number" value={montoAbono} onChange={(e) => setMontoAbono(e.target.value)} className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg text-slate-800" placeholder="0" autoFocus />
                 {montoAbono && jugadorAbono.saldoPendientePeriodo > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">Saldo restante: <span className="font-black text-blue-600">${Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)).toLocaleString("es-CO")}</span></p>
+                  <p className="text-xs text-slate-500 mt-1">Saldo restante: <span className="font-black text-blue-600">{formatCurrency(Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)), tenant?.pais || tenant?.moneda)}</span></p>
                 )}
               </div>
               <div>

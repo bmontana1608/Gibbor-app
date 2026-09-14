@@ -50,13 +50,45 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'El jugador no tiene un teléfono registrado' }, { status: 400 });
     }
 
+    // Obtener datos del club e instancia de WhatsApp
+    let club: any = null;
+    if (evento.club_id) {
+      const { data: clubData } = await supabaseAdmin
+        .from('clubes')
+        .select('id, nombre, slug, pais')
+        .eq('id', evento.club_id)
+        .single();
+      club = clubData;
+    } else if (club_slug) {
+      const { data: clubData } = await supabaseAdmin
+        .from('clubes')
+        .select('id, nombre, slug, pais')
+        .eq('slug', club_slug)
+        .single();
+      club = clubData;
+    }
+
+    let finalInstanceName = club?.slug || club_slug;
+    if (club?.id) {
+      const { data: configWa } = await supabaseAdmin
+        .from('configuracion_wa')
+        .select('instance_name')
+        .eq('club_id', club.id)
+        .maybeSingle();
+      if (configWa?.instance_name) {
+        finalInstanceName = configWa.instance_name;
+      }
+    }
+
+    const clubNombre = club?.nombre || 'Nuestro Club';
+
     const titulo = evento.titulo;
     const nombreCompleto = `${perfil.nombres} ${perfil.apellidos}`;
     const rol = convocado.rol_partido.toUpperCase();
     const categoria = (perfil.grupos || '').replace('|MANUAL', '').trim() || 'Tu Categoría';
     const notasExtra = evento.descripcion ? `\n\n📌 *Notas del Entrenador:*\n${evento.descripcion}` : '';
     
-    const mensaje = `⚽ *¡ATENCIÓN FAMILIA GIBBOR!* 🎉\n\nNos complace informarles que *${nombreCompleto}* (Categoría: ${categoria}) ha sido oficialmente CONVOCADO para representar al club en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐${notasExtra}\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará bien al club. ¡Los esperamos! 💪🔥`;
+    const mensaje = `⚽ *¡ATENCIÓN FAMILIA ${clubNombre.toUpperCase()}!* 🎉\n\nNos complace informarles que *${nombreCompleto}* (Categoría: ${categoria}) ha sido oficialmente CONVOCADO para representar a *${clubNombre}* en:\n\n🏆 *${titulo}*\n📅 Fecha: ${evento.fecha}\n⏰ Hora: ${evento.hora}\n📍 Lugar: ${evento.lugar || 'Por definir'}\n\nSu rol en este encuentro: *${rol}* ⭐${notasExtra}\n\nValoramos su talento y disciplina dentro del terreno de juego, sabemos que representará con orgullo a nuestro club. ¡Los esperamos! 💪🔥`;
 
     const result = await enviarMensajeWhatsAppServer(
       perfil.telefono,
@@ -64,7 +96,8 @@ export async function POST(request: Request) {
       undefined,
       'document',
       '',
-      club_slug
+      finalInstanceName,
+      club?.pais
     );
 
     if (result.success) {
@@ -74,7 +107,7 @@ export async function POST(request: Request) {
         .update({ estado_notificacion: 'Enviada' })
         .eq('id', convocado.id);
         
-      return NextResponse.json({ success: true, mensaje: 'Notificación enviada con éxito' });
+      return NextResponse.json({ success: true, mensaje: 'Notificación enviada con éxito por WhatsApp' });
     } else {
       throw new Error(result.error || 'Error al enviar por WhatsApp');
     }

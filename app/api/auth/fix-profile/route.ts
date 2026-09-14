@@ -9,6 +9,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
     }
 
+    const cleanEmail = (email || '').trim().toLowerCase();
+
     // 1. Verificar si ya tiene perfil (para no hacer nada)
     const { data: existingProfile } = await supabaseAdmin
       .from('perfiles')
@@ -20,11 +22,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Perfil ya existe' });
     }
 
-    // 2. Buscar perfil huérfano por email
+    // 2. Buscar perfil huérfano por email o email_contacto
     const { data: orphanProfile } = await supabaseAdmin
       .from('perfiles')
       .select('*')
-      .eq('email_contacto', email)
+      .or(`email.ilike.${cleanEmail},email_contacto.ilike.${cleanEmail}`)
       .neq('id', userId)
       .limit(1)
       .single();
@@ -39,7 +41,9 @@ export async function POST(request: Request) {
       .insert([{
         ...orphanProfile,
         id: userId,
-        email_contacto: email
+        email: cleanEmail,
+        email_contacto: cleanEmail,
+        estado_miembro: 'Activo'
       }]);
 
     if (createError) {

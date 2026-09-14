@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { formatCurrency } from './currency-utils';
 
 /**
  * Genera un PDF Élite de recibo Gibbor en formato Base64
@@ -22,6 +23,8 @@ export async function generarReciboPDFBase64(datos: {
     nombre_club?: string;
     direccion: string;
     ciudad: string;
+    pais?: string;
+    moneda?: string;
     nequi?: string;
     daviplata?: string;
     bre_b?: string;
@@ -157,13 +160,14 @@ export async function generarReciboPDFBase64(datos: {
   doc.text('TOTAL', 185, tableY + 6.5, { align: 'right' });
 
   // Fila de datos - precio base
+  const paisOMoneda = datos.empresa.pais || datos.empresa.moneda || 'Colombia';
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "normal");
   const precioBaseDisplay = datos.precioBase ?? datos.tarifa;
   doc.text(`Aporte Mensual Formación Deportiva - ${mesNombre.toUpperCase()} ${anioActual}`, 20, tableY + 18);
-  doc.text(`$ ${precioBaseDisplay.toLocaleString('es-CO')}`, 150, tableY + 18, { align: 'right' });
+  doc.text(formatCurrency(precioBaseDisplay, paisOMoneda), 150, tableY + 18, { align: 'right' });
   doc.setFont("helvetica", "bold");
-  doc.text(`$ ${precioBaseDisplay.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
+  doc.text(formatCurrency(precioBaseDisplay, paisOMoneda), 185, tableY + 18, { align: 'right' });
 
   // Fila de deuda acumulada (solo si aplica)
   let deudaRowOffset = 0;
@@ -176,9 +180,9 @@ export async function generarReciboPDFBase64(datos: {
         ? `+ Mensualidades atrasadas (${datos.mesesEnMora.join(', ')})`
         : '+ Mensualidades atrasadas';
     doc.text(textoMora, 20, tableY + 18 + deudaRowOffset);
-    doc.text(`+ $ ${datos.deudaAcumulada.toLocaleString('es-CO')}`, 150, tableY + 18 + deudaRowOffset, { align: 'right' });
+    doc.text(`+ ${formatCurrency(datos.deudaAcumulada, paisOMoneda)}`, 150, tableY + 18 + deudaRowOffset, { align: 'right' });
     doc.setFont("helvetica", "bold");
-    doc.text(`+ $ ${datos.deudaAcumulada.toLocaleString('es-CO')}`, 185, tableY + 18 + deudaRowOffset, { align: 'right' });
+    doc.text(`+ ${formatCurrency(datos.deudaAcumulada, paisOMoneda)}`, 185, tableY + 18 + deudaRowOffset, { align: 'right' });
   }
 
   // Fila de descuento pronto pago (solo si aplica)
@@ -189,9 +193,9 @@ export async function generarReciboPDFBase64(datos: {
     doc.setFontSize(8);
     doc.setTextColor(34, 197, 94); // Verde
     doc.text('V Descuento Pronto Pago (primeros 5 días)', 20, tableY + 18 + deudaRowOffset + descuentoRowOffset);
-    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 150, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
+    doc.text(`- ${formatCurrency(datos.descuentoProntoPago, paisOMoneda)}`, 150, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
     doc.setFont("helvetica", "bold");
-    doc.text(`- $ ${datos.descuentoProntoPago.toLocaleString('es-CO')}`, 185, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
+    doc.text(`- ${formatCurrency(datos.descuentoProntoPago, paisOMoneda)}`, 185, tableY + 18 + deudaRowOffset + descuentoRowOffset, { align: 'right' });
   }
 
   // Línea de cierre de tabla
@@ -206,7 +210,7 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFontSize(11);
   doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
   doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL PENDIENTE:', 135, tableY + 33 + offsetTotal);
-  doc.text(`$ ${datos.tarifa.toLocaleString('es-CO')}`, 190, tableY + 33 + offsetTotal, { align: 'right' });
+  doc.text(formatCurrency(datos.tarifa, paisOMoneda), 190, tableY + 33 + offsetTotal, { align: 'right' });
 
 
   // 5. MÉTODOS DE PAGO (BIEN DEFINIDOS)
@@ -294,11 +298,14 @@ export async function generarReciboNominaPDFBase64(datos: {
     nombre_club?: string;
     direccion: string;
     ciudad: string;
+    pais?: string;
+    moneda?: string;
     logo_url?: string;
   }
 }) {
   const doc = new jsPDF();
   const fechaActual = datos.fecha ? new Date(datos.fecha) : new Date();
+  const paisOMoneda = datos.empresa.pais || datos.empresa.moneda || 'Colombia';
 
   // Paleta diferenciada: Índigo/Azul para nómina
   const indigoOscuro   = [30,  27,  75];   // slate alternativo
@@ -371,7 +378,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setFontSize(7);
   doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('DOCUMENTO ID:', 115, 70);
+  doc.text('IDENTIFICACIÓN:', 115, 70);
   doc.text('FECHA DE PAGO:', 115, 82);
 
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
@@ -394,7 +401,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setFont("helvetica", "normal");
   doc.text(`Honorarios / Salario - ${datos.periodo}`, 20, tableY + 18);
   doc.setFont("helvetica", "bold");
-  doc.text(`$ ${datos.monto.toLocaleString('es-CO')}`, 185, tableY + 18, { align: 'right' });
+  doc.text(formatCurrency(datos.monto, paisOMoneda), 185, tableY + 18, { align: 'right' });
 
   doc.setDrawColor(220, 220, 230);
   doc.setLineWidth(0.1);
@@ -406,7 +413,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setFontSize(11);
   doc.setTextColor(indigoAccent[0], indigoAccent[1], indigoAccent[2]);
   doc.text('TOTAL PAGADO:', 135, tableY + 33);
-  doc.text(`$ ${datos.monto.toLocaleString('es-CO')}`, 190, tableY + 33, { align: 'right' });
+  doc.text(formatCurrency(datos.monto, paisOMoneda), 190, tableY + 33, { align: 'right' });
 
   // 4. NOTA LEGAL
   doc.setFillColor(245, 245, 255);
