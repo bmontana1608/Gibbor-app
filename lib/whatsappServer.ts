@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { formatInternationalWhatsAppPhone } from './phone-utils';
 
 export async function enviarMensajeWhatsAppServer(
   telefono: string, 
@@ -6,7 +7,8 @@ export async function enviarMensajeWhatsAppServer(
   mediaBase64?: string, 
   tipoMedia: 'document' | 'image' = 'document',
   fileName: string = 'Archivo_Gibbor.pdf',
-  instanceName: string = 'gibbor'
+  instanceName: string = 'gibbor',
+  pais?: string
 ) {
   try {
     const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL;
@@ -16,10 +18,7 @@ export async function enviarMensajeWhatsAppServer(
       throw new Error('Faltan variables de entorno EVOLUTION_API_URL o EVOLUTION_API_KEY');
     }
 
-    let finalPhone = String(telefono).replace(/\D/g, '');
-    if (finalPhone.length === 10) {
-      finalPhone = `57${finalPhone}`;
-    }
+    let finalPhone = formatInternationalWhatsAppPhone(telefono, pais);
 
     const cleanUrl = EVOLUTION_API_URL.endsWith('/') ? EVOLUTION_API_URL.slice(0, -1) : EVOLUTION_API_URL;
     let instance = encodeURIComponent(instanceName || 'gibbor');

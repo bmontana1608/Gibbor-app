@@ -8,7 +8,7 @@ const supabaseAdmin = createClient(
 
 export async function POST(request: Request) {
   try {
-    const { solicitudId, defaultPassword } = await request.json();
+    const { solicitudId, defaultPassword, customSlug } = await request.json();
 
     if (!solicitudId) {
       return NextResponse.json({ error: 'ID de solicitud requerido' }, { status: 400 });
@@ -59,15 +59,33 @@ export async function POST(request: Request) {
       }
     }
 
-    // Generar un slug único basado en el nombre
-    let baseSlug = solicitud.nombre_academia.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    let finalSlug = baseSlug;
-    let counter = 1;
-    while (true) {
-      const { data: existingSlug } = await supabaseAdmin.from('clubes').select('id').eq('slug', finalSlug).maybeSingle();
-      if (!existingSlug) break;
-      finalSlug = `${baseSlug}-${counter}`;
-      counter++;
+    // Generar o validar slug
+    let finalSlug = '';
+    if (customSlug) {
+      const cleaned = customSlug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)+/g, '');
+      if (cleaned) {
+        const { data: existingSlug } = await supabaseAdmin.from('clubes').select('id, nombre').eq('slug', cleaned).maybeSingle();
+        if (existingSlug) {
+          return NextResponse.json(
+            { error: `El slug "${cleaned}" ya pertenece a la academia "${existingSlug.nombre}". Elige uno diferente.` },
+            { status: 409 }
+          );
+        }
+        finalSlug = cleaned;
+      }
+    }
+
+    if (!finalSlug) {
+      const baseName = solicitud.nombre_academia || solicitud.nombre_club || 'club';
+      let baseSlug = baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+      finalSlug = baseSlug;
+      let counter = 1;
+      while (true) {
+        const { data: existingSlug } = await supabaseAdmin.from('clubes').select('id').eq('slug', finalSlug).maybeSingle();
+        if (!existingSlug) break;
+        finalSlug = `${baseSlug}-${counter}`;
+        counter++;
+      }
     }
 
     // 4. Crear el Club
@@ -140,10 +158,22 @@ export async function POST(request: Request) {
       }]);
 
       // 8. Marcar solicitud como Aprobada
-      await supabaseAdmin
-        .from('solicitudes_club')
-        .update({ estado: 'Aprobado', updated_at: new Date().toISOString() })
-        .eq('id', solicitudId);
+      try {
+        await supabaseAdmin
+          .from('solicitudes_club')
+          .update({ 
+            estado: 'Aprobado', 
+            club_id: nuevoClub.id,
+            slug: finalSlug,
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', solicitudId);
+      } catch (solUpErr) {
+        await supabaseAdmin
+          .from('solicitudes_club')
+          .update({ estado: 'Aprobado', updated_at: new Date().toISOString() })
+          .eq('id', solicitudId);
+      }
 
       // 9. Actualizar estado del referido en clubes (para el embajador)
       if (embajador_id) {
@@ -153,7 +183,12 @@ export async function POST(request: Request) {
            .eq('id', nuevoClub.id);
       }
 
-      return NextResponse.json({ success: true, club: nuevoClub });
+      return NextResponse.json({ 
+        success: true, 
+        club: nuevoClub,
+        slug: finalSlug,
+        defaultPassword: defaultPassword || 'Master2026*'
+      });
 
     } catch (innerError: any) {
       // Rollback del club si falla la creación del usuario

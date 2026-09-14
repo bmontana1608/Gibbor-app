@@ -156,31 +156,117 @@ export async function POST(request: Request) {
   }
 }
 
-// GET /api/solicitudes-club — solo para el super admin
+// GET /api/solicitudes-club — enriquecido con datos reales de clubes para el super admin
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin
+    const { data: solicitudes, error } = await supabaseAdmin
       .from('solicitudes_club')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return NextResponse.json(data || []);
+
+    // Obtener clubes existentes para enlazar con solicitudes aprobadas
+    const { data: clubes } = await supabaseAdmin
+      .from('clubes')
+      .select('id, nombre, slug, logo_url, estado, created_at');
+
+    const clubMapById = new Map<string, any>();
+    const clubMapByName = new Map<string, any>();
+
+    if (clubes) {
+      for (const club of clubes) {
+        if (club.id) clubMapById.set(club.id, club);
+        if (club.nombre) clubMapByName.set(club.nombre.trim().toLowerCase(), club);
+      }
+    }
+
+    const enriquecidas = (solicitudes || []).map((s: any) => {
+      let matchingClub = null;
+      if (s.club_id && clubMapById.has(s.club_id)) {
+        matchingClub = clubMapById.get(s.club_id);
+      } else if (s.nombre_academia && clubMapByName.has(s.nombre_academia.trim().toLowerCase())) {
+        matchingClub = clubMapByName.get(s.nombre_academia.trim().toLowerCase());
+      } else if (s.nombre_club && clubMapByName.has(s.nombre_club.trim().toLowerCase())) {
+        matchingClub = clubMapByName.get(s.nombre_club.trim().toLowerCase());
+      }
+
+      const assignedSlug = matchingClub?.slug || s.slug || null;
+      const clubId = matchingClub?.id || s.club_id || null;
+      const logo = s.logo_url || matchingClub?.logo_url || null;
+
+      return {
+        ...s,
+        club_id: clubId,
+        slug: assignedSlug,
+        club_slug: assignedSlug,
+        logo_url: logo,
+        club_nombre: matchingClub?.nombre || s.nombre_academia || s.nombre_club,
+      };
+    });
+
+    return NextResponse.json(enriquecidas);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-// PATCH /api/solicitudes-club — actualizar estado desde el admin
+// PATCH /api/solicitudes-club — actualizar estado, notas y slug desde el admin
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
-    const { id, estado, notas_admin } = body;
-    if (!id || !estado) return NextResponse.json({ error: 'Faltan datos' }, { status: 400 });
+    const { id, estado, notas_admin, slug, club_id } = body;
+    if (!id) return NextResponse.json({ error: 'ID de solicitud requerido' }, { status: 400 });
+
+    // 1. Si se envía un nuevo slug, validarlo y actualizar el club correspondiente
+    if (slug) {
+      const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)+/g, '');
+      if (!cleanSlug) {
+        return NextResponse.json({ error: 'El slug no puede estar vacío' }, { status: 400 });
+      }
+
+      // Buscar si otra academia ya tiene ese slug
+      const { data: existingClub } = await supabaseAdmin
+        .from('clubes')
+        .select('id, nombre')
+        .eq('slug', cleanSlug)
+        .maybeSingle();
+
+      if (existingClub && existingClub.id !== club_id) {
+        return NextResponse.json(
+          { error: `El slug "${cleanSlug}" ya está en uso por "${existingClub.nombre}". Por favor elige otro.` },
+          { status: 409 }
+        );
+      }
+
+      // Si tenemos club_id, actualizar la tabla clubes
+      if (club_id) {
+        const { error: clubUpdateErr } = await supabaseAdmin
+          .from('clubes')
+          .update({ slug: cleanSlug })
+          .eq('id', club_id);
+        if (clubUpdateErr) throw clubUpdateErr;
+      }
+
+      // Intentar guardar el slug en solicitudes_club si la columna existe
+      try {
+        await supabaseAdmin
+          .from('solicitudes_club')
+          .update({ slug: cleanSlug, updated_at: new Date().toISOString() })
+          .eq('id', id);
+      } catch (e) {
+        // Ignorar si la columna no existe en solicitudes_club
+      }
+    }
+
+    // 2. Actualizar estado y notas si se proporcionaron
+    const updatePayload: any = { updated_at: new Date().toISOString() };
+    if (estado) updatePayload.estado = estado;
+    if (notas_admin !== undefined) updatePayload.notas_admin = notas_admin || null;
 
     const { error } = await supabaseAdmin
       .from('solicitudes_club')
-      .update({ estado, notas_admin: notas_admin || null, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', id);
 
     if (error) throw error;

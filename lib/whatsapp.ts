@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { formatInternationalWhatsAppPhone } from './phone-utils';
 
 /**
  * Motor Centralizado de Mensajería para Evolution API
@@ -10,14 +11,12 @@ export async function enviarMensajeWhatsApp(
   mediaBase64?: string, 
   tipoMedia: 'document' | 'image' = 'document',
   fileName: string = 'Archivo_Gibbor.pdf',
-  tenantSlug?: string
+  tenantSlug?: string,
+  pais?: string
 ) {
   try {
-    // 2. Limpieza y formateo del número
-    let finalPhone = String(telefono).replace(/\D/g, '');
-    if (finalPhone.length === 10) {
-      finalPhone = `57${finalPhone}`;
-    }
+    // 2. Limpieza y formateo inteligente del número internacional
+    let finalPhone = formatInternationalWhatsAppPhone(telefono, pais);
 
     // Identificar tenant slug
     let instanceName = tenantSlug || 'gibbor';
