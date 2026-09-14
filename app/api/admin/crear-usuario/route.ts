@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
+    const { email, password, perfilId, rol } = await request.json();
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanPassword = (password || '').trim();
 
