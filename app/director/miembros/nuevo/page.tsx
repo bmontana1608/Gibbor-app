@@ -92,6 +92,7 @@ export default function NuevoMiembro() {
     fecha_ingreso: new Date().toISOString().split('T')[0],
     emergencia_nombre: '',
     emergencia_telefono: '',
+    hijos_config: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
