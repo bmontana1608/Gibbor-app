@@ -623,6 +623,7 @@ export default function ConfiguracionGeneral() {
                   <input type="text" placeholder="https://link.mercadopago.com/..." value={config.link_pago} onChange={(e) => setConfig({...config, link_pago: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-medium text-sm text-emerald-700" />
                 </div>
               </div>
+              </div>
             </div>
 
             {/* WHATSAPP SAAS MODULE */}
