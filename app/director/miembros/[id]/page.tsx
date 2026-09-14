@@ -649,7 +649,7 @@ export default function FichaDelJugador() {
               const cleanPass = claveAcceso.trim();
               const appHost = typeof window !== 'undefined' ? window.location.origin : 'https://www.masterclubmanager.com';
               const loginUrl = `${appHost}/${tenantSlug || 'tenant'}/login`;
-              const msg = `¡Hola! Tu acceso a ${tenant?.nombre || 'la plataforma'} ha sido configurado.\n\n📧 Correo: ${cleanMail}\n🔑 Clave temporal: ${cleanPass}\n\nPuedes ingresar en: ${loginUrl}`;
+              const msg = `¡Hola! Tu acceso a ${tenantSlug || 'la plataforma'} ha sido configurado.\n\n📧 Correo: ${cleanMail}\n🔑 Clave temporal: ${cleanPass}\n\nPuedes ingresar en: ${loginUrl}`;
               window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
             }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
           </div>
