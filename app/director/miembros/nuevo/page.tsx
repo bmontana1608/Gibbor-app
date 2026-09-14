@@ -89,7 +89,9 @@ export default function NuevoMiembro() {
     tipo_plan: 'Mensual',
     vinculo_jugador_id: '',
     override_categoria: false,
-    fecha_ingreso: new Date().toISOString().split('T')[0]
+    fecha_ingreso: new Date().toISOString().split('T')[0],
+    emergencia_nombre: '',
+    emergencia_telefono: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
