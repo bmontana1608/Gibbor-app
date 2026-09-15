@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n';
 
 // --- COMPONENTE RADAR SVG PERSONALIZADO ---
 function RadarChart({ data, size = 300 }: { data: { label: string, value: number }[], size?: number }) {
@@ -83,6 +84,7 @@ function RadarChart({ data, size = 300 }: { data: { label: string, value: number
 }
 
 export default function GestionSkillsEntrenador() {
+  const { t } = useTranslation();
   const [pestaña, setPestaña] = useState<'Evaluación' | 'Configuración'>('Evaluación');
   const [habilidades, setHabilidades] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
@@ -342,8 +344,8 @@ export default function GestionSkillsEntrenador() {
          </div>
 
          <div className="flex w-full md:w-auto gap-1 p-1 bg-slate-900/50 rounded-2xl border border-white/5">
-             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>MODO EVALUACIÓN</button>
-             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>CONFIGURACIÓN</button>
+             <button onClick={() => setPestaña('Evaluación')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Evaluación' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>{t('entrenador.stats.evaluation').toUpperCase()}</button>
+             <button onClick={() => setPestaña('Configuración')} className={`flex-1 md:flex-none px-4 lg:px-5 py-2 rounded-xl text-[9px] lg:text-[10px] font-black transition-all ${pestaña === 'Configuración' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-slate-500 hover:text-white'}`}>{t('entrenador.stats.settings').toUpperCase()}</button>
          </div>
       </div>
 

@@ -8,9 +8,11 @@ import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, ArrowRight, User
 import { getYouTubeId, isDriveUrl, getDriveId, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 import { TikTokThumbnail } from '@/components/TikTokThumbnail';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 
 export default function BibliotecaEntrenador() {
   const { slug, basePath } = useTenant();
+  const { t } = useTranslation();
   const [clubId, setClubId] = useState<string | null>(null);
   const router = useRouter();
   const [ejercicios, setEjercicios] = useState<any[]>([]);
@@ -253,17 +255,17 @@ export default function BibliotecaEntrenador() {
       <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
-            Biblioteca Táctica <PlaySquare className="text-brand w-6 h-6" />
+            {t('entrenador.biblioteca.title')} <PlaySquare className="text-brand w-6 h-6" />
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Explora ejercicios de MCM, del club, o crea tus propias tareas.
+            {t('entrenador.biblioteca.subtitle')}
           </p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
           className="bg-brand text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:-translate-y-1 hover:shadow-brand/30 transition-all text-sm"
         >
-          <Plus size={18} /> Crear Tarea Propia
+          <Plus size={18} /> {t('entrenador.biblioteca.newExercise')}
         </button>
       </div>
 
@@ -279,7 +281,7 @@ export default function BibliotecaEntrenador() {
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
-              {tab === 'Global' ? 'Oficial MCM' : tab}
+              {tab === 'Global' ? t('entrenador.biblioteca.global') : tab === 'Todos' ? t('entrenador.biblioteca.all') : tab === 'Club' ? t('entrenador.biblioteca.club') : t('entrenador.biblioteca.personal')}
             </button>
           ))}
         </div>
@@ -288,7 +290,7 @@ export default function BibliotecaEntrenador() {
            <Search className="w-5 h-5 text-slate-400" />
            <input 
               type="text"
-              placeholder="Buscar rondo, táctico, físico..."
+              placeholder={t('entrenador.biblioteca.searchPlaceholder')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="bg-transparent border-none outline-none text-sm font-medium w-full text-slate-800 dark:text-white placeholder:text-slate-400"
@@ -303,7 +305,7 @@ export default function BibliotecaEntrenador() {
       ) : filtrados.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-64 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
            <PlaySquare className="w-16 h-16 text-slate-200 dark:text-slate-800 mb-4" />
-           <p className="font-bold text-slate-500">No se encontraron tareas con estos filtros.</p>
+           <p className="font-bold text-slate-500">{t('entrenador.biblioteca.noExercises')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -333,7 +335,7 @@ export default function BibliotecaEntrenador() {
                       onClick={() => handleImportar(ejercicio)}
                       className="w-full mt-auto py-2.5 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-black text-xs uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 group-hover:bg-brand group-hover:text-white transition-colors border border-slate-200 dark:border-slate-800 group-hover:border-transparent"
                     >
-                      Usar en Planificador <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      {t('entrenador.biblioteca.addToPlan')} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                  </div>
               </div>

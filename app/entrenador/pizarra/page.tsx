@@ -8,6 +8,7 @@ import {
   Play, Pause, Plus, Video, Target, Navigation
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n';
 
 type ItemType = 'player_red' | 'player_blue' | 'ball' | 'cone';
 
@@ -26,6 +27,7 @@ interface Frame {
 }
 
 export default function PizarraTactica() {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
   
   // -- State --
@@ -475,7 +477,7 @@ export default function PizarraTactica() {
                             ${currentFrameIndex === idx ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' : 'border-white/10 bg-white/5 text-slate-500 hover:border-white/30'}
                         `}
                     >
-                        Paso {idx + 1}
+                        {t('entrenador.pizarra.frame', { index: idx + 1 })}
                     </button>
                     {frames.length > 1 && !isPlaying && (
                         <button 
@@ -503,9 +505,9 @@ export default function PizarraTactica() {
                     ${isPlaying ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30'}
                 `}
             >
-                {isPlaying ? <><Pause className="w-4 h-4" /> Detener</> : <><Play className="w-4 h-4" /> Animar Jugada</>}
+                {isPlaying ? <><Pause className="w-4 h-4" /> {t('entrenador.pizarra.pause')}</> : <><Play className="w-4 h-4" /> {t('entrenador.pizarra.play')}</>}
             </button>
-            <button className="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-colors" title="Guardar Jugada">
+            <button className="w-12 h-12 rounded-xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-colors" title={t('entrenador.pizarra.save')}>
                 <Save className="w-5 h-5" />
             </button>
         </div>

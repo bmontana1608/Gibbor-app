@@ -52,3 +52,6 @@ export function translate(key: string, language: string = 'es', params?: Record<
 
   return result;
 }
+
+export * from './LanguageContext';
+

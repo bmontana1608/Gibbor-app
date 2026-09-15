@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { syncCategoriasInteligentes } from '@/lib/syncCategorias';
 
+import { useTranslation } from '@/lib/i18n';
+
 type Vista = 'categorias' | 'asistencia' | 'historial';
 
 // Componente de Estrellas / Nota 1-10
@@ -50,13 +52,14 @@ function SelectorNota({ valor, onChange }: { valor: number; onChange: (n: number
 
 // Badge de porcentaje de asistencia histórica
 function BadgeAsistencia({ pct }: { pct: number | null }) {
-  if (pct === null) return <span className="text-[9px] font-bold text-slate-300">Sin datos</span>;
+  const { t } = useTranslation();
+  if (pct === null) return <span className="text-[9px] font-bold text-slate-300">{t('entrenador.asistencia.noData')}</span>;
   const color = pct >= 75 ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10'
               : pct >= 50 ? 'text-amber-500 bg-amber-50 dark:bg-amber-500/10'
               : 'text-rose-500 bg-rose-50 dark:bg-rose-500/10';
   return (
     <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${color}`}>
-      {pct}% asist.
+      {pct}{t('entrenador.asistencia.pctAsist')}
     </span>
   );
 }
@@ -64,6 +67,7 @@ function BadgeAsistencia({ pct }: { pct: number | null }) {
 export default function AsistenciaEntrenador() {
   const router = useRouter();
   const { slug: tenantSlug } = useTenant();
+  const { t, language } = useTranslation();
 
   // Estado general
   const [vista, setVista] = useState<Vista>('categorias');
@@ -371,7 +375,7 @@ export default function AsistenciaEntrenador() {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-brand" />
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Cargando panel...</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -389,7 +393,7 @@ export default function AsistenciaEntrenador() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">¡Sesión Guardada!</h2>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">{t('entrenador.asistencia.sessionSaved')}</h2>
             <p className="text-slate-400 text-sm mt-1 font-medium">
               {resumen.categoria} · {resumen.fecha.split('-').reverse().join('/')}
             </p>
@@ -399,22 +403,22 @@ export default function AsistenciaEntrenador() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl p-4">
               <p className="text-2xl font-black text-emerald-600">{resumen.presentes}</p>
-              <p className="text-[9px] font-black text-emerald-500 uppercase tracking-wider mt-1">Presentes</p>
+              <p className="text-[9px] font-black text-emerald-500 uppercase tracking-wider mt-1">{t('entrenador.asistencia.present')}</p>
             </div>
             <div className="bg-rose-50 dark:bg-rose-500/10 rounded-2xl p-4">
               <p className="text-2xl font-black text-rose-600">{resumen.ausentes}</p>
-              <p className="text-[9px] font-black text-rose-500 uppercase tracking-wider mt-1">Ausentes</p>
+              <p className="text-[9px] font-black text-rose-500 uppercase tracking-wider mt-1">{t('entrenador.asistencia.absent')}</p>
             </div>
             <div className="bg-amber-50 dark:bg-amber-500/10 rounded-2xl p-4">
               <p className="text-2xl font-black text-amber-600">{resumen.excusas}</p>
-              <p className="text-[9px] font-black text-amber-500 uppercase tracking-wider mt-1">Excusas</p>
+              <p className="text-[9px] font-black text-amber-500 uppercase tracking-wider mt-1">{t('entrenador.asistencia.excuses')}</p>
             </div>
           </div>
 
           {/* Barra de asistencia */}
           <div>
             <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
-              <span>Asistencia</span>
+              <span>{t('director.dashboard.attendanceRate')}</span>
               <span className={`font-black ${resumen.pctAsistencia >= 75 ? 'text-emerald-500' : resumen.pctAsistencia >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>
                 {resumen.pctAsistencia}%
               </span>
@@ -432,7 +436,7 @@ export default function AsistenciaEntrenador() {
             <div className="bg-brand/5 border border-brand/10 rounded-2xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-brand" />
-                <span className="text-sm font-black text-slate-700 dark:text-slate-200">Nota Promedio</span>
+                <span className="text-sm font-black text-slate-700 dark:text-slate-200">{t('entrenador.asistencia.avgGrade')}</span>
               </div>
               <span className="text-2xl font-black text-brand">{resumen.notaPromedio}<span className="text-sm text-slate-400">/10</span></span>
             </div>
@@ -444,13 +448,13 @@ export default function AsistenciaEntrenador() {
               onClick={() => { setResumen(null); setVista('categorias'); setCategoriaSeleccionada(null); setBusqueda(''); }}
               className="flex-1 bg-slate-900 dark:bg-brand text-white font-black py-4 rounded-2xl hover:scale-[1.02] transition-all uppercase text-xs tracking-widest"
             >
-              Nueva Sesión
+              {t('entrenador.asistencia.newSession')}
             </button>
             <button
               onClick={() => { setResumen(null); verHistorial(categoriaSeleccionada); }}
               className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black py-4 rounded-2xl hover:scale-[1.02] transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-2"
             >
-              <History className="w-4 h-4" /> Historial
+              <History className="w-4 h-4" /> {t('entrenador.asistencia.viewHistory')}
             </button>
           </div>
         </div>
@@ -476,14 +480,14 @@ export default function AsistenciaEntrenador() {
           <div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-2">
               <ClipboardCheck className="w-7 h-7 text-brand" />
-              {vista === 'categorias' && 'Control de Asistencia'}
-              {vista === 'asistencia' && `Pasando Lista · ${categoriaSeleccionada?.nombre}`}
-              {vista === 'historial' && `Historial · ${categoriaSeleccionada?.nombre}`}
+              {vista === 'categorias' && t('entrenador.asistencia.title')}
+              {vista === 'asistencia' && t('entrenador.asistencia.takingRoll', { categoria: categoriaSeleccionada?.nombre })}
+              {vista === 'historial' && t('entrenador.asistencia.historyTitle', { categoria: categoriaSeleccionada?.nombre })}
             </h1>
             <p className="text-slate-400 text-xs font-bold mt-0.5">
-              {vista === 'categorias' && 'Selecciona una categoría para comenzar'}
-              {vista === 'asistencia' && `${new Date(fechaSesion + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}`}
-              {vista === 'historial' && 'Últimas 15 sesiones registradas'}
+              {vista === 'categorias' && t('entrenador.asistencia.subTitleSelect')}
+              {vista === 'asistencia' && `${new Date(fechaSesion + 'T12:00:00').toLocaleDateString(language === 'en' ? 'en-US' : 'es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}`}
+              {vista === 'historial' && t('entrenador.asistencia.historySubTitle')}
             </p>
           </div>
         </div>
@@ -501,8 +505,8 @@ export default function AsistenciaEntrenador() {
             ) : categorias.length === 0 ? (
               <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
                 <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-400 font-bold">No tienes categorías asignadas</p>
-                <p className="text-slate-300 text-sm mt-1">Pide al director que te asigne categorías</p>
+                <p className="text-slate-400 font-bold">{t('entrenador.asistencia.noCategories')}</p>
+                <p className="text-slate-300 text-sm mt-1">{t('entrenador.asistencia.noCategoriesSub')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -518,7 +522,7 @@ export default function AsistenciaEntrenador() {
                         {cat.nombre.charAt(0)}
                       </div>
                       <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase italic tracking-tighter">{cat.nombre}</h3>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{cat.nivel || 'Nivel Formativo'}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{cat.nivel || t('entrenador.asistencia.format')}</p>
                       {cat.horarios && (
                         <p className="text-xs text-slate-400 font-medium mt-3 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {cat.horarios}
@@ -532,13 +536,13 @@ export default function AsistenciaEntrenador() {
                         onClick={() => verHistorial(cat)}
                         className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-brand transition-colors"
                       >
-                        <History className="w-3.5 h-3.5" /> Ver historial
+                        <History className="w-3.5 h-3.5" /> {t('entrenador.asistencia.viewHistory')}
                       </button>
                       <button
                         onClick={() => seleccionarCategoria(cat)}
                         className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white text-[10px] font-black uppercase tracking-wider rounded-xl hover:bg-brand/90 transition-colors"
                       >
-                        <Zap className="w-3 h-3" /> Pasar Lista
+                        <Zap className="w-3 h-3" /> {t('entrenador.asistencia.takeRoll')}
                       </button>
                     </div>
                   </div>
@@ -558,15 +562,15 @@ export default function AsistenciaEntrenador() {
             <div className="grid grid-cols-3 gap-3">
               <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl p-4 text-center">
                 <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{presentes}</p>
-                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">Presentes</p>
+                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">{t('entrenador.asistencia.present')}</p>
               </div>
               <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-4 text-center">
                 <p className="text-2xl font-black text-rose-600 dark:text-rose-400">{ausentes}</p>
-                <p className="text-[9px] font-black text-rose-500 uppercase tracking-wider">Ausentes</p>
+                <p className="text-[9px] font-black text-rose-500 uppercase tracking-wider">{t('entrenador.asistencia.absent')}</p>
               </div>
               <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl p-4 text-center">
                 <p className="text-2xl font-black text-amber-600 dark:text-amber-400">{excusas}</p>
-                <p className="text-[9px] font-black text-amber-500 uppercase tracking-wider">Excusas</p>
+                <p className="text-[9px] font-black text-amber-500 uppercase tracking-wider">{t('entrenador.asistencia.excuses')}</p>
               </div>
             </div>
 
@@ -574,7 +578,7 @@ export default function AsistenciaEntrenador() {
             {alumnos.length > 0 && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800">
                 <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
-                  <span>Asistencia en tiempo real</span>
+                  <span>{t('entrenador.asistencia.realtimeAttendance')}</span>
                   <span className="font-black text-slate-800 dark:text-white">{Math.round((presentes / alumnos.length) * 100)}%</span>
                 </div>
                 <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
@@ -596,14 +600,14 @@ export default function AsistenciaEntrenador() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Buscar jugador..."
+                      placeholder={t('entrenador.asistencia.searchPlaceholder')}
                       value={busqueda}
                       onChange={e => setBusqueda(e.target.value)}
                       className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand font-medium"
                     />
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 whitespace-nowrap">
-                    <Users className="w-3.5 h-3.5" /> {filtrados.length} jugadores
+                    <Users className="w-3.5 h-3.5" /> {t('entrenador.asistencia.playersCount', { count: filtrados.length })}
                   </div>
                 </div>
               </div>
@@ -612,7 +616,7 @@ export default function AsistenciaEntrenador() {
               {cargando ? (
                 <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-brand" /></div>
               ) : filtrados.length === 0 ? (
-                <div className="py-16 text-center text-slate-400 font-bold italic">No se encontraron jugadores</div>
+                <div className="py-16 text-center text-slate-400 font-bold italic">{t('entrenador.asistencia.noPlayers')}</div>
               ) : (
                 <div className="divide-y divide-slate-50 dark:divide-slate-800">
                   {filtrados.map((alumno) => {
@@ -692,7 +696,7 @@ export default function AsistenciaEntrenador() {
                               onChange={n => setNotas(prev => ({ ...prev, [alumno.id]: n }))}
                             />
                             {nota === 0 && (
-                              <span className="text-[9px] text-slate-300 font-bold italic">Califica el desempeño</span>
+                              <span className="text-[9px] text-slate-300 font-bold italic">{t('entrenador.asistencia.ratePerformance')}</span>
                             )}
                           </div>
                         )}
@@ -710,7 +714,7 @@ export default function AsistenciaEntrenador() {
                   className="w-full bg-slate-900 dark:bg-brand text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {guardando ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                  {guardando ? 'Guardando sesión...' : `Finalizar y guardar sesión (${presentes}/${alumnos.length})`}
+                  {guardando ? t('entrenador.asistencia.savingSession') : t('entrenador.asistencia.saveSession', { presentes, total: alumnos.length })}
                 </button>
               </div>
             </div>
@@ -727,8 +731,8 @@ export default function AsistenciaEntrenador() {
             ) : historialSesiones.length === 0 ? (
               <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
                 <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-400 font-bold">No hay sesiones registradas aún</p>
-                <p className="text-slate-300 text-sm mt-1">Las sesiones aparecerán aquí después de guardar la primera asistencia</p>
+                <p className="text-slate-400 font-bold">{t('entrenador.asistencia.noHistory')}</p>
+                <p className="text-slate-300 text-sm mt-1">{t('entrenador.asistencia.noHistorySub')}</p>
               </div>
             ) : (
               <>
@@ -736,13 +740,13 @@ export default function AsistenciaEntrenador() {
                 <div className="grid grid-cols-3 gap-3 mb-6">
                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center">
                     <p className="text-2xl font-black text-slate-800 dark:text-white">{historialSesiones.length}</p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">Sesiones</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">{t('entrenador.asistencia.sessions')}</p>
                   </div>
                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center">
                     <p className="text-2xl font-black text-emerald-500">
                       {Math.round(historialSesiones.reduce((a, s) => a + s.pct, 0) / historialSesiones.length)}%
                     </p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">Asist. Media</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">{t('entrenador.asistencia.avgAttendance')}</p>
                   </div>
                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-center">
                     <p className="text-2xl font-black text-brand">
@@ -751,7 +755,7 @@ export default function AsistenciaEntrenador() {
                         return ns.length > 0 ? (ns.reduce((a, b) => a + b, 0) / ns.length).toFixed(1) : '—';
                       })()}
                     </p>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">Nota Media</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-1">{t('entrenador.asistencia.avgGrade')}</p>
                   </div>
                 </div>
 
@@ -776,7 +780,7 @@ export default function AsistenciaEntrenador() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <p className="font-black text-slate-800 dark:text-white text-sm">
-                              {new Date(sesion.fecha + 'T12:00:00').toLocaleDateString('es-CO', {
+                              {new Date(sesion.fecha + 'T12:00:00').toLocaleDateString(language === 'en' ? 'en-US' : 'es-CO', {
                                 weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
                               })}
                             </p>
@@ -784,11 +788,11 @@ export default function AsistenciaEntrenador() {
                               <span className={`text-[10px] font-black ${
                                 sesion.pct >= 75 ? 'text-emerald-500' : sesion.pct >= 50 ? 'text-amber-500' : 'text-rose-500'
                               }`}>
-                                {sesion.presentes}/{sesion.total} presentes ({sesion.pct}%)
+                                {sesion.presentes}/{sesion.total} {t('entrenador.asistencia.present').toLowerCase()} ({sesion.pct}%)
                               </span>
                               {sesion.notaProm && (
                                 <span className="flex items-center gap-1 text-[10px] font-black text-brand">
-                                  <Star className="w-3 h-3" /> Nota: {sesion.notaProm}
+                                  <Star className="w-3 h-3" /> {t('entrenador.asistencia.avgGrade')}: {sesion.notaProm}
                                 </span>
                               )}
                             </div>
@@ -811,12 +815,11 @@ export default function AsistenciaEntrenador() {
                       {/* Detalle expandible */}
                       {sesionDetalle?.fecha === sesion.fecha && (
                         <div className="mt-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 p-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Detalle de Asistencia</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t('entrenador.asistencia.attendanceDetail')}</p>
                           {sesion.registros.map((r: any, ri: number) => (
                             <div key={ri} className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
                               <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                {/* Aquí no tenemos el nombre, solo jugador_id */}
-                                Jugador #{ri + 1}
+                                {t('entrenador.asistencia.playerNumber', { number: ri + 1 })}
                               </span>
                               <div className="flex items-center gap-2">
                                 {r.nota_rendimiento && (
@@ -829,7 +832,7 @@ export default function AsistenciaEntrenador() {
                                   : r.estado === 'Ausente' ? 'bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400'
                                   : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
                                 }`}>
-                                  {r.estado}
+                                  {r.estado === 'Presente' ? t('entrenador.asistencia.present') : r.estado === 'Ausente' ? t('entrenador.asistencia.absent') : t('entrenador.asistencia.excuses')}
                                 </span>
                               </div>
                             </div>
@@ -847,7 +850,7 @@ export default function AsistenciaEntrenador() {
               onClick={() => seleccionarCategoria(categoriaSeleccionada)}
               className="w-full bg-slate-900 dark:bg-brand text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl mt-4"
             >
-              <Zap className="w-4 h-4" /> Pasar Lista Ahora
+              <Zap className="w-4 h-4" /> {t('entrenador.asistencia.takeRollNow')}
             </button>
           </div>
         )}

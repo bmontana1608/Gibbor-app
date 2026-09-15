@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n';
 
 // --- REUTILIZAMOS EL RADAR CHART ---
 function RadarChart({ data, size = 250 }: { data: { label: string, value: number }[], size?: number }) {
@@ -70,6 +71,7 @@ function RadarChart({ data, size = 250 }: { data: { label: string, value: number
 }
 
 export default function GestionCategoriasEntrenador() {
+  const { t } = useTranslation();
   const [categorias, setCategorias] = useState<any[]>([]);
   const [catSeleccionada, setCatSeleccionada] = useState<any>(null);
   const { slug: tenantSlug } = useTenant();

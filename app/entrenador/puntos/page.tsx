@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n';
 
 export default function AsignarPuntos() {
+  const { t } = useTranslation();
   const [categorias, setCategorias] = useState<any[]>([]);
   const [catSeleccionada, setCatSeleccionada] = useState<any>(null);
   const [alumnos, setAlumnos] = useState<any[]>([]);
@@ -176,22 +178,22 @@ export default function AsignarPuntos() {
                 <Trophy className="w-10 h-10" />
             </div>
             <div>
-                 <h1 className="text-3xl font-black text-slate-800 tracking-tighter uppercase italic leading-none">Gestión de <span style={{ color: 'var(--brand-primary)' }}>Recompensas</span></h1>
+                 <h1 className="text-3xl font-black text-slate-800 tracking-tighter uppercase italic leading-none">{t('entrenador.puntos.title')}</h1>
                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-2 flex items-center gap-2">
-                    <Star className="w-3 h-3" style={{ color: 'var(--brand-primary)' }} /> Premia el talento y la disciplina
+                    <Star className="w-3 h-3" style={{ color: 'var(--brand-primary)' }} /> {t('entrenador.puntos.subtitle')}
                  </p>
             </div>
         </div>
         <div className="flex flex-col items-end gap-3">
             {catSeleccionada && (
                 <button onClick={() => setCatSeleccionada(null)} className="text-slate-400 font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:text-slate-900 transition-colors bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
-                    <ArrowLeft className="w-3 h-3" /> Volver
+                    <ArrowLeft className="w-3 h-3" /> {t('common.back')}
                 </button>
             )}
             {catSeleccionada && (
                 <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200/50">
-                    <button onClick={() => setModo('puntos')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modo === 'puntos' ? 'bg-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`} style={modo === 'puntos' ? { color: 'var(--brand-primary)' } : {}}>Puntos</button>
-                    <button onClick={() => setModo('insignias')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modo === 'insignias' ? 'bg-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`} style={modo === 'insignias' ? { color: 'var(--brand-primary)' } : {}}>Insignias</button>
+                    <button onClick={() => setModo('puntos')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modo === 'puntos' ? 'bg-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`} style={modo === 'puntos' ? { color: 'var(--brand-primary)' } : {}}>{t('entrenador.puntos.points')}</button>
+                    <button onClick={() => setModo('insignias')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${modo === 'insignias' ? 'bg-white shadow-md' : 'text-slate-500 hover:text-slate-700'}`} style={modo === 'insignias' ? { color: 'var(--brand-primary)' } : {}}>{t('entrenador.puntos.badges')}</button>
                 </div>
             )}
         </div>
@@ -199,7 +201,7 @@ export default function AsignarPuntos() {
 
       {!catSeleccionada ? (
         <div className="space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Selecciona una Categoría para Premiar</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">{t('entrenador.puntos.selectCategory')}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {(categorias.length > 0 ? categorias : []).map(cat => (
                     <button 
@@ -210,7 +212,7 @@ export default function AsignarPuntos() {
                     <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-slate-50 rounded-full blur-2xl group-hover:bg-slate-100 transition-all"></div>
                     <div className="text-left relative z-10">
                         <p className="font-black text-slate-900 text-xl italic uppercase tracking-tighter leading-none mb-1">{cat.nombre}</p>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{cat.nivel || 'Sin Nivel'}</p>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{cat.nivel || t('entrenador.asistencia.format')}</p>
                     </div>
                     <ChevronRight className="text-slate-300 group-hover:translate-x-1 transition-all z-10" style={{ color: 'var(--brand-primary)' }} />
                     </button>
@@ -219,7 +221,7 @@ export default function AsignarPuntos() {
             {categorias.length === 0 && (
                 <div className="p-20 text-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
                     <Trophy className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                    <p className="text-slate-400 font-black uppercase text-xs tracking-widest leading-loose">No hay categorías vinculadas a tu perfil.<br/>Asegúrate de estar asignado en la configuración del club.</p>
+                    <p className="text-slate-400 font-black uppercase text-xs tracking-widest leading-loose">{t('entrenador.asistencia.noCategories')}</p>
                 </div>
             )}
         </div>
@@ -232,7 +234,7 @@ export default function AsignarPuntos() {
                     {modo === 'puntos' ? (
                         <>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-5 tracking-widest text-center">Valor de la Recompensa</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-5 tracking-widest text-center">{t('entrenador.puntos.amount')}</label>
                                 <div className="grid grid-cols-3 gap-3">
                                      {[10, 20, 50, 100, 200, 500].map(p => (
                                          <button 
@@ -246,7 +248,7 @@ export default function AsignarPuntos() {
                             </div>
 
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-5 tracking-widest text-center">Motivo</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-5 tracking-widest text-center">{t('entrenador.puntos.reason')}</label>
                                 <select 
                                     value={razon} 
                                     onChange={(e) => setRazon(e.target.value)}
@@ -262,13 +264,13 @@ export default function AsignarPuntos() {
                                 disabled={procesando || alumnosSeleccionados.length === 0}
                                 className="w-full bg-slate-900 hover:bg-black text-white py-6 rounded-[1.5rem] font-black shadow-2xl transition-all disabled:opacity-20 disabled:grayscale uppercase tracking-widest text-xs italic"
                             >
-                                {procesando ? 'PROCESANDO...' : 'OTORGAR PUNTOS ⚡'}
+                                {procesando ? '...' : `${t('entrenador.puntos.assign')} ⚡`}
                             </button>
                         </>
                     ) : (
                         <>
                             <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest text-center">Selecciona Condecoración</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase mb-6 tracking-widest text-center">{t('entrenador.puntos.selectBadge')}</label>
                                 <div className="grid grid-cols-1 gap-4">
                                      {insigniasDisponibles.map(ins => (
                                          <button 
@@ -294,7 +296,7 @@ export default function AsignarPuntos() {
                                 className="w-full text-white py-6 rounded-[1.5rem] font-black shadow-2xl transition-all disabled:opacity-20 disabled:grayscale uppercase tracking-widest text-xs italic"
                                 style={{ backgroundColor: 'var(--brand-primary)', boxShadow: `0 12px 24px -6px rgba(var(--brand-primary-rgb), 0.4)` }}
                             >
-                                {procesando ? 'CONDECORANDO...' : 'OTORGAR INSIGNIA 🏅'}
+                                {procesando ? '...' : `${t('entrenador.puntos.assignBadge')} 🏅`}
                             </button>
                         </>
                     )}
@@ -307,7 +309,7 @@ export default function AsignarPuntos() {
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 group-focus-within:text-slate-900 transition-colors" />
                     <input 
                         type="text" 
-                        placeholder="Buscar futbolista de la categoría..." 
+                        placeholder={t('entrenador.asistencia.searchPlaceholder')} 
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
                         className="w-full pl-16 pr-6 py-5 bg-white border border-slate-100 rounded-[1.5rem] text-sm font-bold outline-none shadow-sm focus:shadow-xl focus:border-slate-300 transition-all"
@@ -318,8 +320,7 @@ export default function AsignarPuntos() {
                     {alumnos.length === 0 ? (
                         <div className="col-span-full py-24 text-center bg-white border-2 border-dashed border-slate-50 rounded-[3rem]">
                             <UsersIcon className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                            <p className="text-slate-400 font-black uppercase text-xs tracking-widest">No hay futbolistas registrados en "{catSeleccionada.nombre}"</p>
-                            <p className="text-slate-300 text-[10px] mt-2 font-bold uppercase tracking-tighter">Verifica el grupo en los perfiles de los alumnos</p>
+                            <p className="text-slate-400 font-black uppercase text-xs tracking-widest">{t('entrenador.asistencia.noPlayers')}</p>
                         </div>
                     ) : (
                         alumnos.filter(a => `${a.nombres} ${a.apellidos}`.toLowerCase().includes(busqueda.toLowerCase())).map(alumno => {
@@ -338,7 +339,7 @@ export default function AsignarPuntos() {
                                         <div>
                                             <p className="font-black text-slate-900 text-sm uppercase italic tracking-tighter leading-none mb-1">{alumno.nombres} {alumno.apellidos}</p>
                                             <p className="text-[10px] text-slate-400 font-black uppercase flex items-center gap-2 italic">
-                                                <Star className="w-3 h-3" style={{ color: 'var(--brand-primary)' }} /> {alumno.puntos || 0} Points
+                                                <Star className="w-3 h-3" style={{ color: 'var(--brand-primary)' }} /> {alumno.puntos || 0} {t('entrenador.puntos.points')}
                                             </p>
                                         </div>
                                     </div>

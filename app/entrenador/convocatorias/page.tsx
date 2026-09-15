@@ -5,9 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Calendar, Users, Send, ShieldCheck, User, ClipboardList, Edit2, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n';
 
 export default function ConvocatoriasEntrenador() {
   const { slug: tenantSlug } = useTenant();
+  const { t } = useTranslation();
   const [tenant, setTenant] = useState<any>(null);
   const [perfil, setPerfil] = useState<any>(null);
   const [jugadores, setJugadores] = useState<any[]>([]);
@@ -242,7 +244,7 @@ export default function ConvocatoriasEntrenador() {
     }
   };
 
-  if (cargando) return <div className="p-8 text-center text-slate-400">Cargando datos...</div>;
+  if (cargando) return <div className="p-8 text-center text-slate-400">{t('common.loading')}</div>;
 
   const grupos = agruparPorCategoria(jugadores);
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
@@ -254,9 +256,9 @@ export default function ConvocatoriasEntrenador() {
         <div>
           <h1 className="text-3xl font-black text-slate-800 uppercase italic tracking-tighter flex items-center gap-3">
             <ShieldCheck className="w-8 h-8" style={{ color: brandColor }} />
-            Convocatorias
+            {t('entrenador.convocatorias.title')}
           </h1>
-          <p className="text-slate-500 font-medium">Gestiona y envía nóminas para aprobación.</p>
+          <p className="text-slate-500 font-medium">{t('entrenador.convocatorias.subtitle')}</p>
         </div>
         
         {/* Tabs */}
@@ -266,7 +268,7 @@ export default function ConvocatoriasEntrenador() {
             className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeTab === 'nueva' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:bg-slate-200/50'}`}
           >
             <PlusCircle className="w-4 h-4" /> 
-            {evento.id ? 'Editando Lista' : 'Nueva Convocatoria'}
+            {evento.id ? t('entrenador.convocatorias.editingList') : t('entrenador.convocatorias.newCallup')}
           </button>
           <button 
             onClick={() => {
@@ -276,7 +278,7 @@ export default function ConvocatoriasEntrenador() {
             className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${activeTab === 'historial' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:bg-slate-200/50'}`}
           >
             <ClipboardList className="w-4 h-4" /> 
-            Historial
+            {t('entrenador.convocatorias.history')}
           </button>
         </div>
       </div>
@@ -286,7 +288,7 @@ export default function ConvocatoriasEntrenador() {
           {misEventos.length === 0 && (
             <div className="text-center p-12 bg-white rounded-[2rem] border border-slate-100">
               <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500 font-bold">No has creado ninguna convocatoria.</p>
+              <p className="text-slate-500 font-bold">{t('entrenador.convocatorias.noCallups')}</p>
             </div>
           )}
 
@@ -307,7 +309,7 @@ export default function ConvocatoriasEntrenador() {
                   <div className="space-y-2 text-sm text-slate-500 font-medium mb-6">
                     <p className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {new Date(ev.fecha + (ev.hora ? 'T' + ev.hora : '')).toLocaleString()}</p>
                     <p className="flex items-center gap-2">🏟️ {ev.lugar || 'Por definir'}</p>
-                    <p className="flex items-center gap-2"><Users className="w-4 h-4" /> {ev.convocatorias?.length || 0} Jugadores</p>
+                    <p className="flex items-center gap-2"><Users className="w-4 h-4" /> {ev.convocatorias?.length || 0} {t('entrenador.convocatorias.players')}</p>
                   </div>
                 </div>
 
@@ -316,7 +318,7 @@ export default function ConvocatoriasEntrenador() {
                     onClick={() => editarConvocatoria(ev)}
                     className="w-full py-3 mt-auto bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
-                    <Edit2 className="w-4 h-4" /> Modificar Lista
+                    <Edit2 className="w-4 h-4" /> {t('entrenador.convocatorias.modifyList')}
                   </button>
                 )}
               </div>
@@ -331,12 +333,12 @@ export default function ConvocatoriasEntrenador() {
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 sticky top-8">
               <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center justify-between mb-6">
-                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-slate-400" /> Datos del Evento</span>
-                {evento.id && <span className="bg-rose-50 text-rose-600 px-2 py-1 rounded text-[10px]">Edición</span>}
+                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-slate-400" /> {t('entrenador.convocatorias.eventData')}</span>
+                {evento.id && <span className="bg-rose-50 text-rose-600 px-2 py-1 rounded text-[10px]">{t('entrenador.convocatorias.editing')}</span>}
               </h2>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Título / Nombre</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('common.title') || 'Título / Nombre'}</label>
                   <input 
                     required
                     type="text" 
@@ -344,25 +346,25 @@ export default function ConvocatoriasEntrenador() {
                     onChange={e => setEvento({...evento, titulo: e.target.value})}
                     className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:ring-2" 
                     style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
-                    placeholder="Ej: Final Copa Libertadores" 
+                    placeholder={t('entrenador.convocatorias.titlePlaceholder')} 
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tipo</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('entrenador.convocatorias.type')}</label>
                   <select 
                     value={evento.tipo_evento}
                     onChange={e => setEvento({...evento, tipo_evento: e.target.value})}
                     className="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold mt-1 outline-none focus:ring-2"
                     style={{ '--tw-ring-color': brandColor } as React.CSSProperties}
                   >
-                    <option value="Partido">Partido Oficial</option>
-                    <option value="Amistoso">Partido Amistoso</option>
-                    <option value="Entrenamiento">Entrenamiento Especial</option>
-                    <option value="Evento">Evento Social / Viaje</option>
+                    <option value="Partido">{t('entrenador.convocatorias.officialMatch')}</option>
+                    <option value="Amistoso">{t('entrenador.convocatorias.friendlyMatch')}</option>
+                    <option value="Entrenamiento">{t('entrenador.convocatorias.specialTraining')}</option>
+                    <option value="Evento">{t('entrenador.convocatorias.socialEvent')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Fecha y Hora</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('entrenador.convocatorias.dateTime')}</label>
                   <input 
                     required
                     type="datetime-local" 
@@ -373,7 +375,7 @@ export default function ConvocatoriasEntrenador() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Lugar / Estadio</label>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">{t('entrenador.convocatorias.stadiumVenue')}</label>
                   <input 
                     type="text" 
                     value={evento.lugar}
@@ -390,7 +392,7 @@ export default function ConvocatoriasEntrenador() {
                       onClick={cancelarEdicion}
                       className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs uppercase tracking-widest py-4 rounded-xl transition-colors"
                     >
-                      Cancelar
+                      {t('entrenador.convocatorias.cancel')}
                     </button>
                   )}
                   <button 
@@ -399,10 +401,10 @@ export default function ConvocatoriasEntrenador() {
                     style={{ backgroundColor: brandColor, boxShadow: `0 10px 25px -5px ${brandColor}60` }}
                   >
                     <Send className="w-5 h-5" />
-                    {evento.id ? 'Guardar Cambios' : 'Solicitar'}
+                    {evento.id ? t('entrenador.convocatorias.saveChanges') : t('entrenador.convocatorias.request')}
                   </button>
                 </div>
-                <p className="text-[10px] text-center text-slate-400 mt-2">Revisión requerida por Director</p>
+                <p className="text-[10px] text-center text-slate-400 mt-2">{t('entrenador.convocatorias.approvalNotice')}</p>
               </form>
             </div>
           </div>
@@ -415,10 +417,10 @@ export default function ConvocatoriasEntrenador() {
                   <Users className="w-5 h-5 text-slate-400" /> {categoria}
                   {/^Sub \d+$/.test(categoria) && (
                     <span className="text-xs font-black text-slate-500 bg-slate-100 px-2 py-1 rounded-md border border-slate-200">
-                      Nacidos {new Date().getFullYear() - parseInt(categoria.replace('Sub ', ''), 10)}
+                      {t('entrenador.convocatorias.bornIn', { year: new Date().getFullYear() - parseInt(categoria.replace('Sub ', ''), 10) })}
                     </span>
                   )}
-                  <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{grupos[categoria].length} Jugadores</span>
+                  <span className="ml-auto text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">{grupos[categoria].length} {t('entrenador.convocatorias.players')}</span>
                 </h2>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -440,13 +442,13 @@ export default function ConvocatoriasEntrenador() {
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-800 truncate text-sm">{jugador.nombres} {jugador.apellidos}</p>
                             <p className="text-[10px] text-slate-500 uppercase tracking-widest flex items-center gap-1">
-                              {jugador.posicion || 'Sin posición'} 
-                              {jugador.edadFisica !== null && <span className="font-black text-slate-700 ml-1">({jugador.edadFisica} años)</span>}
+                              {jugador.posicion || t('entrenador.convocatorias.noPosition')} 
+                              {jugador.edadFisica !== null && <span className="font-black text-slate-700 ml-1">({t('entrenador.convocatorias.yearsOld', { age: jugador.edadFisica })})</span>}
                             </p>
                             {jugador.diasParaCumple !== null && jugador.diasParaCumple <= 45 && (
                               <div className="mt-1">
                                 <span className="text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded uppercase tracking-tighter border border-amber-200 shadow-sm">
-                                  ⚠️ Cumple en {jugador.diasParaCumple} días
+                                  {t('entrenador.convocatorias.birthdayWarning', { days: jugador.diasParaCumple })}
                                 </span>
                               </div>
                             )}
@@ -459,13 +461,13 @@ export default function ConvocatoriasEntrenador() {
                               onClick={() => cambiarRol(jugador.id, 'Titular')}
                               className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${seleccionados[jugador.id] === 'Titular' ? 'bg-indigo-600 text-white' : 'bg-white border text-slate-500 hover:bg-slate-50'}`}
                             >
-                              Titular
+                              {t('entrenador.convocatorias.starter')}
                             </button>
                             <button 
                               onClick={() => cambiarRol(jugador.id, 'Suplente')}
                               className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${seleccionados[jugador.id] === 'Suplente' ? 'bg-indigo-600 text-white' : 'bg-white border text-slate-500 hover:bg-slate-50'}`}
                             >
-                              Suplente
+                              {t('entrenador.convocatorias.substitute')}
                             </button>
                           </div>
                         )}
@@ -478,7 +480,7 @@ export default function ConvocatoriasEntrenador() {
             {jugadores.length === 0 && (
               <div className="text-center p-12 bg-white rounded-[2rem] border border-slate-100">
                 <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                <p className="text-slate-500 font-bold">No hay jugadores registrados en tu club.</p>
+                <p className="text-slate-500 font-bold">{t('entrenador.convocatorias.noPlayers')}</p>
               </div>
             )}
           </div>

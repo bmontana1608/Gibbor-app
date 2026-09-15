@@ -11,9 +11,12 @@ import { useRouter } from 'next/navigation';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { getEmbedUrl, extractVideosFromDescription, resolveShortUrl } from '@/lib/utils/videos';
 
+import { useTranslation } from '@/lib/i18n';
+
 export default function PlanificadorEntrenador() {
   const router = useRouter();
   const { route } = useTenant();
+  const { t } = useTranslation();
   const [planes, setPlanes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -198,33 +201,33 @@ export default function PlanificadorEntrenador() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3">
-            <Layout className="text-brand" /> Planificador
+            <Layout className="text-brand" /> {t('entrenador.planificador.title')}
           </h1>
-          <p className="text-slate-500 mt-1">Organiza tus sesiones y metodologías de trabajo.</p>
+          <p className="text-slate-500 mt-1">{t('entrenador.planificador.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button 
             onClick={() => window.location.href = route('/entrenador/pizarra')}
             className="bg-white border-2 border-slate-200 text-slate-700 font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm"
           >
-            <PenTool className="text-brand" /> Pizarra Táctica
+            <PenTool className="text-brand" /> {t('entrenador.menu.planner') ? t('entrenador.pizarra.title') : 'Pizarra Táctica'}
           </button>
           <button 
             onClick={() => setMostrarModal(true)}
             className="bg-brand text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 hover:opacity-90 transition-all shadow-lg"
           >
-            <Plus className="w-5 h-5" /> Nueva Sesión
+            <Plus className="w-5 h-5" /> {t('entrenador.planificador.newPlan')}
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cargando ? (
-          <div className="col-span-full py-20 text-center text-slate-400 italic">Cargando...</div>
+          <div className="col-span-full py-20 text-center text-slate-400 italic">{t('common.loading')}</div>
         ) : planes.length === 0 ? (
           <div className="col-span-full py-20 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl">
             <ClipboardList className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium">No hay planes creados aún.</p>
+            <p className="text-slate-500 font-medium">{t('entrenador.planificador.noPlans')}</p>
           </div>
         ) : (
           planes.map(plan => {

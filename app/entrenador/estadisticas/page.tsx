@@ -9,8 +9,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Ranking() {
+  const { t } = useTranslation();
   const [ranking, setRanking] = useState<any[]>([]);
   const [recientes, setRecientes] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -91,18 +93,18 @@ export default function Ranking() {
          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
                  <div className="flex items-center gap-2 mb-4">
-                    <span className="bg-brand text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Temporada 2024</span>
-                    <span className="bg-white/10 text-white/60 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter italic">Live Ranking</span>
+                    <span className="bg-brand text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">{t('entrenador.estadisticas.season')}</span>
+                    <span className="bg-white/10 text-white/60 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter italic">{t('entrenador.estadisticas.liveRanking')}</span>
                  </div>
-                 <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">CUADRO DE <span className="text-brand underline text-brand/30 underline-offset-8">HONOR</span> 🏆</h1>
-                 <p className="text-slate-400 font-medium max-w-md">Reconociendo el talento, la disciplina y el espíritu deportivo de nuestros futbolistas.</p>
+                 <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-2">{t('entrenador.estadisticas.hallOfFame')} 🏆</h1>
+                 <p className="text-slate-400 font-medium max-w-md">{t('entrenador.estadisticas.subtitle')}</p>
             </div>
             
             <div className="flex flex-col gap-3 min-w-[200px]">
                 <div className="bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-md">
-                    <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Tu Líder de Hoy</p>
+                    <p className="text-[10px] font-black text-slate-500 uppercase mb-1">Top Player</p>
                     <p className="text-white font-black text-lg truncate uppercase">{ranking[0]?.nombres} {ranking[0]?.apellidos}</p>
-                    <p className="text-brand text-xs font-black">{ranking[0]?.puntos || 0} PUNTOS</p>
+                    <p className="text-brand text-xs font-black">{ranking[0]?.puntos || 0} {t('entrenador.estadisticas.points').toUpperCase()}</p>
                 </div>
             </div>
          </div>
@@ -115,8 +117,8 @@ export default function Ranking() {
             
             <div className="flex items-center justify-between">
                 <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
-                    <button onClick={() => setFiltro('Global')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filtro === 'Global' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>GLOBAL</button>
-                    <button onClick={() => setFiltro('Categoria')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filtro === 'Categoria' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>POR CATEGORÍA</button>
+                    <button onClick={() => setFiltro('Global')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filtro === 'Global' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t('entrenador.estadisticas.global').toUpperCase()}</button>
+                    <button onClick={() => setFiltro('Categoria')} className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filtro === 'Categoria' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t('entrenador.estadisticas.category').toUpperCase()}</button>
                 </div>
 
                 {filtro === 'Categoria' && (
@@ -125,7 +127,7 @@ export default function Ranking() {
                         onChange={(e) => setCatFiltro(e.target.value)}
                         className="text-brand"
                     >
-                        <option value="">Seleccionar Grupo...</option>
+                        <option value="">Select Group...</option>
                         {categorias.map(c => <option key={c.nombre} value={c.nombre}>{c.nombre}</option>)}
                     </select>
                 )}
