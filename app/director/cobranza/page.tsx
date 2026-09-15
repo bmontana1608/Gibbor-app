@@ -638,7 +638,7 @@ export default function ModuloCobranza() {
     setLoadingBot(alumno.id);
     
     try {
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).maybeSingle();
       const clubConfig = config || {};
       
       let cleanedNumber = String(alumno.telefono || '').replace(/\D/g, '');
@@ -733,7 +733,7 @@ export default function ModuloCobranza() {
     setLoadingBot(`manual-${alumno.id}`);
     const toastId = toast.loading(`Preparando recibo para ${alumno.nombres}...`);
     try {
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).maybeSingle();
       const nuevoConsecutivo = (config?.ultimo_consecutivo_recibo || 0) + 1;
 
       // Mes del PERÍODO DE COBRO seleccionado (no el mes actual del sistema)
@@ -1076,7 +1076,7 @@ export default function ModuloCobranza() {
     setLoadingBot('manual'); // Usamos un id virtual para el loader
 
     try {
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).maybeSingle();
       const clubConfig = config || {};
 
       // 1. Limpiar y formatear número inteligente
@@ -1166,7 +1166,7 @@ export default function ModuloCobranza() {
     if (!reciboGenerado) return;
     const toastId = toast.loading("Preparando recibo...");
     try {
-      const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).maybeSingle();
       
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: reciboGenerado.nombres,
@@ -1711,7 +1711,7 @@ export default function ModuloCobranza() {
               </button>
 
               <button onClick={async () => {
-                const { data: config } = await supabase.from('configuracion_wa').select('*').single();
+                const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).maybeSingle();
                 const pdfBase64 = await generarReciboPDFBase64({
                   nombres: reciboGenerado.nombres,
                   apellidos: reciboGenerado.apellidos,
