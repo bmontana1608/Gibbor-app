@@ -519,7 +519,7 @@ export default function ConfiguracionGeneral() {
 
               <div className="bg-brand/10 rounded-xl p-3 border borderbg-brand/20">
                 <p className="text-[9px] font-bold text-brand leading-relaxed">
-                  💡 Estos colores se aplicarán automáticamente a toda la plataforma de tu club tras guardar y recargar la página.
+                  {t('config.colorNotice')}
                 </p>
               </div>
 
@@ -529,7 +529,7 @@ export default function ConfiguracionGeneral() {
           <div className="lg:col-span-2 space-y-8 lg:row-span-2">
             {/* PAGOS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><CreditCard className="text-brand" /> Métodos de Pago</h2>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><CreditCard className="text-brand" /> {t('config.payments.title')}</h2>
               
               {/* MERCADO PAGO CONNECT */}
               <div className="mb-6 p-6 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col md:flex-row items-center gap-6 justify-between">
@@ -538,22 +538,22 @@ export default function ConfiguracionGeneral() {
                     <CreditCard className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-800">Pagos Automáticos (Mercado Pago)</h3>
-                    <p className="text-[10px] text-slate-500 mt-1 max-w-sm">Permite a los papás pagar con Nequi, Daviplata, Tarjeta o PSE. El dinero cae directamente a la cuenta de Mercado Pago del club.</p>
+                    <h3 className="text-sm font-black text-slate-800">{t('config.payments.autoPayments')}</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 max-w-sm">{t('config.payments.autoPaymentsDesc')}</p>
                   </div>
                 </div>
                 <div>
                   {tenant?.mp_access_token ? (
                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl border border-emerald-100">
                       <ShieldCheck className="w-4 h-4" />
-                      <span className="text-xs font-bold">Cuenta Vinculada</span>
+                      <span className="text-xs font-bold">{t('config.payments.accountLinked')}</span>
                     </div>
                   ) : (
                     <button 
                       onClick={handleConnectMercadoPago}
                       className="bg-[#009EE3] hover:bg-[#0089c7] text-white px-6 py-2 rounded-xl font-bold text-xs transition-colors whitespace-nowrap shadow-md shadow-[#009EE3]/20"
                     >
-                      Vincular mi Cuenta
+                      {t('config.payments.linkAccount')}
                     </button>
                   )}
                 </div>
@@ -562,7 +562,7 @@ export default function ConfiguracionGeneral() {
               <div className="pt-4 border-t border-slate-100">
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-2">
-                    <Wallet className="w-3 h-3 text-blue-500" /> Cuentas Bancarias y Billeteras
+                    <Wallet className="w-3 h-3 text-blue-500" /> {t('config.payments.bankAccounts')}
                   </label>
                   <button 
                     onClick={() => {
@@ -572,7 +572,7 @@ export default function ConfiguracionGeneral() {
                     }}
                     className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
                   >
-                    <PlusCircle className="w-4 h-4" /> Agregar Método
+                    <PlusCircle className="w-4 h-4" /> {t('config.payments.addMethod')}
                   </button>
                 </div>
 
@@ -582,7 +582,7 @@ export default function ConfiguracionGeneral() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 w-full">
                         <input 
                           type="text" 
-                          placeholder="Ej: Yape, Zelle, Cuenta Ahorros" 
+                          placeholder={t('config.payments.methodNamePlaceholder')}
                           value={metodo.nombre}
                           onChange={(e) => {
                             const list = [...config.metodos_pago];
@@ -593,7 +593,7 @@ export default function ConfiguracionGeneral() {
                         />
                         <input 
                           type="text" 
-                          placeholder="Número / CBU / Alias" 
+                          placeholder={t('config.payments.methodNumberPlaceholder')}
                           value={metodo.numero}
                           onChange={(e) => {
                             const list = [...config.metodos_pago];
@@ -604,7 +604,7 @@ export default function ConfiguracionGeneral() {
                         />
                         <input 
                           type="text" 
-                          placeholder="Instrucciones adicionales (Opcional)" 
+                          placeholder={t('config.payments.methodInstructionsPlaceholder')}
                           value={metodo.instrucciones || ''}
                           onChange={(e) => {
                             const list = [...config.metodos_pago];
@@ -621,7 +621,7 @@ export default function ConfiguracionGeneral() {
                           setConfig({ ...config, metodos_pago: list });
                         }}
                         className="text-red-400 hover:text-red-600 p-2 md:opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Eliminar método"
+                        title={t('config.payments.deleteMethod')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -629,8 +629,8 @@ export default function ConfiguracionGeneral() {
                   ))}
                   {(!config.metodos_pago || config.metodos_pago.length === 0) && (
                     <div className="text-center py-6 bg-slate-50 border border-slate-100 border-dashed rounded-xl">
-                      <p className="text-xs text-slate-400 font-bold">No hay métodos de pago configurados.</p>
-                      <p className="text-[10px] text-slate-400">Agrega las cuentas de tu club para que los jugadores sepan dónde pagar.</p>
+                      <p className="text-xs text-slate-400 font-bold">{t('config.payments.noMethods')}</p>
+                      <p className="text-[10px] text-slate-400">{t('config.payments.noMethodsDesc')}</p>
                     </div>
                   )}
                 </div>
@@ -638,7 +638,7 @@ export default function ConfiguracionGeneral() {
                 <div className="mt-6">
 
                 <div className="col-span-1 md:col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><CreditCard className="w-3 h-3 text-emerald-500" /> Link de Pago (MercadoPago, Bold, Wompi)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block flex items-center gap-2"><CreditCard className="w-3 h-3 text-emerald-500" /> {t('config.payments.paymentLink')}</label>
                   <input type="text" placeholder="https://link.mercadopago.com/..." value={config.link_pago} onChange={(e) => setConfig({...config, link_pago: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none font-medium text-sm text-emerald-700" />
                 </div>
               </div>
@@ -647,13 +647,13 @@ export default function ConfiguracionGeneral() {
 
             {/* WHATSAPP SAAS MODULE */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-500" /> WhatsApp</h2>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Bot className="w-4 h-4 text-emerald-500" /> {t('config.whatsapp.title')}</h2>
               
               <div className="flex flex-col items-center justify-center p-6 bg-slate-50 border border-slate-100 rounded-2xl">
                 {waStatus === 'loading' && (
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                    <p className="text-xs font-bold text-slate-500">Comprobando conexión...</p>
+                    <p className="text-xs font-bold text-slate-500">{t('config.whatsapp.checkingConnection')}</p>
                   </div>
                 )}
 
@@ -663,20 +663,20 @@ export default function ConfiguracionGeneral() {
                       <Bot className="w-8 h-8" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-800">WhatsApp Desconectado</p>
-                      <p className="text-[10px] text-slate-500 max-w-[250px] mx-auto mt-1">Conecta tu número oficial para enviar notificaciones automáticas y cobros a los alumnos de tu club.</p>
+                      <p className="text-sm font-black text-slate-800">{t('config.whatsapp.disconnected')}</p>
+                      <p className="text-[10px] text-slate-500 max-w-[250px] mx-auto mt-1">{t('config.whatsapp.disconnectedDesc')}</p>
                     </div>
                     <button onClick={connectWa} disabled={waConnecting} className="bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-300 text-white px-6 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors">
                       {waConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                      Conectar WhatsApp
+                      {t('config.whatsapp.connect')}
                     </button>
                   </div>
                 )}
 
                 {waStatus === 'qr' && (
                   <div className="flex flex-col items-center gap-4 text-center">
-                    <p className="text-sm font-black text-slate-800">Escanea este código QR</p>
-                    <p className="text-[10px] text-slate-500 mb-2">Abre WhatsApp en tu celular, ve a Dispositivos Vinculados y escanea este código. (Se actualizará en 20s)</p>
+                    <p className="text-sm font-black text-slate-800">{t('config.whatsapp.scanQr')}</p>
+                    <p className="text-[10px] text-slate-500 mb-2">{t('config.whatsapp.scanQrDesc')}</p>
                     
                     <div className="p-4 bg-white rounded-2xl border-2 border-emerald-100 shadow-sm">
                       {waQr ? (
@@ -685,7 +685,7 @@ export default function ConfiguracionGeneral() {
                         <div className="w-48 h-48 flex items-center justify-center bg-slate-50"><Loader2 className="w-6 h-6 animate-spin text-emerald-500"/></div>
                       )}
                     </div>
-                    <button onClick={() => setWaStatus('disconnected')} className="text-xs font-bold text-slate-500 hover:text-slate-800 mt-2">Cancelar</button>
+                    <button onClick={() => setWaStatus('disconnected')} className="text-xs font-bold text-slate-500 hover:text-slate-800 mt-2">{t('config.whatsapp.cancel')}</button>
                   </div>
                 )}
 
@@ -696,13 +696,13 @@ export default function ConfiguracionGeneral() {
                       <div className="absolute top-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                     </div>
                     <div>
-                      <p className="text-sm font-black text-emerald-700">Conectado y Operativo</p>
-                      <p className="text-[10px] text-slate-500 mt-1">El robot está enviando mensajes correctamente en nombre de tu club.</p>
+                      <p className="text-sm font-black text-emerald-700">{t('config.whatsapp.connected')}</p>
+                      <p className="text-[10px] text-slate-500 mt-1">{t('config.whatsapp.connectedDesc')}</p>
                       {waInstanceData?.profileName && <p className="text-xs font-bold text-slate-800 mt-2">{waInstanceData.profileName}</p>}
                     </div>
                     <button onClick={disconnectWa} disabled={waConnecting} className="bg-red-50 hover:bg-red-100 text-red-600 px-6 py-2 border border-red-200 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors mt-2">
                       {waConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
-                      Desconectar
+                      {t('config.whatsapp.disconnect')}
                     </button>
                   </div>
                 )}
@@ -712,8 +712,8 @@ export default function ConfiguracionGeneral() {
             {/* GESTIÓN DE PLANES MULTICLUB */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="text-brand" /> Planes y Restricciones</h2>
-                <p className="text-[9px] font-bold text-brand bg-brand/10 px-3 py-1 rounded-full uppercase tracking-tighter">SaaS Intelligence Active</p>
+                <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><CreditCard className="text-brand" /> {t('config.plans.title')}</h2>
+                <p className="text-[9px] font-bold text-brand bg-brand/10 px-3 py-1 rounded-full uppercase tracking-tighter">{t('config.plans.saasActive')}</p>
               </div>
               
               <div className="space-y-4">
@@ -725,7 +725,7 @@ export default function ConfiguracionGeneral() {
                     <div key={plan.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <p className="text-xs font-black text-slate-800 uppercase italic tracking-tight">{plan.nombre}</p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">Define qué días autoriza este plan:</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">{t('config.plans.defineDays')}</p>
                       </div>
                       
                       <div className="flex gap-1.5">
@@ -756,7 +756,7 @@ export default function ConfiguracionGeneral() {
                 })}
               </div>
               <p className="text-[9px] text-slate-400 font-medium italic mt-4 text-center">
-                * El sistema de asistencia solo mostrará a los alumnos en los días marcados aquí.
+                {t('config.plans.attendanceNotice')}
               </p>
             </div>
 
@@ -768,21 +768,21 @@ export default function ConfiguracionGeneral() {
                     <ShieldCheck className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black tracking-tight">Configuración Familiar</h2>
-                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mt-0.5">Vínculos del Director</p>
+                    <h2 className="text-xl font-black tracking-tight">{t('config.family.title')}</h2>
+                    <p className="text-slate-400 text-xs font-medium uppercase tracking-widest mt-0.5">{t('config.family.subtitle')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   <p className="text-sm text-slate-400 font-medium leading-relaxed max-w-lg">
-                    Crea un acceso directo a los perfiles de tus hijos. Cuando entres al <span className="text-brand font-bold">Modo Jugador</span>, verás sus carnets y estados de cuenta automáticamente.
+                    {t('config.family.desc1')}<span className="text-brand font-bold">{t('config.family.playerMode')}</span>{t('config.family.desc2')}
                   </p>
 
                   <div className="space-y-3">
-                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Hijos Vinculados</label>
+                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{t('config.family.linkedChildren')}</label>
                      <div className="flex flex-wrap gap-3">
                         {hijosIds.length === 0 ? (
-                          <div className="text-slate-500 text-xs italic">No has vinculado hijos todavía.</div>
+                          <div className="text-slate-500 text-xs italic">{t('config.family.noChildren')}</div>
                         ) : (
                           hijosIds.map(id => {
                             const jug = jugadores.find(j => j.id === id);
@@ -810,7 +810,7 @@ export default function ConfiguracionGeneral() {
                       onClick={() => setIsModalVincularOpen(true)}
                       className="text-[10px] font-black uppercase tracking-widest bg-white/10 hover:bg-white text-white hover:text-slate-900 px-6 py-3 rounded-xl transition-all border border-white/10"
                     >
-                      + Vincular nuevo hijo
+                      {t('config.family.linkNewChild')}
                     </button>
                   </div>
                 </div>
@@ -820,21 +820,21 @@ export default function ConfiguracionGeneral() {
 
             {/* SEGURIDAD Y CONTRASEÑAS */}
             <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Key className="text-brand" /> Seguridad Global del Club</h2>
+              <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Key className="text-brand" /> {t('config.security.title')}</h2>
               
               <div className="bg-red-50 p-6 rounded-2xl border border-red-100 flex flex-col md:flex-row gap-6 items-center">
                 <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center shrink-0">
                   <Key className="w-8 h-8" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-black text-red-800 mb-1">Contraseña Universal</h3>
+                  <h3 className="text-sm font-black text-red-800 mb-1">{t('config.security.universalPassword')}</h3>
                   <p className="text-[10px] text-red-600/80 font-medium mb-4 max-w-sm">
-                    Establece una contraseña general para <strong className="font-bold">todos los usuarios</strong> de tu club. Útil si quieres que todos entren con una contraseña fácil de recordar (Ej: "club2024").
+                    {t('config.security.passwordDesc1')}<strong className="font-bold">{t('config.security.allUsers')}</strong>{t('config.security.passwordDesc2')}
                   </p>
                   <div className="flex gap-2 w-full max-w-sm">
                     <input 
                       type="text" 
-                      placeholder="Nueva contraseña general" 
+                      placeholder={t('config.security.newPasswordPlaceholder')}
                       value={nuevaContrasenaGlobal}
                       onChange={e => setNuevaContrasenaGlobal(e.target.value)}
                       className="flex-1 px-4 py-2.5 bg-white border border-red-200 rounded-xl outline-none font-bold text-sm text-red-900 focus:border-red-400"
@@ -844,7 +844,7 @@ export default function ConfiguracionGeneral() {
                       disabled={cambiandoContrasena}
                       className="bg-red-600 hover:bg-red-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition-all shadow-md disabled:opacity-50"
                     >
-                      {cambiandoContrasena ? 'Aplicando...' : 'Aplicar a Todos'}
+                      {cambiandoContrasena ? t('config.security.applying') : t('config.security.applyToAll')}
                     </button>
                   </div>
                 </div>
@@ -859,7 +859,7 @@ export default function ConfiguracionGeneral() {
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
            <div className="bg-white rounded-[2rem] w-full max-w-md overflow-hidden shadow-2xl">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                 <h3 className="font-black text-slate-800 uppercase tracking-tight text-sm">Vincular Hijo</h3>
+                 <h3 className="font-black text-slate-800 uppercase tracking-tight text-sm">{t('config.family.linkChild')}</h3>
                  <button onClick={() => setIsModalVincularOpen(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
               </div>
               <div className="p-6 space-y-4">
@@ -867,7 +867,7 @@ export default function ConfiguracionGeneral() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                     <input 
                       type="text" 
-                      placeholder="Buscar por nombre..." 
+                      placeholder={t('config.family.searchPlaceholder')}
                       className="w-full pl-10 pr-4 py-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:text-brand text-sm font-bold"
                       onChange={(e) => setBusqueda(e.target.value)}
                     />

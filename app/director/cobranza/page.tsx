@@ -1404,12 +1404,12 @@ export default function ModuloCobranza() {
               <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <input type="text" placeholder="Buscar alumno por nombre..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
+                  <input type="text" placeholder={t('cobranza.searchStudent')} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all" />
                 </div>
                 <div className="flex gap-2">
-                  {['Todos', 'Pendiente', 'Al día'].map(label => (
-                    <button key={label} onClick={() => setEstadoFiltro(label)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${estadoFiltro === label ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
-                      {label}
+                  {[{val: 'Todos', txt: t('cobranza.all')}, {val: 'Pendiente', txt: t('cobranza.pending')}, {val: 'Al día', txt: t('cobranza.upToDate')}].map(item => (
+                    <button key={item.val} onClick={() => setEstadoFiltro(item.val)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${estadoFiltro === item.val ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>
+                      {item.txt}
                     </button>
                   ))}
                 </div>
@@ -1418,19 +1418,19 @@ export default function ModuloCobranza() {
                 <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
-                      <th className="p-4 md:px-6">Alumno</th>
-                      <th className="p-4 md:px-6">Categoría</th>
-                      <th className="p-4 md:px-6">Plan</th>
-                      <th className="p-4 md:px-6">Valor</th>
-                      <th className="p-4 md:px-6">Estado</th>
-                      <th className="p-4 md:px-6 text-right">Acciones</th>
+                      <th className="p-4 md:px-6">{t('cobranza.table.student')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.table.category')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.table.plan')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.table.value')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.table.status')}</th>
+                      <th className="p-4 md:px-6 text-right">{t('cobranza.table.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
                     {cargando ? (
-                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">Cargando futbolistas...</td></tr>
+                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">{t('cobranza.loadingPlayers')}</td></tr>
                     ) : jugadoresFiltrados.length === 0 ? (
-                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">No se encontraron resultados.</td></tr>
+                      <tr><td colSpan={5} className="p-10 text-center text-slate-400 italic">{t('cobranza.noResults')}</td></tr>
                     ) : (
                       jugadoresFiltrados.map((jugador) => {
                         const esAlDia = jugador.esAlDia;
@@ -1441,14 +1441,14 @@ export default function ModuloCobranza() {
                               <div className="flex items-center gap-2">
                                 <p className="font-bold text-slate-800 uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
                                 {yaNotificado && (
-                                  <span className="bg-blue-50 text-blue-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-blue-100 flex items-center gap-1 uppercase tracking-tighter" title="Ya se le envió cobro/recibo este mes">
-                                    <CheckCircle className="w-2.5 h-2.5" /> Notificado
+                                  <span className="bg-blue-50 text-blue-500 text-[9px] font-black px-1.5 py-0.5 rounded border border-blue-100 flex items-center gap-1 uppercase tracking-tighter" title={t('cobranza.notifiedTooltip')}>
+                                    <CheckCircle className="w-2.5 h-2.5" /> {t('cobranza.notified')}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-slate-400 font-medium">{jugador.email_contacto || 'Sin correo'}</p>
+                              <p className="text-[10px] text-slate-400 font-medium">{jugador.email_contacto || t('cobranza.noEmail')}</p>
                             </td>
-                            <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || 'Ninguna'}</td>
+                            <td className="p-4 md:px-6 font-medium text-slate-600 uppercase text-xs">{jugador.grupos || t('cobranza.none')}</td>
                             <td className="p-4 md:px-6">
                                 <select value={jugador.tipo_plan || 'Regular'} onChange={(e) => actualizarPlan(jugador.id, e.target.value, `${jugador.nombres} ${jugador.apellidos}`)} className="bg-slate-100 border-none text-[11px] font-bold rounded-lg px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-slate-300">
                                 {planes.map(p => (
@@ -1460,33 +1460,33 @@ export default function ModuloCobranza() {
                             <td className="p-4 md:px-6">
                               {jugador.esBeca100 ? (
                                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center w-fit gap-1.5 shadow-sm">
-                                  <ShieldCheck className="w-3.5 h-3.5" /> Beca 100% / Al día
+                                  <ShieldCheck className="w-3.5 h-3.5" /> {t('cobranza.scholarship100UpToDate')}
                                 </span>
                               ) : (
                                 <div className="flex flex-col gap-1">
                                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider w-fit ${esAlDia ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`}>
-                                    {esAlDia ? 'Al día' : 'Pendiente'}
+                                    {esAlDia ? t('cobranza.upToDate') : t('cobranza.pending')}
                                   </span>
                                   {/* Abono parcial registrado */}
                                   {jugador.abonosDelPeriodo > 0 && !esAlDia && (
                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-tighter">
-                                      Abonado: {formatCurrency(jugador.abonosDelPeriodo, tenant?.pais || tenant?.moneda)} · Saldo: {formatCurrency(jugador.saldoPendientePeriodo, tenant?.pais || tenant?.moneda)}
+                                      {t('cobranza.paidPartial')} {formatCurrency(jugador.abonosDelPeriodo, tenant?.pais || tenant?.moneda)} · {t('cobranza.balance')} {formatCurrency(jugador.saldoPendientePeriodo, tenant?.pais || tenant?.moneda)}
                                     </span>
                                   )}
                                   {/* Deuda de meses anteriores */}
                                   {jugador.deudaAcumulada > 0 && (
                                     <span className="text-[9px] font-black text-red-600 uppercase tracking-tighter flex items-center gap-1">
-                                      🔴 Mora histórica: {formatCurrency(jugador.deudaAcumulada, tenant?.pais || tenant?.moneda)} ({jugador.mesesEnMora.slice(0, 2).join(', ')})
+                                      {t('cobranza.historicalArrearsRed')} {formatCurrency(jugador.deudaAcumulada, tenant?.pais || tenant?.moneda)} ({jugador.mesesEnMora.slice(0, 2).join(', ')})
                                     </span>
                                   )}
                                   {/* Deuda total si tiene mora + pendiente actual */}
                                   {jugador.deudaTotal > jugador.tarifa && (
                                     <span className="text-[10px] font-black text-red-800 uppercase tracking-tighter">
-                                      ⚠️ Deuda total: {formatCurrency(jugador.deudaTotal, tenant?.pais || tenant?.moneda)}
+                                      {t('cobranza.totalDebtWarning')} {formatCurrency(jugador.deudaTotal, tenant?.pais || tenant?.moneda)}
                                     </span>
                                   )}
                                   {(jugador.tipo_plan || '').toLowerCase().includes('50') && (
-                                    <span className="text-[9px] font-black text-brand uppercase tracking-tighter">Beneficio Beca 50%</span>
+                                    <span className="text-[9px] font-black text-brand uppercase tracking-tighter">{t('cobranza.scholarship50Benefit')}</span>
                                   )}
                                 </div>
                               )}
@@ -1495,9 +1495,9 @@ export default function ModuloCobranza() {
                               <div className="flex justify-end gap-2">
                                 {jugador.tarifa === 0 ? (
                                   <div className="flex items-center justify-end gap-2">
-                                    <span className="text-slate-400 text-xs font-medium italic">No requiere cobro</span>
-                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar cobro de otro concepto">
-                                      <PlusCircle className="w-3.5 h-3.5" /> Cobrar Extra
+                                    <span className="text-slate-400 text-xs font-medium italic">{t('cobranza.noChargeRequired')}</span>
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title={t('cobranza.chargeExtraTooltip')}>
+                                      <PlusCircle className="w-3.5 h-3.5" /> {t('cobranza.chargeExtra')}
                                     </button>
                                   </div>
                                 ) : !esAlDia ? (
@@ -1506,30 +1506,30 @@ export default function ModuloCobranza() {
                                       onClick={() => handleNotificar(jugador)} 
                                       disabled={loadingBot !== null}
                                       className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold" 
-                                      title="Enviar via Bot WhatsApp"
+                                      title={t('cobranza.sendViaBotTooltip')}
                                     >
                                       {loadingBot === jugador.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4" />}
-                                      {loadingBot === jugador.id ? 'Enviando...' : 'Bot'}
+                                      {loadingBot === jugador.id ? t('cobranza.sendingBot') : t('cobranza.bot')}
                                     </button>
                                     <button 
                                       onClick={() => cobrarManual(jugador)}
                                       disabled={loadingBot !== null}
                                       className="bg-brand hover:bg-brand/90 disabled:bg-slate-300 text-white px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1.5 text-xs font-bold"
-                                      title="Generar recibo de cobro y enviarlo para pedir el pago"
+                                      title={t('cobranza.generateReceiptTooltip')}
                                     >
                                       {loadingBot === `manual-${jugador.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Smartphone className="w-4 h-4" />}
-                                      {loadingBot === `manual-${jugador.id}` ? 'Generando...' : 'Recordatorio'}
+                                      {loadingBot === `manual-${jugador.id}` ? t('cobranza.generating') : t('cobranza.reminder')}
                                     </button>
-                                    <button onClick={() => abrirModalAbono(jugador)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar abono parcial">
-                                      <CreditCard className="w-3.5 h-3.5" /> Abonar
+                                    <button onClick={() => abrirModalAbono(jugador)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title={t('cobranza.registerPartialPaymentTooltip')}>
+                                      <CreditCard className="w-3.5 h-3.5" /> {t('cobranza.payPartial')}
                                     </button>
-                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar el pago una vez recibido">
-                                      <CheckCircle className="w-3.5 h-3.5" /> Registrar Pago
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title={t('cobranza.registerPaymentTooltip')}>
+                                      <CheckCircle className="w-3.5 h-3.5" /> {t('cobranza.registerPayment')}
                                     </button>
                                     <button 
                                       onClick={() => forzarAlDia(jugador)} 
                                       className="text-slate-400 hover:text-slate-600 p-1.5 transition-colors"
-                                      title="Marcar como Al día (Sin registro de caja)"
+                                      title={t('cobranza.markAsUpToDateTooltip')}
                                     >
                                       <ShieldCheck className="w-4 h-4" />
                                     </button>
@@ -1537,15 +1537,15 @@ export default function ModuloCobranza() {
                                 ) : (
                                   <div className="flex items-center justify-end gap-2">
                                     <span className="text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 flex items-center gap-1.5">
-                                      <CheckCircle className="w-4 h-4" /> Pagado
+                                      <CheckCircle className="w-4 h-4" /> {t('cobranza.paid')}
                                     </span>
-                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Registrar cobro de otro concepto">
-                                      <PlusCircle className="w-3.5 h-3.5" /> Cobrar Extra
+                                    <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title={t('cobranza.chargeExtraTooltip')}>
+                                      <PlusCircle className="w-3.5 h-3.5" /> {t('cobranza.chargeExtra')}
                                     </button>
                                   </div>
                                 )}
                                 <div className="mt-1 flex items-center gap-1.5">
-                                  <span className="text-[10px] font-bold text-slate-400">COBRO DÍA:</span>
+                                  <span className="text-[10px] font-bold text-slate-400">{t('cobranza.chargeDay')}</span>
                                   <select 
                                     defaultValue={jugador.dia_pago || 1}
                                     onChange={(e) => actualizarDiaPago(jugador.id, parseInt(e.target.value))}
@@ -1571,26 +1571,26 @@ export default function ModuloCobranza() {
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
                   <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <ClipboardCheck className="text-emerald-500 w-6 h-6" /> Historial de Pagos Recibidos
+                    <ClipboardCheck className="text-emerald-500 w-6 h-6" /> {t('cobranza.receivedPaymentsHistory')}
                   </h2>
-                  <p className="text-sm text-slate-500 mt-1">Consulta y re-imprime recibos de mensualidades anteriores.</p>
+                  <p className="text-sm text-slate-500 mt-1">{t('cobranza.checkAndReprintReceipts')}</p>
                 </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse whitespace-nowrap">
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                      <th className="p-4 md:px-6">№ Recibo</th>
-                      <th className="p-4 md:px-6">Alumno</th>
-                      <th className="p-4 md:px-6">Fecha de Pago</th>
-                      <th className="p-4 md:px-6">Método</th>
-                      <th className="p-4 md:px-6 text-right">Monto Total</th>
-                      <th className="p-4 md:px-6 text-right">Acciones</th>
+                      <th className="p-4 md:px-6">{t('cobranza.tableHistory.receiptNumber')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.tableHistory.student')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.tableHistory.paymentDate')}</th>
+                      <th className="p-4 md:px-6">{t('cobranza.tableHistory.method')}</th>
+                      <th className="p-4 md:px-6 text-right">{t('cobranza.tableHistory.totalAmount')}</th>
+                      <th className="p-4 md:px-6 text-right">{t('cobranza.tableHistory.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                     {pagosFiltradosPorFecha.length === 0 ? (
-                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">No hay ingresos registrados en este rango de fechas.</td></tr>
+                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">{t('cobranza.noIncomeRegistered')}</td></tr>
                     ) : (
                       pagosFiltradosPorFecha.map((pago) => (
                         <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
@@ -1613,17 +1613,17 @@ export default function ModuloCobranza() {
                                   montoBase: pago.monto_base, 
                                   metodo: pago.metodo_pago,
                                   telefono: perfil?.telefono || '',
-                                  grupo: pago.grupo || perfil?.grupos || 'Sin grupo',
+                                  grupo: pago.grupo || perfil?.grupos || t('cobranza.noGroup'),
                                   // Prioridad: campo nuevo en pagos_ingresos → fallback al perfil actual
                                   documento: pago.documento_identidad || perfil?.documento_identidad || undefined,
                                 }); 
                               }} className="bg-white border border-slate-300 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
-                                <Printer className="w-3.5 h-3.5" /> Reimprimir
+                                <Printer className="w-3.5 h-3.5" /> {t('cobranza.reprint')}
                               </button>
-                              <button onClick={() => abrirEditorPago(pago)} className="p-1.5 text-slate-300 hover:text-blue-500 transition-colors" title="Editar pago">
+                              <button onClick={() => abrirEditorPago(pago)} className="p-1.5 text-slate-300 hover:text-blue-500 transition-colors" title={t('cobranza.editPaymentTooltip')}>
                                 <Pencil className="w-4 h-4" />
                               </button>
-                              <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors" title="Eliminar pago">
+                              <button onClick={() => eliminarPagoHistorial(pago.id, pago.consecutivo)} className="p-1.5 text-slate-300 hover:text-red-500 transition-colors" title={t('cobranza.deletePaymentTooltip')}>
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -1640,10 +1640,10 @@ export default function ModuloCobranza() {
           <div className="mt-8">
              <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                   <Trash2 className="text-rose-500 w-6 h-6" /> Registro de Egresos
+                   <Trash2 className="text-rose-500 w-6 h-6" /> {t('cobranza.expensesLog')}
                 </h2>
                   <button onClick={() => setIsModalEgresoOpen(true)} className="bg-rose-500 hover:bg-rose-600 text-white px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 shadow-lg transition-all uppercase tracking-widest">
-                     <PlusCircle className="w-4 h-4" /> Registrar Gasto
+                     <PlusCircle className="w-4 h-4" /> {t('cobranza.registerExpense')}
                   </button>
              </div>
 
@@ -1652,16 +1652,16 @@ export default function ModuloCobranza() {
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
-                                <th className="p-4 md:px-6">Descripción</th>
-                                <th className="p-4 md:px-6">Categoría</th>
-                                <th className="p-4 md:px-6">Fecha</th>
-                                <th className="p-4 md:px-6 text-right">Monto</th>
-                                <th className="p-4 md:px-6 text-right">Acciones</th>
+                                <th className="p-4 md:px-6">{t('cobranza.tableExpenses.description')}</th>
+                                <th className="p-4 md:px-6">{t('cobranza.tableExpenses.category')}</th>
+                                <th className="p-4 md:px-6">{t('cobranza.tableExpenses.date')}</th>
+                                <th className="p-4 md:px-6 text-right">{t('cobranza.tableExpenses.amount')}</th>
+                                <th className="p-4 md:px-6 text-right">{t('cobranza.tableExpenses.actions')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-sm">
                             {egresosFiltradosPorFecha.length === 0 ? (
-                                <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic font-medium">No hay gastos registrados en este periodo.</td></tr>
+                                <tr><td colSpan={5} className="p-20 text-center text-slate-400 italic font-medium">{t('cobranza.noExpensesRegistered')}</td></tr>
                             ) : (
                                 egresosFiltradosPorFecha.map(eg => (
                                     <tr key={eg.id} className="hover:bg-slate-50 transition-colors">
@@ -1696,18 +1696,18 @@ export default function ModuloCobranza() {
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-emerald-500" />
             </div>
-            <h3 className="text-2xl font-black text-slate-800 mb-2">¡Pago Exitoso!</h3>
-            <p className="text-slate-500 mb-8 text-sm">El pago de <strong>{reciboGenerado.nombres}</strong> por {formatCurrency(reciboGenerado.total, tenant?.pais || tenant?.moneda)} se registró correctamente.</p>
+            <h3 className="text-2xl font-black text-slate-800 mb-2">{t('cobranza.paymentSuccessful')}</h3>
+            <p className="text-slate-500 mb-8 text-sm" dangerouslySetInnerHTML={{ __html: t('cobranza.paymentOfRegistered').replace('{{name}}', reciboGenerado.nombres).replace('{{amount}}', formatCurrency(reciboGenerado.total, tenant?.pais || tenant?.moneda)) }} />
             <div className="flex flex-col gap-3">
               <button 
                 onClick={enviarReciboAutomatico} 
                 className="w-full bg-emerald-600 text-white font-black py-4 rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 animate-bounce-subtle"
               >
-                <Bot className="w-5 h-5" /> Enviar Recibo al WhatsApp (Auto)
+                <Bot className="w-5 h-5" /> {t('cobranza.sendReceiptWhatsApp')}
               </button>
               
               <button onClick={generarYCompartirPDF} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2">
-                <MessageSquare className="w-5 h-5" /> Compartir PDF Individualmente
+                <MessageSquare className="w-5 h-5" /> {t('cobranza.sharePdfIndividually')}
               </button>
 
               <button onClick={async () => {
@@ -1744,11 +1744,11 @@ export default function ModuloCobranza() {
                 const win = window.open(url, '_blank');
                 win?.focus();
               }} className="w-full bg-slate-50 text-slate-500 font-bold py-3 rounded-xl hover:bg-slate-100 transition-all flex items-center justify-center gap-2 hidden md:flex">
-                <Printer className="w-4 h-4" /> Imprimir Recibo
+                <Printer className="w-4 h-4" /> {t('cobranza.printReceipt')}
               </button>
               
               <button onClick={() => setReciboGenerado(null)} className="w-full bg-transparent text-slate-400 text-xs font-bold py-3 hover:text-slate-600 transition-colors">
-                Finalizar sin enviar
+                {t('cobranza.finishWithoutSending')}
               </button>
             </div>
           </div>
@@ -1761,22 +1761,22 @@ export default function ModuloCobranza() {
             <button onClick={() => setIsModalPagoOpen(false)} className="absolute top-4 right-4 z-10 p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"><X className="w-5 h-5" /></button>
             <div className="w-full md:w-72 bg-slate-50 border-r border-slate-200 p-6 space-y-6">
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="flex items-center gap-2 mb-3 text-blue-600"><UserCircle className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Cliente</p></div>
+                <div className="flex items-center gap-2 mb-3 text-blue-600"><UserCircle className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">{t('cobranza.client')}</p></div>
                 <p className="font-black text-slate-800 text-sm">{jugadorSeleccionado.nombres} {jugadorSeleccionado.apellidos}</p>
               </div>
               <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">Monto Base</p></div>
+                <div className="text-brand"><CreditCard className="w-5 h-5" /><p className="text-xs font-bold uppercase tracking-wider">{t('cobranza.baseAmount')}</p></div>
                 <p className="text-sm font-bold text-slate-800">{formatCurrency(tarifaBaseActual, tenant?.pais || tenant?.moneda)}</p>
               </div>
             </div>
             <div className="flex-1 p-6 md:p-8 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Fecha de Pago</label>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">{t('cobranza.paymentDate')}</label>
                   <input type="date" value={fechaPago} onChange={(e) => setFechaPago(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Concepto a Cobrar</label>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">{t('cobranza.conceptToCharge')}</label>
                   <select 
                     value={conceptoCobro} 
                     onChange={(e) => {
@@ -1793,42 +1793,42 @@ export default function ModuloCobranza() {
                     }}
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold bg-white"
                   >
-                    <option value="Mensualidad">Mensualidad (Plan)</option>
+                    <option value="Mensualidad">{t('cobranza.monthlyFeePlan')}</option>
                     {conceptos.map(c => (
                       <option key={c.id} value={c.nombre}>{c.nombre} ({formatCurrency(parseFloat(c.precio_sugerido), tenant?.pais || tenant?.moneda)})</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Método de Pago</label>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">{t('cobranza.paymentMethod')}</label>
                   <select value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-bold bg-white">
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                    <option value="Efectivo">{t('cobranza.cash')}</option>
+                    <option value="Transferencia Bancaria">{t('cobranza.bankTransfer')}</option>
                     {metodosPagoDisponibles.map(m => (
                       <option key={m.nombre} value={m.nombre}>{m.nombre}</option>
                     ))}
-                    <option value="Tarjeta">Tarjeta</option>
-                    <option value="Otro">Otro</option>
+                    <option value="Tarjeta">{t('cobranza.card')}</option>
+                    <option value="Otro">{t('cobranza.other')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Descuento</label>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">{t('cobranza.discount')}</label>
                   <input type="number" value={descuento} onChange={(e) => setDescuento(Number(e.target.value))} className="w-full px-4 py-2 border border-slate-300 rounded-lg font-bold text-red-500" />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">Recargo</label>
+                  <label className="block text-[11px] font-black text-slate-500 uppercase mb-2">{t('cobranza.surcharge')}</label>
                   <input type="number" value={recargo} onChange={(e) => setRecargo(Number(e.target.value))} className="w-full px-4 py-2 border border-slate-300 rounded-lg font-bold text-emerald-600" />
                 </div>
               </div>
               <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-8 flex justify-between items-center">
-                 <p className="text-emerald-800 font-black text-lg">Total a Cobrar:</p>
+                 <p className="text-emerald-800 font-black text-lg">{t('cobranza.totalToCharge')}</p>
                  <p className="text-3xl font-black text-emerald-600">{formatCurrency(tarifaBaseActual - descuento + recargo, tenant?.pais || tenant?.moneda)}</p>
               </div>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setIsModalPagoOpen(false)} className="px-8 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">Cancelar</button>
-                <button onClick={confirmarPago} className="px-10 py-3.5 rounded-xl font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200">Confirmar Pago</button>
+                <button onClick={() => setIsModalPagoOpen(false)} className="px-8 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">{t('cobranza.cancel')}</button>
+                <button onClick={confirmarPago} className="px-10 py-3.5 rounded-xl font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200">{t('cobranza.confirmPayment')}</button>
               </div>
             </div>
           </div>
@@ -1839,33 +1839,33 @@ export default function ModuloCobranza() {
         <div className="fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
             <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-8">
                 <h3 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-2 uppercase tracking-tight">
-                    Nuevo Gasto
+                    {t('cobranza.newExpense')}
                 </h3>
                 
                 <div className="space-y-5">
                     <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Concepto / Descripción</label>
-                        <input type="text" value={descEgreso} onChange={(e) => setDescEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold" placeholder="Ej: Renta de canchas Enero" />
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.conceptDescription')}</label>
+                        <input type="text" value={descEgreso} onChange={(e) => setDescEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold" placeholder={t('cobranza.exCourtRent')} />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto ($)</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.amountSymbol')}</label>
                         <input type="number" value={montoEgreso} onChange={(e) => setMontoEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold" placeholder="0" />
                     </div>
                     <div>
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Categoría</label>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.categoryLabel')}</label>
                         <select value={catEgreso} onChange={(e) => setCatEgreso(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-bold bg-white">
-                            <option value="Nómina">Nómina (Profesores)</option>
-                            <option value="Renta">Renta de Canchas</option>
-                            <option value="Materiales">Materiales y Balones</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
-                            <option value="Otros">Otros</option>
+                            <option value="Nómina">{t('cobranza.payrollTeachers')}</option>
+                            <option value="Renta">{t('cobranza.courtRent')}</option>
+                            <option value="Materiales">{t('cobranza.materialsAndBalls')}</option>
+                            <option value="Mantenimiento">{t('cobranza.maintenance')}</option>
+                            <option value="Otros">{t('cobranza.others')}</option>
                         </select>
                     </div>
                 </div>
 
                 <div className="flex gap-3 mt-8">
-                    <button onClick={() => setIsModalEgresoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
-                    <button onClick={registrarEgreso} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100 transition-all">Registrar Gasto</button>
+                    <button onClick={() => setIsModalEgresoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">{t('cobranza.cancel')}</button>
+                    <button onClick={registrarEgreso} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100 transition-all">{t('cobranza.registerExpense')}</button>
                 </div>
             </div>
         </div>
@@ -1885,11 +1885,11 @@ export default function ModuloCobranza() {
             <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Abono Parcial</p>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">{t('cobranza.partialPayment')}</p>
                   <h2 className="text-xl font-black">{jugadorAbono.nombres} {jugadorAbono.apellidos}</h2>
-                  <p className="text-sm opacity-80 mt-1">Tarifa: {formatCurrency(jugadorAbono.tarifa, tenant?.pais || tenant?.moneda)}{jugadorAbono.abonosDelPeriodo > 0 ? ` - Ya abonado: ${formatCurrency(jugadorAbono.abonosDelPeriodo, tenant?.pais || tenant?.moneda)}` : ""}</p>
+                  <p className="text-sm opacity-80 mt-1">{t('cobranza.fee')} {formatCurrency(jugadorAbono.tarifa, tenant?.pais || tenant?.moneda)}{jugadorAbono.abonosDelPeriodo > 0 ? ` - ${t('cobranza.alreadyPaid')} ${formatCurrency(jugadorAbono.abonosDelPeriodo, tenant?.pais || tenant?.moneda)}` : ""}</p>
                   {jugadorAbono.deudaTotal > jugadorAbono.tarifa && (
-                    <p className="text-xs font-black text-yellow-300 mt-1">Deuda total: {formatCurrency(jugadorAbono.deudaTotal, tenant?.pais || tenant?.moneda)} (meses anteriores)</p>
+                    <p className="text-xs font-black text-yellow-300 mt-1">{t('cobranza.totalDebt')} {formatCurrency(jugadorAbono.deudaTotal, tenant?.pais || tenant?.moneda)} {t('cobranza.previousMonthsText')}</p>
                   )}
                 </div>
                 <button onClick={() => setIsModalAbonoOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30">
@@ -1899,29 +1899,29 @@ export default function ModuloCobranza() {
             </div>
             <div className="p-6 space-y-5">
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto del Abono ($) *</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.partialPaymentAmount')}</label>
                 <input type="number" value={montoAbono} onChange={(e) => setMontoAbono(e.target.value)} className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg text-slate-800" placeholder="0" autoFocus />
                 {montoAbono && jugadorAbono.saldoPendientePeriodo > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">Saldo restante: <span className="font-black text-blue-600">{formatCurrency(Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)), tenant?.pais || tenant?.moneda)}</span></p>
+                  <p className="text-xs text-slate-500 mt-1">{t('cobranza.remainingBalance')} <span className="font-black text-blue-600">{formatCurrency(Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)), tenant?.pais || tenant?.moneda)}</span></p>
                 )}
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.paymentMethod')}</label>
                 <select value={metodoPagoAbono} onChange={(e) => setMetodoPagoAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold bg-white">
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                  <option value="Efectivo">{t('cobranza.cash')}</option>
+                  <option value="Transferencia Bancaria">{t('cobranza.bankTransfer')}</option>
                   {metodosPagoDisponibles.map(m => (<option key={m.nombre} value={m.nombre}>{m.nombre}</option>))}
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Otro">Otro</option>
+                  <option value="Tarjeta">{t('cobranza.card')}</option>
+                  <option value="Otro">{t('cobranza.other')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas (opcional)</label>
-                <input type="text" value={notasAbono} onChange={(e) => setNotasAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium" placeholder="Ej: Abono semana 1" />
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.notesOptional')}</label>
+                <input type="text" value={notasAbono} onChange={(e) => setNotasAbono(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-medium" placeholder={t('cobranza.exPartialPayment')} />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setIsModalAbonoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Cancelar</button>
-                <button onClick={registrarAbono} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100">Registrar Abono</button>
+                <button onClick={() => setIsModalAbonoOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">{t('cobranza.cancel')}</button>
+                <button onClick={registrarAbono} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-100">{t('cobranza.registerPartialPayment')}</button>
               </div>
             </div>
           </div>
