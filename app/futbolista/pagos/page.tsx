@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { useTenant } from "@/lib/hooks/useTenant";
+import { formatCurrency } from '@/lib/currency-utils';
 
 export default function PagosFutbolista() {
   const [pagos, setPagos] = useState<any[]>([]);
@@ -19,7 +20,7 @@ export default function PagosFutbolista() {
 
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
-  const [planBase, setPlanBase] = useState(120000);
+  const [planBase, setPlanBase] = useState(0);
   const [pagandoEnLinea, setPagandoEnLinea] = useState(false);
 
   const handleMercadoPagoCheckout = async () => {
@@ -122,6 +123,7 @@ export default function PagosFutbolista() {
 
         if (userData?.club_id) {
           // Obtenemos el plan de pago del jugador
+          let foundBase = 0;
           if (userData.tipo_plan) {
             const { data: planData } = await supabase
               .from("planes")
@@ -130,9 +132,13 @@ export default function PagosFutbolista() {
               .ilike("nombre", userData.tipo_plan)
               .single();
             if (planData && planData.precio_base) {
-              setPlanBase(planData.precio_base);
+              foundBase = planData.precio_base;
             }
           }
+          if (!foundBase && userData.tarifa) {
+            foundBase = userData.tarifa;
+          }
+          setPlanBase(foundBase);
 
           // Obtenemos los canales de pago
           const { data: configData } = await supabase
@@ -248,7 +254,7 @@ export default function PagosFutbolista() {
             <div className="flex flex-wrap gap-4 pt-4">
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                   <Wallet className="w-4 h-4 border-brand/40" />
-                  <span className="text-xs font-bold">${planBase.toLocaleString('es-CO')} COP</span>
+                  <span className="text-xs font-bold">{formatCurrency(planBase, tenant?.pais || tenant?.moneda)}</span>
                </div>
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                   <Calendar className="w-4 h-4 border-brand/40" />
@@ -424,7 +430,7 @@ export default function PagosFutbolista() {
                            );
                          })()}
                          <h4 className="font-black text-slate-800 text-lg leading-none mt-1">
-                            ${(pago.total || pago.monto_recibido || pago.monto || 0).toLocaleString('es-ES')} <span className="text-[10px] font-bold text-slate-400">COP</span>
+                            {formatCurrency(pago.total || pago.monto_recibido || pago.monto || 0, tenant?.pais || tenant?.moneda)}
                          </h4>
                          <p className="text-xs text-slate-500 mt-1 font-medium italic">Vía {pago.metodo_pago || 'Efectivo'}</p>
                       </div>

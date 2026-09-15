@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { toPng } from 'html-to-image';
 import { useTenant } from "@/lib/hooks/useTenant";
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
+import { formatCurrency } from '@/lib/currency-utils';
 
 function RadarChart({ data, size = 300, color = '#f97316' }: { data: { label: string, value: number }[], size?: number, color?: string }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -563,7 +564,7 @@ export default function DashboardFutbolista() {
                         </div>
                      </div>
                      <div className="text-right">
-                        <p className="text-lg font-black text-slate-800">$ {(pago.monto || pago.total || 0).toLocaleString()}</p>
+                        <p className="text-lg font-black text-slate-800">{formatCurrency(pago.monto || pago.total || 0, tenant?.pais || tenant?.moneda)}</p>
                         <button onClick={() => handleVerRecibo(pago)} className="text-[10px] font-black uppercase text-emerald-600 mt-2 flex items-center gap-1"><FileText className="w-3 h-3" /> Ver Recibo</button>
                      </div>
                    </div>
