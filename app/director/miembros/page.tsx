@@ -265,7 +265,7 @@ export default function DirectorioMiembros() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando miembros...</p>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('director.members.loading')}</p>
       </div>
     );
   }
@@ -275,19 +275,19 @@ export default function DirectorioMiembros() {
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <Users className="text-brand w-8 h-8" /> Gestión de Miembros
+            <Users className="text-brand w-8 h-8" /> {t('director.members.title')}
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Control administrativo de deportistas y entrenadores.</p>
+          <p className="text-slate-500 text-sm mt-1">{t('director.members.subtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button onClick={cargarJugadores} className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 transition-all shadow-sm" title="Refrescar datos">
             <Activity className={`w-4 h-4 text-brand ${cargando ? 'animate-spin' : ''}`} />
           </button>
           <button onClick={() => router.push(`/${tenantSlug}/director/miembros/nuevo`)} className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-xl hover:bg-brand/90 transition-all font-bold text-sm shadow-lg shadow-brand/20">
-            <UserPlus className="w-4 h-4" /> Nuevo
+            <UserPlus className="w-4 h-4" /> {t('director.members.new')}
           </button>
-          <button onClick={() => setIsModalInvitacionOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-xl shadow-slate-900/10"><Mail className="w-4 h-4" /> Invitar</button>
-          <button onClick={exportarAExcel} className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold text-sm shadow-sm"><Download className="w-4 h-4" /> Exportar</button>
+          <button onClick={() => setIsModalInvitacionOpen(true)} className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-xl shadow-slate-900/10"><Mail className="w-4 h-4" /> {t('director.members.invite')}</button>
+          <button onClick={exportarAExcel} className="flex items-center gap-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800 px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all font-bold text-sm shadow-sm"><Download className="w-4 h-4" /> {t('director.members.export')}</button>
         </div>
       </div>
 
@@ -295,9 +295,9 @@ export default function DirectorioMiembros() {
       <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col lg:flex-row gap-4 items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex bg-slate-200/50 dark:bg-slate-800 p-1 rounded-xl w-full lg:w-auto">
-            <button onClick={() => setPestaña('Registrados')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${pestaña === 'Registrados' ? 'bg-white dark:bg-slate-700 text-brand shadow-sm' : 'text-slate-500'}`}>Miembros</button>
+            <button onClick={() => setPestaña('Registrados')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${pestaña === 'Registrados' ? 'bg-white dark:bg-slate-700 text-brand shadow-sm' : 'text-slate-500'}`}>{t('director.members.tabMembers')}</button>
             <button onClick={() => setPestaña('Pendientes')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all relative ${pestaña === 'Pendientes' ? 'bg-white dark:bg-slate-700 text-brand shadow-sm' : 'text-slate-500'}`}>
-              Solicitudes
+              {t('director.members.tabRequests')}
               {jugadores.filter(j => (j.estado_miembro || '') !== 'Activo' && (j.estado_miembro || '') !== 'Inactivo').length > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg border-2 border-white dark:border-slate-700">
                   {jugadores.filter(j => (j.estado_miembro || '') !== 'Activo' && (j.estado_miembro || '') !== 'Inactivo').length}
@@ -306,7 +306,7 @@ export default function DirectorioMiembros() {
             </button>
             <button onClick={() => setPestaña('Cumpleaños')} className={`flex-1 lg:flex-none px-6 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all relative flex items-center gap-2 ${pestaña === 'Cumpleaños' ? 'bg-white dark:bg-slate-700 text-brand shadow-sm' : 'text-slate-500'}`}>
               <Cake className="w-3.5 h-3.5" />
-              Cumpleaños
+              {t('director.members.tabBirthdays')}
               {jugadores.filter(j => {
                 if (!j.fecha_nacimiento || j.estado_miembro !== 'Activo') return false;
                 return (new Date(j.fecha_nacimiento).getUTCMonth() + 1) === (new Date().getMonth() + 1);
@@ -323,13 +323,13 @@ export default function DirectorioMiembros() {
           <div className="flex flex-col md:flex-row items-center gap-3 w-full lg:w-auto flex-1 lg:justify-end">
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input type="text" placeholder="Buscar por nombre o documento..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand text-sm transition-all" />
+              <input type="text" placeholder={t('director.members.searchPlaceholder')} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand text-sm transition-all" />
             </div>
             <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="w-full md:w-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand font-medium">
               {gruposDisponibles.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
             <select value={filtroEdad} onChange={(e) => setFiltroEdad(e.target.value)} className="w-full md:w-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand font-medium">
-              <option value="Todas">Edad: Todas</option>
+              <option value="Todas">{t('director.members.allAges')}</option>
               {edadesDisponibles.filter(e => e !== 'Todas').map(e => <option key={e} value={e}>{e} años</option>)}
             </select>
           </div>
@@ -343,7 +343,7 @@ export default function DirectorioMiembros() {
                   <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Cake className="text-slate-300 w-8 h-8" />
                   </div>
-                  <p className="text-slate-400 font-bold">No hay cumpleaños este mes</p>
+                  <p className="text-slate-400 font-bold">{t('director.members.noBirthdays')}</p>
                 </div>
               ) : (
                 jugadoresFiltrados.map((jugador) => {
@@ -374,7 +374,7 @@ export default function DirectorioMiembros() {
                         </div>
                         
                         <div className="bg-white dark:bg-slate-900/60 rounded-2xl p-4 mb-4 border border-slate-100 dark:border-slate-800">
-                          <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Categoría</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">{t('director.members.category')}</p>
                           <p className="text-xs font-black text-slate-700 dark:text-slate-200">{jugador.grupos || 'Sin grupo'}</p>
                         </div>
 

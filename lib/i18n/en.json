@@ -57,7 +57,12 @@
       "export": "Export",
       "tabMembers": "Members",
       "tabRequests": "Requests",
-      "tabBirthdays": "Birthdays"
+      "tabBirthdays": "Birthdays",
+      "searchPlaceholder": "Search by name or ID...",
+      "allAges": "Age: All",
+      "noBirthdays": "No birthdays this month",
+      "category": "Category",
+      "sendCongrats": "Send Congrats"
     }
   },
   "futbolista": {

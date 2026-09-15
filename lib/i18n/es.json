@@ -57,7 +57,12 @@
       "export": "Exportar",
       "tabMembers": "Miembros",
       "tabRequests": "Solicitudes",
-      "tabBirthdays": "Cumpleaños"
+      "tabBirthdays": "Cumpleaños",
+      "searchPlaceholder": "Buscar por nombre o documento...",
+      "allAges": "Edad: Todas",
+      "noBirthdays": "No hay cumpleaños este mes",
+      "category": "Categoría",
+      "sendCongrats": "Enviar Felicitación"
     }
   },
   "futbolista": {
