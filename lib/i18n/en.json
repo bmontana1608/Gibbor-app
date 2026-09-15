@@ -42,6 +42,9 @@
       "callupsDesc": "Roster management",
       "growth": "Athlete Growth",
       "history6m": "Last 6 months history",
+      "tendencyGrowth": "Growth",
+      "tendencyDecline": "Decline",
+      "tendencyStable": "Stable",
       "stable": "Stable",
       "alerts": "Smart Alerts",
       "actionReq": "Action Required",
@@ -104,6 +107,40 @@
       "downloadReceipt": "Download Receipt"
     }
   },
+  "cobranza": {
+    "title": "Collections and Finances",
+    "subtitle": "Payment control, dynamic plans, and reminders.",
+    "managePlans": "Plan Management",
+    "assistant": "Assistant",
+    "today": "Today",
+    "assistantMsg1": "I have detected ",
+    "assistantMsgCount": " scheduled collections",
+    "assistantMsg2": " for today that have not been notified.",
+    "skipForNow": "Skip for now",
+    "sending": "Sending (",
+    "sendAll": "Send all (",
+    "accountingPeriod": "Accounting Period",
+    "showingReceipts": "Showing receipts for the selected range",
+    "from": "From",
+    "to": "To",
+    "controlTools": "Control Tools",
+    "cleanSlate": "Clean slate for historical debt",
+    "resetDebt": "Reset Debt",
+    "projectedTotal": "Projected Total",
+    "estimatedThisMonth": "Estimated this month",
+    "realIncome": "Real Income",
+    "percentOfMonth": "% of the month",
+    "expenses": "Expenses",
+    "expensesOfMonth": "Expenses of the month",
+    "netBalance": "Net Balance",
+    "realMoneyInCash": "Real money in cash",
+    "toCollect": "To Collect",
+    "currentMonthBalance": "Current month balance",
+    "historicalArrears": "Historical Arrears",
+    "previousMonths": "Previous months",
+    "incomeTab": "Income",
+    "expensesTab": "Expenses"
+  },
   "cron": {
     "recordatorio1": "Hi {{name}} 👋⚽,\n\nWe hope you are doing great.\n\nFrom *{{clubName}}* we want to remind you that the due date for your *{{monthName}}* monthly fee is approaching or has arrived.\n\n📄 Your amount to pay is: *{{amount}}*.\n{{discountText}}To make your process easier, you can pay through:\n\n{{paymentMethods}}\n\nIf you have already made your payment, please send us the receipt here. Let's keep working together for your goals! 🏆",
     "recordatorio2": "Hi {{name}} 👋,\n\nWarm regards from *{{clubName}}*.\n\nWe noticed that your *{{monthName}}* monthly fee is still pending. We understand that sometimes dates slip our minds, so we want to remind you of the importance of staying up to date to ensure the club's operation and your continuity in training.\n\n📄 Your pending balance is: *{{amount}}*.\n\nYou can regularize your status through:\n\n{{paymentMethods}}\n\nWe look forward to receiving your receipt. Thank you for your institutional commitment! ⚽",
@@ -115,6 +152,32 @@
     "months": {
       "0": "January", "1": "February", "2": "March", "3": "April", "4": "May", "5": "June",
       "6": "July", "7": "August", "8": "September", "9": "October", "10": "November", "11": "December"
+    }
+  },
+  "config": {
+    "title": "Club Settings",
+    "subtitle": "Identity, Payments and WhatsApp Bot",
+    "saveAll": "Save All",
+    "saving": "Saving...",
+    "identity": {
+      "title": "Club Identity",
+      "clubName": "Club Name (on ID)",
+      "season": "Current Season",
+      "address": "Headquarters Address",
+      "city": "City",
+      "countryAndCurrency": "Official Country and Currency",
+      "countryHelper": "Defines the currency and monetary format for receipts, plans, and collections.",
+      "language": "Official Club Language",
+      "spanish": "Spanish",
+      "english": "English",
+      "languageHelper": "The language in which players will see the platform and receive messages.",
+      "visualTitle": "Visual Identity",
+      "logoTitle": "Institutional Logo",
+      "changeLogo": "Change Logo",
+      "processing": "Processing...",
+      "logoHelper": "Recommended: PNG transparent background (1:1)",
+      "primaryColor": "Primary Color",
+      "secondaryColor": "Secondary Color"
     }
   }
 }

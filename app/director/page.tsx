@@ -396,14 +396,14 @@ export default function DashboardDirector() {
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[400px]">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">Crecimiento de Atletas</h3>
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">Histórico últimos 6 meses</p>
+              <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">{t('director.dashboard.growth')}</h3>
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-1">{t('director.dashboard.history6m')}</p>
             </div>
             <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${tendencia.color}`}>
               {tendencia.icon === 'up' && <TrendingUp className="w-4 h-4" />}
               {tendencia.icon === 'down' && <TrendingDown className="w-4 h-4" />}
               {tendencia.icon === 'stable' && <TrendingUp className="w-4 h-4 opacity-50 rotate-90" />}
-              <span className="text-xs font-black uppercase tracking-tighter">{tendencia.label}</span>
+              <span className="text-xs font-black uppercase tracking-tighter">{t(`director.dashboard.${tendencia.icon === 'up' ? 'tendencyGrowth' : tendencia.icon === 'down' ? 'tendencyDecline' : 'tendencyStable'}`)}</span>
             </div>
           </div>
           
@@ -428,8 +428,8 @@ export default function DashboardDirector() {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-[400px]">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">Alertas Inteligentes</h3>
-            <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">Acción Requerida</span>
+            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">{t('director.dashboard.alerts')}</h3>
+            <span className="bg-red-100 text-red-600 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-tighter">{t('director.dashboard.actionReq')}</span>
           </div>
           
           <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">

@@ -42,6 +42,9 @@
       "callupsDesc": "Gestión de nóminas",
       "growth": "Crecimiento de Atletas",
       "history6m": "Histórico últimos 6 meses",
+      "tendencyGrowth": "Crecimiento",
+      "tendencyDecline": "En descenso",
+      "tendencyStable": "Estable",
       "stable": "Estable",
       "alerts": "Alertas Inteligentes",
       "actionReq": "Acción Requerida",
@@ -104,6 +107,40 @@
       "downloadReceipt": "Descargar Recibo"
     }
   },
+  "cobranza": {
+    "title": "Cobranza y Finanzas",
+    "subtitle": "Control de pagos, planes dinámicos y recordatorios.",
+    "managePlans": "Gestión de Planes",
+    "assistant": "Asistente",
+    "today": "Hoy",
+    "assistantMsg1": "He detectado ",
+    "assistantMsgCount": " cobros programados",
+    "assistantMsg2": " para hoy que no han sido notificados.",
+    "skipForNow": "Omitir por ahora",
+    "sending": "Enviando (",
+    "sendAll": "Enviar todos (",
+    "accountingPeriod": "Periodo Contable",
+    "showingReceipts": "Mostrando recibos del rango seleccionado",
+    "from": "Desde",
+    "to": "Hasta",
+    "controlTools": "Herramientas de Control",
+    "cleanSlate": "Borrón y cuenta nueva para la deuda histórica",
+    "resetDebt": "Reiniciar Deuda",
+    "projectedTotal": "Total Proyectado",
+    "estimatedThisMonth": "Estimado este mes",
+    "realIncome": "Ingresos Reales",
+    "percentOfMonth": "% del mes",
+    "expenses": "Egresos",
+    "expensesOfMonth": "Gastos del mes",
+    "netBalance": "Balance Neto",
+    "realMoneyInCash": "Dinero real en caja",
+    "toCollect": "Por Cobrar",
+    "currentMonthBalance": "Saldo mes actual",
+    "historicalArrears": "Mora Histórica",
+    "previousMonths": "Meses anteriores",
+    "incomeTab": "Ingresos",
+    "expensesTab": "Egresos / Gastos"
+  },
   "cron": {
     "recordatorio1": "Hola {{name}} 👋⚽,\n\nEsperamos que te encuentres muy bien.\n\nDesde *{{clubName}}* te recordamos que se acerca o finaliza tu periodo para el aporte de tu mensualidad de *{{monthName}}*.\n\n📄 Tu valor a pagar es de: *{{amount}}*.\n{{discountText}}Para facilitar tu proceso, puedes hacer el pago a través de:\n\n{{paymentMethods}}\n\nSi ya realizaste tu pago, te agradecemos enviarnos el comprobante por este medio. ¡Sigamos trabajando juntos por tus metas! 🏆",
     "recordatorio2": "Hola {{name}} 👋,\n\nUn cordial saludo de parte de *{{clubName}}*.\n\nNotamos que aún está pendiente el aporte de tu mensualidad correspondiente a *{{monthName}}*. Entendemos que a veces las fechas se nos pasan, por lo que queremos recordarte la importancia de mantenerte al día para garantizar el funcionamiento del club y la continuidad en tus entrenamientos.\n\n📄 Tu saldo pendiente es de: *{{amount}}*.\n\nPuedes regularizar tu estado a través de:\n\n{{paymentMethods}}\n\nQuedamos atentos a recibir tu comprobante. ¡Gracias por tu compromiso institucional! ⚽",
@@ -115,6 +152,32 @@
     "months": {
       "0": "Enero", "1": "Febrero", "2": "Marzo", "3": "Abril", "4": "Mayo", "5": "Junio",
       "6": "Julio", "7": "Agosto", "8": "Septiembre", "9": "Octubre", "10": "Noviembre", "11": "Diciembre"
+    }
+  },
+  "config": {
+    "title": "Ajustes del Club",
+    "subtitle": "Identidad, Pagos y Robot de WhatsApp",
+    "saveAll": "Guardar Todo",
+    "saving": "Guardando...",
+    "identity": {
+      "title": "Identidad del Club",
+      "clubName": "Nombre del Club (en Carnet)",
+      "season": "Temporada Actual",
+      "address": "Dirección Sede",
+      "city": "Ciudad",
+      "countryAndCurrency": "País y Divisa Oficial",
+      "countryHelper": "Define la moneda y formato monetario para recibos, planes y cobranza.",
+      "language": "Idioma Oficial del Club",
+      "spanish": "Español",
+      "english": "English",
+      "languageHelper": "El idioma en el que los jugadores verán la plataforma y recibirán mensajes.",
+      "visualTitle": "Identidad Visual",
+      "logoTitle": "Logo Institucional",
+      "changeLogo": "Cambiar Logo",
+      "processing": "Procesando...",
+      "logoHelper": "Recomendado: PNG fondo transparente (1:1)",
+      "primaryColor": "Color Primario",
+      "secondaryColor": "Secundario"
     }
   }
 }

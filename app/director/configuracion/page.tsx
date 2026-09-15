@@ -390,38 +390,38 @@ export default function ConfiguracionGeneral() {
               <Settings className="text-white w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Ajustes del Club</h1>
-              <p className="text-xs text-slate-500 font-medium tracking-tight">Identidad, Pagos y Robot de WhatsApp</p>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('config.title')}</h1>
+              <p className="text-xs text-slate-500 font-medium tracking-tight">{t('config.subtitle')}</p>
             </div>
           </div>
           <button onClick={handleSave} disabled={cargando} className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-xl shadow-slate-100">
-            {cargando ? 'Guardando...' : <><Save className="w-5 h-5 border-brand/40" /> Guardar Todo</>}
+            {cargando ? t('config.saving') : <><Save className="w-5 h-5 border-brand/40" /> {t('config.saveAll')}</>}
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* IDENTIDAD */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-fit">
-            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="text-brand" /> Identidad del Club</h2>
+            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2"><Building className="text-brand" /> {t('config.identity.title')}</h2>
             <div className="space-y-5">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Nombre del Club (en Carnet)</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.clubName')}</label>
                 <input type="text" value={config.nombre_club} onChange={(e) => setConfig({...config, nombre_club: e.target.value})} className="text-brand font-black text-sm uppercase" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Temporada Actual</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.season')}</label>
                 <input type="text" value={config.temporada_actual} onChange={(e) => setConfig({...config, temporada_actual: e.target.value})} className="text-brand font-black text-sm uppercase" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Dirección Sede</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.address')}</label>
                 <input type="text" value={config.direccion} onChange={(e) => setConfig({...config, direccion: e.target.value})} className="text-brand font-bold text-sm" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Ciudad</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.city')}</label>
                 <input type="text" value={config.ciudad} onChange={(e) => setConfig({...config, ciudad: e.target.value})} className="text-brand font-bold text-sm" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">País y Divisa Oficial</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.countryAndCurrency')}</label>
                 <select
                   value={paisClub}
                   onChange={(e) => setPaisClub(e.target.value)}
@@ -433,19 +433,19 @@ export default function ConfiguracionGeneral() {
                     </option>
                   ))}
                 </select>
-                <p className="text-[9px] text-slate-400 mt-1">Define la moneda y formato monetario para recibos, planes y cobranza.</p>
+                <p className="text-[9px] text-slate-400 mt-1">{t('config.identity.countryHelper')}</p>
               </div>
               <div className="mt-4">
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Idioma Oficial del Club</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.language')}</label>
                 <select
                   value={idiomaClub}
                   onChange={(e) => setIdiomaClub(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer focus:ring-1 focus:ring-brand"
                 >
-                  <option value="es">Español 🇪🇸</option>
-                  <option value="en">English 🇺🇸</option>
+                  <option value="es">{t('config.identity.spanish')} 🇪🇸</option>
+                  <option value="en">{t('config.identity.english')} 🇺🇸</option>
                 </select>
-                <p className="text-[9px] text-slate-400 mt-1">El idioma en el que los jugadores verán la plataforma y recibirán mensajes.</p>
+                <p className="text-[9px] text-slate-400 mt-1">{t('config.identity.languageHelper')}</p>
               </div>
             </div>
           </div>
@@ -453,13 +453,13 @@ export default function ConfiguracionGeneral() {
           {/* IDENTIDAD VISUAL DEL CLUB */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm h-fit mt-8 lg:mt-0 lg:col-span-1 lg:row-start-2">
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Palette className="text-brand" /> Identidad Visual
+              <Palette className="text-brand" /> {t('config.identity.visualTitle')}
             </h2>
             <div className="space-y-6">
               
               {/* Logo Upload */}
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-3 block">Logo Institucional</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-3 block">{t('config.identity.logoTitle')}</label>
                 <div className="text-brand hover:bg-[rgba(var(--brand-primary-rgb),0.02)]">
                   <div className="w-24 h-24 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
                     {identidad.logo_url ? (
@@ -471,10 +471,10 @@ export default function ConfiguracionGeneral() {
                   <div className="text-center w-full">
                     <label className="cursor-pointer bg-white border border-slate-200 hover:border-brand text-slate-700 hover:text-brand px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm w-full relative overflow-hidden">
                       {subiendoLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                      {subiendoLogo ? "Procesando..." : "Cambiar Logo"}
+                      {subiendoLogo ? t('config.identity.processing') : t('config.identity.changeLogo')}
                       <input type="file" accept="image/*" onChange={handleSubirLogo} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" disabled={subiendoLogo} />
                     </label>
-                    <p className="text-[9px] text-slate-400 mt-2 font-medium">Recomendado: PNG fondo transparente (1:1)</p>
+                    <p className="text-[9px] text-slate-400 mt-2 font-medium">{t('config.identity.logoHelper')}</p>
                   </div>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export default function ConfiguracionGeneral() {
               {/* Color Pickers */}
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Color Primario</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.primaryColor')}</label>
                   <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
                     <input 
                       type="color" 
@@ -499,7 +499,7 @@ export default function ConfiguracionGeneral() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Secundario</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">{t('config.identity.secondaryColor')}</label>
                   <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
                     <input 
                       type="color" 

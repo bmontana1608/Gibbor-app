@@ -8,10 +8,11 @@ import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, Use
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { formatCurrency, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
-
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ModuloCobranza() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
   const pathname = usePathname();
@@ -1243,13 +1244,13 @@ export default function ModuloCobranza() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Wallet className="text-emerald-500 w-7 h-7" /> Cobranza y Finanzas
+              <Wallet className="text-emerald-500 w-7 h-7" /> {t('cobranza.title')}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">Control de pagos, planes dinámicos y recordatorios.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('cobranza.subtitle')}</p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => router.push(route('/director/cobranza/planes'))} className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
-              <Settings className="w-4 h-4" /> Gestión de Planes
+              <Settings className="w-4 h-4" /> {t('cobranza.managePlans')}
             </button>
           </div>
         </div>
@@ -1267,9 +1268,9 @@ export default function ModuloCobranza() {
                 </div>
                 <div>
                   <h3 className="text-lg font-black text-slate-800 flex items-center gap-2">
-                    Asistente <span className="text-[10px] bg-brand text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Hoy</span>
+                    {t('cobranza.assistant')} <span className="text-[10px] bg-brand text-white px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">{t('cobranza.today')}</span>
                   </h3>
-                  <p className="text-sm text-slate-500">He detectado <span className="font-bold text-brand">{automatedTasks.length} cobros programados</span> para hoy que no han sido notificados.</p>
+                  <p className="text-sm text-slate-500">{t('cobranza.assistantMsg1')}<span className="font-bold text-brand">{automatedTasks.length}{t('cobranza.assistantMsgCount')}</span>{t('cobranza.assistantMsg2')}</p>
                 </div>
               </div>
               
@@ -1278,7 +1279,7 @@ export default function ModuloCobranza() {
                   onClick={() => setIsBannerVisible(false)}
                   className="px-4 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  Omitir por ahora
+                  {t('cobranza.skipForNow')}
                 </button>
                 <button 
                   onClick={handleSendBatch}
@@ -1288,12 +1289,12 @@ export default function ModuloCobranza() {
                   {isSendingBatch ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Enviando ({batchProgress}/{automatedTasks.length})
+                      {t('cobranza.sending')}{batchProgress}/{automatedTasks.length})
                     </>
                   ) : (
                     <>
                       <MessageSquare className="w-4 h-4" />
-                      Enviar todos ({automatedTasks.length})
+                      {t('cobranza.sendAll')}{automatedTasks.length})
                     </>
                   )}
                 </button>
@@ -1316,14 +1317,14 @@ export default function ModuloCobranza() {
               <Calendar className="w-6 h-6" />
             </div>
             <div>
-              <p className="font-black text-slate-900 tracking-tight">Periodo Contable</p>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Mostrando recibos del rango seleccionado</p>
+              <p className="font-black text-slate-900 tracking-tight">{t('cobranza.accountingPeriod')}</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('cobranza.showingReceipts')}</p>
             </div>
           </div>
           
           <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 w-full md:w-auto">
             <div className="flex flex-col px-3">
-              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Desde</label>
+              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">{t('cobranza.from')}</label>
               <input 
                 type="date" 
                 value={fechaInicio} 
@@ -1333,7 +1334,7 @@ export default function ModuloCobranza() {
             </div>
             <div className="w-px h-8 bg-slate-200"></div>
             <div className="flex flex-col px-3">
-              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">Hasta</label>
+              <label className="text-[8px] font-black text-slate-400 uppercase mb-0.5">{t('cobranza.to')}</label>
               <input 
                 type="date" 
                 value={fechaFin} 
