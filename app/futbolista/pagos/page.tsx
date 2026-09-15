@@ -11,8 +11,10 @@ import { toast } from "sonner";
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { useTenant } from "@/lib/hooks/useTenant";
 import { formatCurrency } from '@/lib/currency-utils';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function PagosFutbolista() {
+  const { t } = useTranslation();
   const [pagos, setPagos] = useState<any[]>([]);
   const [perfil, setPerfil] = useState<any>(null);
   const [configPago, setConfigPago] = useState<any>(null);
@@ -225,9 +227,9 @@ export default function PagosFutbolista() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-             <CreditCard className="text-brand w-8 h-8" /> FINANZAS
+             <CreditCard className="text-brand w-8 h-8" /> {t('futbolista.pagos.title')}
           </h1>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">Control de tus mensualidades y recibos</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest mt-1">{t('futbolista.pagos.subtitle')}</p>
         </div>
         
         <div className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
@@ -235,9 +237,9 @@ export default function PagosFutbolista() {
               <CheckCircle2 className="w-6 h-6" />
            </div>
            <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado Actual</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('futbolista.pagos.statusTitle')}</p>
               <p className={`font-black uppercase ${estadoPagoReal === 'Al día' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                {estadoPagoReal}
+                {estadoPagoReal === 'Al día' ? t('futbolista.pagos.upToDate') : t('futbolista.pagos.pending')}
               </p>
            </div>
         </div>
@@ -246,7 +248,7 @@ export default function PagosFutbolista() {
       {/* TARJETA DE PRÓXIMO PAGO */}
       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
          <div className="relative z-10 space-y-4">
-            <p className="text-brand text-xs font-black uppercase tracking-[0.2em]">Próximo Vencimiento</p>
+            <p className="text-brand text-xs font-black uppercase tracking-[0.2em]">{t('futbolista.pagos.nextDueDate')}</p>
             <div className="flex items-end gap-2">
                <h2 className="text-4xl md:text-5xl font-black">10 {monthName}</h2>
                <span className="text-slate-500 font-bold mb-1">{targetYear}</span>
@@ -258,7 +260,7 @@ export default function PagosFutbolista() {
                </div>
                <div className="bg-white/10 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-2">
                   <Calendar className="w-4 h-4 border-brand/40" />
-                  <span className="text-xs font-bold text-slate-300">Mensualidad Regular</span>
+                  <span className="text-xs font-bold text-slate-300">{t('futbolista.pagos.regularPayment')}</span>
                </div>
                {tenant?.mp_access_token && estadoPagoReal !== 'Al día' && (
                  <button 
@@ -266,8 +268,8 @@ export default function PagosFutbolista() {
                    disabled={pagandoEnLinea}
                    className="bg-[#009EE3] text-white px-6 py-2 rounded-xl font-black text-sm hover:scale-105 transition-all flex items-center gap-2 shadow-lg shadow-[#009EE3]/20 ml-auto"
                  >
-                   {pagandoEnLinea ? <span className="animate-pulse">Procesando...</span> : <CreditCard className="w-4 h-4" />}
-                   Pagar con Mercado Pago
+                   {pagandoEnLinea ? <span className="animate-pulse">{t('futbolista.pagos.processing')}</span> : <CreditCard className="w-4 h-4" />}
+                   {t('futbolista.pagos.payWithMp')}
                  </button>
                )}
             </div>
@@ -396,9 +398,9 @@ export default function PagosFutbolista() {
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
          <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
-              <FileText className="text-brand" /> Historial de Pagos
+              <FileText className="text-brand" /> {t('futbolista.pagos.paymentHistory')}
             </h3>
-            <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2.5 py-1 rounded-full">{pagos.length} RECIBOS</span>
+            <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2.5 py-1 rounded-full">{t('futbolista.pagos.receiptsCount', { count: pagos.length })}</span>
          </div>
          
          <div className="divide-y divide-slate-100">
@@ -407,7 +409,7 @@ export default function PagosFutbolista() {
                  <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
                     <Search className="text-slate-300 w-8 h-8" />
                  </div>
-                 <p className="text-slate-400 font-bold text-sm">Aún no hay pagos registrados en tu historial.</p>
+                 <p className="text-slate-400 font-bold text-sm">{t('futbolista.pagos.noHistory')}</p>
               </div>
             ) : (
               pagos.map((pago: any) => (
@@ -422,7 +424,7 @@ export default function PagosFutbolista() {
                            const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
                            const dateStr = dateObj && !isNaN(dateObj.getTime())
                              ? dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-                             : 'Pago s/f';
+                             : t('futbolista.pagos.paymentDateFallback');
                            return (
                              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                                {dateStr}
@@ -432,14 +434,14 @@ export default function PagosFutbolista() {
                          <h4 className="font-black text-slate-800 text-lg leading-none mt-1">
                             {formatCurrency(pago.total || pago.monto_recibido || pago.monto || 0, tenant?.pais || tenant?.moneda)}
                          </h4>
-                         <p className="text-xs text-slate-500 mt-1 font-medium italic">Vía {pago.metodo_pago || 'Efectivo'}</p>
+                         <p className="text-xs text-slate-500 mt-1 font-medium italic">{t('futbolista.pagos.via', { method: pago.metodo_pago || 'Efectivo' })}</p>
                       </div>
                    </div>
                    
                    <button 
                      onClick={() => handleVerRecibo(pago)}
                      className="p-3 bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white rounded-2xl transition-all shadow-sm group-hover:scale-110 active:scale-95"
-                     title="Descargar Recibo"
+                     title={t('futbolista.pagos.downloadReceipt')}
                    >
                       <Download className="w-5 h-5" />
                    </button>

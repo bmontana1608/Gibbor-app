@@ -1,0 +1,66 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "success": "Success",
+    "error": "Error"
+  },
+  "roles": {
+    "director": "Director",
+    "entrenador": "Coach",
+    "futbolista": "Player"
+  },
+  "futbolista": {
+    "dashboard": {
+      "greeting": "HELLO, {{name}}!",
+      "elitePlayer": "Elite Player",
+      "pathMsg": "Your path to professionalism continues today in the category",
+      "noGroup": "No group",
+      "goals": "Goals",
+      "attendance": "Attendance",
+      "stats": "STATISTICS",
+      "metrics": "Your performance metrics",
+      "waitingEval": "Waiting for technical evaluation...",
+      "trophies": "Trophy Showcase",
+      "earnBadges": "Earn badges in your training sessions",
+      "discipline": "Discipline Log",
+      "noAttendance": "No attendance records",
+      "finances": "Financial Management",
+      "noPayments": "No recent payment reports",
+      "monthlyPayment": "Monthly Fee",
+      "viewReceipt": "View Receipt"
+    },
+    "pagos": {
+      "title": "FINANCES",
+      "subtitle": "Control of your monthly fees and receipts",
+      "statusTitle": "Current Status",
+      "upToDate": "Up to date",
+      "pending": "Pending",
+      "nextDueDate": "Next Due Date",
+      "regularPayment": "Regular Monthly Fee",
+      "payWithMp": "Pay with Mercado Pago",
+      "processing": "Processing...",
+      "paymentChannels": "Payment Channels",
+      "paymentHistory": "Payment History",
+      "receiptsCount": "{{count}} RECEIPTS",
+      "noHistory": "There are no payments recorded in your history yet.",
+      "paymentDateFallback": "Undated payment",
+      "via": "Via {{method}}",
+      "downloadReceipt": "Download Receipt"
+    }
+  },
+  "cron": {
+    "recordatorio1": "Hi {{name}} 👋⚽,\n\nWe hope you are doing great.\n\nFrom *{{clubName}}* we want to remind you that the due date for your *{{monthName}}* monthly fee is approaching or has arrived.\n\n📄 Your amount to pay is: *{{amount}}*.\n{{discountText}}To make your process easier, you can pay through:\n\n{{paymentMethods}}\n\nIf you have already made your payment, please send us the receipt here. Let's keep working together for your goals! 🏆",
+    "recordatorio2": "Hi {{name}} 👋,\n\nWarm regards from *{{clubName}}*.\n\nWe noticed that your *{{monthName}}* monthly fee is still pending. We understand that sometimes dates slip our minds, so we want to remind you of the importance of staying up to date to ensure the club's operation and your continuity in training.\n\n📄 Your pending balance is: *{{amount}}*.\n\nYou can regularize your status through:\n\n{{paymentMethods}}\n\nWe look forward to receiving your receipt. Thank you for your institutional commitment! ⚽",
+    "recordatorio3": "Dear {{name}},\n\nWe are reaching out from the administration of *{{clubName}}*.\n\nTo date, our system reflects a pending balance for your *{{monthName}}* monthly fee for the amount of *{{amount}}*.\n\nTimely payments are essential for sustaining our sports project. Per internal regulations, non-payment may lead to restrictions on active participation.\n\nWe kindly ask you to catch up as soon as possible using our channels:\n\n{{paymentMethods}}\n\nPlease send us the receipt once completed. We appreciate your attention to this important message.",
+    "discountValid": "(Includes early payment discount valid until today).\n\n",
+    "defaultPayment": "Cash at our facilities",
+    "defaultPayment2": "Our usual channels",
+    "defaultPayment3": "In-person at headquarters",
+    "months": {
+      "0": "January", "1": "February", "2": "March", "3": "April", "4": "May", "5": "June",
+      "6": "July", "7": "August", "8": "September", "9": "October", "10": "November", "11": "December"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "success": "Éxito",
+    "error": "Error"
+  },
+  "roles": {
+    "director": "Director",
+    "entrenador": "Entrenador",
+    "futbolista": "Futbolista"
+  },
+  "futbolista": {
+    "dashboard": {
+      "greeting": "¡HOLA, {{name}}!",
+      "elitePlayer": "Jugador Élite",
+      "pathMsg": "Tu camino al profesionalismo continúa hoy en la categoría",
+      "noGroup": "Sin grupo",
+      "goals": "Goles",
+      "attendance": "Asistencia",
+      "stats": "ESTADÍSTICAS",
+      "metrics": "Tus métricas de rendimiento",
+      "waitingEval": "Esperando evaluación técnica...",
+      "trophies": "Vitrina de Trofeos",
+      "earnBadges": "Gana insignias en tus entrenamientos",
+      "discipline": "Bitácora de Disciplina",
+      "noAttendance": "Sin registros de asistencia",
+      "finances": "Gestión Financiera",
+      "noPayments": "Sin reportes de pago recientes",
+      "monthlyPayment": "Mensualidad",
+      "viewReceipt": "Ver Recibo"
+    },
+    "pagos": {
+      "title": "FINANZAS",
+      "subtitle": "Control de tus mensualidades y recibos",
+      "statusTitle": "Estado Actual",
+      "upToDate": "Al día",
+      "pending": "Pendiente",
+      "nextDueDate": "Próximo Vencimiento",
+      "regularPayment": "Mensualidad Regular",
+      "payWithMp": "Pagar con Mercado Pago",
+      "processing": "Procesando...",
+      "paymentChannels": "Canales de Pago",
+      "paymentHistory": "Historial de Pagos",
+      "receiptsCount": "{{count}} RECIBOS",
+      "noHistory": "Aún no hay pagos registrados en tu historial.",
+      "paymentDateFallback": "Pago s/f",
+      "via": "Vía {{method}}",
+      "downloadReceipt": "Descargar Recibo"
+    }
+  },
+  "cron": {
+    "recordatorio1": "Hola {{name}} 👋⚽,\n\nEsperamos que te encuentres muy bien.\n\nDesde *{{clubName}}* te recordamos que se acerca o finaliza tu periodo para el aporte de tu mensualidad de *{{monthName}}*.\n\n📄 Tu valor a pagar es de: *{{amount}}*.\n{{discountText}}Para facilitar tu proceso, puedes hacer el pago a través de:\n\n{{paymentMethods}}\n\nSi ya realizaste tu pago, te agradecemos enviarnos el comprobante por este medio. ¡Sigamos trabajando juntos por tus metas! 🏆",
+    "recordatorio2": "Hola {{name}} 👋,\n\nUn cordial saludo de parte de *{{clubName}}*.\n\nNotamos que aún está pendiente el aporte de tu mensualidad correspondiente a *{{monthName}}*. Entendemos que a veces las fechas se nos pasan, por lo que queremos recordarte la importancia de mantenerte al día para garantizar el funcionamiento del club y la continuidad en tus entrenamientos.\n\n📄 Tu saldo pendiente es de: *{{amount}}*.\n\nPuedes regularizar tu estado a través de:\n\n{{paymentMethods}}\n\nQuedamos atentos a recibir tu comprobante. ¡Gracias por tu compromiso institucional! ⚽",
+    "recordatorio3": "Estimado(a) {{name}},\n\nNos dirigimos a ti desde la administración de *{{clubName}}*.\n\nA la fecha, nuestro sistema refleja un saldo pendiente por tu mensualidad de *{{monthName}}* por valor de *{{amount}}*.\n\nEl cumplimiento oportuno de los aportes es fundamental para el sostenimiento del proyecto deportivo. Por normatividad interna, el no pago puede acarrear restricciones en la participación activa.\n\nTe solicitamos amablemente ponerte al día a la mayor brevedad posible utilizando nuestros canales:\n\n{{paymentMethods}}\n\nPor favor envíanos el comprobante una vez realizado. Agradecemos tu atención a este importante mensaje.",
+    "discountValid": "(Incluye descuento por pronto pago válido hasta hoy).\n\n",
+    "defaultPayment": "Efectivo en nuestras instalaciones",
+    "defaultPayment2": "Nuestros canales habituales",
+    "defaultPayment3": "Atención en sede",
+    "months": {
+      "0": "Enero", "1": "Febrero", "2": "Marzo", "3": "Abril", "4": "Mayo", "5": "Junio",
+      "6": "Julio", "7": "Agosto", "8": "Septiembre", "9": "Octubre", "10": "Noviembre", "11": "Diciembre"
+    }
+  }
+}

@@ -15,6 +15,7 @@ import { toPng } from 'html-to-image';
 import { useTenant } from "@/lib/hooks/useTenant";
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { formatCurrency } from '@/lib/currency-utils';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 function RadarChart({ data, size = 300, color = '#f97316' }: { data: { label: string, value: number }[], size?: number, color?: string }) {
   if (!data || data.length < 3) return <div className="text-[10px] text-zinc-400">Datos insuficientes</div>;
@@ -138,6 +139,7 @@ function FifaCard({ perfil, stats, clubName = 'CLUB', clubLogo = '/logo.png', co
 }
 
 export default function DashboardFutbolista() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [perfil, setPerfil] = useState<any>(null);
   const [tenant, setTenant] = useState<any>(null);
@@ -335,21 +337,21 @@ export default function DashboardFutbolista() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border" style={{ backgroundColor: `${brandColor}20`, borderColor: `${brandColor}40`, color: brandColor }}>
-                <Zap className="w-3.5 h-3.5" /> Jugador Élite
+                <Zap className="w-3.5 h-3.5" /> {t('futbolista.dashboard.elitePlayer')}
             </div>
             <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none uppercase">
-                ¡HOLA, <span style={{ color: brandColor }}>{perfil?.nombres?.split(' ')[0]}!</span>
+                {t('futbolista.dashboard.greeting', { name: perfil?.nombres?.split(' ')[0] || '' }).split(', ')[0]}, <span style={{ color: brandColor }}>{t('futbolista.dashboard.greeting', { name: perfil?.nombres?.split(' ')[0] || '' }).split(', ')[1]}</span>
             </h1>
-            <p className="text-slate-400 font-medium max-w-md">Tu camino al profesionalismo continúa hoy en la categoría <span className="text-white font-bold">{perfil?.grupos || 'Sin grupo'}</span>.</p>
+            <p className="text-slate-400 font-medium max-w-md">{t('futbolista.dashboard.pathMsg')} <span className="text-white font-bold">{perfil?.grupos || t('futbolista.dashboard.noGroup')}</span>.</p>
           </div>
           <div className="flex gap-4">
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl text-center min-w-[120px]">
               <p className="text-3xl font-black" style={{ color: brandColor }}>{perfil?.goles || 0}</p>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Goles</p>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">{t('futbolista.dashboard.goals')}</p>
             </div>
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl text-center min-w-[120px]">
               <p className="text-3xl font-black" style={{ color: brandColor }}>{asistenciaPct}%</p>
-              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Asistencia</p>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">{t('futbolista.dashboard.attendance')}</p>
             </div>
           </div>
         </div>
