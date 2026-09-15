@@ -581,18 +581,18 @@ export default function FichaDelJugador() {
       {/* SECCIÓN DE ACCESOS A PLATAFORMA */}
       <div className="mt-8 bg-white border rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
-          <Smartphone className="w-4 h-4 text-brand" /> Accesos a Plataforma
+          <Smartphone className="w-4 h-4 text-brand" /> {t('director.members.platformAccess')}
         </h3>
         <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col md:flex-row gap-6 items-start">
           <div className="flex-1 w-full space-y-4">
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Correo de Acceso</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">{t('director.members.accessEmail')}</label>
               <input type="email" value={emailAcceso} onChange={(e) => setEmailAcceso(e.target.value)} placeholder="Correo electrónico" className="w-full bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand transition-all" />
             </div>
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Contraseña Temporal</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">{t('director.members.temporaryPassword')}</label>
               <input type="text" value={claveAcceso} onChange={(e) => setClaveAcceso(e.target.value)} placeholder="Ej: Club2026*" className="w-full bg-white border border-slate-200 px-4 py-3 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand transition-all" />
-              <p className="text-[9px] text-slate-400 mt-1 ml-1 font-medium">Debe tener al menos 6 caracteres.</p>
+              <p className="text-[9px] text-slate-400 mt-1 ml-1 font-medium">{t('director.members.passwordMinChars')}</p>
             </div>
           </div>
           
@@ -612,7 +612,7 @@ export default function FichaDelJugador() {
                 if(res.ok) toast.success(`Clave reseteada a ${cleanPass}`, {id: tid});
                 else toast.error("Error al resetear clave", {id: tid});
                 setGenerandoAcceso(false); 
-              }} disabled={generandoAcceso} className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md">Resetear Clave</button>
+              }} disabled={generandoAcceso} className="w-full bg-slate-800 hover:bg-slate-900 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md">{t('director.members.resetPassword')}</button>
             ) : (
               <button onClick={async () => { 
                 const cleanMail = emailAcceso.trim().toLowerCase();
@@ -643,7 +643,7 @@ export default function FichaDelJugador() {
                    toast.error("Error de conexión", { id: tid });
                 }
                 setGenerandoAcceso(false); 
-              }} disabled={generandoAcceso} className="w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md shadow-brand/20">Activar Acceso</button>
+              }} disabled={generandoAcceso} className="w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-black uppercase text-xs transition-all shadow-md shadow-brand/20">{t('director.members.activateAccess')}</button>
             )}
             
             <button onClick={() => {
@@ -653,7 +653,7 @@ export default function FichaDelJugador() {
               const loginUrl = `${appHost}/${tenantSlug || 'tenant'}/login`;
               const msg = `¡Hola! Tu acceso a ${tenantSlug || 'la plataforma'} ha sido configurado.\n\n📧 Correo: ${cleanMail}\n🔑 Clave temporal: ${cleanPass}\n\nPuedes ingresar en: ${loginUrl}`;
               window.open(`https://wa.me/${jugador.telefono?.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-            }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> Notificar WhatsApp</button>
+            }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-black uppercase text-xs flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-500/20"><Smartphone className="w-4 h-4" /> {t('director.members.notifyWhatsApp')}</button>
           </div>
         </div>
       </div>
@@ -661,7 +661,7 @@ export default function FichaDelJugador() {
       {/* SECCIÓN DE HISTORIAL DE PAGOS */}
       <div className="mt-8 bg-white border rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
-          <Wallet className="w-4 h-4 text-emerald-500" /> Historial de Pagos Recientes
+          <Wallet className="w-4 h-4 text-emerald-500" /> {t('director.members.recentPaymentHistory')}
         </h3>
         {pagos.length === 0 ? (
           <p className="text-xs font-bold text-slate-400 text-center py-6">No hay pagos registrados para este jugador.</p>
@@ -670,11 +670,11 @@ export default function FichaDelJugador() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b text-slate-400 font-bold uppercase tracking-wider">
-                  <th className="pb-3">Consecutivo</th>
-                  <th className="pb-3">Fecha</th>
-                  <th className="pb-3">Concepto</th>
-                  <th className="pb-3">Método</th>
-                  <th className="pb-3 text-right">Total</th>
+                  <th className="pb-3">{t('director.members.consecutive')}</th>
+                  <th className="pb-3">{t('director.members.date')}</th>
+                  <th className="pb-3">{t('director.members.concept')}</th>
+                  <th className="pb-3">{t('director.members.method')}</th>
+                  <th className="pb-3 text-right">{t('director.members.total')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

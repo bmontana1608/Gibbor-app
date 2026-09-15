@@ -154,7 +154,14 @@
       "guardianAndEmergency": "Guardian and Emergency",
       "guardianName": "Guardian Name",
       "emergencyContactName": "Emergency Contact Name",
-      "emergencyContactPhone": "Emergency Phone"
+      "emergencyContactPhone": "Emergency Phone",
+      "recentPaymentHistory": "Recent Payment History",
+      "consecutive": "Consecutive #",
+      "date": "Date",
+      "concept": "Concept",
+      "method": "Method",
+      "total": "Total",
+      "notifyWhatsApp": "Notify WhatsApp"
     }
   },
   "futbolista": {
@@ -1203,5 +1210,22 @@
     "understood": "Understood",
     "newRequest": "New Request",
     "wantsToJoin": "wants to join."
+  },
+  "planes": {
+    "title": "Plans and Fee Concepts",
+    "subtitle": "Configure monthly fees, enrollments, uniforms and other charges.",
+    "infoTitle": "Difference between Plans and Concepts",
+    "infoPlansBold": "Plans (Monthly Fees):",
+    "infoPlansDesc": "Recurring. A student is linked to a Plan that defines how much they pay each month.",
+    "infoConceptsBold": "Other Concepts:",
+    "infoConceptsDesc": "One-time charges (Enrollments, Uniforms). Selected when recording a payment.",
+    "tabMonthlyPlans": "Monthly Plans",
+    "tabOtherConcepts": "Other Concepts (Enrollment, etc.)",
+    "searchPlaceholder": "Search plans...",
+    "createPlan": "Create Plan",
+    "recurringMonthly": "Recurring Monthly Fee",
+    "price": "Price:",
+    "associatedStudents": "Associated Students",
+    "editPlan": "Edit Plan"
   }
 }

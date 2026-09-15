@@ -154,7 +154,14 @@
       "guardianAndEmergency": "Acudiente y Emergencia",
       "guardianName": "Nombre del Acudiente",
       "emergencyContactName": "Contacto de Emergencia",
-      "emergencyContactPhone": "Teléfono de Emergencia"
+      "emergencyContactPhone": "Teléfono de Emergencia",
+      "recentPaymentHistory": "Historial de Pagos Recientes",
+      "consecutive": "Consecutivo",
+      "date": "Fecha",
+      "concept": "Concepto",
+      "method": "Método",
+      "total": "Total",
+      "notifyWhatsApp": "Notificar WhatsApp"
     }
   },
   "futbolista": {
@@ -1203,5 +1210,22 @@
     "understood": "Entendido",
     "newRequest": "Nueva Solicitud",
     "wantsToJoin": "quiere unirse."
+  },
+  "planes": {
+    "title": "Planes y Conceptos de Cobro",
+    "subtitle": "Configura las mensualidades, inscripciones, uniformes y otros cobros.",
+    "infoTitle": "Diferencia entre Planes y Conceptos",
+    "infoPlansBold": "Planes (Mensualidades):",
+    "infoPlansDesc": "Son recurrentes. Un alumno está asociado a un Plan que define cuánto paga cada mes.",
+    "infoConceptsBold": "Otros Conceptos:",
+    "infoConceptsDesc": "Cobros únicos (Inscripciones, Uniformes). Se seleccionan al registrar un pago en la caja.",
+    "tabMonthlyPlans": "Planes de Mensualidad",
+    "tabOtherConcepts": "Otros Conceptos (Inscripción, etc.)",
+    "searchPlaceholder": "Buscar planes...",
+    "createPlan": "Crear Plan",
+    "recurringMonthly": "Mensualidad Recurrente",
+    "price": "Precio:",
+    "associatedStudents": "Alumnos Asociados",
+    "editPlan": "Editar Plan"
   }
 }

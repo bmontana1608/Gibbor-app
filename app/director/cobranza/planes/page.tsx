@@ -238,11 +238,11 @@ export default function GestionDePlanes() {
             onClick={() => router.back()}
             className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2 mt-1"
           >
-            <ArrowLeft className="w-4 h-4" /> Volver
+            <ArrowLeft className="w-4 h-4" /> {t('common.back')}
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Planes y Conceptos de Cobro</h1>
-            <p className="text-sm text-slate-500 mt-1">Configura las mensualidades, inscripciones, uniformes y otros cobros.</p>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">{t('planes.title')}</h1>
+            <p className="text-sm text-slate-500 mt-1">{t('planes.subtitle')}</p>
           </div>
         </div>
       </div>
@@ -250,11 +250,11 @@ export default function GestionDePlanes() {
       {/* 2. ALERTA INFORMATIVA */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-6 shadow-sm">
         <h3 className="text-amber-800 font-bold text-sm mb-2 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-500" /> Diferencia entre Planes y Conceptos
+          <AlertTriangle className="w-4 h-4 text-amber-500" /> {t('planes.infoTitle')}
         </h3>
         <ul className="text-sm text-amber-700 space-y-1.5 ml-6 list-disc marker:text-amber-400">
-          <li><strong className="font-bold">Planes (Mensualidades):</strong> Son recurrentes. Un alumno está asociado a un Plan que define cuánto paga cada mes.</li>
-          <li><strong className="font-bold">Otros Conceptos:</strong> Cobros únicos (Inscripciones, Uniformes). Se seleccionan al registrar un pago en la caja.</li>
+          <li><strong className="font-bold">{t('planes.infoPlansBold')}</strong> {t('planes.infoPlansDesc')}</li>
+          <li><strong className="font-bold">{t('planes.infoConceptsBold')}</strong> {t('planes.infoConceptsDesc')}</li>
         </ul>
       </div>
 
@@ -264,13 +264,13 @@ export default function GestionDePlanes() {
           onClick={() => setTabActivo('planes')}
           className={`py-3 px-4 font-bold text-sm border-b-2 transition-colors ${tabActivo === 'planes' ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
-          Planes de Mensualidad
+          {t('planes.tabMonthlyPlans')}
         </button>
         <button 
           onClick={() => setTabActivo('conceptos')}
           className={`py-3 px-4 font-bold text-sm border-b-2 transition-colors flex items-center gap-2 ${tabActivo === 'conceptos' ? 'border-brand text-brand' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
         >
-          <Tag className="w-4 h-4" /> Otros Conceptos (Inscripción, etc.)
+          <Tag className="w-4 h-4" /> {t('planes.tabOtherConcepts')}
         </button>
       </div>
 
@@ -282,7 +282,7 @@ export default function GestionDePlanes() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
-                placeholder="Buscar planes..." 
+                placeholder={t('planes.searchPlaceholder')} 
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand outline-none text-sm"
@@ -292,7 +292,7 @@ export default function GestionDePlanes() {
               onClick={handleCreatePlan}
               className="bg-brand hover:bg-brand/90 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors flex items-center gap-2"
             >
-              <Plus className="w-4 h-4" /> Crear Plan
+              <Plus className="w-4 h-4" /> {t('planes.createPlan')}
             </button>
           </div>
 
@@ -303,13 +303,13 @@ export default function GestionDePlanes() {
                 <div key={plan.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
                   <div className="mb-4">
                     <h2 className="text-xl font-bold text-slate-800">{plan.nombre}</h2>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Mensualidad Recurrente</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">{t('planes.recurringMonthly')}</p>
                   </div>
 
                   <div className="space-y-2 mb-5">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <DollarSign className="w-4 h-4 text-emerald-500" /> 
-                      Precio: <span className="font-bold text-slate-800">${parseFloat(plan.precio_base).toLocaleString('es-CO')}</span>
+                      {t('planes.price')} <span className="font-bold text-slate-800">${parseFloat(plan.precio_base).toLocaleString('es-CO')}</span>
                     </div>
                     {plan.descuento_pronto_pago > 0 && (
                       <div className="flex items-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded w-fit mt-2">
@@ -319,7 +319,7 @@ export default function GestionDePlanes() {
                   </div>
 
                   <div className="bg-slate-50 border border-slate-100 rounded-lg p-4 mb-5 flex-1">
-                    <h4 className="text-xs font-bold text-slate-800 mb-3">Alumnos Asociados ({alumnosEnPlan.length})</h4>
+                    <h4 className="text-xs font-bold text-slate-800 mb-3">{t('planes.associatedStudents')} ({alumnosEnPlan.length})</h4>
                     <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
                       {alumnosEnPlan.map(a => (
                         <div key={a.id} className="flex justify-between items-center border-b border-slate-200/50 pb-1 last:border-0 last:pb-0">
