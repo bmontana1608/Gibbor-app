@@ -70,7 +70,6 @@ export default function NuevoMiembro() {
     direccion: '',
     acudiente_nombre: '',
     acudiente_identificacion: '',
-    acudiente_telefono: '',
     tipo_sangre: 'O+',
     eps: '',
     poliza_medica: '',
@@ -139,7 +138,6 @@ export default function NuevoMiembro() {
       email: cleanContactEmail || null,
       email_contacto: cleanContactEmail,
       telefono: normalizedPhone,
-      acudiente_telefono: normalizedAcudientePhone || formData.acudiente_telefono,
       grupos: formData.override_categoria && formData.grupos ? `${formData.grupos}|MANUAL` : formData.grupos,
       club_id: tenant?.id
     };
@@ -150,6 +148,7 @@ export default function NuevoMiembro() {
     delete (payload as any).fecha_ingreso;
     delete (payload as any).acudiente_direccion;
     delete (payload as any).acudiente_parentesco;
+    delete (payload as any).acudiente_telefono;
     delete (payload as any).vinculo_jugador_id;
 
     const { error } = await supabase
