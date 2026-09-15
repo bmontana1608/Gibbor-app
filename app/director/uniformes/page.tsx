@@ -249,6 +249,11 @@ export default function UniformesModule() {
     // Intencionalmente desactivado: ver comentario arriba.
   };
 
+  const [isAbonoModalOpen, setIsAbonoModalOpen] = useState(false);
+  const [pedidoAbono, setPedidoAbono] = useState<any>(null);
+  const [montoAbonoExtra, setMontoAbonoExtra] = useState('');
+  const [busquedaAlumno, setBusquedaAlumno] = useState('');
+
   const registrarNuevoAbono = async () => {
     if (!pedidoActual || !nuevoAbonoMonto) return;
     const montoSumar = Number(nuevoAbonoMonto);
@@ -259,6 +264,22 @@ export default function UniformesModule() {
     const nuevoTotalAbono = Number(pedidoActual.abono || 0) + montoSumar;
     const precioVent = Number(pedidoActual.precio_venta || 0);
     const estadoPago = nuevoTotalAbono >= precioVent ? 'Pagado' : 'Abonado';
+    
+    try {
+      const { error } = await supabase
+        .from('pedidos_uniformes')
+        .update({ abono: nuevoTotalAbono, estado_pago: estadoPago })
+        .eq('id', pedidoActual.id);
+      if (error) throw error;
+      toast.success("Abono registrado correctamente", { id: toastId });
+      setIsModalAbonoOpen(false);
+      setNuevoAbonoMonto('');
+      cargarDatos();
+    } catch (err: any) {
+      toast.error(`Error: ${err.message}`, { id: toastId });
+    }
+  };
+
   const procesarAbonoExtra = async () => {
     const abonoNum = Number(montoAbonoExtra);
     if (!abonoNum || abonoNum <= 0) return toast.error(t('uniformes.abonoMayorCero'));
@@ -298,6 +319,7 @@ export default function UniformesModule() {
       toast.error(`${t('uniformes.errorRegistrarAbono')}${err.message}`, { id: toastId });
     }
   };
+
 
   if (cargando) {
     return (
