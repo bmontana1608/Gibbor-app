@@ -554,7 +554,7 @@ export default function UniformesModule() {
 
                 {precioVenta && costoProveedor && (
                   <div className="bg-emerald-100 text-emerald-800 text-xs font-bold px-4 py-2 rounded-lg inline-block">
-                    {t('uniformes.margenGananciaEstimado')} ${(Number(precioVenta) - Number(costoProveedor)).toLocaleString()}
+                    {t('uniformes.margenGananciaEstimado')} {'$'}{(Number(precioVenta) - Number(costoProveedor)).toLocaleString()}
                   </div>
                 )}
 
@@ -612,15 +612,15 @@ export default function UniformesModule() {
             <div className="p-6">
               <div className="flex justify-between items-center text-sm mb-2 border-b border-dashed border-slate-200 pb-2">
                 <span className="text-slate-500">{t('uniformes.valorTotal')}</span>
-                <span className="font-bold text-slate-800">${Number(pedidoAbono.precio_venta).toLocaleString()}</span>
+                <span className="font-bold text-slate-800">{'$'}{Number(pedidoAbono.precio_venta).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-sm mb-2 border-b border-dashed border-slate-200 pb-2">
                 <span className="text-slate-500">{t('uniformes.abonadoHastaHoy')}</span>
-                <span className="font-bold text-emerald-600">${Number(pedidoAbono.abono || 0).toLocaleString()}</span>
+                <span className="font-bold text-emerald-600">{'$'}{Number(pedidoAbono.abono || 0).toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center text-sm mb-6">
                 <span className="text-slate-800 font-bold">{t('uniformes.saldoPendiente')}</span>
-                <span className="font-black text-rose-500 text-lg">${(Number(pedidoAbono.precio_venta) - Number(pedidoAbono.abono || 0)).toLocaleString()}</span>
+                <span className="font-black text-rose-500 text-lg">{'$'}{(Number(pedidoAbono.precio_venta) - Number(pedidoAbono.abono || 0)).toLocaleString()}</span>
               </div>
 
               <div className="mb-6">
