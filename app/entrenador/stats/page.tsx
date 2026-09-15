@@ -330,8 +330,8 @@ export default function GestionSkillsEntrenador() {
                     <RadarIcon className="w-5 h-5 lg:w-6 lg:h-6 text-current" />
                 </div>
                 <div>
-                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic textborder-brand/40">Soccer Stats Lab</h1>
-                    <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">Evolution & Performance Tracking</p>
+                    <h1 className="text-lg lg:text-xl font-black tracking-tighter uppercase italic textborder-brand/40">{t('entrenador.stats.labTitle')}</h1>
+                    <p className="text-[9px] lg:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('entrenador.stats.labSubtitle')}</p>
                 </div>
             </div>
             
@@ -358,7 +358,7 @@ export default function GestionSkillsEntrenador() {
         `}>
             {!catSeleccionada ? (
                 <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Selecciona Categoría</p>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">{t('entrenador.stats.selectCategory')}</p>
                     {categorias.map(cat => (
                         <button key={cat.id} onClick={() => seleccionarCat(cat)} className="w-full bg-slate-800 hover:bg-slate-700 p-5 rounded-3xl border border-white/5 flex items-center justify-between group transition-all">
                             <span className="font-black text-xs uppercase tracking-tight">{cat.nombre}</span>
@@ -376,7 +376,7 @@ export default function GestionSkillsEntrenador() {
                         <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                         <input 
                             type="text" 
-                            placeholder="Buscar futbolista..." 
+                            placeholder={t('entrenador.stats.searchPlayer')} 
                             value={busqueda}
                             onChange={(e) => setBusqueda(e.target.value)}
                             className="w-full bg-slate-900 border-none rounded-2xl py-3 pl-10 pr-4 text-xs font-bold text-slate-300 outline-none focus:ring-1 focus:ring-brand"

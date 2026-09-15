@@ -160,8 +160,8 @@ export default function GestionCategoriasEntrenador() {
                     <Users className="w-6 h-6" />
                 </div>
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">Mis Categorías</h1>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Gestión de Talento</p>
+                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">{t('entrenador.categorias.title')}</h1>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{t('entrenador.categorias.subtitle')}</p>
                 </div>
             </div>
             {catSeleccionada && (
@@ -169,7 +169,7 @@ export default function GestionCategoriasEntrenador() {
                   onClick={() => setCatSeleccionada(null)}
                   className="flex items-center gap-2 text-slate-500 font-bold text-sm bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors"
                 >
-                    <ArrowLeft className="w-4 h-4" /> Volver
+                    <ArrowLeft className="w-4 h-4" /> {t('entrenador.categorias.back')}
                 </button>
             )}
         </div>
@@ -187,13 +187,13 @@ export default function GestionCategoriasEntrenador() {
                                     <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full">{cat.nivel}</span>
                                 </div>
                                 <h3 className="text-xl font-black text-slate-800 mb-1">{cat.nombre}</h3>
-                                <p className="text-slate-400 text-xs font-medium italic">{cat.horarios || 'Horario por definir'}</p>
+                                <p className="text-slate-400 text-xs font-medium italic">{cat.horarios || t('entrenador.categorias.scheduleTbd')}</p>
                             </div>
                             <button 
                                 onClick={() => seleccionarCat(cat)}
                                 className="w-full bg-slate-900 group-hover:bg-brand text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-2 italic uppercase tracking-tighter"
                             >
-                                Gestionar Grupo <ChevronRight className="w-4 h-4" />
+                                {t('entrenador.categorias.manageGroup')} <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     ))}
@@ -207,7 +207,7 @@ export default function GestionCategoriasEntrenador() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
                             <input 
                                 type="text" 
-                                placeholder="Buscar futbolista..." 
+                                placeholder={t('entrenador.categorias.searchPlayer')} 
                                 value={busqueda}
                                 onChange={(e) => setBusqueda(e.target.value)}
                                 className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold shadow-sm outline-none focus:ring-2 focus:text-brand"

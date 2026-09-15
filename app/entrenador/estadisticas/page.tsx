@@ -138,10 +138,10 @@ export default function Ranking() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                <th className="p-6">Posición</th>
-                                <th className="p-6">Futbolista</th>
-                                <th className="p-6">Categoría</th>
-                                <th className="p-6 text-right">Puntos</th>
+                                <th className="p-6">{t('entrenador.estadisticas.tablePosition')}</th>
+                                <th className="p-6">{t('entrenador.estadisticas.tablePlayer')}</th>
+                                <th className="p-6">{t('entrenador.estadisticas.tableCategory')}</th>
+                                <th className="p-6 text-right">{t('entrenador.estadisticas.tablePoints')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -166,13 +166,13 @@ export default function Ranking() {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-800 text-sm uppercase tracking-tight">{jugador.nombres} {jugador.apellidos}</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase">{pos === 1 ? '🥇 Campeón del Ranking' : 'Futbolista Destacado'}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase">{pos === 1 ? t('entrenador.estadisticas.rankingChampion') : t('entrenador.estadisticas.featuredPlayer')}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-6">
                                             <span className="text-[10px] font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase italic">
-                                                {jugador.grupos || 'Sin Grupo'}
+                                                {jugador.grupos || t('entrenador.estadisticas.noGroup')}
                                             </span>
                                         </td>
                                         <td className="p-6 text-right">
@@ -190,7 +190,7 @@ export default function Ranking() {
                 {ranking.length === 0 && (
                     <div className="p-20 text-center">
                         <Trophy className="w-16 h-16 text-slate-100 mx-auto mb-4" />
-                        <p className="text-slate-400 font-bold">Aún no hay puntos registrados en esta temporada.</p>
+                        <p className="text-slate-400 font-bold">{t('entrenador.estadisticas.noPoints')}</p>
                     </div>
                 )}
             </div>
@@ -200,7 +200,7 @@ export default function Ranking() {
          <div className="space-y-8">
             <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden group">
                  <Zap className="bg-brand/10 rotate-12 transition-transform group-hover:scale-110" />
-                 <h3 className="text-lg font-black mb-6 flex items-center gap-3"><TrendingUp className="text-brand w-5 h-5" /> RECIENTES</h3>
+                 <h3 className="text-lg font-black mb-6 flex items-center gap-3"><TrendingUp className="text-brand w-5 h-5" /> {t('entrenador.estadisticas.recentTitle')}</h3>
                  
                  <div className="space-y-6">
                     {recientes.map((log) => (
@@ -213,17 +213,17 @@ export default function Ranking() {
                              <p className="text-[9px] text-brand/80 font-black mt-1 uppercase tracking-widest italic">{log.otorgado_por || 'Coach'}</p>
                         </div>
                     ))}
-                    {recientes.length === 0 && <p className="text-white/30 text-xs font-bold italic">No hay actividad reciente.</p>}
+                    {recientes.length === 0 && <p className="text-white/30 text-xs font-bold italic">{t('entrenador.estadisticas.noRecentActivity')}</p>}
                  </div>
 
-                 <button className="w-full mt-8 bg-white/10 hover:bg-white/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">Ver Historial Completo</button>
+                 <button className="w-full mt-8 bg-white/10 hover:bg-white/20 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">{t('entrenador.estadisticas.viewFullHistory')}</button>
             </div>
 
             <div className="bg-brand/10 border bg-brand/10 rounded-[40px] p-8">
                 <Award className="text-brand mb-4" />
-                <h4 className="font-black text-slate-800 text-sm mb-2 uppercase">Lucha por el Top 1</h4>
+                <h4 className="font-black text-slate-800 text-sm mb-2 uppercase">{t('entrenador.estadisticas.top1FightTitle')}</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                    Solo los atletas con mejor disciplina, asistencia y talento logran entrar en el Salón de la Fama. ¡Motiva a tus alumnos!
+                    {t('entrenador.estadisticas.top1FightDesc')}
                 </p>
             </div>
          </div>

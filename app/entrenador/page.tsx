@@ -141,7 +141,12 @@ export default function DashboardEntrenador() {
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
           <Calendar className="w-5 h-5" style={{ color: brandColor }} />
-          <span className="text-sm font-bold text-slate-700 capitalize">{new Date().toLocaleDateString(t('common.locale') || 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <span className="text-sm font-bold text-slate-700 capitalize">
+            {new Date().toLocaleDateString(
+              t('common.locale') && t('common.locale') !== 'common.locale' ? t('common.locale') : 'es-ES', 
+              { weekday: 'long', day: 'numeric', month: 'long' }
+            )}
+          </span>
         </div>
       </div>
 
