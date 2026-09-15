@@ -569,9 +569,9 @@ export default function DashboardDirector() {
                     <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center shadow-xl shadow-red-500/20">
                        <AlertTriangle className="text-white w-6 h-6" />
                     </div>
-                    <div>
-                       <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Centro de Alertas</h2>
-                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gestión de Incidentes Críticos</p>
+                     <div>
+                       <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">{t('director.dashboard.alertsCenter')}</h2>
+                       <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('director.dashboard.criticalIncidentsManagement')}</p>
                     </div>
                  </div>
                  <button onClick={() => setIsAlertsModalOpen(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400">
@@ -582,7 +582,7 @@ export default function DashboardDirector() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                  <div className="bg-brand-muted p-4 rounded-2xl border border-brand/10 mb-6">
                     <p className="text-xs text-brand font-bold leading-relaxed">
-                       Tienes <strong>{todasLasAlertas.length} alertas activas</strong>. Gestiona rápidamente los pagos y la asistencia de tu academia.
+                      {t('director.dashboard.youHave')} <strong>{todasLasAlertas.length} {t('director.dashboard.activeAlerts')}</strong>{t('director.dashboard.managePrompt')}
                     </p>
                  </div>
 
@@ -600,7 +600,7 @@ export default function DashboardDirector() {
                                </span>
                                {alerta.yaNotificado && (
                                  <span className="flex items-center gap-1 text-[9px] font-black text-emerald-600 uppercase tracking-tighter">
-                                   <CheckCheck className="w-3 h-3" /> Notificado
+                                   <CheckCheck className="w-3 h-3" /> {t('director.dashboard.notified')}
                                  </span>
                                )}
                             </div>
@@ -623,7 +623,7 @@ export default function DashboardDirector() {
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                  <p className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest tracking-tighter">
-                    Powered by Club Management SaaS © 2026
+                    {t('director.dashboard.poweredBy')}
                  </p>
               </div>
            </div>
