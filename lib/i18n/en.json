@@ -4,7 +4,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "success": "Success",
-    "error": "Error"
+    "error": "Error",
+    "all": "All",
+    "back": "Back",
+    "refresh": "Refresh"
   },
   "roles": {
     "director": "Director",
@@ -65,7 +68,17 @@
       "activeAlerts": "active alerts",
       "managePrompt": ". Quickly manage your academy's payments and attendance.",
       "notified": "Notified",
-      "poweredBy": "Powered by Club Management SaaS © 2026"
+      "poweredBy": "Powered by Club Management SaaS © 2026",
+      "welcomeTo": "Welcome to",
+      "multiclubControlPanel": "Multiclub Control Panel",
+      "paymentsUpToDate": "Up-to-date Payments",
+      "linkedStudents": "linked students",
+      "activeGroups": "Active Groups",
+      "trainingCategories": "Training categories",
+      "attendanceRate": "Attendance Rate",
+      "globalMonthlyAverage": "GLOBAL MONTHLY AVERAGE",
+      "payrollManagement": "PAYROLL MANAGEMENT",
+      "pendingPayment": "PENDING PAYMENT"
     },
     "members": {
       "title": "Members Management",
@@ -81,7 +94,17 @@
       "allAges": "Age: All",
       "noBirthdays": "No birthdays this month",
       "category": "Category",
-      "sendCongrats": "Send Congrats"
+      "sendCongrats": "Send Congrats",
+      "member": "MEMBER",
+      "roleCategory": "ROLE / CATEGORY",
+      "age": "AGE",
+      "contact": "CONTACT",
+      "status": "STATUS",
+      "detail": "DETAIL",
+      "allGroups": "All groups",
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "noMembersFound": "No members found"
     }
   },
   "futbolista": {
@@ -437,7 +460,8 @@
     "absent": "Absent",
     "excused": "Excused",
     "noName": "No Name",
-    "closeDetail": "Close Detail"
+    "closeDetail": "Close Detail",
+    "allGroups": "ALL GROUPS"
   },
   "categorias": {
     "errorLoading": "Error loading categories: ",
@@ -1108,7 +1132,15 @@
     "online": "Online",
     "closeAssistant": "Close assistant",
     "usedQueries": "AI Queries used:",
-    "writeQuery": "Write your query..."
+    "writeQuery": "Write your query...",
+    "welcomeText": "Hello! I am Gibbi, your tactical assistant. 🦁⚽\n\nI am here to help you get the most out of Gibbor Multiclub. How can I help you today?",
+    "optColors": "🎨 Configure Club Colors",
+    "optPayments": "💳 Add Payment Methods",
+    "optCategories": "🏆 Create Categories",
+    "optPlayers": "👥 Register Players",
+    "optAnnouncements": "📢 Send an Announcement",
+    "optMoreHelp": "🤖 What else can you do?",
+    "placeholder": "Write your query..."
   },
   "notifications": {
     "alertsCenter": "Alerts Center",

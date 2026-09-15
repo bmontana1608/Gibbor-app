@@ -166,10 +166,10 @@ export default function ReporteAsistenciaDirector() {
     tasa: asistenciasValidas.length > 0 ? ((asistenciasValidas.filter(a => a.estado === 'Presente').length / asistenciasValidas.length) * 100).toFixed(1) : "0"
   };
 
-  const gruposUnicos = ['Todos los grupos', ...Array.from(new Set(asistencias.map(a => a.grupo).filter(Boolean)))];
+  const gruposUnicos = [t('asistencia.allGroups'), ...Array.from(new Set(asistencias.map(a => a.grupo).filter(Boolean)))];
 
   const sesionesFiltradas = sesionesAgrupadas.filter(s => {
-    const coincideGrupo = grupoFiltro === 'Todos los grupos' || s.grupo === grupoFiltro;
+    const coincideGrupo = grupoFiltro === t('asistencia.allGroups') || s.grupo === grupoFiltro;
     const coincideBusqueda = s.grupo.toLowerCase().includes(busqueda.toLowerCase()) || s.registrado_por.toLowerCase().includes(busqueda.toLowerCase());
     return coincideGrupo && coincideBusqueda;
   });

@@ -215,19 +215,19 @@ export default function GestionCategorias() {
       <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <button onClick={() => router.back()} className="text-slate-500 hover:text-brand font-bold text-sm mb-2 transition-colors flex items-center gap-1 group">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Volver
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> {t('common.back')}
           </button>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Target className="text-brand" /> Grupos Deportivos
+            <Target className="text-brand" /> {t('categorias.title')}
           </h1>
           <p className="text-sm text-slate-500 mt-1">{t('categorias.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={cargarDatos} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-slate-50 transition-colors">
-            <RefreshCw className="w-4 h-4" /> Actualizar
+            <RefreshCw className="w-4 h-4" /> {t('common.refresh')}
           </button>
           <button onClick={() => { cerrarModal(); setMostrarModal(true); }} className="bg-brand hover:bg-brand/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 transition-colors">
-            <Plus className="w-4 h-4" /> Crear Grupo
+            <Plus className="w-4 h-4" /> {t('categorias.createGroup')}
           </button>
         </div>
       </div>
@@ -308,8 +308,8 @@ export default function GestionCategorias() {
                     <GraduationCap className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="text-slate-600 font-medium">
                       {grupo.edad_minima > 100 
-                        ? (grupo.edad_minima === grupo.edad_maxima ? `\${t('categorias.year')} \${grupo.edad_minima}` : `\${t('categorias.years')} \${grupo.edad_minima} - \${grupo.edad_maxima}`)
-                        : `\${grupo.edad_minima} - \${grupo.edad_maxima} \${t('categorias.yearsLower')}`}
+                        ? (grupo.edad_minima === grupo.edad_maxima ? `${t('categorias.year')} ${grupo.edad_minima}` : `${t('categorias.years')} ${grupo.edad_minima} - ${grupo.edad_maxima}`)
+                        : `${grupo.edad_minima} - ${grupo.edad_maxima} ${t('categorias.yearsLower')}`}
                     </span>
                   </div>
                   <div className="flex items-start gap-3 text-sm"><CalendarDays className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-600 font-medium leading-tight whitespace-pre-wrap">{grupo.horarios?.replace(/ \| /g, '\n') || t('categorias.noSchedule')}</span></div>

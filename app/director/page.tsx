@@ -342,8 +342,8 @@ export default function DashboardDirector() {
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-6 md:p-8 mb-6 shadow-xl flex justify-between items-center relative overflow-hidden border border-slate-700">
         <div className="absolute top-0 left-0 w-1.5 h-full bg-brand"></div>
         <div className="relative z-10">
-          <h1 className="text-xl md:text-2xl font-black text-white mb-1">¡Bienvenido a {brandName}!</h1>
-          <p className="text-sm text-slate-400">Panel de Control Multiclub {brandName}.</p>
+          <h1 className="text-xl md:text-2xl font-black text-white mb-1">{t('director.dashboard.welcomeTo')} {brandName}!</h1>
+          <p className="text-sm text-slate-400">{t('director.dashboard.multiclubControlPanel')} {brandName}.</p>
         </div>
         <div className="hidden md:block w-32 h-32 bg-brand/10 rounded-full absolute -right-10 -top-10 blur-3xl"></div>
       </div>
@@ -354,9 +354,9 @@ export default function DashboardDirector() {
             <Wallet className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">Pagos al día</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{t('director.dashboard.paymentsUpToDate')}</p>
             <p className="text-2xl font-black text-slate-800 dark:text-white">{stats.alDia} <span className="text-sm font-normal text-slate-400">/ {stats.totalMiembros}</span></p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{stats.porcentajeAlDia}% de alumnos vinculados</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{stats.porcentajeAlDia}% {t('director.dashboard.linkedStudents')}</p>
           </div>
         </div>
 
@@ -365,9 +365,9 @@ export default function DashboardDirector() {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">Grupos Activos</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{t('director.dashboard.activeGroups')}</p>
             <p className="text-2xl font-black text-slate-800 dark:text-white">{stats.totalGrupos}</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Categorías en entrenamiento</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('director.dashboard.trainingCategories')}</p>
           </div>
         </div>
 
@@ -376,20 +376,20 @@ export default function DashboardDirector() {
             <ClipboardList className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">Tasa de Asistencia</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{t('director.dashboard.attendanceRate')}</p>
             <p className="text-2xl font-black text-slate-800 dark:text-white">{stats.tasaAsistencia}%</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Promedio global del mes</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('director.dashboard.globalMonthlyAverage')}</p>
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand/40 transition-all cursor-pointer group" onClick={() => router.push(`${basePath}/director/convocatorias`)}>
-          <div className="w-10 h-10 rounded-xl bg-brand-muted text-brand flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">Convocatorias</p>
-            <p className="text-2xl font-black text-slate-800 dark:text-white">Ver</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestión de nóminas</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{t('director.dashboard.callups')}</p>
+            <p className="text-2xl font-black text-slate-800 dark:text-white">{t('director.dashboard.view')}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('director.dashboard.payrollManagement')}</p>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Bot, X, MessageSquare, Sparkles, Send, Loader2, ChevronRight, Settings, Palette, CreditCard, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface Message {
   id: string;
@@ -15,6 +16,7 @@ interface Message {
 }
 
 export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId?: string | null; role?: string }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -35,11 +37,11 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId?:
 
       if (role === 'Director' || role === 'SuperAdmin') {
         roleOptions = [
-          { label: '🎨 Configurar Colores del Club', action: 'colors' },
-          { label: '💳 Añadir Métodos de Pago', action: 'payments' },
-          { label: '🏆 Crear Categorías', action: 'categories' },
-          { label: '👥 Registrar Jugadores', action: 'players' },
-          { label: '📢 Enviar un Comunicado', action: 'announcements' },
+          { label: t('gibbi.optColors'), action: 'colors' },
+          { label: t('gibbi.optPayments'), action: 'payments' },
+          { label: t('gibbi.optCategories'), action: 'categories' },
+          { label: t('gibbi.optPlayers'), action: 'players' },
+          { label: t('gibbi.optAnnouncements'), action: 'announcements' },
         ];
       } else if (role === 'Entrenador') {
         roleOptions = [
@@ -57,18 +59,18 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId?:
         ];
       }
 
-      roleOptions.push({ label: '🤖 ¿Qué más puedes hacer?', action: 'help' });
+      roleOptions.push({ label: t('gibbi.optMoreHelp'), action: 'help' });
 
       setMessages([
         {
           id: 'welcome',
           type: 'bot',
-          text: `¡Hola! Soy Gibbi, tu asistente táctico. 🦁⚽\n\nEstoy aquí para ayudarte a sacar el máximo provecho de Gibbor Multiclub. ¿En qué te puedo ayudar hoy?`,
+          text: t('gibbi.welcomeText'),
           options: roleOptions
         }
       ]);
     }
-  }, [isOpen, role]);
+  }, [isOpen, role, t]);
 
   const handleOptionClick = (action: string) => {
     const userMsg: Message = { id: Date.now().toString(), type: 'user', text: '' };
@@ -346,7 +348,7 @@ export default function GibbiAssistant({ clubId, role = 'Director' }: { clubId?:
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Escribe tu consulta..."
+                placeholder={t('gibbi.placeholder')}
                 disabled={isLoading}
                 className="flex-1 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/50 text-slate-800 dark:text-white"
               />

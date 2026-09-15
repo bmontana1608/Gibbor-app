@@ -326,11 +326,11 @@ export default function DirectorioMiembros() {
               <input type="text" placeholder={t('director.members.searchPlaceholder')} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-brand text-sm transition-all" />
             </div>
             <select value={filtroGrupo} onChange={(e) => setFiltroGrupo(e.target.value)} className="w-full md:w-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand font-medium">
-              {gruposDisponibles.map(g => <option key={g} value={g}>{g}</option>)}
+              {gruposDisponibles.map(g => <option key={g} value={g}>{g === 'Todos' ? t('common.all') : g}</option>)}
             </select>
             <select value={filtroEdad} onChange={(e) => setFiltroEdad(e.target.value)} className="w-full md:w-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand font-medium">
               <option value="Todas">{t('director.members.allAges')}</option>
-              {edadesDisponibles.filter(e => e !== 'Todas').map(e => <option key={e} value={e}>{e} años</option>)}
+              {edadesDisponibles.filter(e => e !== 'Todas').map(e => <option key={e} value={e}>{e} {t('director.members.years') || 'años'}</option>)}
             </select>
           </div>
         </div>
@@ -397,19 +397,19 @@ export default function DirectorioMiembros() {
             <table className="w-full text-left border-collapse min-w-max">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
-                  <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none truncate">Miembro</th>
-                  <th className="p-4 md:px-6">Rol / Categoria</th>
-                  <th className="p-4 md:px-6 hidden md:table-cell">Edad</th>
-                  <th className="p-4 md:px-6 hidden md:table-cell">Contacto</th>
-                  <th className="p-4 md:px-6 text-center">Estado</th>
-                  <th className="p-4 md:px-6 text-right">Detalle</th>
+                  <th className="p-4 md:px-6 sticky left-0 bg-slate-50 dark:bg-slate-800 z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] max-w-[140px] md:max-w-none truncate">{t('director.members.member')}</th>
+                  <th className="p-4 md:px-6">{t('director.members.roleCategory')}</th>
+                  <th className="p-4 md:px-6 hidden md:table-cell">{t('director.members.age')}</th>
+                  <th className="p-4 md:px-6 hidden md:table-cell">{t('director.members.contact')}</th>
+                  <th className="p-4 md:px-6 text-center">{t('director.members.status')}</th>
+                  <th className="p-4 md:px-6 text-right">{t('director.members.detail')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-sm">
                 {cargando ? (
-                  <tr><td colSpan={5} className="p-20 text-center"><div className="text-brand border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">Cargando...</p></td></tr>
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="text-brand border-t-transparent rounded-full mx-auto mb-4"></div><p className="text-slate-400 font-bold">{t('common.loading')}</p></td></tr>
                 ) : jugadoresFiltrados.length === 0 ? (
-                  <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">No se encontraron miembros</p></td></tr>
+                  <tr><td colSpan={5} className="p-20 text-center"><div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="text-slate-300 w-8 h-8" /></div><p className="text-slate-400 font-bold">{t('director.members.noMembersFound')}</p></td></tr>
                 ) : (
                   jugadoresFiltrados.map((jugador) => (
                     <tr key={jugador.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
@@ -423,7 +423,7 @@ export default function DirectorioMiembros() {
                         </div>
                       </td>
                       <td className="p-4 md:px-6">
-                        <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-brand/10 dark:bg-brand/20 text-brand dark:border-brand/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol}</span>
+                        <span className={`text-[9px] md:text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${jugador.rol === 'Entrenador' ? 'bg-brand/10 dark:bg-brand/20 text-brand dark:border-brand/40' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>{jugador.rol === 'Futbolista' ? (t('roles.futbolista') || 'FUTBOLISTA') : jugador.rol === 'Entrenador' ? (t('roles.entrenador') || 'ENTRENADOR') : jugador.rol}</span>
                         <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate max-w-[80px] md:max-w-none">{jugador.grupos || 'Sin grupo'}</p>
                       </td>
                       <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-bold hidden md:table-cell">
@@ -431,7 +431,7 @@ export default function DirectorioMiembros() {
                       </td>
                       <td className="p-4 md:px-6 text-slate-600 dark:text-slate-300 font-medium hidden md:table-cell">{jugador.telefono || '---'}</td>
                       <td className="p-4 md:px-6 text-center">
-                        <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>{jugador.estado_miembro === 'Inactivo' ? 'Inact' : 'Activo'}</span>
+                        <span className={`px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${jugador.estado_miembro === 'Inactivo' ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-500/20'}`}>{jugador.estado_miembro === 'Inactivo' ? t('director.members.inactive') : t('director.members.active')}</span>
                       </td>
                       <td className="p-4 md:px-6 text-right">
                         <div className="flex justify-end gap-1 md:gap-2">

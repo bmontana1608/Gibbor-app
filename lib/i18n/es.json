@@ -4,7 +4,10 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "success": "Éxito",
-    "error": "Error"
+    "error": "Error",
+    "all": "Todos",
+    "back": "Volver",
+    "refresh": "Actualizar"
   },
   "roles": {
     "director": "Director",
@@ -65,7 +68,17 @@
       "activeAlerts": "alertas activas",
       "managePrompt": ". Gestiona rápidamente los pagos y la asistencia de tu academia.",
       "notified": "Notificado",
-      "poweredBy": "Powered by Club Management SaaS © 2026"
+      "poweredBy": "Powered by Club Management SaaS © 2026",
+      "welcomeTo": "¡Bienvenido a",
+      "multiclubControlPanel": "Panel de Control Multiclub",
+      "paymentsUpToDate": "Pagos al día",
+      "linkedStudents": "de alumnos vinculados",
+      "activeGroups": "Grupos Activos",
+      "trainingCategories": "Categorías en entrenamiento",
+      "attendanceRate": "Tasa de Asistencia",
+      "globalMonthlyAverage": "PROMEDIO GLOBAL DEL MES",
+      "payrollManagement": "GESTIÓN DE NÓMINAS",
+      "pendingPayment": "PAGO PENDIENTE"
     },
     "members": {
       "title": "Gestión de Miembros",
@@ -81,7 +94,17 @@
       "allAges": "Edad: Todas",
       "noBirthdays": "No hay cumpleaños este mes",
       "category": "Categoría",
-      "sendCongrats": "Enviar Felicitación"
+      "sendCongrats": "Enviar Felicitación",
+      "member": "MIEMBRO",
+      "roleCategory": "ROL / CATEGORÍA",
+      "age": "EDAD",
+      "contact": "CONTACTO",
+      "status": "ESTADO",
+      "detail": "DETALLE",
+      "allGroups": "Todos los grupos",
+      "active": "ACTIVO",
+      "inactive": "INACTIVO",
+      "noMembersFound": "No se encontraron miembros"
     }
   },
   "futbolista": {
@@ -437,7 +460,8 @@
     "absent": "Ausentes",
     "excused": "Excusa",
     "noName": "Sin Nombre",
-    "closeDetail": "Cerrar Detalle"
+    "closeDetail": "Cerrar Detalle",
+    "allGroups": "TODOS LOS GRUPOS"
   },
   "categorias": {
     "errorLoading": "Error al cargar categorías: ",
@@ -1108,7 +1132,15 @@
     "online": "Online",
     "closeAssistant": "Cerrar asistente",
     "usedQueries": "Consultas IA usadas:",
-    "writeQuery": "Escribe tu consulta..."
+    "writeQuery": "Escribe tu consulta...",
+    "welcomeText": "¡Hola! Soy Gibbi, tu asistente táctico. 🦁⚽\n\nEstoy aquí para ayudarte a sacar el máximo provecho de Gibbor Multiclub. ¿En qué te puedo ayudar hoy?",
+    "optColors": "🎨 Configurar Colores del Club",
+    "optPayments": "💳 Añadir Métodos de Pago",
+    "optCategories": "🏆 Crear Categorías",
+    "optPlayers": "👥 Registrar Jugadores",
+    "optAnnouncements": "📢 Enviar un Comunicado",
+    "optMoreHelp": "🤖 ¿Qué más puedes hacer?",
+    "placeholder": "Escribe tu consulta..."
   },
   "notifications": {
     "alertsCenter": "Centro de Alertas",
