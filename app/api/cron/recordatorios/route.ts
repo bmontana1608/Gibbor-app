@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { formatCurrency } from '@/lib/currency-utils';
+import { translate } from '@/lib/i18n';
 
 export async function GET(request: Request) {
   try {
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     // 1. Obtener clubes con webhook activo y sus configuraciones de días
     const { data: configsWA, error: waError } = await supabaseAdmin
       .from('configuracion_wa')
-      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, metodos_pago, link_pago, recordatorio_1, recordatorio_2, recordatorio_3, clubes(pais, moneda)')
+      .select('club_id, nombre_club, active_webhook, nequi, daviplata, bre_b, banco_nombre, banco_numero, metodos_pago, link_pago, recordatorio_1, recordatorio_2, recordatorio_3, clubes(pais, moneda, idioma)')
       .eq('active_webhook', true);
 
     if (waError || !configsWA || configsWA.length === 0) {
@@ -127,15 +128,33 @@ export async function GET(request: Request) {
 
       let mensaje = '';
       const paisClub = (configClub as any).clubes?.pais || 'CO';
+      const lang = (configClub as any).clubes?.idioma || 'es';
+
+      const monthNameTranslated = translate(`cron.months.${today.getMonth()}`, lang);
+      const discountText = descuentoAplica > 0 ? translate('cron.discountValid', lang) : '\n';
+      const defaultPayment = metodosPago || translate('cron.defaultPayment', lang);
+      const defaultPayment2 = metodosPago || translate('cron.defaultPayment2', lang);
+      const defaultPayment3 = metodosPago || translate('cron.defaultPayment3', lang);
+
+      const params = {
+        name: jugador.nombres,
+        clubName: nombreClub,
+        monthName: monthNameTranslated,
+        amount: formatCurrency(montoPagar, paisClub),
+        discountText,
+        paymentMethods: defaultPayment
+      };
 
       if (day === configClub.recordatorio_1) {
-        mensaje = `Hola ${jugador.nombres} 👋⚽,\n\nEsperamos que te encuentres muy bien.\n\nDesde *${nombreClub}* te recordamos que se acerca o finaliza tu periodo para el aporte de tu mensualidad de *${mesNombre}*.\n\n📄 Tu valor a pagar es de: *${formatCurrency(montoPagar, paisClub)}*.\n${descuentoAplica > 0 ? `(Incluye descuento por pronto pago válido hasta hoy).\n\n` : '\n'}Para facilitar tu proceso, puedes hacer el pago a través de:\n\n${metodosPago || 'Efectivo en nuestras instalaciones'}\n\nSi ya realizaste tu pago, te agradecemos enviarnos el comprobante por este medio. ¡Sigamos trabajando juntos por tus metas! 🏆`;
+        mensaje = translate('cron.recordatorio1', lang, params);
       } 
       else if (day === configClub.recordatorio_2) {
-        mensaje = `Hola ${jugador.nombres} 👋,\n\nUn cordial saludo de parte de *${nombreClub}*.\n\nNotamos que aún está pendiente el aporte de tu mensualidad correspondiente a *${mesNombre}*. Entendemos que a veces las fechas se nos pasan, por lo que queremos recordarte la importancia de mantenerte al día para garantizar el funcionamiento del club y la continuidad en tus entrenamientos.\n\n📄 Tu saldo pendiente es de: *${formatCurrency(montoPagar, paisClub)}*.\n\nPuedes regularizar tu estado a través de:\n\n${metodosPago || 'Nuestros canales habituales'}\n\nQuedamos atentos a recibir tu comprobante. ¡Gracias por tu compromiso institucional! ⚽`;
+        params.paymentMethods = defaultPayment2;
+        mensaje = translate('cron.recordatorio2', lang, params);
       }
       else if (day === configClub.recordatorio_3) {
-        mensaje = `Estimado(a) ${jugador.nombres},\n\nNos dirigimos a ti desde la administración de *${nombreClub}*.\n\nA la fecha, nuestro sistema refleja un saldo pendiente por tu mensualidad de *${mesNombre}* por valor de *${formatCurrency(montoPagar, paisClub)}*.\n\nEl cumplimiento oportuno de los aportes es fundamental para el sostenimiento del proyecto deportivo. Por normatividad interna, el no pago puede acarrear restricciones en la participación activa.\n\nTe solicitamos amablemente ponerte al día a la mayor brevedad posible utilizando nuestros canales:\n\n${metodosPago || 'Atención en sede'}\n\nPor favor envíanos el comprobante una vez realizado. Agradecemos tu atención a este importante mensaje.`;
+        params.paymentMethods = defaultPayment3;
+        mensaje = translate('cron.recordatorio3', lang, params);
       }
 
       if (mensaje) {

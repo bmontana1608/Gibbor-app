@@ -523,7 +523,7 @@ export default function DashboardFutbolista() {
 
         {activeTab === 'disciplina' && (
           <div className="bg-white rounded-[3rem] p-8 border border-slate-200 shadow-xl">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-8">Bitácora de <span style={{ color: brandColor }}>Disciplina</span></h2>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-8">{t('futbolista.dashboard.discipline').split(' ')[0]} <span style={{ color: brandColor }}>{t('futbolista.dashboard.discipline').split(' ').slice(1).join(' ')}</span></h2>
             {asistenciasLogs.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {asistenciasLogs.slice(0, 12).map((log, idx) => (
@@ -537,14 +537,14 @@ export default function DashboardFutbolista() {
                 ))}
               </div>
             ) : (
-              <div className="py-16 text-center text-slate-400 font-bold uppercase tracking-widest">Sin registros de asistencia</div>
+              <div className="py-16 text-center text-slate-400 font-bold uppercase tracking-widest">{t('futbolista.dashboard.noAttendance')}</div>
             )}
           </div>
         )}
 
         {activeTab === 'pagos' && (
           <div className="bg-white rounded-[3rem] p-8 border border-slate-200 shadow-xl">
-             <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-8">Gestión <span style={{ color: brandColor }}>Financiera</span></h2>
+             <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-8">{t('futbolista.dashboard.finances').split(' ')[0]} <span style={{ color: brandColor }}>{t('futbolista.dashboard.finances').split(' ').slice(1).join(' ')}</span></h2>
              {pagos.length > 0 ? (
                <div className="space-y-4">
                  {pagos.map((pago: any) => (
@@ -552,7 +552,7 @@ export default function DashboardFutbolista() {
                      <div className="flex items-center gap-4">
                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm" style={{ color: brandColor }}><DollarSign className="w-6 h-6" /></div>
                        <div>
-                          <p className="text-sm font-black text-slate-800">{pago.concepto || 'Mensualidad'}</p>
+                          <p className="text-sm font-black text-slate-800">{pago.concepto || t('futbolista.dashboard.monthlyPayment')}</p>
                           {(() => {
                             const normalized = normalizeDate(pago.fecha);
                             const dateObj = normalized ? new Date(normalized + 'T00:00:00') : null;
@@ -567,13 +567,13 @@ export default function DashboardFutbolista() {
                      </div>
                      <div className="text-right">
                         <p className="text-lg font-black text-slate-800">{formatCurrency(pago.monto || pago.total || 0, tenant?.pais || tenant?.moneda)}</p>
-                        <button onClick={() => handleVerRecibo(pago)} className="text-[10px] font-black uppercase text-emerald-600 mt-2 flex items-center gap-1"><FileText className="w-3 h-3" /> Ver Recibo</button>
+                        <button onClick={() => handleVerRecibo(pago)} className="text-[10px] font-black uppercase text-emerald-600 mt-2 flex items-center gap-1"><FileText className="w-3 h-3" /> {t('futbolista.dashboard.viewReceipt')}</button>
                      </div>
                    </div>
                  ))}
                </div>
              ) : (
-               <div className="py-20 text-center text-slate-400 font-bold uppercase tracking-widest">Sin reportes de pago recientes</div>
+               <div className="py-20 text-center text-slate-400 font-bold uppercase tracking-widest">{t('futbolista.dashboard.noPayments')}</div>
              )}
           </div>
         )}
