@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, Users as UsersIcon, AlertTriangle, Search, 
-  Shield, TrendingUp, DollarSign, Clock, CheckCircle, Edit3, Plus, Tag 
+  Shield, TrendingUp, DollarSign, Clock, CheckCircle, Edit3, Plus, Tag, Trash2 
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
 
