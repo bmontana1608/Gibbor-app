@@ -331,7 +331,9 @@ export default function UniformesModule() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
            <div className="text-brand">
                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
+                 </div>
                  <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
+              </div>
            </div>
         </div>
 

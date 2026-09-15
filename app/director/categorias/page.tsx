@@ -242,7 +242,7 @@ export default function GestionCategorias() {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder=t('categorias.searchPlaceholder') value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-brand" />
+          <input type="text" placeholder={t('categorias.searchPlaceholder')} value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-brand" />
         </div>
         <div className="md:w-48">
           <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:ring-brand cursor-pointer">
@@ -359,7 +359,7 @@ export default function GestionCategorias() {
               <form id="grupoForm" onSubmit={handleGuardarGrupo} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.groupName')}</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="text-brand outline-none text-sm" placeholder=t('categorias.groupNamePlaceholder') /></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.groupName')}</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="text-brand outline-none text-sm" placeholder={t('categorias.groupNamePlaceholder')} /></div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.sport')}</label>
                     <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer">
@@ -372,7 +372,7 @@ export default function GestionCategorias() {
                       <option value="Fútbol Playa">{t('categorias.beachSoccer')}</option>
                     </select>
                   </div>
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.description')}</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="text-brand outline-none text-sm" placeholder=t('categorias.descriptionPlaceholder')></textarea></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.description')}</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="text-brand outline-none text-sm" placeholder={t('categorias.descriptionPlaceholder')}></textarea></div>
                 </div>
 
                 <div className="pt-2">

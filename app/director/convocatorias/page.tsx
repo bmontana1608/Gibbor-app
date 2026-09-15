@@ -267,7 +267,7 @@ export default function ConvocatoriasDirector() {
                         <button
                           onClick={() => eliminarJugador(convocado.id, evento.id)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-red-500 bg-white hover:bg-red-50 rounded-lg shadow-sm border border-slate-200 hover:border-red-200 opacity-0 group-hover:opacity-100 transition-all"
-                          title=t('convocatorias.removeFromCall')
+                          title={t('convocatorias.removeFromCall')}
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -282,7 +282,7 @@ export default function ConvocatoriasDirector() {
                             onClick={() => notificarJugador(convocado.id, evento.id)}
                             disabled={notificandoJugador === convocado.id}
                             className={`p-2 rounded-lg shadow-sm border transition-all ${convocado.estado_notificacion === 'Enviada' ? 'text-slate-400 hover:text-indigo-500 bg-white border-slate-200' : 'text-white bg-indigo-500 hover:bg-indigo-600 border-indigo-600'}`}
-                            title=t('convocatorias.notifyManual')
+                            title={t('convocatorias.notifyManual')}
                           >
                             {notificandoJugador === convocado.id ? (
                               <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>

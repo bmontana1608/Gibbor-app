@@ -225,7 +225,7 @@ export default function ReporteAsistenciaDirector() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
-                placeholder=t('asistencia.searchPlaceholder') 
+                placeholder={t('asistencia.searchPlaceholder')} 
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:text-brand transition-all"
