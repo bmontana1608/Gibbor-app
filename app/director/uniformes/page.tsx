@@ -334,23 +334,23 @@ export default function UniformesModule() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-slate-800">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
-            <h3 className="text-3xl font-black text-slate-800 dark:text-white">${stats.totalVenta.toLocaleString('es-CO')}</h3>
+            <h3 className="text-3xl font-black text-slate-800 dark:text-white">{'$'}{stats.totalVenta.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
          </div>
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-rose-500">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Costo Proveedor</p>
-            <h3 className="text-3xl font-black text-rose-600">${stats.totalCosto.toLocaleString('es-CO')}</h3>
+            <h3 className="text-3xl font-black text-rose-600">{'$'}{stats.totalCosto.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-bold">Gastos de fabricación</p>
          </div>
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
             <TrendingUp className="absolute -right-4 -top-4 w-20 h-20 text-emerald-50 opacity-50" />
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ganancia Estimada</p>
-            <h3 className="text-3xl font-black text-emerald-600">${stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
+            <h3 className="text-3xl font-black text-emerald-600">{'$'}{stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-bold">Utilidad libre del club</p>
          </div>
          <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-xl relative">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cartera Pendiente</p>
-            <h3 className="text-3xl font-black text-white">${stats.porCobrar.toLocaleString('es-CO')}</h3>
+            <h3 className="text-3xl font-black text-white">{'$'}{stats.porCobrar.toLocaleString('es-CO')}</h3>
             <div className="flex items-center gap-2 mt-2">
                <div className="w-full bg-slate-800 rounded-full h-1.5">
                  <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
