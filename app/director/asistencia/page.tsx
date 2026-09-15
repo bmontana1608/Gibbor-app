@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function ReporteAsistenciaDirector() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
   const [asistencias, setAsistencias] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export default function ReporteAsistenciaDirector() {
 
       // 3. SEGURIDAD
       if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
-        toast.error("No tienes permiso para acceder a este club.");
+        toast.error(t('asistencia.noPermission'));
         if (perfil?.club_id) {
           const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
           if (c) router.push(`/${c.slug}/director`);
@@ -86,7 +88,7 @@ export default function ReporteAsistenciaDirector() {
       .order('created_at', { ascending: false });
 
     if (error) {
-      toast.error("Error al cargar asistencias: " + error.message);
+      toast.error(t('asistencia.errorLoading') + error.message);
     } else if (dataAsistencias) {
       setAsistencias(dataAsistencias);
       agruparPorSesion(dataAsistencias);
@@ -145,9 +147,9 @@ export default function ReporteAsistenciaDirector() {
           excusas: newJugadores.filter((j: any) => j.estado === 'Excusa').length,
         };
       });
-      toast.success('Estado actualizado a ' + nuevoEstado);
+      toast.success(t('asistencia.statusUpdatedTo') + nuevoEstado);
     } catch (err: any) {
-      toast.error('Error: ' + err.message);
+      toast.error(t('asistencia.error') + err.message);
     }
   };
 
@@ -181,7 +183,7 @@ export default function ReporteAsistenciaDirector() {
           <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
              <BarChart2 className="text-brand" /> Analítica de Asistencia
           </h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">Supervisión en tiempo real del quórum de la academia.</p>
+          <p className="text-slate-500 text-sm font-medium mt-1">{t('asistencia.subtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
             <button onClick={handleRefresh} className="text-brand transition-all shadow-sm">
@@ -196,24 +198,24 @@ export default function ReporteAsistenciaDirector() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
               <div className="bg-brand/5 rounded-full" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tasa de Asistencia</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('asistencia.attendanceRate')}</p>
               <h3 className="text-3xl font-black text-brand">{totales.tasa}%</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">PROMEDIO GLOBAL</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('asistencia.globalAverage')}</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Presentes</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('asistencia.totalPresent')}</p>
               <h3 className="text-3xl font-black text-emerald-500">{totales.presentes}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">JUGADORES EN CAMPO</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('asistencia.playersOnField')}</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ausencias Hoy</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('asistencia.absencesToday')}</p>
               <h3 className="text-3xl font-black text-rose-500">{totales.ausentes}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">ALERTAS DE FALTA</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('asistencia.absenceAlerts')}</p>
            </div>
            <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sesiones Registradas</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('asistencia.registeredSessions')}</p>
               <h3 className="text-3xl font-black text-slate-800 dark:text-white">{sesionesAgrupadas.length}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">ENTRENAMIENTOS TOTALES</p>
+              <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('asistencia.totalTrainings')}</p>
            </div>
         </div>
 
@@ -223,7 +225,7 @@ export default function ReporteAsistenciaDirector() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input 
                 type="text" 
-                placeholder="Buscar por grupo o entrenador..." 
+                placeholder=t('asistencia.searchPlaceholder') 
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-xs font-bold outline-none focus:ring-2 focus:text-brand transition-all"
@@ -250,12 +252,12 @@ export default function ReporteAsistenciaDirector() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase tracking-widest font-black text-slate-400">
-                  <th className="p-5 font-black">Fecha</th>
-                  <th className="p-5 font-black">Grupo</th>
-                  <th className="p-5 font-black">Entrenador</th>
-                  <th className="p-5 font-black text-center">Asistencia</th>
-                  <th className="p-5 font-black text-center">Tasa %</th>
-                  <th className="p-5 font-black text-center">Detalle</th>
+                  <th className="p-5 font-black">{t('asistencia.date')}</th>
+                  <th className="p-5 font-black">{t('asistencia.group')}</th>
+                  <th className="p-5 font-black">{t('asistencia.coach')}</th>
+                  <th className="p-5 font-black text-center">{t('asistencia.attendance')}</th>
+                  <th className="p-5 font-black text-center">{t('asistencia.rate')}</th>
+                  <th className="p-5 font-black text-center">{t('asistencia.detail')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -274,7 +276,7 @@ export default function ReporteAsistenciaDirector() {
                   <tr>
                     <td colSpan={6} className="p-20 text-center">
                       <BookOpen className="w-12 h-12 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
-                      <p className="text-slate-400 font-bold italic">No se encontraron sesiones registradas.</p>
+                      <p className="text-slate-400 font-bold italic">{t('asistencia.noSessionsFound')}</p>
                     </td>
                   </tr>
                 ) : (
@@ -323,7 +325,7 @@ export default function ReporteAsistenciaDirector() {
            <div className="bg-white dark:bg-slate-950 rounded-[3rem] w-full max-w-2xl max-h-[85vh] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-200 dark:border-slate-800 flex flex-col">
               <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
                  <div>
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">Detalle de Sesión</h3>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter leading-none">{t('asistencia.sessionDetail')}</h3>
                     <p className="text-brand text-[10px] font-black uppercase tracking-widest mt-2">{sesionSeleccionada.grupo} • {sesionSeleccionada.fecha}</p>
                  </div>
                  <button 
@@ -337,11 +339,11 @@ export default function ReporteAsistenciaDirector() {
               <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 custom-scrollbar">
                  <div className="grid grid-cols-2 gap-4 mb-6">
                     <div className="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-500/20 text-center">
-                       <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Presentes</p>
+                       <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">{t('asistencia.present')}</p>
                        <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400">{sesionSeleccionada.presentes}</p>
                     </div>
                     <div className="bg-rose-50 dark:bg-rose-500/10 p-4 rounded-2xl border border-rose-100 dark:border-rose-500/20 text-center">
-                       <p className="text-[10px] font-black text-rose-600 uppercase mb-1">Ausentes</p>
+                       <p className="text-[10px] font-black text-rose-600 uppercase mb-1">{t('asistencia.absent')}</p>
                        <p className="text-2xl font-black text-rose-700 dark:text-rose-400">{sesionSeleccionada.ausentes}</p>
                     </div>
                  </div>
@@ -359,7 +361,7 @@ export default function ReporteAsistenciaDirector() {
                             </div>
                             <div>
                                <p className="font-bold text-slate-800 dark:text-white text-sm">
-                                 {reg.perfiles?.nombres || 'Sin'} {reg.perfiles?.apellidos || 'Nombre'}
+                                 {reg.perfiles?.nombres || t('asistencia.noName').split(' ')[0]} {reg.perfiles?.apellidos || t('asistencia.noName').split(' ')[1]}
                                </p>
                                <p className="text-[9px] text-slate-400 font-bold uppercase">
                                  ID: {reg.perfiles?.id?.split('-')[0] || '---'}
@@ -374,9 +376,9 @@ export default function ReporteAsistenciaDirector() {
                             reg.estado === 'Ausente' ? 'bg-rose-500 text-white' : 
                             'bg-amber-500 text-white'
                          }`}>
-                            <option value="Presente" className="bg-white text-slate-800">Presente</option>
-                            <option value="Ausente" className="bg-white text-slate-800">Ausente</option>
-                            <option value="Excusa" className="bg-white text-slate-800">Excusa</option>
+                            <option value="Presente" className="bg-white text-slate-800">{t('asistencia.present')}</option>
+                            <option value="Ausente" className="bg-white text-slate-800">{t('asistencia.absent')}</option>
+                            <option value="Excusa" className="bg-white text-slate-800">{t('asistencia.excused')}</option>
                          </select>
                       </div>
                     ))}

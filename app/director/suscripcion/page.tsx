@@ -6,8 +6,10 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Star, Calendar, CheckCircle2, AlertTriangle, Users, Wallet, CreditCard, Loader2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function SuscripcionPage() {
+  const { t } = useTranslation();
   const { route, slug: tenantSlug } = useTenant();
   const searchParams = useSearchParams();
   const mpStatus = searchParams.get('mp_status');
@@ -95,9 +97,9 @@ export default function SuscripcionPage() {
   const estado = club.estado_suscripcion || 'Desconocido';
 
   const estadoConfig: Record<string, { color: string, icon: any, label: string }> = {
-    'Activa': { color: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: CheckCircle2, label: 'Suscripción Activa' },
-    'En Prueba': { color: 'text-amber-600 bg-amber-50 border-amber-200', icon: Star, label: 'Período de Prueba' },
-    'Vencida': { color: 'text-red-600 bg-red-50 border-red-200', icon: AlertTriangle, label: 'Suscripción Vencida' },
+    'Activa': { color: 'text-emerald-600 bg-emerald-50 border-emerald-200', icon: CheckCircle2, label: t('SUSCRIPCION.STATUS_ACTIVE') },
+    'En Prueba': { color: 'text-amber-600 bg-amber-50 border-amber-200', icon: Star, label: t('SUSCRIPCION.STATUS_TRIAL') },
+    'Vencida': { color: 'text-red-600 bg-red-50 border-red-200', icon: AlertTriangle, label: t('SUSCRIPCION.STATUS_EXPIRED') },
   };
 
   const currentEstado = estadoConfig[estado] || { color: 'text-slate-600 bg-slate-50 border-slate-200', icon: Star, label: estado };
@@ -110,10 +112,10 @@ export default function SuscripcionPage() {
         <div>
           <h1 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3">
             <Star className="text-amber-500 w-8 h-8" />
-            Mi Suscripción
+            {t('SUSCRIPCION.TITLE')}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
-            Gestiona el plan de tu academia, revisa tus fechas de corte y realiza tus pagos.
+            {t('SUSCRIPCION.SUBTITLE')}
           </p>
         </div>
 
@@ -124,7 +126,7 @@ export default function SuscripcionPage() {
               <Star className="w-40 h-40" />
             </div>
             
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-black uppercase tracking-wider mb-8 ${currentEstado.color}`}>
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-black uppercase tracking-wider mb-8 \${currentEstado.color}`}>
               <EstadoIcon className="w-4 h-4" />
               {currentEstado.label}
             </div>
@@ -132,49 +134,49 @@ export default function SuscripcionPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 relative z-10">
               <div>
                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" /> Próximo Corte
+                  <Calendar className="w-4 h-4" /> {t('SUSCRIPCION.NEXT_CUT_OFF')}
                 </p>
                 <p className="text-2xl font-black text-slate-800 dark:text-white">
-                  {proximoCorte ? proximoCorte.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' }) : 'No definido'}
+                  {proximoCorte ? proximoCorte.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' }) : t('SUSCRIPCION.NOT_DEFINED')}
                 </p>
                 {estado === 'En Prueba' && (
-                  <p className="text-sm text-amber-600 mt-1 font-bold">Activa tu cuenta antes de esta fecha para no perder el acceso.</p>
+                  <p className="text-sm text-amber-600 mt-1 font-bold">{t('SUSCRIPCION.TRIAL_WARNING')}</p>
                 )}
               </div>
 
               <div>
                 <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                  <Wallet className="w-4 h-4" /> Plan Actual
+                  <Wallet className="w-4 h-4" /> {t('SUSCRIPCION.CURRENT_PLAN')}
                 </p>
                 <p className="text-2xl font-black text-brand">
-                  {club.plan || 'Plan Base'}
+                  {club.plan || t('SUSCRIPCION.BASE_PLAN')}
                 </p>
-                <p className="text-sm text-slate-500 mt-1 font-medium">Tarifa: ${tarifa.toLocaleString('es-CO')} COP / Jugador</p>
+                <p className="text-sm text-slate-500 mt-1 font-medium">{t('SUSCRIPCION.FEE')}: ${tarifa.toLocaleString('es-CO')} COP / {t('REPORTES.TABLE_PLAYER')}</p>
               </div>
             </div>
           </div>
 
           {/* Tarjeta de Resumen de Pago */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 border border-slate-700 shadow-xl shadow-slate-900/50 text-white flex flex-col">
-            <h3 className="font-black text-xl mb-6">Resumen del Mes</h3>
+            <h3 className="font-black text-xl mb-6">{t('SUSCRIPCION.SUMMARY_TITLE')}</h3>
             
             <div className="flex-1 space-y-4">
               <div className="flex justify-between items-center border-b border-slate-700 pb-4">
                 <div className="flex items-center gap-2 text-slate-300">
                   <Users className="w-4 h-4" />
-                  <span>Jugadores Activos</span>
+                  <span>{t('SUSCRIPCION.ACTIVE_PLAYERS')}</span>
                 </div>
                 <span className="font-black text-xl">{jugadoresActivos}</span>
               </div>
               
               <div className="flex justify-between items-center pb-4">
-                <span className="text-slate-300">Tarifa Unitaria</span>
+                <span className="text-slate-300">{t('SUSCRIPCION.UNIT_FEE')}</span>
                 <span className="font-bold">${tarifa.toLocaleString('es-CO')}</span>
               </div>
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-700/50">
-              <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">Total a Pagar</p>
+              <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">{t('SUSCRIPCION.TOTAL_TO_PAY')}</p>
               <p className="text-4xl font-black text-emerald-400 mb-6">
                 ${total.toLocaleString('es-CO')} <span className="text-lg font-bold text-slate-500">COP</span>
               </p>
@@ -189,12 +191,12 @@ export default function SuscripcionPage() {
                 ) : (
                   <>
                     <CreditCard className="w-6 h-6" />
-                    Pagar Suscripción
+                    {t('SUSCRIPCION.PAY_BTN')}
                   </>
                 )}
               </button>
               {total === 0 && (
-                <p className="text-xs text-center text-slate-400 mt-3">No tienes jugadores activos para facturar.</p>
+                <p className="text-xs text-center text-slate-400 mt-3">{t('SUSCRIPCION.NO_PLAYERS_BILLING')}</p>
               )}
             </div>
           </div>
@@ -202,19 +204,19 @@ export default function SuscripcionPage() {
 
         {/* Políticas o Información Adicional */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800">
-          <h4 className="font-black text-slate-800 dark:text-white mb-4">¿Cómo funciona la facturación?</h4>
+          <h4 className="font-black text-slate-800 dark:text-white mb-4">{t('SUSCRIPCION.POLICIES_TITLE')}</h4>
           <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
             <li className="flex gap-2">
               <span className="text-brand font-bold">•</span>
-              Solo pagas por los <strong>jugadores activos</strong>. Si un jugador se da de baja, no entra en el corte del mes.
+              <span>{t('SUSCRIPCION.POLICY_1_1')}<strong>{t('SUSCRIPCION.POLICY_1_2')}</strong>{t('SUSCRIPCION.POLICY_1_3')}</span>
             </li>
             <li className="flex gap-2">
               <span className="text-brand font-bold">•</span>
-              Los perfiles de Directores y Entrenadores son <strong>totalmente gratis</strong> y no se suman al cálculo.
+              <span>{t('SUSCRIPCION.POLICY_2_1')}<strong>{t('SUSCRIPCION.POLICY_2_2')}</strong>{t('SUSCRIPCION.POLICY_2_3')}</span>
             </li>
             <li className="flex gap-2">
               <span className="text-brand font-bold">•</span>
-              Al realizar tu pago, tu fecha de corte se aplazará un mes completo automáticamente.
+              {t('SUSCRIPCION.POLICY_3')}
             </li>
           </ul>
         </div>

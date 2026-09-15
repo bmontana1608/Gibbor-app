@@ -11,8 +11,10 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function FormulariosDirectorPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
 
@@ -35,7 +37,7 @@ export default function FormulariosDirectorPage() {
           await cargarFormularios(tenantData.id);
         }
       } catch (err: any) {
-        toast.error('Error al iniciar: ' + err.message);
+        toast.error(`${t('formularios.error_starting')} ${err.message}`);
       } finally {
         setCargando(false);
       }
@@ -47,10 +49,10 @@ export default function FormulariosDirectorPage() {
     try {
       const res = await fetch(`/api/formularios?clubId=${clubId}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al cargar formularios');
+      if (!res.ok) throw new Error(data.error || t('formularios.error_loading_forms'));
       setFormularios(data.formularios || []);
     } catch (err: any) {
-      toast.error('Error al cargar formularios: ' + err.message);
+      toast.error(`${t('formularios.error_loading_forms')} ${err.message}`);
     }
   };
 
@@ -58,11 +60,11 @@ export default function FormulariosDirectorPage() {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const url = `${origin}/f/${formId}`;
     navigator.clipboard.writeText(url);
-    toast.success('¡Enlace público copiado al portapapeles!');
+    toast.success(t('formularios.public_link_copied'));
   };
 
   const eliminarFormulario = async (id: string, titulo: string) => {
-    if (!confirm(`¿Estás seguro de eliminar el formulario "${titulo}"? También se eliminarán todas sus respuestas asociadas.`)) {
+    if (!confirm(`${t('formularios.sure_delete_form')} "${titulo}"? ${t('formularios.also_delete_associated_responses')}`)) {
       return;
     }
 
@@ -70,12 +72,12 @@ export default function FormulariosDirectorPage() {
     try {
       const res = await fetch(`/api/formularios/${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+      if (!res.ok) throw new Error(data.error || t('formularios.error_deleting'));
 
       setFormularios(prev => prev.filter(f => f.id !== id));
-      toast.success('Formulario eliminado con éxito.');
+      toast.success(t('formularios.form_deleted_success'));
     } catch (err: any) {
-      toast.error(err.message || 'Error al eliminar formulario');
+      toast.error(err.message || t('formularios.error_deleting_form'));
     } finally {
       setEliminandoId(null);
     }
@@ -91,10 +93,10 @@ export default function FormulariosDirectorPage() {
       <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
-            <FileSpreadsheet className="text-brand w-8 h-8" /> Formularios Dinámicos
+            <FileSpreadsheet className="text-brand w-8 h-8" /> {t('formularios.dynamic_forms')}
           </h1>
           <p className="text-slate-500 text-sm font-medium mt-1">
-            Crea formularios con Inteligencia Artificial (Gemini) o de forma manual, recolecta respuestas y expórtalas a Excel.
+            {t('formularios.create_forms_ai_description')}
           </p>
         </div>
 
@@ -104,7 +106,7 @@ export default function FormulariosDirectorPage() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-brand text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-brand/20 hover:scale-105 active:scale-95 transition-all"
           >
             <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-            Nuevo Formulario con IA
+            {t('formularios.new_form_ai')}
           </Link>
         </div>
       </div>
@@ -113,21 +115,21 @@ export default function FormulariosDirectorPage() {
         {/* KPIS */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Formularios Creados</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('formularios.created_forms')}</p>
             <h3 className="text-3xl font-black text-slate-900 dark:text-white">{formularios.length}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">EN ESTA ACADEMIA</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('formularios.in_this_academy')}</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Formularios Activos</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('formularios.active_forms')}</p>
             <h3 className="text-3xl font-black text-emerald-500">{activos}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">RECIBIENDO RESPUESTAS</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('formularios.receiving_responses')}</p>
           </div>
 
           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Respuestas Totales</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('formularios.total_responses')}</p>
             <h3 className="text-3xl font-black text-indigo-500">{totalRespuestas}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">RECOLECTADAS HASTA HOY</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('formularios.collected_until_today')}</p>
           </div>
         </div>
 
@@ -135,7 +137,7 @@ export default function FormulariosDirectorPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-sm">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
             <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-              Tus Formularios
+              {t('formularios.your_forms')}
             </h2>
             <button
               onClick={() => tenant?.id && cargarFormularios(tenant.id)}
@@ -150,12 +152,12 @@ export default function FormulariosDirectorPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase tracking-widest font-black text-slate-400">
-                  <th className="p-5 font-black">Título y Descripción</th>
-                  <th className="p-5 font-black text-center">Estado</th>
-                  <th className="p-5 font-black text-center">Campos</th>
-                  <th className="p-5 font-black text-center">Respuestas</th>
-                  <th className="p-5 font-black text-center">Fecha</th>
-                  <th className="p-5 font-black text-right">Acciones</th>
+                  <th className="p-5 font-black">{t('formularios.title_and_description')}</th>
+                  <th className="p-5 font-black text-center">{t('formularios.status')}</th>
+                  <th className="p-5 font-black text-center">{t('formularios.fields')}</th>
+                  <th className="p-5 font-black text-center">{t('formularios.responses')}</th>
+                  <th className="p-5 font-black text-center">{t('formularios.date')}</th>
+                  <th className="p-5 font-black text-right">{t('formularios.actions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
@@ -174,15 +176,15 @@ export default function FormulariosDirectorPage() {
                   <tr>
                     <td colSpan={6} className="p-16 text-center">
                       <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
-                      <p className="text-slate-500 font-bold text-sm">No has creado formularios aún.</p>
+                      <p className="text-slate-500 font-bold text-sm">{t('formularios.no_forms_created_yet')}</p>
                       <p className="text-slate-400 text-xs mt-1 mb-4">
-                        Usa la inteligencia artificial para describir tu idea y tener tu formulario listo en 5 segundos.
+                        {t('formularios.use_ai_describe_idea')}
                       </p>
                       <Link
                         href={route('/director/formularios/nuevo')}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md hover:scale-105 transition-all"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-amber-300" /> Crear Primer Formulario
+                        <Sparkles className="w-3.5 h-3.5 text-amber-300" /> {t('formularios.create_first_form')}
                       </Link>
                     </td>
                   </tr>
@@ -207,7 +209,7 @@ export default function FormulariosDirectorPage() {
                             ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
                             : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                         }`}>
-                          {form.estado === 'activo' ? '● Activo' : form.estado === 'cerrado' ? '✕ Cerrado' : '○ Borrador'}
+                          {form.estado === 'activo' ? t('formularios.active_status') : form.estado === 'cerrado' ? t('formularios.closed_status') : t('formularios.draft_status')}
                         </span>
                       </td>
                       <td className="p-5 text-center font-bold text-xs text-slate-600 dark:text-slate-300">
@@ -229,7 +231,7 @@ export default function FormulariosDirectorPage() {
                           <button
                             onClick={() => copiarEnlace(form.id)}
                             className="p-2 rounded-xl text-slate-400 hover:text-brand hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                            title="Copiar Enlace Público"
+                            title={t('formularios.copy_public_link')}
                           >
                             <Copy className="w-4 h-4" />
                           </button>
@@ -239,7 +241,7 @@ export default function FormulariosDirectorPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 rounded-xl text-slate-400 hover:text-indigo-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                            title="Ver formulario público"
+                            title={t('formularios.view_public_form')}
                           >
                             <Eye className="w-4 h-4" />
                           </a>
@@ -247,7 +249,7 @@ export default function FormulariosDirectorPage() {
                           <Link
                             href={route(`/director/formularios/${form.id}?tab=respuestas`)}
                             className="p-2 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                            title="Ver Respuestas y Descargar Excel"
+                            title={t('formularios.view_responses_download_excel')}
                           >
                             <FileSpreadsheet className="w-4 h-4" />
                           </Link>
@@ -256,7 +258,7 @@ export default function FormulariosDirectorPage() {
                             onClick={() => eliminarFormulario(form.id, form.titulo)}
                             disabled={eliminandoId === form.id}
                             className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
-                            title="Eliminar"
+                            title={t('formularios.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

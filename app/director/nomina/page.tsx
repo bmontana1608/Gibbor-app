@@ -8,6 +8,7 @@ import { Briefcase, CreditCard, X, Printer, UserCircle, CheckCircle, Smartphone,
 import SignatureCanvas from 'react-signature-canvas';
 import { Settings } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 // === LÓGICA CONVERSOR DE NÚMEROS A LETRAS ===
 function Unidades(num: number) { switch (num) { case 1: return "UN"; case 2: return "DOS"; case 3: return "TRES"; case 4: return "CUATRO"; case 5: return "CINCO"; case 6: return "SEIS"; case 7: return "SIETE"; case 8: return "OCHO"; case 9: return "NUEVE"; } return ""; }
@@ -47,6 +48,7 @@ function numeroEnLetras(num: number) {
 // ============================================
 
 export default function ModuloNomina() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [entrenadores, setEntrenadores] = useState<any[]>([]);
   const [historialPagos, setHistorialPagos] = useState<any[]>([]);
@@ -94,7 +96,7 @@ export default function ModuloNomina() {
 
       // 3. SEGURIDAD
       if (perfil?.rol !== 'SuperAdmin' && perfil?.club_id !== tenantData.id) {
-        toast.error("No tienes permiso para acceder a este club.");
+        toast.error(t('nomina.noTienesPermiso'));
         if (perfil?.club_id) {
           const { data: c } = await supabase.from('clubes').select('slug').eq('id', perfil.club_id).single();
           if (c) router.push(`/${c.slug}/director`);
@@ -136,7 +138,7 @@ export default function ModuloNomina() {
       .order('nombres', { ascending: true });
 
     if (entError) {
-      toast.error(`Error al cargar entrenadores: ${entError.message}`);
+      toast.error(`${t('nomina.errorCargarEntrenadores')}${entError.message}`);
     } else if (entData) {
       setEntrenadores(entData);
     }
@@ -179,7 +181,7 @@ export default function ModuloNomina() {
     localStorage.setItem(`club_ciudad_${tenant.id}`, ciudadEmision);
     localStorage.setItem(`club_telefono_${tenant.id}`, telefonoEmision);
     setIsConfigOpen(false);
-    toast.success("Configuración actualizada para recibos");
+    toast.success(t('nomina.configActualizada'));
   };
 
   const cerrarModalPago = () => {
@@ -192,14 +194,14 @@ export default function ModuloNomina() {
   };
 
   const eliminarPago = async (id: string, consecutivo: number) => {
-    if (window.confirm(`¿Estás seguro de que deseas eliminar permanentemente el comprobante N-${String(consecutivo).padStart(4, '0')}?`)) {
-      const toastId = toast.loading("Eliminando registro...");
+    if (window.confirm(`${t('nomina.eliminarComprobante')}${String(consecutivo).padStart(4, '0')}?`)) {
+      const toastId = toast.loading(t('nomina.eliminandoRegistro'));
       const { error } = await supabase.from('pagos_nomina').delete().eq('id', id);
       
       if (error) {
-        toast.error(`Error al eliminar: ${error.message}`, { id: toastId });
+        toast.error(`${t('nomina.errorEliminar')}${error.message}`, { id: toastId });
       } else {
-        toast.success("Comprobante eliminado de la base de datos", { id: toastId });
+        toast.success(t('nomina.comprobanteEliminado'), { id: toastId });
         cargarDatos(tenant.id);
       }
     }
@@ -207,21 +209,21 @@ export default function ModuloNomina() {
 
   const procesarPago = async () => {
     if (!monto || parseFloat(monto) <= 0) {
-      return toast.error("Ingresa un monto válido");
+      return toast.error(t('nomina.ingresaMontoValido'));
     }
     if (!documento) {
-      return toast.error("Ingresa el C.C / NIT");
+      return toast.error(t('nomina.ingresaCC'));
     }
     if (!concepto) {
-      return toast.error("Ingresa el concepto del pago");
+      return toast.error(t('nomina.ingresaConcepto'));
     }
     if (sigCanvas.current && sigCanvas.current.isEmpty()) {
-      return toast.error("La firma del entrenador es obligatoria para el recibo");
+      return toast.error(t('nomina.firmaObligatoria'));
     }
 
     const firmaBase64 = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
 
-    const toastId = toast.loading("Registrando pago y generando recibo...");
+    const toastId = toast.loading(t('nomina.registrandoPago'));
 
     const payload: any = {
       monto: parseFloat(monto),
@@ -231,7 +233,7 @@ export default function ModuloNomina() {
     };
 
     if (entrenadorPago.id === 'externo') {
-      if (!entrenadorPago.nombres) return toast.error("Ingresa el nombre del proveedor o beneficiario externo");
+      if (!entrenadorPago.nombres) return toast.error(t('nomina.ingresaNombreProveedor'));
       payload.beneficiario_externo = entrenadorPago.nombres;
     } else {
       payload.entrenador_id = entrenadorPago.id;
@@ -247,9 +249,9 @@ export default function ModuloNomina() {
       .single();
 
     if (error) {
-      toast.error(`Error al registrar el pago: ${error.message} - ¿Creaste la tabla pagos_nomina en Supabase?`, { id: toastId });
+      toast.error(`${t('nomina.errorRegistrarPago')}${error.message}${t('nomina.crearTabla')}`, { id: toastId });
     } else {
-      toast.success("Pago registrado exitosamente", { id: toastId });
+      toast.success(t('nomina.pagoExitoso'), { id: toastId });
       cerrarModalPago();
       cargarDatos(tenant.id); // Recargar historial
       setReciboGenerado({
@@ -270,7 +272,7 @@ export default function ModuloNomina() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando nómina...</p>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('nomina.cargandoNomina')}</p>
       </div>
     );
   }
@@ -290,14 +292,14 @@ export default function ModuloNomina() {
                 <img src={tenant?.config?.logo || "/logo.png"} alt="Club Logo" className="w-20 h-20 object-contain rounded-full border border-slate-200 shadow-sm" />
                 <div>
                   <h1 className="text-2xl font-black text-brand tracking-tight uppercase">{tenant?.config?.nombre || "TU CLUB"}</h1>
-                  <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Escuela de Formación Deportiva</p>
-                  <p className="text-xs text-slate-600 mt-1 font-medium">Cel: {telefonoEmision}</p>
+                  <p className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">{t('nomina.escuelaDeportiva')}</p>
+                  <p className="text-xs text-slate-600 mt-1 font-medium">{t('nomina.cel')} {telefonoEmision}</p>
                 </div>
               </div>
               
               <div className="flex flex-col items-end">
                 <div className="bg-brand/10 border border-brand/40 px-6 py-2 rounded-t-lg text-center min-w-[220px]">
-                  <p className="text-xs font-bold text-brand uppercase tracking-widest">Comprobante de Egreso</p>
+                  <p className="text-xs font-bold text-brand uppercase tracking-widest">{t('nomina.comprobanteEgreso')}</p>
                 </div>
                 <div className="border border-t-0 border-brand/40 bg-white px-6 py-2 rounded-b-lg text-center w-full flex items-center justify-center gap-2 shadow-sm">
                   <span className="text-slate-500 font-bold">Nº</span>
@@ -309,13 +311,13 @@ export default function ModuloNomina() {
             {/* Info de pago (Monto y Fecha) */}
             <div className="flex justify-between items-end border-b-2 border-slate-800 pb-3 mb-5">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-slate-700">Ciudad y Fecha:</span>
+                <span className="text-sm font-bold text-slate-700">{t('nomina.ciudadFecha')}</span>
                 <span className="text-sm text-slate-800 border-b border-dashed border-slate-400 px-6 pb-1 uppercase">
                   {ciudadEmision}, {new Date(reciboGenerado.fecha).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric'})}
                 </span>
               </div>
               <div className="flex items-center bg-slate-100 border border-slate-300 rounded px-6 py-2 shadow-inner">
-                <span className="text-sm font-bold text-slate-700 mr-3">POR LA SUMA DE:</span>
+                <span className="text-sm font-bold text-slate-700 mr-3">{t('nomina.porLaSuma')}</span>
                 <span className="text-xl font-black text-slate-900">
                   ${parseFloat(reciboGenerado.monto).toLocaleString('es-CO')}
                 </span>
@@ -325,25 +327,25 @@ export default function ModuloNomina() {
             {/* Cuerpo del Recibo */}
             <div className="space-y-4 flex-1 mt-2">
               <div className="flex items-end gap-2">
-                <span className="text-sm font-bold text-slate-700 whitespace-nowrap">Pagado a:</span>
+                <span className="text-sm font-bold text-slate-700 whitespace-nowrap">{t('nomina.pagadoA')}</span>
                 <span className="text-sm text-slate-800 border-b border-slate-400 flex-1 px-4 pb-1 uppercase font-black tracking-wide">
                   {reciboGenerado.beneficiario_externo || (reciboGenerado.entrenador ? `${reciboGenerado.entrenador.nombres} ${reciboGenerado.entrenador.apellidos}` : '')}
                 </span>
-                <span className="text-sm font-bold text-slate-700 whitespace-nowrap ml-2">C.C / NIT:</span>
+                <span className="text-sm font-bold text-slate-700 whitespace-nowrap ml-2">{t('nomina.ccNit')}</span>
                 <span className="text-sm text-slate-800 border-b border-slate-400 w-48 px-2 pb-1 font-bold tracking-widest text-center">
                   {reciboGenerado.documento_beneficiario}
                 </span>
               </div>
               
               <div className="flex items-end gap-2">
-                <span className="text-sm font-bold text-slate-700 whitespace-nowrap">La suma de (Letras):</span>
+                <span className="text-sm font-bold text-slate-700 whitespace-nowrap">{t('nomina.sumaLetras')}</span>
                 <span className="text-sm text-slate-800 border-b border-slate-400 flex-1 px-4 pb-1 bg-slate-50 font-bold uppercase tracking-wide">
                   {numeroEnLetras(parseFloat(reciboGenerado.monto))}
                 </span>
               </div>
 
               <div className="flex gap-2 h-16 pt-2">
-                <span className="text-sm font-bold text-slate-700 whitespace-nowrap pt-1">Por concepto de:</span>
+                <span className="text-sm font-bold text-slate-700 whitespace-nowrap pt-1">{t('nomina.porConcepto')}</span>
                 <div className="text-sm text-slate-800 border border-slate-300 bg-slate-50/50 rounded p-3 flex-1 items-start leading-relaxed">
                   {reciboGenerado.concepto}
                 </div>
@@ -357,7 +359,7 @@ export default function ModuloNomina() {
                   <img src={firmaDirector} alt="Firma Director" className="absolute bottom-6 left-1/2 -translate-x-1/2 max-h-24 mix-blend-multiply opacity-90" />
                 )}
                 <div className="border-t-2 border-slate-400 pt-2 text-center mx-4 relative z-10 bg-white/40">
-                  <p className="text-xs font-bold text-slate-700 uppercase">Aprobado por / Dirección</p>
+                  <p className="text-xs font-bold text-slate-700 uppercase">{t('nomina.aprobadoPor')}</p>
                 </div>
               </div>
 
@@ -366,7 +368,7 @@ export default function ModuloNomina() {
                   <img src={reciboGenerado.firma_base64} alt="Firma" className="absolute bottom-6 left-1/2 -translate-x-1/2 max-h-24 mix-blend-multiply opacity-90" />
                 )}
                 <div className="border-t-2 border-slate-400 pt-2 text-center mx-4 relative z-10 bg-white/40 ">
-                  <p className="text-xs font-bold text-slate-700 uppercase">Firma y C.C. Quien Recibe</p>
+                  <p className="text-xs font-bold text-slate-700 uppercase">{t('nomina.firmaQuienRecibe')}</p>
                 </div>
               </div>
             </div>
@@ -382,9 +384,9 @@ export default function ModuloNomina() {
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-              <Briefcase className="text-brand w-7 h-7" /> Nómina y Egresos
+              <Briefcase className="text-brand w-7 h-7" /> {t('nomina.nominaYEgresos')}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">Control de pagos a personal, proveedores y descarga de comprobantes.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('nomina.controlPagos')}</p>
           </div>
           <div className="flex items-center gap-3">
             <button 
@@ -402,7 +404,7 @@ export default function ModuloNomina() {
                  if (sigCanvas.current) sigCanvas.current.clear();
                }}
                className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-sm flex items-center gap-2">
-               <CreditCard className="w-4 h-4" /> Pago a Proveedor / Externo
+               <CreditCard className="w-4 h-4" /> {t('nomina.pagoProveedor')}
             </button>
           </div>
         </div>
@@ -416,8 +418,8 @@ export default function ModuloNomina() {
         ) : entrenadores.length === 0 ? (
           <div className="bg-white p-10 rounded-2xl text-center border border-slate-200">
             <UserCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-slate-700">No hay Entrenadores</h2>
-            <p className="text-slate-500 mt-2">Crea perfiles con el rol "Entrenador" para gestionar su nómina.</p>
+            <h2 className="text-xl font-bold text-slate-700">{t('nomina.noHayEntrenadores')}</h2>
+            <p className="text-slate-500 mt-2">{t('nomina.creaPerfiles')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -431,7 +433,7 @@ export default function ModuloNomina() {
                     <h3 className="font-bold text-slate-800 text-lg leading-tight">{entrenador.nombres} {entrenador.apellidos}</h3>
                     <p className="text-sm text-slate-500">{entrenador.email_contacto}</p>
                     <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider rounded-md mt-2">
-                      Rol: Entrenador
+                      Rol: {t('nomina.entrenador')}
                     </span>
                   </div>
                 </div>
@@ -440,7 +442,7 @@ export default function ModuloNomina() {
                   onClick={() => abrirModalPago(entrenador)}
                   className="w-full bg-brand/10 hover:bg-brand/10 border border-brand/40 text-brand font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
                 >
-                  <CreditCard className="w-5 h-5" /> Registrar Pago
+                  <CreditCard className="w-5 h-5" /> {t('nomina.registrarPago')}
                 </button>
               </div>
             ))}
@@ -451,27 +453,27 @@ export default function ModuloNomina() {
         <div className="mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-10">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Historial de Comprobantes Emitidos</h2>
-              <p className="text-sm text-slate-500 mt-1">Registros pasados y reimpresiones de comprobantes de nómina.</p>
+              <h2 className="text-xl font-bold text-slate-800">{t('nomina.historialComprobantes')}</h2>
+              <p className="text-sm text-slate-500 mt-1">{t('nomina.registrosPasados')}</p>
             </div>
           </div>
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse whitespace-nowrap">
                <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 font-bold uppercase tracking-wider">
-                    <th className="p-4 md:px-6">Comprobante Nº</th>
-                    <th className="p-4 md:px-6">Fecha</th>
-                    <th className="p-4 md:px-6">Entrenador</th>
-                    <th className="p-4 md:px-6">Concepto</th>
-                    <th className="p-4 md:px-6 text-right">Monto Acordado</th>
-                    <th className="p-4 md:px-6 text-right">Acción</th>
+                    <th className="p-4 md:px-6">{t('nomina.comprobanteNum')}</th>
+                    <th className="p-4 md:px-6">{t('nomina.fecha')}</th>
+                    <th className="p-4 md:px-6">{t('nomina.entrenador')}</th>
+                    <th className="p-4 md:px-6">{t('nomina.concepto')}</th>
+                    <th className="p-4 md:px-6 text-right">{t('nomina.montoAcordado')}</th>
+                    <th className="p-4 md:px-6 text-right">{t('nomina.accion')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                   {cargando ? (
-                    <tr><td colSpan={6} className="p-8 text-center text-slate-400">Cargando historial...</td></tr>
+                    <tr><td colSpan={6} className="p-8 text-center text-slate-400">{t('nomina.cargandoHistorial')}</td></tr>
                   ) : historialPagos.length === 0 ? (
-                    <tr><td colSpan={6} className="p-8 text-center text-slate-400 font-medium">No hay egresos o comprobantes registrados aún.</td></tr>
+                    <tr><td colSpan={6} className="p-8 text-center text-slate-400 font-medium">{t('nomina.noHayEgresos')}</td></tr>
                   ) : historialPagos.map((pago) => (
                     <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 md:px-6 font-black text-slate-800 tracking-wider">N-{String(pago.consecutivo).padStart(4, '0')}</td>
@@ -488,9 +490,9 @@ export default function ModuloNomina() {
                       <td className="p-4 md:px-6 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setReciboGenerado(pago)} className="bg-white border border-slate-300 text-slate-600 hover:text-brand hover:border-brand/40 hover:bg-brand/10 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2">
-                            <Printer className="w-3.5 h-3.5" /> Ver / Imprimir
+                            <Printer className="w-3.5 h-3.5" /> {t('nomina.verImprimir')}
                           </button>
-                          <button onClick={() => eliminarPago(pago.id, pago.consecutivo)} className="bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2 py-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center p-1.5" title="Eliminar registro permanentemente">
+                          <button onClick={() => eliminarPago(pago.id, pago.consecutivo)} className="bg-white border border-red-200 text-red-500 hover:bg-red-500 hover:text-white px-2 py-1.5 rounded-lg transition-all shadow-sm flex items-center justify-center p-1.5" title={t('nomina.eliminarRegistroPerma')}>
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -511,7 +513,7 @@ export default function ModuloNomina() {
             
             <div className="text-brand px-6 py-5 flex justify-between items-center relative overflow-hidden">
               <div className="text-brand w-24 h-24 rounded-full opacity-50 blur-xl"></div>
-              <h2 className="text-white text-xl font-bold flex items-center gap-2 relative z-10"><Briefcase className="w-6 h-6" /> Liquidar Pago</h2>
+              <h2 className="text-white text-xl font-bold flex items-center gap-2 relative z-10"><Briefcase className="w-6 h-6" /> {t('nomina.liquidarPago')}</h2>
               <button onClick={cerrarModalPago} className="bg-brand/10 hover:text-white transition-colors p-1 relative z-10"><X className="w-6 h-6" /></button>
             </div>
 
@@ -519,12 +521,12 @@ export default function ModuloNomina() {
               
               {entrenadorPago.id === 'externo' ? (
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">Nombre del Proveedor / Beneficiario Externo</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.nombreProveedor')}</label>
                   <input 
                     type="text" 
                     value={entrenadorPago.nombres} 
                     onChange={(e) => setEntrenadorPago({ ...entrenadorPago, nombres: e.target.value })} 
-                    placeholder="Ej: Confecciones El Campeón SAS"
+                    placeholder={t('nomina.ejConfecciones')}
                     className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-bold text-lg text-slate-800 bg-amber-50"
                   />
                 </div>
@@ -532,21 +534,21 @@ export default function ModuloNomina() {
                 <div className="bg-brand/10 border bg-brand/10 p-4 rounded-xl flex items-center gap-4">
                   <UserCircle className="text-brand" />
                   <div>
-                    <p className="text-xs text-brand font-bold uppercase tracking-wider mb-1">Entrenador</p>
+                    <p className="text-xs text-brand font-bold uppercase tracking-wider mb-1">{t('nomina.entrenador')}</p>
                     <p className="font-black text-slate-800 text-lg uppercase leading-none">{entrenadorPago.nombres} {entrenadorPago.apellidos}</p>
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Monto a liquidar ($ COP)</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.montoLiquidar')}</label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold">$</span>
                   <input 
                     type="number" 
                     value={monto} 
                     onChange={(e) => setMonto(e.target.value)} 
-                    placeholder="Ej: 500000"
+                    placeholder={t('nomina.ej500000')}
                     className="w-full pl-8 pr-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:text-brand font-bold text-lg text-slate-800"
                   />
                 </div>
@@ -556,31 +558,31 @@ export default function ModuloNomina() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">C.C / NIT del Beneficiario</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.ccNitBeneficiario')}</label>
                 <input 
                   type="text" 
                   value={documento} 
                   onChange={(e) => setDocumento(e.target.value)} 
-                  placeholder="Ej: 1.000.000.000-0"
+                  placeholder={t('nomina.ejCedula')}
                   className="text-brand font-medium text-slate-700"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Concepto del pago</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.conceptoPago')}</label>
                 <input 
                   type="text" 
                   value={concepto} 
                   onChange={(e) => setConcepto(e.target.value)} 
-                  placeholder="Mes de Abril / Transporte / Viáticos"
+                  placeholder={t('nomina.mesAbril')}
                   className="text-brand font-medium text-slate-700"
                 />
               </div>
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-bold text-slate-700">Firma del Entrenador</label>
-                  <button onClick={limpiarFirma} className="text-xs text-red-500 font-bold hover:underline">Limpiar firma</button>
+                  <label className="block text-sm font-bold text-slate-700">{t('nomina.firmaEntrenador')}</label>
+                  <button onClick={limpiarFirma} className="text-xs text-red-500 font-bold hover:underline">{t('nomina.limpiarFirma')}</button>
                 </div>
                 <div className="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 relative">
                   <SignatureCanvas 
@@ -588,7 +590,7 @@ export default function ModuloNomina() {
                     canvasProps={{ className: 'w-full h-40 cursor-crosshair' }}
                   />
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
-                    <p className="text-slate-400 font-medium">Firmar Aquí</p>
+                    <p className="text-slate-400 font-medium">{t('nomina.firmarAqui')}</p>
                   </div>
                 </div>
               </div>
@@ -600,13 +602,13 @@ export default function ModuloNomina() {
                 onClick={cerrarModalPago}
                 className="flex-1 bg-white border border-slate-300 text-slate-700 font-bold py-3.5 rounded-xl hover:bg-slate-100 transition-colors"
               >
-                Cancelar
+                {t('nomina.cancelar')}
               </button>
               <button 
                 onClick={procesarPago}
                 className="flex-1 bg-brand text-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-2"
               >
-                <CheckCircle className="w-5 h-5" /> Guardar y Generar PDF
+                <CheckCircle className="w-5 h-5" /> {t('nomina.guardarPDF')}
               </button>
             </div>
             
@@ -621,15 +623,15 @@ export default function ModuloNomina() {
             <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-emerald-500" />
             </div>
-            <h3 className="text-2xl font-black text-slate-800 mb-2">¡Pago Exitoso!</h3>
-            <p className="text-slate-500 mb-8">El comprobante se generó correctamente para <strong>{reciboGenerado.beneficiario_externo || (reciboGenerado.entrenador ? reciboGenerado.entrenador.nombres : 'el proveedor')}</strong>.</p>
+            <h3 className="text-2xl font-black text-slate-800 mb-2">{t('nomina.pagoExitosoModal')}</h3>
+            <p className="text-slate-500 mb-8">{t('nomina.comprobanteGenero')}<strong>{reciboGenerado.beneficiario_externo || (reciboGenerado.entrenador ? reciboGenerado.entrenador.nombres : t('nomina.elProveedor'))}</strong>.</p>
             
             <div className="flex flex-col gap-3">
               <button onClick={imprimirRecibo} className="w-full bg-brand text-white font-bold py-3.5 rounded-xl hover:text-brand shadow-md shadow-brand/15 transition-all flex items-center justify-center gap-2">
-                <Printer className="w-5 h-5" /> Imprimir Comprobante
+                <Printer className="w-5 h-5" /> {t('nomina.imprimirComprobante')}
               </button>
               <button onClick={() => setReciboGenerado(null)} className="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors">
-                Cerrar
+                {t('nomina.cerrar')}
               </button>
             </div>
           </div>
@@ -640,25 +642,25 @@ export default function ModuloNomina() {
       {isConfigOpen && (
         <div className="fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden flex flex-col p-6">
-            <h3 className="text-xl font-black text-slate-800 mb-1 flex items-center gap-2"><Settings className="w-5 h-5" /> Configurar Emitidos</h3>
-            <p className="text-sm text-slate-500 mb-6">Ajusta tu firma de aprobación, ciudad y número base de contacto.</p>
+            <h3 className="text-xl font-black text-slate-800 mb-1 flex items-center gap-2"><Settings className="w-5 h-5" /> {t('nomina.configurarEmitidos')}</h3>
+            <p className="text-sm text-slate-500 mb-6">{t('nomina.ajustaFirma')}</p>
             
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Ciudad de Emisión</label>
-                <input type="text" value={ciudadEmision} onChange={(e) => setCiudadEmision(e.target.value)} placeholder="Ej: Valledupar" className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none font-medium" />
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.ciudadEmision')}</label>
+                <input type="text" value={ciudadEmision} onChange={(e) => setCiudadEmision(e.target.value)} placeholder={t('nomina.ejValledupar')} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none font-medium" />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-bold text-slate-700 mb-2">Celular / Teléfono</label>
-                <input type="text" value={telefonoEmision} onChange={(e) => setTelefonoEmision(e.target.value)} placeholder="Ej: 300 000 0000" className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none font-medium" />
+                <label className="block text-sm font-bold text-slate-700 mb-2">{t('nomina.celularTelefono')}</label>
+                <input type="text" value={telefonoEmision} onChange={(e) => setTelefonoEmision(e.target.value)} placeholder={t('nomina.ejTelefono')} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none font-medium" />
               </div>
             </div>
 
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-bold text-slate-700">Tu Firma Digital (Aprobador)</label>
+                <label className="block text-sm font-bold text-slate-700">{t('nomina.tuFirmaDigital')}</label>
                 {firmaDirector && (
-                  <button onClick={() => setFirmaDirector(null)} className="text-xs text-red-500 font-bold hover:underline">Eliminar Imagen</button>
+                  <button onClick={() => setFirmaDirector(null)} className="text-xs text-red-500 font-bold hover:underline">{t('nomina.eliminarImagen')}</button>
                 )}
               </div>
               
@@ -680,8 +682,8 @@ export default function ModuloNomina() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
                   />
                   <div className="text-center">
-                    <p className="text-slate-600 font-bold mb-1">Cargar Archivo PNG/JPG</p>
-                    <p className="text-xs text-slate-400">Toca aquí para seleccionar tu firma</p>
+                    <p className="text-slate-600 font-bold mb-1">{t('nomina.cargarArchivo')}</p>
+                    <p className="text-xs text-slate-400">{t('nomina.tocaAqui')}</p>
                   </div>
                 </div>
               ) : (
@@ -692,7 +694,7 @@ export default function ModuloNomina() {
             </div>
             
             <button onClick={guardarConfiguracion} className="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl hover:bg-slate-900 shadow-sm transition-all flex justify-center gap-2">
-              Guardar Configuración
+              {t('nomina.guardarConfiguracion')}
             </button>
           </div>
         </div>

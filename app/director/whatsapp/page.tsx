@@ -8,8 +8,10 @@ import {
   Send, User, Clock, CheckCheck, Bot, FileText, Wifi, ChevronLeft
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function HistorialChats() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [mensajes, setMensajes] = useState<any[]>([]);
   const [conversaciones, setConversaciones] = useState<any[]>([]);
@@ -58,7 +60,7 @@ export default function HistorialChats() {
         setTenant(tenantData);
 
         if (!tenantData?.id) {
-          throw new Error("No se pudo identificar el club");
+          throw new Error(t('whatsapp.could_not_identify_club'));
         }
 
         // 2. Cargar perfiles FILTRADOS por club_id
@@ -166,11 +168,11 @@ export default function HistorialChats() {
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-[#111b21]">WhatsApp en Vivo</p>
+              <p className="text-sm font-bold text-[#111b21]">{t('whatsapp.whatsapp_live')}</p>
               <div className="flex items-center gap-1">
                 <div className={`w-1.5 h-1.5 rounded-full ${enVivo ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                 <p className="text-[9px] text-[#667781] font-bold uppercase tracking-widest">
-                  {enVivo ? 'Nuevo mensaje' : 'En vivo'}
+                  {enVivo ? t('whatsapp.new_message') : t('whatsapp.live')}
                 </p>
               </div>
             </div>
@@ -186,7 +188,7 @@ export default function HistorialChats() {
               type="text"
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              placeholder="Buscar contacto..."
+              placeholder={t('whatsapp.search_contact')}
               className="bg-transparent text-sm outline-none w-full text-slate-700 placeholder:text-slate-400"
             />
           </div>
@@ -196,11 +198,11 @@ export default function HistorialChats() {
         <div className="hidden sm:flex px-4 py-2 border-b border-slate-50 gap-4">
           <div className="text-center">
             <p className="text-xs font-black text-slate-800">{conversaciones.length}</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-wider">Contactos</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-wider">{t('whatsapp.contacts')}</p>
           </div>
           <div className="text-center">
             <p className="text-xs font-black text-slate-800">{mensajes.length}</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-wider">Mensajes</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-wider">{t('whatsapp.messages')}</p>
           </div>
         </div>
 
@@ -221,7 +223,7 @@ export default function HistorialChats() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                 <MessageSquare className="w-10 h-10 text-slate-200" />
               </div>
-              <p className="text-sm font-bold text-slate-400">Sin mensajes</p>
+              <p className="text-sm font-bold text-slate-400">{t('whatsapp.no_messages')}</p>
             </div>
           ) : (
             convsFiltradas.map(conv => (
@@ -277,12 +279,12 @@ export default function HistorialChats() {
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-[#111b21] leading-none">{chatInfo.nombre}</h4>
                 <p className="text-[10px] text-[#667781] mt-0.5 truncate">
-                  {chatInfo.grupo || `+${chatInfo.numero}`} · {chatActual.length} mensaje{chatActual.length !== 1 ? 's' : ''}
+                  {chatInfo.grupo || `+${chatInfo.numero}`} · {chatActual.length} {t('whatsapp.messages_count')}
                 </p>
               </div>
               <div className="hidden sm:flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Historial</span>
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">{t('whatsapp.history')}</span>
               </div>
             </div>
 
@@ -290,7 +292,7 @@ export default function HistorialChats() {
             <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-2 z-10 relative flex flex-col custom-scrollbar">
               {chatActual.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <p className="text-sm text-slate-400 italic font-medium">Buscando mensajes...</p>
+                  <p className="text-sm text-slate-400 italic font-medium">{t('whatsapp.searching_messages')}</p>
                 </div>
               ) : (
                 <>
@@ -331,7 +333,7 @@ export default function HistorialChats() {
             {/* Footer */}
             <div className="bg-[#f0f2f5] py-3 px-4 flex items-center gap-3 z-10 relative border-t border-[#d1d7db]">
               <div className="flex-1 bg-white rounded-full px-4 py-2 text-[10px] md:text-xs text-slate-400 border border-slate-200 italic shadow-sm">
-                Solo lectura. Para enviar mensajes usa el Dashboard.
+                {t('whatsapp.read_only_send_from_dashboard')}
               </div>
               <div className="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center shadow-lg opacity-40">
                 <Send className="w-5 h-5 text-white" />
@@ -343,9 +345,9 @@ export default function HistorialChats() {
             <div className="w-48 h-48 md:w-64 md:h-64 bg-white/30 rounded-full flex items-center justify-center mb-10 shadow-inner border border-white/50 animate-in fade-in duration-700">
               <Bot className="w-20 h-20 md:w-28 md:h-28 text-[#54656f] opacity-30" />
             </div>
-            <h2 className="text-xl md:text-2xl font-light text-[#54656f] mb-3">Historial de Mensajes</h2>
+            <h2 className="text-xl md:text-2xl font-light text-[#54656f] mb-3">{t('whatsapp.message_history')}</h2>
             <p className="max-w-sm text-xs md:text-sm text-[#667781] leading-relaxed">
-              Selecciona un contacto para auditar las notificaciones enviadas automáticamente por el sistema.
+              {t('whatsapp.select_contact_to_audit')}
             </p>
           </div>
         )}

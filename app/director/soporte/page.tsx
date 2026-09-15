@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { LifeBuoy, Loader2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, ChevronLeft, Plus, HelpCircle, CreditCard } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function SoporteDirectorPage() {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [clubId, setClubId] = useState<string>('');
   
@@ -30,10 +32,10 @@ export default function SoporteDirectorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categorias = [
-    { id: 'Duda Técnica', icon: <HelpCircle className="w-5 h-5 text-blue-500" /> },
-    { id: 'Reportar un Error', icon: <AlertCircle className="w-5 h-5 text-red-500" /> },
-    { id: 'Sugerencia de Mejora', icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
-    { id: 'Facturación / Pagos', icon: <CreditCard className="w-5 h-5 text-amber-500" /> },
+    { id: 'Duda Técnica', label: t('SOPORTE.CAT_TECH'), icon: <HelpCircle className="w-5 h-5 text-blue-500" /> },
+    { id: 'Reportar un Error', label: t('SOPORTE.CAT_BUG'), icon: <AlertCircle className="w-5 h-5 text-red-500" /> },
+    { id: 'Sugerencia de Mejora', label: t('SOPORTE.CAT_SUGGESTION'), icon: <MessageSquare className="w-5 h-5 text-emerald-500" /> },
+    { id: 'Facturación / Pagos', label: t('SOPORTE.CAT_BILLING'), icon: <CreditCard className="w-5 h-5 text-amber-500" /> },
   ];
 
   useEffect(() => {
@@ -190,16 +192,16 @@ export default function SoporteDirectorPage() {
         <div>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
             <LifeBuoy className="w-8 h-8 text-brand" />
-            Centro de Soporte
+            {t('SOPORTE.TITLE')}
           </h1>
-          <p className="text-slate-500 font-medium mt-1">Obtén ayuda, reporta errores o chatea con nuestro equipo técnico.</p>
+          <p className="text-slate-500 font-medium mt-1">{t('SOPORTE.SUBTITLE')}</p>
         </div>
         {vista === 'lista' && (
             <button 
                 onClick={() => setVista('crear')}
                 className="bg-brand hover:bg-brand/90 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-brand/20 transition-all"
             >
-                <Plus className="w-5 h-5" /> Nuevo Ticket
+                <Plus className="w-5 h-5" /> {t('SOPORTE.BTN_NEW_TICKET')}
             </button>
         )}
       </div>
@@ -208,19 +210,19 @@ export default function SoporteDirectorPage() {
       {vista === 'crear' && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
            <button onClick={() => setVista('lista')} className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
-              <ChevronLeft className="w-4 h-4" /> Volver a mis tickets
+              <ChevronLeft className="w-4 h-4" /> {t('SOPORTE.BTN_BACK')}
            </button>
            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
                <div className="bg-gradient-to-r from-brand to-purple-600 px-6 py-5">
-                   <h3 className="text-white font-black text-lg tracking-tight leading-none">Abrir nuevo ticket</h3>
-                   <p className="text-white/80 font-medium text-sm mt-1">Explícanos tu situación y te ayudaremos lo antes posible.</p>
+                   <h3 className="text-white font-black text-lg tracking-tight leading-none">{t('SOPORTE.CREATE_TITLE')}</h3>
+                   <p className="text-white/80 font-medium text-sm mt-1">{t('SOPORTE.CREATE_SUBTITLE')}</p>
                </div>
                <form onSubmit={handleCrearTicket} className="p-6 md:p-8 space-y-6">
                  <div>
-                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Asunto del ticket</label>
+                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('SOPORTE.LBL_SUBJECT')}</label>
                    <input
                      type="text"
-                     placeholder="Ej. Problema al cobrar mensualidad"
+                     placeholder={t('SOPORTE.PH_SUBJECT')}
                      value={asunto}
                      onChange={(e) => setAsunto(e.target.value)}
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold outline-none focus:border-brand"
@@ -228,22 +230,22 @@ export default function SoporteDirectorPage() {
                  </div>
 
                  <div>
-                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Categoría</label>
+                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('SOPORTE.LBL_CATEGORY')}</label>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                      {categorias.map((cat) => (
                        <button
                          key={cat.id}
                          type="button"
                          onClick={() => setCategoria(cat.id)}
-                         className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all ${
+                         className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all \${
                            categoria === cat.id 
                              ? 'border-brand bg-brand/5 ring-1 ring-brand shadow-sm' 
                              : 'border-slate-200 hover:border-slate-300 bg-white'
                          }`}
                        >
                          {cat.icon}
-                         <span className={`text-sm font-bold ${categoria === cat.id ? 'text-brand' : 'text-slate-600'}`}>
-                           {cat.id}
+                         <span className={`text-sm font-bold \${categoria === cat.id ? 'text-brand' : 'text-slate-600'}`}>
+                           {cat.label}
                          </span>
                        </button>
                      ))}
@@ -251,10 +253,10 @@ export default function SoporteDirectorPage() {
                  </div>
 
                  <div>
-                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Descripción Detallada</label>
+                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('SOPORTE.LBL_DESC')}</label>
                    <textarea
                      rows={5}
-                     placeholder="Explícanos tu problema o duda con la mayor cantidad de detalles posible..."
+                     placeholder={t('SOPORTE.PH_DESC')}
                      value={mensajeInicial}
                      onChange={(e) => setMensajeInicial(e.target.value)}
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-brand resize-none"
@@ -267,7 +269,7 @@ export default function SoporteDirectorPage() {
                      disabled={isSubmitting || !asunto.trim() || !categoria || !mensajeInicial.trim()}
                      className="px-6 py-3 bg-brand hover:bg-brand/90 text-white text-sm font-bold rounded-xl shadow-lg shadow-brand/30 disabled:opacity-50 disabled:shadow-none flex items-center gap-2 transition-all w-full md:w-auto justify-center"
                    >
-                     {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> Enviando...</> : <><Send className="w-5 h-5" /> Enviar Ticket</>}
+                     {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> {t('SOPORTE.BTN_SENDING')}</> : <><Send className="w-5 h-5" /> {t('SOPORTE.BTN_SEND')}</>}
                    </button>
                  </div>
                </form>
@@ -292,7 +294,7 @@ export default function SoporteDirectorPage() {
                 <span className="text-[10px] font-black px-2 py-0.5 bg-brand/10 text-brand rounded uppercase">
                   {selectedTicket.categoria}
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider \${
                     selectedTicket.estado === 'Abierto' ? 'bg-red-100 text-red-600' :
                     selectedTicket.estado === 'En Progreso' ? 'bg-amber-100 text-amber-600' :
                     'bg-emerald-100 text-emerald-600'
@@ -312,7 +314,7 @@ export default function SoporteDirectorPage() {
             <div className="flex flex-col items-end max-w-full">
                <div className="p-4 bg-brand text-white rounded-2xl rounded-tr-sm shadow-sm text-sm whitespace-pre-wrap max-w-[85%]">
                   <span className="block text-[10px] font-bold text-white/70 uppercase tracking-widest mb-2 border-b border-white/20 pb-2">
-                    Tu Mensaje Original • {new Date(selectedTicket.creado_en).toLocaleString()}
+                    {t('SOPORTE.CHAT_ORIGINAL_MSG')}{new Date(selectedTicket.creado_en).toLocaleString()}
                   </span>
                   {selectedTicket.mensaje}
                </div>
@@ -322,8 +324,8 @@ export default function SoporteDirectorPage() {
                <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 text-gray-400 animate-spin" /></div>
             ) : (
                mensajes.map((msg, idx) => (
-                  <div key={msg.id || idx} className={`flex flex-col ${!msg.es_staff ? 'items-end' : 'items-start'} max-w-full`}>
-                     <div className={`p-4 rounded-2xl max-w-[85%] text-sm whitespace-pre-wrap shadow-sm ${
+                  <div key={msg.id || idx} className={`flex flex-col \${!msg.es_staff ? 'items-end' : 'items-start'} max-w-full`}>
+                     <div className={`p-4 rounded-2xl max-w-[85%] text-sm whitespace-pre-wrap shadow-sm \${
                         !msg.es_staff 
                           ? 'bg-brand text-white rounded-tr-sm' 
                           : 'bg-white border border-gray-200 text-slate-700 rounded-tl-sm'
@@ -331,7 +333,7 @@ export default function SoporteDirectorPage() {
                         {msg.mensaje}
                      </div>
                      <span className="text-[10px] text-gray-400 font-medium mt-1 px-1">
-                       {!msg.es_staff ? 'Tú' : 'Soporte Técnico'} • {new Date(msg.creado_en).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                       {!msg.es_staff ? t('SOPORTE.CHAT_YOU') : t('SOPORTE.CHAT_SUPPORT')} • {new Date(msg.creado_en).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                      </span>
                   </div>
                ))
@@ -344,7 +346,7 @@ export default function SoporteDirectorPage() {
             {selectedTicket.estado === 'Resuelto' ? (
                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center text-sm text-emerald-600 font-bold flex items-center justify-center gap-2">
                   <CheckCircle className="w-5 h-5" />
-                  Este ticket ha sido resuelto por soporte.
+                  {t('SOPORTE.CHAT_RESOLVED')}
                </div>
             ) : (
                <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
@@ -352,7 +354,7 @@ export default function SoporteDirectorPage() {
                    rows={2}
                    value={nuevoMensaje}
                    onChange={(e) => setNuevoMensaje(e.target.value)}
-                   placeholder="Escribe una respuesta para soporte técnico..."
+                   placeholder={t('SOPORTE.PH_CHAT')}
                    disabled={sending}
                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-brand outline-none resize-none"
                  />
@@ -375,13 +377,13 @@ export default function SoporteDirectorPage() {
           {tickets.length === 0 ? (
             <div className="p-16 text-center flex flex-col items-center">
               <LifeBuoy className="w-16 h-16 text-slate-200 mb-4" />
-              <h3 className="text-xl text-slate-800 font-black mb-2">No tienes tickets abiertos</h3>
-              <p className="text-slate-500 font-medium mb-6">Si tienes alguna duda o problema, estamos aquí para ayudarte.</p>
+              <h3 className="text-xl text-slate-800 font-black mb-2">{t('SOPORTE.NO_TICKETS_TITLE')}</h3>
+              <p className="text-slate-500 font-medium mb-6">{t('SOPORTE.NO_TICKETS_DESC')}</p>
               <button 
                   onClick={() => setVista('crear')}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all"
               >
-                  <Plus className="w-5 h-5" /> Crear mi primer ticket
+                  <Plus className="w-5 h-5" /> {t('SOPORTE.BTN_FIRST_TICKET')}
               </button>
             </div>
           ) : (
@@ -397,7 +399,7 @@ export default function SoporteDirectorPage() {
                       <span className="text-[10px] font-black px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md uppercase tracking-wide">
                         {ticket.categoria}
                       </span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider \${
                           ticket.estado === 'Abierto' ? 'bg-red-100 text-red-600' :
                           ticket.estado === 'En Progreso' ? 'bg-amber-100 text-amber-600' :
                           'bg-emerald-100 text-emerald-600'
@@ -412,10 +414,10 @@ export default function SoporteDirectorPage() {
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      Hace {Math.floor((Date.now() - new Date(ticket.creado_en).getTime()) / (1000 * 60 * 60 * 24))} días
+                      {t('SOPORTE.TICKET_AGO')} {Math.floor((Date.now() - new Date(ticket.creado_en).getTime()) / (1000 * 60 * 60 * 24))} {t('SOPORTE.TICKET_DAYS')}
                     </span>
                     <div className="text-sm font-bold text-brand flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
-                      Ver Chat <ChevronLeft className="w-4 h-4 rotate-180" />
+                      {t('SOPORTE.BTN_VIEW_CHAT')} <ChevronLeft className="w-4 h-4 rotate-180" />
                     </div>
                   </div>
                 </div>

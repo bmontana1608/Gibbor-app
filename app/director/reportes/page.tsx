@@ -14,8 +14,10 @@ import {
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
 import * as XLSX from 'xlsx';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function ModuloReportes() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [cargando, setCargando] = useState(true);
   const [tenant, setTenant] = useState<any>(null);
@@ -313,9 +315,9 @@ export default function ModuloReportes() {
           <div>
             <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
               <TrendingUp className="w-8 h-8 text-emerald-500" />
-              Reportes Financieros
+              {t('REPORTES.TITLE')}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">Visión general del estado económico y flujo de caja del club.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('REPORTES.SUBTITLE')}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
@@ -346,14 +348,14 @@ export default function ModuloReportes() {
             <button 
               onClick={exportarExcel} 
               className="bg-slate-900 hover:bg-slate-800 text-white p-2.5 rounded-lg transition-colors shadow-sm"
-              title="Exportar Reporte a Excel"
+              title={t('REPORTES.EXPORT_BTN_TITLE')}
             >
               <Download className="w-4 h-4" />
             </button>
             <button 
               onClick={actualizarDatos} 
               className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 p-2.5 rounded-lg transition-colors"
-              title="Actualizar Datos"
+              title={t('REPORTES.UPDATE_BTN_TITLE')}
             >
               <RefreshCw className={`w-4 h-4 \${cargando ? 'animate-spin text-brand' : ''}`} />
             </button>
@@ -370,7 +372,7 @@ export default function ModuloReportes() {
                 <ArrowUpRight className="w-5 h-5 text-emerald-600" />
               </div>
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Ingresos del Mes</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('REPORTES.INCOME_MONTH')}</p>
             <h3 className="text-2xl font-black text-slate-800 mt-1">{formatearDinero(totalIngresosMes)}</h3>
           </div>
 
@@ -382,7 +384,7 @@ export default function ModuloReportes() {
                 <ArrowDownRight className="w-5 h-5 text-rose-600" />
               </div>
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Egresos del Mes</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('REPORTES.EXPENSE_MONTH')}</p>
             <h3 className="text-2xl font-black text-slate-800 mt-1">{formatearDinero(totalEgresosMes)}</h3>
           </div>
 
@@ -394,7 +396,7 @@ export default function ModuloReportes() {
                 <Wallet className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Flujo de Caja</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('REPORTES.CASH_FLOW')}</p>
             <h3 className={`text-2xl font-black mt-1 \${flujoCaja >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
               {flujoCaja > 0 ? '+' : ''}{formatearDinero(flujoCaja)}
             </h3>
@@ -408,7 +410,7 @@ export default function ModuloReportes() {
                 <AlertCircle className="w-5 h-5 text-amber-600" />
               </div>
             </div>
-            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Cartera por Cobrar</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('REPORTES.OUTSTANDING_DEBT')}</p>
             <h3 className="text-2xl font-black text-amber-600 mt-1">{formatearDinero(deudaPendiente)}</h3>
           </div>
         </div>
@@ -418,7 +420,7 @@ export default function ModuloReportes() {
           
           {/* Gráfico Barras Flujo Anual */}
           <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-6">Flujo de Caja Anual ({anioSeleccionado})</h3>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-6">{t('REPORTES.ANNUAL_CASH_FLOW')} ({anioSeleccionado})</h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={flujoAnual} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -443,7 +445,7 @@ export default function ModuloReportes() {
             
             {/* Pie: Ingresos por Concepto */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Ingresos por Concepto</h3>
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('REPORTES.INCOME_BY_CONCEPT')}</h3>
               {dataPieIngresos.length > 0 ? (
                 <div className="h-[140px] w-full flex items-center justify-center relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -455,18 +457,18 @@ export default function ModuloReportes() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                    <span className="text-[10px] font-bold text-slate-400">Total</span>
+                    <span className="text-[10px] font-bold text-slate-400">{t('REPORTES.TOTAL')}</span>
                     <span className="text-sm font-black text-slate-800">${(totalIngresosMes / 1000).toFixed(0)}k</span>
                   </div>
                 </div>
               ) : (
-                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">Sin ingresos registrados</div>
+                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">{t('REPORTES.NO_INCOME')}</div>
               )}
             </div>
 
             {/* Pie: Egresos por Categoría */}
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Egresos por Categoría</h3>
+              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">{t('REPORTES.EXPENSE_BY_CATEGORY')}</h3>
               {dataPieEgresos.length > 0 ? (
                 <div className="h-[140px] w-full flex items-center justify-center relative">
                   <ResponsiveContainer width="100%" height="100%">
@@ -478,12 +480,12 @@ export default function ModuloReportes() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
-                    <span className="text-[10px] font-bold text-slate-400">Total</span>
+                    <span className="text-[10px] font-bold text-slate-400">{t('REPORTES.TOTAL')}</span>
                     <span className="text-sm font-black text-slate-800">${(totalEgresosMes / 1000).toFixed(0)}k</span>
                   </div>
                 </div>
               ) : (
-                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">Sin egresos registrados</div>
+                <div className="h-[140px] flex items-center justify-center text-xs text-slate-400 font-bold">{t('REPORTES.NO_EXPENSE')}</div>
               )}
             </div>
 
@@ -498,19 +500,19 @@ export default function ModuloReportes() {
               onClick={() => setPestañaTabla('Ingresos')}
               className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Ingresos' ? 'border-b-2 border-emerald-500 text-emerald-600 bg-emerald-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
-              Historial de Ingresos
+              {t('REPORTES.TAB_INCOME')}
             </button>
             <button 
               onClick={() => setPestañaTabla('Egresos')}
               className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Egresos' ? 'border-b-2 border-rose-500 text-rose-600 bg-rose-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
-              Historial de Egresos
+              {t('REPORTES.TAB_EXPENSE')}
             </button>
             <button 
               onClick={() => setPestañaTabla('Cartera')}
               className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-colors \${pestañaTabla === 'Cartera' ? 'border-b-2 border-amber-500 text-amber-600 bg-amber-50/30' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'}`}
             >
-              Cartera Morosos
+              {t('REPORTES.TAB_DEBT')}
             </button>
           </div>
 
@@ -519,16 +521,16 @@ export default function ModuloReportes() {
               <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-black">
                   <tr>
-                    <th className="px-6 py-4">Fecha</th>
-                    <th className="px-6 py-4">Jugador</th>
-                    <th className="px-6 py-4">Concepto</th>
-                    <th className="px-6 py-4">Método</th>
-                    <th className="px-6 py-4 text-right">Monto</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_DATE')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_PLAYER')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_CONCEPT')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_METHOD')}</th>
+                    <th className="px-6 py-4 text-right">{t('REPORTES.TABLE_AMOUNT')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {ingresosMes.length === 0 ? (
-                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">No hay ingresos este mes.</td></tr>
+                    <tr><td colSpan={5} className="px-6 py-8 text-center text-slate-500">{t('REPORTES.NO_INCOME_MONTH')}</td></tr>
                   ) : (
                     ingresosMes.map(i => (
                       <tr key={i.id} className="hover:bg-slate-50">
@@ -548,15 +550,15 @@ export default function ModuloReportes() {
               <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase font-black">
                   <tr>
-                    <th className="px-6 py-4">Fecha</th>
-                    <th className="px-6 py-4">Descripción</th>
-                    <th className="px-6 py-4">Categoría</th>
-                    <th className="px-6 py-4 text-right">Monto</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_DATE')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_DESC')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_CATEGORY')}</th>
+                    <th className="px-6 py-4 text-right">{t('REPORTES.TABLE_AMOUNT')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {egresosMes.length === 0 ? (
-                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">No hay egresos este mes.</td></tr>
+                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">{t('REPORTES.NO_EXPENSE_MONTH')}</td></tr>
                   ) : (
                     egresosMes.map(e => (
                       <tr key={e.id} className="hover:bg-slate-50">
@@ -575,15 +577,15 @@ export default function ModuloReportes() {
               <table className="w-full text-left text-sm text-slate-600">
                 <thead className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs uppercase font-black">
                   <tr>
-                    <th className="px-6 py-4">Jugador</th>
-                    <th className="px-6 py-4">Grupo</th>
-                    <th className="px-6 py-4">Plan Actual</th>
-                    <th className="px-6 py-4 text-right">Monto Adeudado</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_PLAYER')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_GROUP')}</th>
+                    <th className="px-6 py-4">{t('REPORTES.TABLE_PLAN')}</th>
+                    <th className="px-6 py-4 text-right">{t('REPORTES.TABLE_DEBT_AMOUNT')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-amber-100">
                   {morosos.length === 0 ? (
-                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">Excelente, no hay cartera pendiente.</td></tr>
+                    <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-500">{t('REPORTES.NO_DEBT')}</td></tr>
                   ) : (
                     morosos.map(m => (
                       <tr key={m.id} className="hover:bg-amber-50/30">

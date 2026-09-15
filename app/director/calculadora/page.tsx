@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Calculator, Plus, Trash2, Users, MessageSquare, Copy, CheckCircle, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface ConceptoCosto {
   id: string;
@@ -22,6 +23,7 @@ const CONCEPTOS_SUGERIDOS = [
 ];
 
 export default function CalculadoraCostos() {
+  const { t } = useTranslation();
   const { slug: tenantSlug } = useTenant();
   const [categorias, setCategorias] = useState<any[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<any>(null);
@@ -93,32 +95,32 @@ export default function CalculadoraCostos() {
       .map(c => `   • ${c.nombre}: ${formatCOP(c.valor)}`)
       .join('\n');
 
-    return `⚽ *APORTES EVENTO: ${(categoriaSeleccionada.titulo || categoriaSeleccionada.nombre || '').toUpperCase()}*\n\nEstimada familia, compartimos el resumen de costos para el próximo evento:\n\n${desglose}\n\n💰 *Total del evento:* ${formatCOP(totalGeneral)}\n👥 *Jugadores convocados:* ${cantidadJugadores}\n\n✅ *Aporte por jugador: ${formatCOP(Math.ceil(costoPorJugador))}*\n\nAgradecemos su puntual colaboración. ¡Los esperamos! 💪🔥`;
+    return `${t('CALCULADORA.MSG_EVENT_FEE')}${(categoriaSeleccionada.titulo || categoriaSeleccionada.nombre || '').toUpperCase()}*\n\n${t('CALCULADORA.MSG_INTRO')}${desglose}\n\n${t('CALCULADORA.MSG_TOTAL')}${formatCOP(totalGeneral)}\n${t('CALCULADORA.MSG_PLAYERS')}${cantidadJugadores}\n\n${t('CALCULADORA.MSG_FEE_PER_PLAYER')}${formatCOP(Math.ceil(costoPorJugador))}${t('CALCULADORA.MSG_OUTRO')}`;
   };
 
   const copiarMensaje = () => {
     const msg = generarMensaje();
     navigator.clipboard.writeText(msg).then(() => {
       setCopiado(true);
-      toast.success('Mensaje copiado al portapapeles');
+      toast.success(t('CALCULADORA.COPIED'));
       setTimeout(() => setCopiado(false), 3000);
     });
   };
 
   const abrirWhatsApp = () => {
     const msg = generarMensaje();
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/?text=\${encodeURIComponent(msg)}`, '_blank');
   };
 
   if (cargando) return (
-    <div className="p-8 text-center text-slate-400 animate-pulse">Cargando calculadora...</div>
+    <div className="p-8 text-center text-slate-400 animate-pulse">{t('CALCULADORA.LOADING')}</div>
   );
 
   if (categorias.length === 0) return (
     <div className="p-8 md:p-16 text-center max-w-xl mx-auto">
       <Calculator className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-      <h2 className="text-xl font-black text-slate-700 mb-2">Sin convocatorias disponibles</h2>
-      <p className="text-slate-500 font-medium">Para usar la calculadora necesitas al menos una convocatoria aprobada o pendiente con jugadores asignados.</p>
+      <h2 className="text-xl font-black text-slate-700 mb-2">{t('CALCULADORA.NO_CONVOCATIONS_TITLE')}</h2>
+      <p className="text-slate-500 font-medium">{t('CALCULADORA.NO_CONVOCATIONS_DESC')}</p>
     </div>
   );
 
@@ -129,10 +131,10 @@ export default function CalculadoraCostos() {
         <div>
           <h1 className="text-3xl font-black text-slate-800 uppercase italic tracking-tighter flex items-center gap-3">
             <Calculator className="w-8 h-8 text-brand" />
-            Calculadora de Costos
+            {t('CALCULADORA.TITLE')}
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Divide los gastos del evento entre los jugadores de la lista de convocados.
+            {t('CALCULADORA.SUBTITLE')}
           </p>
         </div>
       </div>
@@ -144,7 +146,7 @@ export default function CalculadoraCostos() {
           {/* Selector de Categoría */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Users className="w-4 h-4 text-brand" /> Lista de Convocados (Evento)
+              <Users className="w-4 h-4 text-brand" /> {t('CALCULADORA.PANEL_PLAYERS')}
             </h2>
             <div className="relative">
               <select
@@ -157,7 +159,7 @@ export default function CalculadoraCostos() {
               >
                 {categorias.map(ev => (
                   <option key={ev.id} value={ev.id}>
-                    {ev.label || ev.titulo} — {ev.jugadores} convocados
+                    {ev.label || ev.titulo} — {ev.jugadores} {t('CALCULADORA.CONVOCADOS_OPTION')}
                   </option>
                 ))}
               </select>
@@ -166,7 +168,7 @@ export default function CalculadoraCostos() {
             {categoriaSeleccionada && (
               <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 font-medium">
                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                <span><span className="font-black text-slate-700">{cantidadJugadores}</span> jugadores en la lista de este evento</span>
+                <span><span className="font-black text-slate-700">{cantidadJugadores}</span> {t('CALCULADORA.PLAYERS_IN_LIST')}</span>
               </div>
             )}
           </div>
@@ -175,13 +177,13 @@ export default function CalculadoraCostos() {
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-brand" /> Conceptos del Costo
+                <Calculator className="w-4 h-4 text-brand" /> {t('CALCULADORA.PANEL_CONCEPTS')}
               </h2>
               <button
                 onClick={agregarConcepto}
                 className="bg-brand/10 hover:bg-brand/20 text-brand font-black text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
               >
-                <Plus className="w-3.5 h-3.5" /> Agregar ítem
+                <Plus className="w-3.5 h-3.5" /> {t('CALCULADORA.ADD_ITEM')}
               </button>
             </div>
 
@@ -195,11 +197,11 @@ export default function CalculadoraCostos() {
                         type="text"
                         value={concepto.nombre}
                         onChange={e => actualizarConcepto(concepto.id, 'nombre', e.target.value)}
-                        placeholder="Ej: Arbitraje"
-                        list={`sugeridos-${concepto.id}`}
+                        placeholder={t('CALCULADORA.PLACEHOLDER_CONCEPT')}
+                        list={`sugeridos-\${concepto.id}`}
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand transition-all"
                       />
-                      <datalist id={`sugeridos-${concepto.id}`}>
+                      <datalist id={`sugeridos-\${concepto.id}`}>
                         {CONCEPTOS_SUGERIDOS.map(s => (
                           <option key={s} value={s} />
                         ))}
@@ -234,7 +236,7 @@ export default function CalculadoraCostos() {
             <div className="mt-6 pt-4 border-t border-slate-100 space-y-2">
               {conceptos.filter(c => c.valor > 0).map(c => (
                 <div key={c.id} className="flex justify-between text-sm">
-                  <span className="text-slate-500 font-medium">{c.nombre || 'Sin nombre'}</span>
+                  <span className="text-slate-500 font-medium">{c.nombre || t('CALCULADORA.NO_NAME')}</span>
                   <span className="text-slate-700 font-bold">{formatCOP(c.valor)}</span>
                 </div>
               ))}
@@ -248,22 +250,22 @@ export default function CalculadoraCostos() {
           {/* Tarjeta de Resultado */}
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 shadow-xl text-white sticky top-8">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <Calculator className="w-3.5 h-3.5" /> Resumen del Cálculo
+              <Calculator className="w-3.5 h-3.5" /> {t('CALCULADORA.SUMMARY_TITLE')}
             </p>
 
             <div className="space-y-4 mb-6">
               <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Total General</p>
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">{t('CALCULADORA.TOTAL_GENERAL')}</p>
                 <p className="text-3xl font-black text-white">{formatCOP(totalGeneral)}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">Jugadores</p>
+                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">{t('CALCULADORA.PLAYERS')}</p>
                   <p className="text-2xl font-black text-white">{cantidadJugadores}</p>
                 </div>
                 <div className="bg-white/5 rounded-xl p-3 border border-white/10">
-                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">Conceptos</p>
+                  <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">{t('CALCULADORA.CONCEPTS')}</p>
                   <p className="text-2xl font-black text-white">{conceptos.filter(c => c.valor > 0).length}</p>
                 </div>
               </div>
@@ -271,19 +273,19 @@ export default function CalculadoraCostos() {
 
             {/* Costo por jugador (el resultado principal) */}
             <div className="bg-brand rounded-2xl p-5 shadow-lg shadow-brand/30 text-center mb-6">
-              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-2">APORTE POR JUGADOR</p>
+              <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-2">{t('CALCULADORA.FEE_PER_PLAYER')}</p>
               <p className="text-4xl font-black text-white leading-none">
                 {formatCOP(Math.ceil(costoPorJugador))}
               </p>
               {cantidadJugadores === 0 && (
-                <p className="text-white/60 text-xs mt-2 font-medium">Sin jugadores en la lista</p>
+                <p className="text-white/60 text-xs mt-2 font-medium">{t('CALCULADORA.NO_PLAYERS_IN_LIST')}</p>
               )}
             </div>
 
             {/* Desglose por concepto */}
             {conceptos.filter(c => c.valor > 0).length > 1 && (
               <div className="bg-white/5 rounded-xl p-4 border border-white/10 mb-6 space-y-2">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Desglose por concepto/jugador</p>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">{t('CALCULADORA.BREAKDOWN_TITLE')}</p>
                 {conceptos.filter(c => c.valor > 0).map(c => (
                   <div key={c.id} className="flex justify-between text-sm">
                     <span className="text-slate-400 font-medium text-xs">{c.nombre}</span>
@@ -301,7 +303,7 @@ export default function CalculadoraCostos() {
                 className="w-full bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-3 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
               >
                 {copiado ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                {copiado ? '¡Copiado!' : 'Copiar Mensaje'}
+                {copiado ? t('CALCULADORA.COPIED') : t('CALCULADORA.COPY_BTN')}
               </button>
 
               <button
@@ -310,7 +312,7 @@ export default function CalculadoraCostos() {
                 className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black py-3.5 rounded-xl text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/30"
               >
                 <MessageSquare className="w-4 h-4" />
-                Enviar por WhatsApp
+                {t('CALCULADORA.WHATSAPP_BTN')}
               </button>
             </div>
           </div>
@@ -318,7 +320,7 @@ export default function CalculadoraCostos() {
           {/* Vista previa del mensaje */}
           {totalGeneral > 0 && cantidadJugadores > 0 && (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Vista Previa del Mensaje</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">{t('CALCULADORA.PREVIEW_TITLE')}</p>
               <div className="bg-[#dcf8c6] rounded-xl p-4 text-sm text-slate-700 font-medium whitespace-pre-wrap leading-relaxed text-xs border border-green-100 shadow-inner">
                 {generarMensaje()}
               </div>

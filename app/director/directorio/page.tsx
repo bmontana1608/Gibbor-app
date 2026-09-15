@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Store, MapPin, Globe, Phone, Search, Loader2 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function DirectorioComercialPage() {
+  const { t } = useTranslation();
   const [patrocinadores, setPatrocinadores] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
@@ -76,18 +78,18 @@ export default function DirectorioComercialPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-            <Store className="text-brand w-8 h-8" /> Directorio Comercial
+            <Store className="text-brand w-8 h-8" /> {t('directorio.directorioComercial')}
           </h1>
           <p className="text-slate-500 mt-2 max-w-2xl">
-            Encuentra proveedores recomendados de uniformes, implementos deportivos, torneos y servicios para tu academia.
-            {tenantInfo?.ciudad && <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 bg-slate-100 rounded-md text-xs font-bold text-slate-600"><MapPin size={12}/> Resultados para {tenantInfo.ciudad}</span>}
+            {t('directorio.encuentraProveedores')}
+            {tenantInfo?.ciudad && <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 bg-slate-100 rounded-md text-xs font-bold text-slate-600"><MapPin size={12}/> {t('directorio.resultadosPara')}{tenantInfo.ciudad}</span>}
           </p>
         </div>
         <div className="relative w-full md:w-72">
           <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
             type="text" 
-            placeholder="Buscar proveedor..." 
+            placeholder={t('directorio.buscarProveedor')}
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-brand focus:border-brand transition-all shadow-sm"
@@ -98,16 +100,16 @@ export default function DirectorioComercialPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center p-20 text-slate-400">
           <Loader2 className="w-10 h-10 animate-spin mb-4 text-brand" />
-          <p className="font-bold">Cargando directorio...</p>
+          <p className="font-bold">{t('directorio.cargandoDirectorio')}</p>
         </div>
       ) : filtrados.length === 0 ? (
         <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm flex flex-col items-center justify-center">
           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
             <Store className="w-10 h-10 text-slate-300" />
           </div>
-          <h3 className="text-xl font-bold text-slate-700">No hay patrocinadores</h3>
+          <h3 className="text-xl font-bold text-slate-700">{t('directorio.noHayPatrocinadores')}</h3>
           <p className="text-slate-500 mt-2 max-w-md">
-            Por el momento no hay comercios asociados en tu zona. Vuelve pronto para descubrir nuevos proveedores.
+            {t('directorio.porElMomento')}
           </p>
         </div>
       ) : (
@@ -126,9 +128,9 @@ export default function DirectorioComercialPage() {
                   <h3 className="font-black text-lg text-slate-800 leading-tight">{p.nombre}</h3>
                   <div className="flex flex-col gap-1 mt-1">
                     {p.es_fisico && p.direccion ? (
-                      <span className="inline-flex items-start gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight"><Store size={12} className="shrink-0 mt-0.5"/> Tienda Física: {p.direccion} {p.ciudad ? `- ${p.ciudad}` : ''}</span>
+                      <span className="inline-flex items-start gap-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight"><Store size={12} className="shrink-0 mt-0.5"/> {t('directorio.tiendaFisica')}{p.direccion} {p.ciudad ? `- ${p.ciudad}` : ''}</span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider"><Globe size={10}/> Tienda Online {p.ciudad ? `- ${p.ciudad}` : ''}</span>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider"><Globe size={10}/> {t('directorio.tiendaOnline')}{p.ciudad ? `- ${p.ciudad}` : ''}</span>
                     )}
                   </div>
                 </div>
@@ -146,7 +148,7 @@ export default function DirectorioComercialPage() {
                 {p.sitio_web && (
                   <a href={p.sitio_web.startsWith('http') ? p.sitio_web : `https://${p.sitio_web}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 w-full p-3 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors group">
                     <div className="bg-slate-200 text-slate-600 p-1.5 rounded-lg group-hover:scale-110 transition-transform"><Globe size={14} /></div>
-                    <span className="font-bold text-sm tracking-tight truncate">Visitar sitio web</span>
+                    <span className="font-bold text-sm tracking-tight truncate">{t('directorio.visitarSitio')}</span>
                   </a>
                 )}
               </div>

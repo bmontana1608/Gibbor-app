@@ -5,8 +5,10 @@ import { Plus, Trash2, Calendar, Clock, MapPin, Users, Tag, Trophy as TrophyIcon
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useTenant } from "@/lib/hooks/useTenant";
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function GestionEventos() {
+  const { t } = useTranslation();
   const [eventos, setEventos] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -43,10 +45,10 @@ export default function GestionEventos() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nuevoEvento.titulo || !nuevoEvento.fecha || !nuevoEvento.hora) {
-      return toast.error("Por favor completa los campos básicos");
+      return toast.error(t('eventos.completaCamposBasicos'));
     }
 
-    const toastId = toast.loading("Guardando evento...");
+    const toastId = toast.loading(t('eventos.guardandoEvento'));
     try {
       const res = await fetch(`/api/eventos?slug=${tenantSlug}`, {
         method: 'POST',
@@ -55,14 +57,14 @@ export default function GestionEventos() {
       });
 
       if (res.ok) {
-        toast.success("¡Evento publicado con éxito!", { id: toastId });
+        toast.success(t('eventos.eventoPublicadoExito'), { id: toastId });
         setNuevoEvento({ titulo: '', tipo: 'Entrenamiento', fecha: '', hora: '', lugar: '', categoria_id: '' });
         fetchDatos();
       } else {
-        toast.error("Error al guardar el evento", { id: toastId });
+        toast.error(t('eventos.errorGuardarEvento'), { id: toastId });
       }
     } catch (err) {
-      toast.error("Fallo de conexión", { id: toastId });
+      toast.error(t('eventos.falloConexion'), { id: toastId });
     }
   };
 
@@ -71,7 +73,7 @@ export default function GestionEventos() {
     
     const res = await fetch(`/api/eventos?id=${showConfirmModal}&slug=${tenantSlug}`, { method: 'DELETE' });
     if (res.ok) {
-      toast.success("Evento eliminado");
+      toast.success(t('eventos.eventoEliminado'));
       setShowConfirmModal(null);
       fetchDatos();
     }
@@ -81,7 +83,7 @@ export default function GestionEventos() {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <div className="text-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando agenda...</p>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('eventos.cargandoAgenda')}</p>
       </div>
     );
   }
@@ -90,21 +92,21 @@ export default function GestionEventos() {
     <div className="max-w-6xl mx-auto space-y-10 pb-20 p-4 transition-colors">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Gestión de <span className="text-brand">Agenda</span></h1>
-          <p className="text-slate-500 font-medium">Programa partidos, entrenamientos y eventos para el club.</p>
+          <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">{t('eventos.gestionDe')}<span className="text-brand">{t('eventos.agenda')}</span></h1>
+          <p className="text-slate-500 font-medium">{t('eventos.programaPartidos')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* FORMULARIO */}
         <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm h-fit">
-          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="text-brand" /> Nuevo Evento</h2>
+          <h2 className="text-lg font-black text-slate-800 uppercase mb-6 flex items-center gap-2"><Plus className="text-brand" /> {t('eventos.nuevoEvento')}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Título</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">{t('eventos.titulo')}</label>
               <input 
                 type="text" 
-                placeholder="Ej: Final de Torneo"
+                placeholder={t('eventos.ejFinalTorneo')}
                 className="text-brand outline-none transition-all"
                 value={nuevoEvento.titulo}
                 onChange={e => setNuevoEvento({...nuevoEvento, titulo: e.target.value})}
@@ -113,20 +115,20 @@ export default function GestionEventos() {
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Tipo</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">{t('eventos.tipo')}</label>
                 <select 
                   className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none cursor-pointer"
                   value={nuevoEvento.tipo}
                   onChange={e => setNuevoEvento({...nuevoEvento, tipo: e.target.value})}
                 >
-                  <option value="Entrenamiento">Entrenamiento</option>
-                  <option value="Partido">Partido</option>
-                  <option value="Evento">Evento Social</option>
-                  <option value="Pago">Recordatorio Pago</option>
+                  <option value="Entrenamiento">{t('eventos.entrenamiento')}</option>
+                  <option value="Partido">{t('eventos.partido')}</option>
+                  <option value="Evento">{t('eventos.eventoSocial')}</option>
+                  <option value="Pago">{t('eventos.recordatorioPago')}</option>
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Fecha</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">{t('eventos.fecha')}</label>
                 <input 
                   type="date" 
                   className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
@@ -138,7 +140,7 @@ export default function GestionEventos() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Hora</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">{t('eventos.hora')}</label>
                 <input 
                   type="time" 
                   className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
@@ -147,10 +149,10 @@ export default function GestionEventos() {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">Lugar</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-1 block">{t('eventos.lugar')}</label>
                 <input 
                   type="text" 
-                  placeholder="Sede Norte"
+                  placeholder={t('eventos.sedeNorte')}
                   className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 text-sm font-bold outline-none"
                   value={nuevoEvento.lugar}
                   onChange={e => setNuevoEvento({...nuevoEvento, lugar: e.target.value})}
@@ -160,7 +162,7 @@ export default function GestionEventos() {
 
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase ml-2 mb-2 block flex items-center gap-1.5">
-                <Tag className="w-3 h-3" /> Categoría Destino
+                <Tag className="w-3 h-3" /> {t('eventos.categoriaDestino')}
               </label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
                 <button
@@ -172,7 +174,7 @@ export default function GestionEventos() {
                     : 'bg-slate-50 text-slate-400 border-slate-100 hover:bg-slate-100'
                   }`}
                 >
-                  Global (Todos)
+                  {t('eventos.globalTodos')}
                 </button>
                 {categorias.map((cat) => (
                   <button
@@ -192,14 +194,14 @@ export default function GestionEventos() {
             </div>
 
             <button type="submit" className="w-full bg-brand text-white font-black uppercase text-xs tracking-widest p-5 rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all mt-4 flex items-center justify-center gap-2">
-              <Plus className="w-4 h-4" /> Publicar Evento
+              <Plus className="w-4 h-4" /> {t('eventos.publicarEvento')}
             </button>
           </form>
         </div>
 
         {/* LISTADO PRÓXIMOS */}
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-2">Próximos en Agenda</h2>
+          <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-2">{t('eventos.proximosAgenda')}</h2>
           {eventos.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
               {eventos.map((evento) => (
@@ -236,7 +238,7 @@ export default function GestionEventos() {
           ) : (
             <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No hay eventos próximos.</p>
+               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">{t('eventos.noHayEventos')}</p>
             </div>
           )}
         </div>
@@ -250,12 +252,12 @@ export default function GestionEventos() {
              <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <Trash2 className="w-10 h-10 text-rose-500" />
              </div>
-             <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-tight">¿Eliminar este<br/>evento?</h3>
-             <p className="text-slate-500 text-sm font-medium mt-3 px-4">Esta acción no se puede deshacer y el evento desaparecerá de la agenda de los alumnos.</p>
+             <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-tight">{t('eventos.eliminarEste')}<br/>{t('eventos.eventoPregunta')}</h3>
+             <p className="text-slate-500 text-sm font-medium mt-3 px-4">{t('eventos.accionIrreversible')}</p>
              
              <div className="grid grid-cols-2 gap-3 mt-8">
-                <button onClick={() => setShowConfirmModal(null)} className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all">Cancelar</button>
-                <button onClick={confirmarEliminacion} className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all">Sí, Eliminar</button>
+                <button onClick={() => setShowConfirmModal(null)} className="bg-slate-100 text-slate-600 font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl hover:bg-slate-200 transition-all">{t('eventos.cancelar')}</button>
+                <button onClick={confirmarEliminacion} className="bg-rose-500 text-white font-black uppercase text-[10px] tracking-widest p-4 rounded-2xl shadow-lg shadow-rose-500/20 hover:scale-[1.02] active:scale-95 transition-all">{t('eventos.siEliminar')}</button>
              </div>
           </div>
         </div>

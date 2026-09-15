@@ -5,8 +5,10 @@ import { useTenant } from '@/lib/hooks/useTenant';
 import { supabase } from '@/lib/supabase';
 import { Megaphone, MessageCircle, Send, CheckCircle2, Clock, AlertCircle, RefreshCw, XCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function ComunicacionMasiva() {
+  const { t } = useTranslation();
   const { slug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
   const [perfil, setPerfil] = useState<any>(null);
@@ -60,13 +62,13 @@ export default function ComunicacionMasiva() {
 
   const handleEnviar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (metodos.length === 0) return toast.error('Selecciona al menos un método de envío');
-    if (metodos.includes('inapp') && !titulo) return toast.error('El título es obligatorio para el Tablón de Anuncios');
-    if (!mensaje) return toast.error('El mensaje no puede estar vacío');
-    if (!window.confirm(`¿Estás seguro de encolar este mensaje para ${audiencia}?`)) return;
+    if (metodos.length === 0) return toast.error(t('comunicacion.select_at_least_one_method'));
+    if (metodos.includes('inapp') && !titulo) return toast.error(t('comunicacion.title_required_for_announcements'));
+    if (!mensaje) return toast.error(t('comunicacion.message_cannot_be_empty'));
+    if (!window.confirm(`${t('comunicacion.sure_enqueue_message_for')} ${audiencia}?`)) return;
 
     setEnviando(true);
-    const toastId = toast.loading('Procesando destinatarios...');
+    const toastId = toast.loading(t('comunicacion.processing_recipients'));
 
     try {
       const res = await fetch('/api/comunicacion/encolar', {
@@ -85,7 +87,7 @@ export default function ComunicacionMasiva() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error desconocido');
 
-      toast.success(`Mensaje procesado. ${data.resumen.whatsapp_encolados} encolados en WA. ${data.resumen.inapp_creados} publicados In-App.`, { id: toastId });
+      toast.success(`${t('comunicacion.message_processed')} ${data.resumen.whatsapp_encolados} ${t('comunicacion.enqueued_in_wa')} ${data.resumen.inapp_creados} ${t('comunicacion.published_in_app')}`, { id: toastId });
       setMensaje('');
       setTitulo('');
       await fetchStatusQueue(tenant.id);
@@ -101,7 +103,7 @@ export default function ComunicacionMasiva() {
     else setMetodos([...metodos, m]);
   };
 
-  if (cargando) return <div className="p-10 text-center text-slate-500">Cargando panel de comunicación...</div>;
+  if (cargando) return <div className="p-10 text-center text-slate-500">{t('comunicacion.loading_communication_panel')}</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans">
@@ -110,9 +112,9 @@ export default function ComunicacionMasiva() {
         <div className="mb-8">
           <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tighter">
             <Megaphone className="text-brand" />
-            Central de Comunicación
+            {t('comunicacion.communication_central')}
           </h1>
-          <p className="text-slate-500 font-medium mt-2">Envía anuncios a la plataforma y programa mensajes masivos por WhatsApp sin riesgo de baneo.</p>
+          <p className="text-slate-500 font-medium mt-2">{t('comunicacion.communication_subtitle')}</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -120,42 +122,42 @@ export default function ComunicacionMasiva() {
           {/* Panel Izquierdo: Formulario de Envío */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
-              <h2 className="text-lg font-black uppercase tracking-widest text-slate-800 dark:text-white mb-6 border-b pb-4 border-slate-100 dark:border-slate-800">Redactar Comunicado</h2>
+              <h2 className="text-lg font-black uppercase tracking-widest text-slate-800 dark:text-white mb-6 border-b pb-4 border-slate-100 dark:border-slate-800">{t('comunicacion.compose_announcement')}</h2>
               
               <form onSubmit={handleEnviar} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Público Objetivo (Audiencia)</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('comunicacion.target_audience')}</label>
                     <select 
                       value={audiencia} 
                       onChange={(e) => setAudiencia(e.target.value)}
                       className="text-brand outline-none"
                     >
-                      <option value="Todos">Todos los Miembros Activos</option>
-                      <option value="Deudores">Solo Alumnos con Pagos Pendientes</option>
-                      <optgroup label="Por Categoría">
+                      <option value="Todos">{t('comunicacion.all_active_members')}</option>
+                      <option value="Deudores">{t('comunicacion.only_students_pending_payments')}</option>
+                      <optgroup label={t('comunicacion.by_category')}>
                         {categorias.map(c => <option key={c.nombre} value={c.nombre}>{c.nombre}</option>)}
                       </optgroup>
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Métodos de Envío</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('comunicacion.delivery_methods')}</label>
                     <div className="flex gap-2">
                       <button 
                         type="button" 
                         onClick={() => toggleMetodo('inapp')}
                         className={`flex-1 py-3 px-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border-2 transition-all ${metodos.includes('inapp') ? 'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-500 dark:text-indigo-300' : 'bg-white border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}
                       >
-                        <AlertCircle className="w-4 h-4" /> Tablón In-App
+                        <AlertCircle className="w-4 h-4" /> {t('comunicacion.in_app_board')}
                       </button>
                       <button 
                         type="button" 
                         onClick={() => toggleMetodo('whatsapp')}
                         className={`flex-1 py-3 px-2 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 border-2 transition-all ${metodos.includes('whatsapp') ? 'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-300' : 'bg-white border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}
                       >
-                        <MessageCircle className="w-4 h-4" /> WhatsApp
+                        <MessageCircle className="w-4 h-4" /> {t('comunicacion.whatsapp')}
                       </button>
                     </div>
                   </div>
@@ -163,10 +165,10 @@ export default function ComunicacionMasiva() {
 
                 {metodos.includes('inapp') && (
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Título del Comunicado (Solo para Tablón)</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('comunicacion.announcement_title')}</label>
                     <input 
                       type="text" 
-                      placeholder="Ej. Suspensión de entrenamientos por lluvia"
+                      placeholder={t('comunicacion.ex_suspension_rain')}
                       value={titulo}
                       onChange={(e) => setTitulo(e.target.value)}
                       className="text-brand outline-none"
@@ -175,16 +177,16 @@ export default function ComunicacionMasiva() {
                 )}
 
                 <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Mensaje Principal</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('comunicacion.main_message')}</label>
                   <textarea 
                     rows={6}
-                    placeholder="Escribe el cuerpo del mensaje aquí..."
+                    placeholder={t('comunicacion.write_message_body_here')}
                     value={mensaje}
                     onChange={(e) => setMensaje(e.target.value)}
                     className="text-brand outline-none resize-none"
                   ></textarea>
                   {metodos.includes('whatsapp') && (
-                    <p className="text-[10px] text-slate-400 mt-2 italic">* Los mensajes de WhatsApp se encolarán y enviarán progresivamente para proteger tu número de bloqueos por SPAM.</p>
+                    <p className="text-[10px] text-slate-400 mt-2 italic">{t('comunicacion.whatsapp_spam_protection')}</p>
                   )}
                 </div>
 
@@ -195,7 +197,7 @@ export default function ComunicacionMasiva() {
                     className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-3.5 rounded-xl font-black uppercase tracking-widest text-xs flex items-center gap-2 hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50"
                   >
                     {enviando ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    {enviando ? 'Encolando...' : 'Programar Envío masivo'}
+                    {enviando ? t('comunicacion.enqueuing') : t('comunicacion.schedule_mass_sending')}
                   </button>
                 </div>
               </form>
@@ -210,7 +212,7 @@ export default function ComunicacionMasiva() {
               <div className="flex justify-between items-center mb-6 relative z-10">
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                   <Clock className="w-4 h-4 text-emerald-400" />
-                  Cola de WhatsApp
+                  {t('comunicacion.whatsapp_queue')}
                 </h3>
                 <button onClick={() => fetchStatusQueue(tenant.id)} className="p-2 hover:bg-slate-800 rounded-lg transition-all" title="Actualizar">
                   <RefreshCw className="w-4 h-4 text-slate-400" />
@@ -219,11 +221,11 @@ export default function ComunicacionMasiva() {
 
               <div className="grid grid-cols-2 gap-4 relative z-10 mb-6">
                 <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Pendientes</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{t('comunicacion.pending')}</p>
                   <p className="text-3xl font-black text-amber-400">{cola.pendientes}</p>
                 </div>
                 <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
-                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Enviados</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{t('comunicacion.sent')}</p>
                   <p className="text-3xl font-black text-emerald-400">{cola.enviados}</p>
                 </div>
               </div>
@@ -231,26 +233,26 @@ export default function ComunicacionMasiva() {
               <div className="bg-slate-800/30 p-4 rounded-2xl border border-red-500/20 relative z-10 flex items-center justify-between">
                  <div className="flex items-center gap-2 text-red-400">
                     <XCircle className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase">Errores de Envío</span>
+                    <span className="text-[10px] font-black uppercase">{t('comunicacion.sending_errors')}</span>
                  </div>
                  <span className="font-black">{cola.errores}</span>
               </div>
 
               <div className="mt-6 text-[10px] text-slate-400 font-medium">
-                El despachador automático revisa esta cola cada 1 minuto y envía pequeños lotes para evitar que Meta banee tu cuenta.
+                {t('comunicacion.auto_dispatcher_desc')}
               </div>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="text-brand" /> Consejos de Envío</h3>
+              <h3 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2"><Users className="text-brand" /> {t('comunicacion.sending_tips')}</h3>
               <ul className="space-y-3 text-xs text-slate-500 dark:text-slate-400">
                 <li className="flex items-start gap-2">
                   <span className="text-brand mt-0.5">•</span>
-                  <span>Usa el filtro <strong>"Solo Deudores"</strong> en los últimos días del mes para cobrar amablemente.</span>
+                  <span>{t('comunicacion.tip_debtors')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-brand mt-0.5">•</span>
-                  <span>Si se cancela un entreno de emergencia, usa siempre ambos métodos (In-App y WhatsApp).</span>
+                  <span>{t('comunicacion.tip_emergency')}</span>
                 </li>
               </ul>
             </div>

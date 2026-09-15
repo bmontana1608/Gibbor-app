@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -14,6 +15,7 @@ import { useTenant } from '@/lib/hooks/useTenant';
 import { syncCategoriasInteligentes } from '@/lib/syncCategorias';
 
 export default function GestionCategorias() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
   const pathname = usePathname();
@@ -49,7 +51,7 @@ export default function GestionCategorias() {
     const { data: catData, error: catError } = await supabase.from('categorias').select('*').eq('club_id', tenantData.id).order('created_at', { ascending: true });
     
     if (catError) {
-      toast.error('Error al cargar categorías: ' + catError.message);
+      toast.error(t('categorias.errorLoading') + catError.message);
     } else if (catData) setCategorias(catData);
 
     const { data: jugData } = await supabase.from('perfiles').select('grupos, estado_miembro').eq('club_id', tenantData.id).eq('rol', 'Futbolista');
@@ -118,7 +120,7 @@ export default function GestionCategorias() {
   const handleGuardarGrupo = async (e: React.FormEvent) => {
     e.preventDefault();
     setGuardando(true);
-    const toastId = toast.loading(grupoEditandoId ? "Actualizando categoría..." : "Creando categoría...");
+    const toastId = toast.loading(grupoEditandoId ? t('categorias.updatingCategory') : t('categorias.creatingCategory'));
     
     // 1. Obtener Tenant para RLS
     const tenantRes = await fetch('/api/tenant?slug=' + tenantSlug, { cache: 'no-store' });
@@ -148,9 +150,9 @@ export default function GestionCategorias() {
       const result = await res.json();
       
       if (result.error) {
-        toast.error("Error al actualizar: " + result.error, { id: toastId });
+        toast.error(t('categorias.updateError') + result.error, { id: toastId });
       } else { 
-        toast.success("Categoría actualizada correctamente.", { id: toastId });
+        toast.success(t('categorias.updateSuccess'), { id: toastId });
         cerrarModal(); 
         setTimeout(() => cargarDatos(), 300); 
       }
@@ -163,9 +165,9 @@ export default function GestionCategorias() {
       const result = await res.json();
       
       if (result.error) {
-        toast.error("Error al crear grupo: " + result.error, { id: toastId });
+        toast.error(t('categorias.createError') + result.error, { id: toastId });
       } else { 
-        toast.success("Nueva categoría creada exitosamente.", { id: toastId });
+        toast.success(t('categorias.createSuccess'), { id: toastId });
         cerrarModal(); 
         cargarDatos(); 
       }
@@ -201,7 +203,7 @@ export default function GestionCategorias() {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Cargando categorías...</p>
+        <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">{t('categorias.loading')}</p>
       </div>
     );
   }
@@ -218,7 +220,7 @@ export default function GestionCategorias() {
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Target className="text-brand" /> Grupos Deportivos
           </h1>
-          <p className="text-sm text-slate-500 mt-1">Gestiona la estructura de entrenamiento de tu club</p>
+          <p className="text-sm text-slate-500 mt-1">{t('categorias.subtitle')}</p>
         </div>
         <div className="flex gap-3">
           <button onClick={cargarDatos} className="bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2 hover:bg-slate-50 transition-colors">
@@ -231,23 +233,23 @@ export default function GestionCategorias() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grupos Activos</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : gruposActivos}</p></div><ClipboardList className="text-blue-500 w-8 h-8 opacity-80" /></div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Miembros Totales</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : miembrosTotales}</p></div><Users className="text-emerald-500 w-8 h-8 opacity-80" /></div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Capacidad Total</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : capacidadTotal}</p></div><Shield className="text-purple-500 w-8 h-8 opacity-80" /></div>
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full bg-brand"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ocupación Media</p><p className="text-3xl font-black text-brand">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="text-brand w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('categorias.activeGroups')}</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : gruposActivos}</p></div><ClipboardList className="text-blue-500 w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('categorias.totalMembers')}</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : miembrosTotales}</p></div><Users className="text-emerald-500 w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between"><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('categorias.totalCapacity')}</p><p className="text-3xl font-black text-slate-800">{cargando ? '-' : capacidadTotal}</p></div><Shield className="text-purple-500 w-8 h-8 opacity-80" /></div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 flex items-center justify-between relative overflow-hidden"><div className="absolute right-0 top-0 w-1.5 h-full bg-brand"></div><div><p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('categorias.averageOccupancy')}</p><p className="text-3xl font-black text-brand">{cargando ? '-' : `${ocupacionPromedio}%`}</p></div><TrendingUp className="text-brand w-8 h-8 opacity-80" /></div>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col md:flex-row gap-4 mb-8">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <input type="text" placeholder="Buscar por grupo o cuerpo técnico..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-brand" />
+          <input type="text" placeholder=t('categorias.searchPlaceholder') value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-brand" />
         </div>
         <div className="md:w-48">
           <select value={filtroNivel} onChange={(e) => setFiltroNivel(e.target.value)} className="w-full px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-white font-medium text-slate-700 focus:ring-2 focus:ring-brand cursor-pointer">
-            <option value="Todos">Todos los niveles</option>
-            <option value="Principiante">Principiante</option>
-            <option value="Intermedio">Intermedio</option>
-            <option value="Avanzado">Avanzado</option>
+            <option value="Todos">{t('categorias.allLevels')}</option>
+            <option value="Principiante">{t('categorias.beginner')}</option>
+            <option value="Intermedio">{t('categorias.intermediate')}</option>
+            <option value="Avanzado">{t('categorias.advanced')}</option>
           </select>
         </div>
       </div>
@@ -285,8 +287,8 @@ export default function GestionCategorias() {
       ) : categoriasFiltradas.length === 0 ? (
         <div className="text-center p-12 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col items-center justify-center">
           <Inbox className="w-16 h-16 text-slate-300 mb-4" />
-          <p className="text-lg text-slate-800 font-bold mb-2">No tienes grupos configurados</p>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">Crea tu primer grupo deportivo para comenzar a gestionar la estructura, entrenamientos y capacidades de tu club.</p>
+          <p className="text-lg text-slate-800 font-bold mb-2">{t('categorias.noGroups')}</p>
+          <p className="text-sm text-slate-500 max-w-md mx-auto">{t('categorias.noGroupsDesc')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -301,22 +303,22 @@ export default function GestionCategorias() {
                 <h2 className="text-xl font-black text-slate-800 mb-1 tracking-tight">{grupo.nombre}</h2>
                 
                 <div className="space-y-3 mt-5">
-                  <div className="flex items-start gap-3 text-sm"><Users className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-700 font-medium leading-tight">{grupo.entrenadores || 'Sin cuerpo técnico asignado'}</span></div>
+                  <div className="flex items-start gap-3 text-sm"><Users className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-700 font-medium leading-tight">{grupo.entrenadores || t('categorias.noCoachesAssigned')}</span></div>
                   <div className="flex items-center gap-3 text-sm">
                     <GraduationCap className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="text-slate-600 font-medium">
                       {grupo.edad_minima > 100 
-                        ? (grupo.edad_minima === grupo.edad_maxima ? `Año ${grupo.edad_minima}` : `Años ${grupo.edad_minima} - ${grupo.edad_maxima}`)
-                        : `${grupo.edad_minima} - ${grupo.edad_maxima} años`}
+                        ? (grupo.edad_minima === grupo.edad_maxima ? `\${t('categorias.year')} \${grupo.edad_minima}` : `\${t('categorias.years')} \${grupo.edad_minima} - \${grupo.edad_maxima}`)
+                        : `\${grupo.edad_minima} - \${grupo.edad_maxima} \${t('categorias.yearsLower')}`}
                     </span>
                   </div>
-                  <div className="flex items-start gap-3 text-sm"><CalendarDays className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-600 font-medium leading-tight whitespace-pre-wrap">{grupo.horarios?.replace(/ \| /g, '\n') || 'Horario no definido'}</span></div>
+                  <div className="flex items-start gap-3 text-sm"><CalendarDays className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><span className="text-slate-600 font-medium leading-tight whitespace-pre-wrap">{grupo.horarios?.replace(/ \| /g, '\n') || t('categorias.noSchedule')}</span></div>
                 </div>
 
                 <div className="mt-8">
                   <div className="flex justify-between items-end mb-2">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Ocupación</p>
-                    <p className="text-xs font-bold text-slate-700">{grupo.inscritos}/{grupo.capacidad_maxima} ocupados</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('categorias.occupancy')}</p>
+                    <p className="text-xs font-bold text-slate-700">{grupo.inscritos}/{grupo.capacidad_maxima} {t('categorias.occupied')}</p>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/50"><div className={`h-2 rounded-full transition-all duration-1000 ${grupo.porcentaje >= 100 ? 'bg-red-500' : grupo.porcentaje > 80 ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} style={{ width: `${Math.min(grupo.porcentaje, 100)}%` }}></div></div>
                 </div>
@@ -346,7 +348,7 @@ export default function GestionCategorias() {
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 {grupoEditandoId ? <Edit className="text-brand" /> : <Plus className="text-brand" />} 
-                {grupoEditandoId ? 'Editar Grupo' : 'Nuevo Grupo'}
+                {grupoEditandoId ? t('categorias.editGroup') : t('categorias.newGroup')}
               </h2>
               <button onClick={cerrarModal} className="text-slate-400 hover:text-slate-600 font-bold p-1 transition-colors">
                 <X className="w-6 h-6" />
@@ -357,26 +359,26 @@ export default function GestionCategorias() {
               <form id="grupoForm" onSubmit={handleGuardarGrupo} className="space-y-6">
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Nombre del Grupo *</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="text-brand outline-none text-sm" placeholder="Ej: Élite Sub-15" /></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.groupName')}</label><input type="text" name="nombre" value={formData.nombre} onChange={handleChange} required className="text-brand outline-none text-sm" placeholder=t('categorias.groupNamePlaceholder') /></div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Deporte *</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.sport')}</label>
                     <select name="deporte" value={formData.deporte} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer">
-                      <option value="Fútbol">Fútbol</option>
-                      <option value="Futsal">Futsal</option>
-                      <option value="Fútbol de Salón">Fútbol de Salón (Microfútbol)</option>
-                      <option value="Fútbol 7">Fútbol 7</option>
-                      <option value="Fútbol 8">Fútbol 8</option>
-                      <option value="Fútbol 9">Fútbol 9</option>
-                      <option value="Fútbol Playa">Fútbol Playa</option>
+                      <option value="Fútbol">{t('categorias.soccer')}</option>
+                      <option value="Futsal">{t('categorias.futsal')}</option>
+                      <option value="Fútbol de Salón">{t('categorias.microSoccer')}</option>
+                      <option value="Fútbol 7">{t('categorias.soccer7')}</option>
+                      <option value="Fútbol 8">{t('categorias.soccer8')}</option>
+                      <option value="Fútbol 9">{t('categorias.soccer9')}</option>
+                      <option value="Fútbol Playa">{t('categorias.beachSoccer')}</option>
                     </select>
                   </div>
-                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">Descripción</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="text-brand outline-none text-sm" placeholder="Detalles u objetivos de este grupo..."></textarea></div>
+                  <div className="md:col-span-2"><label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.description')}</label><textarea name="descripcion" value={formData.descripcion} onChange={handleChange} rows={2} className="text-brand outline-none text-sm" placeholder=t('categorias.descriptionPlaceholder')></textarea></div>
                 </div>
 
                 <div className="pt-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Cuerpo Técnico (Entrenadores) *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">{t('categorias.coaches')}</label>
                   <div className="border border-slate-200 rounded-lg overflow-hidden divide-y divide-slate-100">
-                    {entrenadoresBD.length === 0 ? <p className="p-3 text-sm text-slate-500 font-medium">No hay entrenadores creados.</p> : entrenadoresBD.map(ent => {
+                    {entrenadoresBD.length === 0 ? <p className="p-3 text-sm text-slate-500 font-medium">{t('categorias.noCoachesCreated')}</p> : entrenadoresBD.map(ent => {
                       const nombreCompleto = `${ent.nombres} ${ent.apellidos}`;
                       const seleccionado = entrenadoresSeleccionados.includes(nombreCompleto);
                       return (
@@ -391,17 +393,17 @@ export default function GestionCategorias() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Nivel Competitivo *</label>
-                    <select name="nivel" value={formData.nivel} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer"><option value="Principiante">Principiante</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option></select>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.competitiveLevel')}</label>
+                    <select name="nivel" value={formData.nivel} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white cursor-pointer"><option value="Principiante">{t('categorias.beginner')}</option><option value="Intermedio">{t('categorias.intermediate')}</option><option value="Avanzado">{t('categorias.advanced')}</option></select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Estado Operativo</label>
-                    <select name="estado" value={formData.estado} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white font-bold cursor-pointer"><option value="Activo" className="text-emerald-600">Activo</option><option value="Inactivo" className="text-slate-500">Inactivo</option></select>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.operationalStatus')}</label>
+                    <select name="estado" value={formData.estado} onChange={handleChange} className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none text-sm bg-white font-bold cursor-pointer"><option value="Activo" className="text-emerald-600">{t('categorias.active')}</option><option value="Inactivo" className="text-slate-500">{t('categorias.inactive')}</option></select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Criterio de Clasificación *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">{t('categorias.classificationCriteria')}</label>
                   <div className="flex gap-4 mb-3">
                     <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
                       <input 
@@ -417,7 +419,7 @@ export default function GestionCategorias() {
                         }} 
                         className="text-brand focus:ring-brand" 
                       />
-                      Por Rango de Edad
+                      {t('categorias.byAgeRange')}
                     </label>
                     <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
                       <input 
@@ -434,7 +436,7 @@ export default function GestionCategorias() {
                         }} 
                         className="text-brand focus:ring-brand" 
                       />
-                      Por Año de Nacimiento
+                      {t('categorias.byBirthYear')}
                     </label>
                   </div>
                 </div>
@@ -442,7 +444,7 @@ export default function GestionCategorias() {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      {formData.edad_minima > 100 ? 'Año Mín.' : 'Edad Mín.'}
+                      {formData.edad_minima > 100 ? t('categorias.minYear') : t('categorias.minAge')}
                     </label>
                     <input 
                       type="number" 
@@ -455,7 +457,7 @@ export default function GestionCategorias() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      {formData.edad_minima > 100 ? 'Año Máx.' : 'Edad Máx.'}
+                      {formData.edad_minima > 100 ? t('categorias.maxYear') : t('categorias.maxAge')}
                     </label>
                     <input 
                       type="number" 
@@ -467,7 +469,7 @@ export default function GestionCategorias() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Cupo Máx.</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">{t('categorias.maxCapacity')}</label>
                     <input 
                       type="number" 
                       name="capacidad_maxima" 
@@ -479,12 +481,12 @@ export default function GestionCategorias() {
                 </div>
 
                 <div className="pt-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-2">Horarios de Entrenamiento *</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">{t('categorias.trainingSchedules')}</label>
                   <div className="space-y-3 mb-3">
                     {horariosDinámicos.map((horario, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <select value={horario.dia} onChange={(e) => actualizarHorario(index, 'dia', e.target.value)} className="w-1/3 px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white outline-none cursor-pointer">
-                          {['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map(d => <option key={d} value={d}>{d}</option>)}
+                          {[t('categorias.monday'),t('categorias.tuesday'),t('categorias.wednesday'),t('categorias.thursday'),t('categorias.friday'),t('categorias.saturday'),t('categorias.sunday')].map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                         <div className="flex items-center w-2/3 gap-2">
                           <input type="time" value={horario.inicio} onChange={(e) => actualizarHorario(index, 'inicio', e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm outline-none" />
@@ -505,9 +507,9 @@ export default function GestionCategorias() {
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-white flex justify-center gap-3 shrink-0 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-              <button type="button" onClick={cerrarModal} className="flex-1 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
+              <button type="button" onClick={cerrarModal} className="flex-1 py-3 bg-white border border-slate-300 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">{t('categorias.cancel')}</button>
               <button type="submit" form="grupoForm" disabled={guardando} className="flex-1 py-3 bg-brand text-white rounded-xl text-sm font-bold hover:text-brand shadow-sm disabled:opacity-50 transition-colors">
-                {guardando ? 'Guardando...' : (grupoEditandoId ? 'Actualizar Grupo' : 'Guardar Grupo')}
+                {guardando ? t('categorias.saving') : (grupoEditandoId ? t('categorias.updateGroupBtn') : t('categorias.saveGroupBtn'))}
               </button>
             </div>
           </div>

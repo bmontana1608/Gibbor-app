@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
@@ -7,6 +8,7 @@ import { ClipboardList, CheckCircle, Clock, Calendar as CalIcon, Users, UserChec
 import { toast } from 'sonner';
 
 export default function ConvocatoriasDirector() {
+  const { t } = useTranslation();
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
   const [eventos, setEventos] = useState<any[]>([]);
@@ -43,7 +45,7 @@ export default function ConvocatoriasDirector() {
   }, [tenant]);
 
   const aprobarEvento = async (eventoId: string) => {
-    const toastId = toast.loading('Aprobando y enviando mensajes de WhatsApp...');
+    const toastId = toast.loading(t('convocatorias.approvingSending'));
     try {
       const res = await fetch('/api/director/aprobar-convocatoria', {
         method: 'POST',
@@ -54,7 +56,7 @@ export default function ConvocatoriasDirector() {
       
       if (data.error) throw new Error(data.error);
       
-      toast.success(data.mensaje || 'Convocatoria aprobada con éxito', { id: toastId });
+      toast.success(data.mensaje || t('convocatorias.approveSuccess'), { id: toastId });
       
       // Actualizar estado local
       setEventos(prev => prev.map(ev => ev.id === eventoId ? { ...ev, estado: 'Aprobado' } : ev));
@@ -64,8 +66,8 @@ export default function ConvocatoriasDirector() {
   };
 
   const devolverEvento = async (eventoId: string) => {
-    if (!confirm('¿Estás seguro de devolver esta lista al entrenador para modificaciones?')) return;
-    const toastId = toast.loading('Devolviendo...');
+    if (!confirm(t('convocatorias.confirmReturn'))) return;
+    const toastId = toast.loading(t('convocatorias.returning'));
     try {
       const res = await fetch('/api/director/devolver-convocatoria', {
         method: 'POST',
@@ -76,7 +78,7 @@ export default function ConvocatoriasDirector() {
       
       if (data.error) throw new Error(data.error);
       
-      toast.success(data.mensaje || 'Convocatoria devuelta', { id: toastId });
+      toast.success(data.mensaje || t('convocatorias.returnSuccess'), { id: toastId });
       setEventos(prev => prev.map(ev => ev.id === eventoId ? { ...ev, estado: 'Devuelta' } : ev));
     } catch (err: any) {
       toast.error('Error: ' + err.message, { id: toastId });
@@ -84,16 +86,16 @@ export default function ConvocatoriasDirector() {
   };
 
   const eliminarEvento = async (eventoId: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar y rechazar toda esta convocatoria?')) return;
-    const toastId = toast.loading('Eliminando...');
+    if (!confirm(t('convocatorias.confirmDelete'))) return;
+    const toastId = toast.loading(t('convocatorias.deleting'));
     try {
       const res = await fetch(`/api/eventos?slug=${tenantSlug}&id=${eventoId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        toast.success('Convocatoria eliminada', { id: toastId });
+        toast.success(t('convocatorias.deleteSuccess'), { id: toastId });
         setEventos(prev => prev.filter(e => e.id !== eventoId));
       } else {
-        toast.error(data.error || 'Error al eliminar', { id: toastId });
+        toast.error(data.error || t('convocatorias.deleteError'), { id: toastId });
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message, { id: toastId });
@@ -101,13 +103,13 @@ export default function ConvocatoriasDirector() {
   };
 
   const eliminarJugador = async (convocatoriaId: string, eventoId: string) => {
-    if (!confirm('¿Estás seguro de que deseas quitar a este jugador de la lista?')) return;
-    const toastId = toast.loading('Quitando jugador...');
+    if (!confirm(t('convocatorias.confirmRemovePlayer'))) return;
+    const toastId = toast.loading(t('convocatorias.removingPlayer'));
     try {
       const res = await fetch(`/api/director/convocatorias/jugador?slug=${tenantSlug}&id=${convocatoriaId}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        toast.success('Jugador removido', { id: toastId });
+        toast.success(t('convocatorias.removePlayerSuccess'), { id: toastId });
         setEventos(prev => prev.map(e => {
           if (e.id === eventoId) {
             const nuevasConvs = e.convocatorias?.filter((c: any) => c.id !== convocatoriaId) || [];
@@ -116,7 +118,7 @@ export default function ConvocatoriasDirector() {
           return e;
         }).filter(e => e.convocatorias && e.convocatorias.length > 0)); 
       } else {
-        toast.error(data.error || 'Error al remover jugador', { id: toastId });
+        toast.error(data.error || t('convocatorias.removePlayerError'), { id: toastId });
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message, { id: toastId });
@@ -125,7 +127,7 @@ export default function ConvocatoriasDirector() {
 
   const notificarJugador = async (convocatoriaId: string, eventoId: string) => {
     setNotificandoJugador(convocatoriaId);
-    const toastId = toast.loading('Enviando WhatsApp al jugador...');
+    const toastId = toast.loading(t('convocatorias.sendingWhatsapp'));
     try {
       const res = await fetch('/api/director/notificar-jugador', {
         method: 'POST',
@@ -135,7 +137,7 @@ export default function ConvocatoriasDirector() {
       const data = await res.json();
       
       if (data.success) {
-        toast.success('Mensaje enviado por WhatsApp', { id: toastId });
+        toast.success(t('convocatorias.whatsappSuccess'), { id: toastId });
         setEventos(prev => prev.map(e => {
           if (e.id === eventoId) {
             const nuevasConvs = e.convocatorias?.map((c: any) => 
@@ -146,7 +148,7 @@ export default function ConvocatoriasDirector() {
           return e;
         }));
       } else {
-        toast.error(data.error || 'Error al enviar mensaje', { id: toastId });
+        toast.error(data.error || t('convocatorias.whatsappError'), { id: toastId });
       }
     } catch (err: any) {
       toast.error('Error: ' + err.message, { id: toastId });
@@ -155,7 +157,7 @@ export default function ConvocatoriasDirector() {
     }
   };
 
-  if (cargando) return <div className="p-8 text-center text-slate-400">Cargando convocatorias...</div>;
+  if (cargando) return <div className="p-8 text-center text-slate-400">{t('convocatorias.loading')}</div>;
 
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
 
@@ -167,7 +169,7 @@ export default function ConvocatoriasDirector() {
             <ClipboardList className="w-8 h-8" style={{ color: brandColor }} />
             Gestión de Convocatorias
           </h1>
-          <p className="text-slate-500 font-medium">Revisa y aprueba las nóminas enviadas por tus entrenadores.</p>
+          <p className="text-slate-500 font-medium">{t('convocatorias.subtitle')}</p>
         </div>
       </div>
 
@@ -175,7 +177,7 @@ export default function ConvocatoriasDirector() {
         {eventos.length === 0 && (
           <div className="text-center p-12 bg-white rounded-[2rem] border border-slate-100">
             <ClipboardList className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-bold">No hay convocatorias registradas.</p>
+            <p className="text-slate-500 font-bold">{t('convocatorias.noConvocatorias')}</p>
           </div>
         )}
 
@@ -196,7 +198,7 @@ export default function ConvocatoriasDirector() {
                 <h2 className="text-2xl font-black text-slate-800 italic uppercase tracking-tighter">{evento.titulo}</h2>
                 <div className="flex flex-wrap gap-4 mt-3 text-sm text-slate-500 font-medium">
                   <span className="flex items-center gap-1"><CalIcon className="w-4 h-4" /> {new Date(evento.fecha).toLocaleString()}</span>
-                  <span className="flex items-center gap-1">🏟️ {evento.lugar || 'Por definir'}</span>
+                  <span className="flex items-center gap-1">🏟️ {evento.lugar || t('convocatorias.tbd')}</span>
                   <span className="flex items-center gap-1">👤 Prof: {evento.perfiles?.nombres}</span>
                 </div>
               </div>
@@ -208,33 +210,33 @@ export default function ConvocatoriasDirector() {
                     className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center transition-colors border border-rose-200"
                   >
                     <X className="w-6 h-6 mb-1" />
-                    <span className="text-xs">Devolver Lista</span>
+                    <span className="text-xs">{t('convocatorias.returnList')}</span>
                   </button>
                   <button
                     onClick={() => aprobarEvento(evento.id)}
                     className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-4 rounded-xl flex flex-col items-center justify-center shadow-lg shadow-emerald-200 transition-colors"
                   >
                     <CheckCircle className="w-6 h-6 mb-1" />
-                    <span className="text-xs">Aprobar y Notificar</span>
+                    <span className="text-xs">{t('convocatorias.approveNotify')}</span>
                   </button>
                 </div>
               )}
               {evento.estado === 'Devuelta' && (
                 <div className="text-center p-4 bg-rose-50 text-rose-600 rounded-xl border border-rose-200 font-bold text-sm">
-                  Lista devuelta al entrenador para correcciones.
+                  {t('convocatorias.listReturnedDesc')}
                 </div>
               )}
               {evento.estado === 'Aprobado' && (
                 <div className="flex flex-col gap-2">
                   <div className="text-center p-4 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-200 font-bold text-sm">
-                    Convocatoria Aprobada
+                    {t('convocatorias.convocatoriaApproved')}
                   </div>
                   <button
                     onClick={() => devolverEvento(evento.id)}
                     className="w-full bg-amber-50 hover:bg-amber-100 text-amber-600 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors border border-amber-200"
                   >
                     <Edit2 className="w-4 h-4" />
-                    <span className="text-xs uppercase tracking-widest">Reabrir para Modificaciones</span>
+                    <span className="text-xs uppercase tracking-widest">{t('convocatorias.reopenModifications')}</span>
                   </button>
                 </div>
               )}
@@ -242,7 +244,7 @@ export default function ConvocatoriasDirector() {
 
             <div className="mt-8 ml-4 border-t border-slate-50 pt-6">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" /> Nómina Convocada ({evento.convocatorias?.length || 0})
+                <Users className="w-4 h-4 text-slate-400" /> {t('convocatorias.calledRoster')} ({evento.convocatorias?.length || 0})
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {evento.convocatorias?.map((convocado: any) => (
@@ -265,7 +267,7 @@ export default function ConvocatoriasDirector() {
                         <button
                           onClick={() => eliminarJugador(convocado.id, evento.id)}
                           className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 hover:text-red-500 bg-white hover:bg-red-50 rounded-lg shadow-sm border border-slate-200 hover:border-red-200 opacity-0 group-hover:opacity-100 transition-all"
-                          title="Remover de la convocatoria"
+                          title=t('convocatorias.removeFromCall')
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
@@ -274,13 +276,13 @@ export default function ConvocatoriasDirector() {
                       {evento.estado === 'Aprobado' && (
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                           {convocado.estado_notificacion === 'Enviada' && (
-                            <span className="text-[8px] font-black uppercase text-emerald-500 mr-1 bg-emerald-50 px-1.5 py-0.5 rounded">Enviado</span>
+                            <span className="text-[8px] font-black uppercase text-emerald-500 mr-1 bg-emerald-50 px-1.5 py-0.5 rounded">{t('convocatorias.sent')}</span>
                           )}
                           <button
                             onClick={() => notificarJugador(convocado.id, evento.id)}
                             disabled={notificandoJugador === convocado.id}
                             className={`p-2 rounded-lg shadow-sm border transition-all ${convocado.estado_notificacion === 'Enviada' ? 'text-slate-400 hover:text-indigo-500 bg-white border-slate-200' : 'text-white bg-indigo-500 hover:bg-indigo-600 border-indigo-600'}`}
-                            title="Notificar por WhatsApp manualmente"
+                            title=t('convocatorias.notifyManual')
                           >
                             {notificandoJugador === convocado.id ? (
                               <div className="w-3.5 h-3.5 border-2 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>

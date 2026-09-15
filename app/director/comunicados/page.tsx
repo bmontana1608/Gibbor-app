@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Megaphone, Send, History, Smartphone, Bell, Loader2, Sparkles, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function PaginaComunicados() {
+  const { t } = useTranslation();
   const [titulo, setTitulo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -44,9 +46,9 @@ export default function PaginaComunicados() {
   };
 
   const suscribirDispositivo = async () => {
-    const toastId = toast.loading("Configurando notificaciones...");
+    const toastId = toast.loading(t('comunicados.configuring_notifications'));
     try {
-      if (!('serviceWorker' in navigator)) return toast.error("Tu navegador no soporta notificaciones", { id: toastId });
+      if (!('serviceWorker' in navigator)) return toast.error(t('comunicados.browser_does_not_support_notifications'), { id: toastId });
 
       let reg = await navigator.serviceWorker.getRegistration();
       if (!reg) {
@@ -54,7 +56,7 @@ export default function PaginaComunicados() {
       }
 
       const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return toast.error("Permiso denegado", { id: toastId });
+      if (permission !== 'granted') return toast.error(t('comunicados.permission_denied'), { id: toastId });
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -67,23 +69,23 @@ export default function PaginaComunicados() {
       });
 
       if (res.ok) {
-        toast.success("¡Notificaciones activadas en este dispositivo! 🎉", { id: toastId });
+        toast.success(t('comunicados.notifications_activated'), { id: toastId });
         setIsSubscribed(true);
         contarSuscritos();
       } else {
-        throw new Error("Error en el servidor");
+        throw new Error(t('comunicados.server_error'));
       }
     } catch (err: any) {
-      toast.error("Error: " + err.message, { id: toastId });
+      toast.error(`${t('comunicados.error')} ${err.message}`, { id: toastId });
     }
   };
 
   const enviarAlerta = async () => {
-    if (!titulo || !mensaje) return toast.error("Completa el mensaje");
-    if (totalSubscribers === 0) return toast.error("No hay usuarios suscritos todavía");
+    if (!titulo || !mensaje) return toast.error(t('comunicados.complete_message'));
+    if (totalSubscribers === 0) return toast.error(t('comunicados.no_subscribed_users'));
 
     setEnviando(true);
-    const toastId = toast.loading("Enviando alerta a todos los dispositivos...");
+    const toastId = toast.loading(t('comunicados.sending_alert_to_all'));
 
     try {
       const res = await fetch('/api/notifications/broadcast', {
@@ -92,14 +94,14 @@ export default function PaginaComunicados() {
       });
 
       if (res.ok) {
-        toast.success("¡Comunicado enviado con éxito! 🚀", { id: toastId });
+        toast.success(t('comunicados.announcement_sent_success'), { id: toastId });
         setTitulo('');
         setMensaje('');
       } else {
-        toast.error("Fallo al enviar comunicado", { id: toastId });
+        toast.error(t('comunicados.failed_to_send_announcement'), { id: toastId });
       }
     } catch (err) {
-      toast.error("Error de red", { id: toastId });
+      toast.error(t('comunicados.network_error'), { id: toastId });
     } finally {
       setEnviando(false);
     }
@@ -114,16 +116,16 @@ export default function PaginaComunicados() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-3xl font-black text-slate-800 dark:text-white flex items-center gap-3 italic tracking-tighter uppercase">
-              <Megaphone className="text-brand w-9 h-9" /> Centro de Comunicados
+              <Megaphone className="text-brand w-9 h-9" /> {t('comunicados.announcements_center')}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">Envía alertas instantáneas a todos los celulares de la academia.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 font-medium">{t('comunicados.send_instant_alerts')}</p>
           </div>
           
           <div className="flex items-center gap-3">
             <div className="bg-white dark:bg-slate-900 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
               <p className="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest">
-                {totalSubscribers} Dispositivos Activos
+                {t('comunicados.active_devices').replace('{totalSubscribers}', totalSubscribers.toString())}
               </p>
             </div>
           </div>
@@ -137,15 +139,15 @@ export default function PaginaComunicados() {
                    <Bell className="w-8 h-8" />
                 </div>
                 <div>
-                   <h3 className="text-lg font-black uppercase italic tracking-tight">Activa tus propias alertas</h3>
-                   <p className="text-sm bg-brand/10">Suscríbete en este navegador para recibir las pruebas que envíes.</p>
+                   <h3 className="text-lg font-black uppercase italic tracking-tight">{t('comunicados.activate_your_own_alerts')}</h3>
+                   <p className="text-sm bg-brand/10">{t('comunicados.subscribe_this_browser')}</p>
                 </div>
              </div>
              <button 
               onClick={suscribirDispositivo}
               className="bg-white text-brand px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-105 transition-all"
              >
-                Habilitar Notificaciones
+                {t('comunicados.enable_notifications')}
              </button>
           </div>
         )}
@@ -158,27 +160,27 @@ export default function PaginaComunicados() {
                <div className="bg-brand/10 rounded-xl flex items-center justify-center text-brand">
                   <Send className="w-5 h-5" />
                </div>
-               <h2 className="text-xl font-bold text-slate-800 dark:text-white">Redactar Alerta</h2>
+               <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('comunicados.compose_alert')}</h2>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Título de la Notificación</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">{t('comunicados.notification_title')}</label>
                 <input 
                   type="text" 
                   value={titulo}
                   onChange={(e) => setTitulo(e.target.value)}
-                  placeholder="Ej: Cambio de Horario ⚠️"
+                  placeholder={t('comunicados.ex_schedule_change')}
                   className="text-brand font-bold transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">Mensaje (Breve y Urgente)</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-2">{t('comunicados.message_short_urgent')}</label>
                 <textarea 
                   value={mensaje}
                   onChange={(e) => setMensaje(e.target.value)}
-                  placeholder="Ej: El entrenamiento de hoy se traslada a las 4:00 PM en la Cancha Principal..."
+                  placeholder={t('comunicados.ex_training_moved')}
                   rows={4}
                   className="text-brand font-medium transition-all"
                 />
@@ -191,7 +193,7 @@ export default function PaginaComunicados() {
                   className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 disabled:bg-slate-200 dark:disabled:bg-slate-900 text-white py-5 rounded-[2rem] font-black uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all"
                 >
                   {enviando ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
-                  {enviando ? 'Enviando Alertas...' : 'Lanzar Comunicado'}
+                  {enviando ? t('comunicados.sending_alerts') : t('comunicados.launch_announcement')}
                 </button>
               </div>
             </div>
@@ -207,10 +209,10 @@ export default function PaginaComunicados() {
                     <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl shadow-black/20 animate-bounce duration-[2000ms]">
                         <div className="flex items-center gap-2 mb-2">
                            <img src="/logo.png" className="w-4 h-4 rounded-full" />
-                           <span className="text-[8px] font-bold text-slate-500">Plataforma • Ahora</span>
+                           <span className="text-[8px] font-bold text-slate-500">{t('comunicados.platform_now')}</span>
                         </div>
-                        <h4 className="text-xs font-black text-slate-800 truncate">{titulo || 'Título del Comunicado'}</h4>
-                        <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">{mensaje || 'Aquí aparecerá tu mensaje de alerta como una notificación real...'}</p>
+                        <h4 className="text-xs font-black text-slate-800 truncate">{titulo || t('comunicados.announcement_title')}</h4>
+                        <p className="text-[10px] text-slate-600 mt-1 line-clamp-2">{mensaje || t('comunicados.here_will_appear_your_alert_message')}</p>
                     </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
@@ -219,7 +221,7 @@ export default function PaginaComunicados() {
             <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 space-y-4">
                <div className="text-brand">
                   <Info className="w-5 h-5" />
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Las notificaciones llegan incluso si el usuario no tiene la app abierta en ese momento.</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-400">{t('comunicados.notifications_arrive_even_if_closed')}</p>
                </div>
             </div>
 

@@ -9,6 +9,7 @@ import {
   Trophy, Plus, Calendar, ChevronLeft, CheckCircle2,
   Circle, X, Loader2, Coins, Flame, Users
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 type EventoDeportivo = {
   id: string;
@@ -48,6 +49,7 @@ const TIPO_COLORS: Record<string, string> = {
 };
 
 export default function AportesPage() {
+  const { t } = useTranslation();
   const { route, slug: tenantSlug } = useTenant();
   const [clubId, setClubId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -273,7 +275,7 @@ export default function AportesPage() {
     if (error) {
       toast.error('Error al crear el evento: ' + error.message);
     } else {
-      toast.success('¡Evento creado exitosamente!');
+      toast.success(t('APORTES.TOAST_EVENT_CREATED'));
       setShowModal(false);
       setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '', categorias_seleccionadas: [], evento_origen_id: '' });
       fetchEventos();
@@ -283,11 +285,11 @@ export default function AportesPage() {
 
   // --- Eliminar evento ---
   const eliminarEvento = async (id: string) => {
-    if (!window.confirm('¿Eliminar este evento y todos sus registros de aportes? Esta acción no se puede deshacer.')) return;
-    const toastId = toast.loading('Eliminando evento...');
+    if (!window.confirm(t('APORTES.ALERT_DELETE'))) return;
+    const toastId = toast.loading(t('APORTES.TOAST_DELETING'));
     const { error } = await supabase.from('eventos_deportivos').delete().eq('id', id);
     if (error) { toast.error('Error: ' + error.message, { id: toastId }); return; }
-    toast.success('Evento eliminado', { id: toastId });
+    toast.success(t('APORTES.TOAST_EVENT_DELETED'), { id: toastId });
     setEventos(prev => prev.filter(ev => ev.id !== id));
   };
 
@@ -311,13 +313,13 @@ export default function AportesPage() {
             onClick={() => { setEventoSeleccionado(null); fetchEventos(); }}
             className="flex items-center gap-1 text-slate-500 hover:text-slate-800 text-sm font-bold transition-colors mb-4"
           >
-            <ChevronLeft className="w-4 h-4" /> Volver a Eventos
+            <ChevronLeft className="w-4 h-4" /> {t('APORTES.BTN_BACK')}
           </button>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <h1 className="text-2xl font-black text-slate-800">{eventoSeleccionado.nombre}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${TIPO_COLORS[eventoSeleccionado.tipo] || TIPO_COLORS['Otro']}`}>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border \${TIPO_COLORS[eventoSeleccionado.tipo] || TIPO_COLORS['Otro']}`}>
                   {eventoSeleccionado.tipo}
                 </span>
                 <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -335,19 +337,19 @@ export default function AportesPage() {
         {/* Métricas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-emerald-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Recaudado</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.METRIC_COLLECTED')}</p>
             <h3 className="text-xl font-black text-emerald-600">${totalRecaudado.toLocaleString('es-CO')}</h3>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-blue-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto / Alumno</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.METRIC_FEE')}</p>
             <h3 className="text-xl font-black text-slate-800">${(eventoSeleccionado.monto_sugerido || 0).toLocaleString('es-CO')}</h3>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-indigo-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pagaron</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.METRIC_PAID')}</p>
             <h3 className="text-xl font-black text-indigo-600">{pagaron.length} <span className="text-sm text-slate-400 font-medium">/ {aportes.length}</span></h3>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm border-l-4 border-l-rose-400">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pendientes</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.METRIC_PENDING')}</p>
             <h3 className="text-xl font-black text-rose-500">{aportes.length - pagaron.length}</h3>
           </div>
         </div>
@@ -356,7 +358,7 @@ export default function AportesPage() {
         {aportes.length > 0 && (
           <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm mb-6">
             <div className="flex justify-between text-xs text-slate-500 mb-2 font-bold">
-              <span>Progreso de cobro</span>
+              <span>{t('APORTES.PROGRESS_TITLE')}</span>
               <span>{pct}%</span>
             </div>
             <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
@@ -375,24 +377,24 @@ export default function AportesPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-slate-100 flex justify-between items-center">
               <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <Users className="w-4 h-4 text-slate-400" /> Registro de Aportes ({aportes.length} miembros)
+                <Users className="w-4 h-4 text-slate-400" /> {t('APORTES.TABLE_TITLE_1')}{aportes.length}{t('APORTES.TABLE_TITLE_2')}
               </h4>
-              <p className="text-[11px] text-slate-400">Toca cada fila para marcar el pago</p>
+              <p className="text-[11px] text-slate-400">{t('APORTES.TABLE_HINT')}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
-                    <th className="p-4 md:px-6">Miembro</th>
-                    <th className="p-4 md:px-6">Categoría</th>
-                    <th className="p-4 md:px-6">Monto</th>
-                    <th className="p-4 md:px-6">Estado</th>
-                    <th className="p-4 md:px-6 text-right">Acción</th>
+                    <th className="p-4 md:px-6">{t('APORTES.TH_MEMBER')}</th>
+                    <th className="p-4 md:px-6">{t('APORTES.TH_CATEGORY')}</th>
+                    <th className="p-4 md:px-6">{t('APORTES.TH_AMOUNT')}</th>
+                    <th className="p-4 md:px-6">{t('APORTES.TH_STATUS')}</th>
+                    <th className="p-4 md:px-6 text-right">{t('APORTES.TH_ACTION')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {aportes.map(a => (
-                    <tr key={a.perfil_id} className={`hover:bg-slate-50/60 transition-colors ${a.pagado ? 'bg-emerald-50/20' : ''}`}>
+                    <tr key={a.perfil_id} className={`hover:bg-slate-50/60 transition-colors \${a.pagado ? 'bg-emerald-50/20' : ''}`}>
                       <td className="p-4 md:px-6">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600 border border-slate-200 flex-shrink-0">
@@ -413,11 +415,11 @@ export default function AportesPage() {
                       <td className="p-4 md:px-6">
                         {a.pagado ? (
                           <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3" /> Pagó
+                            <CheckCircle2 className="w-3 h-3" /> {t('APORTES.STATUS_PAID')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 bg-slate-50 text-slate-500 text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">
-                            <Circle className="w-3 h-3" /> Pendiente
+                            <Circle className="w-3 h-3" /> {t('APORTES.STATUS_PENDING')}
                           </span>
                         )}
                       </td>
@@ -425,19 +427,19 @@ export default function AportesPage() {
                         <button
                           onClick={() => toggleAporte(a)}
                           disabled={updatingId === a.perfil_id}
-                          className={`text-xs font-bold py-1.5 px-3 rounded-lg border transition-all disabled:opacity-50 ${
+                          className={`text-xs font-bold py-1.5 px-3 rounded-lg border transition-all disabled:opacity-50 \${
                             a.pagado
                               ? 'border-red-200 text-red-500 hover:bg-red-50'
                               : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 bg-emerald-50/50'
                           }`}
                         >
-                          {updatingId === a.perfil_id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : a.pagado ? 'Desmarcar' : '✓ Pagó'}
+                          {updatingId === a.perfil_id ? <Loader2 className="w-3 h-3 animate-spin inline" /> : a.pagado ? t('APORTES.BTN_UNMARK') : t('APORTES.BTN_MARK_PAID')}
                         </button>
                       </td>
                     </tr>
                   ))}
                   {aportes.length === 0 && (
-                    <tr><td colSpan={5} className="p-12 text-center text-slate-400 italic">No hay miembros activos en el club.</td></tr>
+                    <tr><td colSpan={5} className="p-12 text-center text-slate-400 italic">{t('APORTES.NO_MEMBERS')}</td></tr>
                   )}
                 </tbody>
               </table>
@@ -455,17 +457,17 @@ export default function AportesPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <Coins className="text-amber-500 w-7 h-7" /> Aportes por Evento
+            <Coins className="text-amber-500 w-7 h-7" /> {t('APORTES.TITLE')}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Partidos, torneos, canchas y más. <strong>No afecta las mensualidades.</strong>
+            {t('APORTES.SUBTITLE_1')}<strong>{t('APORTES.SUBTITLE_2')}</strong>
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
           className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 shadow-lg shadow-amber-100 transition-all"
         >
-          <Plus className="w-4 h-4" /> Crear Evento
+          <Plus className="w-4 h-4" /> {t('APORTES.BTN_CREATE_EVENT')}
         </button>
       </div>
 
@@ -473,9 +475,9 @@ export default function AportesPage() {
       <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 text-amber-800 mb-6">
         <Flame className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-xs font-black uppercase tracking-wide">Flujo de caja separado</p>
+          <p className="text-xs font-black uppercase tracking-wide">{t('APORTES.BANNER_TITLE')}</p>
           <p className="text-xs text-amber-700 mt-0.5">
-            Los aportes aquí registrados <strong>NO modifican el estado de mensualidades</strong> de los jugadores y <strong>NO aparecen en el flujo de Cobranza</strong>.
+            {t('APORTES.BANNER_DESC_1')}<strong>{t('APORTES.BANNER_DESC_2')}</strong>{t('APORTES.BANNER_DESC_3')}<strong>{t('APORTES.BANNER_DESC_4')}</strong>{t('APORTES.BANNER_DESC_5')}
           </p>
         </div>
       </div>
@@ -486,13 +488,13 @@ export default function AportesPage() {
       ) : eventos.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-20 text-center">
           <Trophy className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-          <p className="text-slate-500 font-bold text-lg">No hay eventos creados</p>
-          <p className="text-slate-400 text-sm mt-1">Crea tu primer evento para registrar aportes de canchas, arbitraje o torneos</p>
+          <p className="text-slate-500 font-bold text-lg">{t('APORTES.NO_EVENTS_TITLE')}</p>
+          <p className="text-slate-400 text-sm mt-1">{t('APORTES.NO_EVENTS_DESC')}</p>
           <button
             onClick={() => setShowModal(true)}
             className="mt-6 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-black text-sm shadow-lg shadow-amber-100 transition-all"
           >
-            + Crear Primer Evento
+            {t('APORTES.BTN_CREATE_FIRST_EVENT')}
           </button>
         </div>
       ) : (
@@ -507,7 +509,7 @@ export default function AportesPage() {
                   className="w-full p-5 text-left"
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${TIPO_COLORS[ev.tipo] || TIPO_COLORS['Otro']}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border \${TIPO_COLORS[ev.tipo] || TIPO_COLORS['Otro']}`}>
                       {ev.tipo}
                     </span>
                     <span className="text-xs text-slate-400 flex items-center gap-1">
@@ -523,15 +525,15 @@ export default function AportesPage() {
                   )}
                   <div className="grid grid-cols-3 gap-2 text-center mt-3 pt-3 border-t border-slate-50">
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Recaudado</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{t('APORTES.CARD_COL_COLLECTED')}</p>
                       <p className="text-sm font-black text-emerald-600">${(ev.total_pagado || 0).toLocaleString('es-CO')}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Pagaron</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{t('APORTES.CARD_COL_PAID')}</p>
                       <p className="text-sm font-black text-indigo-600">{ev.total_pagaron || 0}/{ev.total_alumnos || 0}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-slate-400 uppercase font-bold">Por alumno</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-bold">{t('APORTES.CARD_COL_PER_STUDENT')}</p>
                       <p className="text-sm font-black text-slate-700">${(ev.monto_sugerido || 0).toLocaleString('es-CO')}</p>
                     </div>
                   </div>
@@ -540,7 +542,7 @@ export default function AportesPage() {
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 text-right">{pct}% cobrado</p>
+                      <p className="text-[10px] text-slate-400 mt-1 text-right">{pct}% {t('APORTES.CARD_PCT_COLLECTED')}</p>
                     </div>
                   )}
                 </button>
@@ -549,7 +551,7 @@ export default function AportesPage() {
                     onClick={() => eliminarEvento(ev.id)}
                     className="text-[11px] font-bold text-slate-300 hover:text-red-400 transition-colors flex items-center gap-1"
                   >
-                    <X className="w-3 h-3" /> Eliminar
+                    <X className="w-3 h-3" /> {t('APORTES.BTN_DELETE')}
                   </button>
                 </div>
               </div>
@@ -564,8 +566,8 @@ export default function AportesPage() {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="bg-amber-500 p-6 text-white flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-black uppercase tracking-tight">Nuevo Evento</h3>
-                <p className="text-xs opacity-80 mt-0.5">Partido, torneo, cancha o cualquier actividad</p>
+                <h3 className="text-xl font-black uppercase tracking-tight">{t('APORTES.MODAL_TITLE')}</h3>
+                <p className="text-xs opacity-80 mt-0.5">{t('APORTES.MODAL_SUBTITLE')}</p>
               </div>
               <button onClick={() => setShowModal(false)} className="bg-white/20 hover:bg-white/30 p-2 rounded-xl transition-colors">
                 <X className="w-5 h-5" />
@@ -573,19 +575,19 @@ export default function AportesPage() {
             </div>
             <form onSubmit={handleCrearEvento} className="p-6 space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nombre del Evento *</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_NAME')}</label>
                 <input
                   type="text"
                   required
                   value={form.nombre}
                   onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))}
-                  placeholder="Ej. Partido vs Estrella FC"
+                  placeholder={t('APORTES.MODAL_NAME_PH')}
                   className="w-full border border-slate-300 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-amber-400"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tipo</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_TYPE')}</label>
                   <select
                     value={form.tipo}
                     onChange={e => setForm(f => ({ ...f, tipo: e.target.value }))}
@@ -595,7 +597,7 @@ export default function AportesPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha *</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_DATE')}</label>
                   <input
                     type="date"
                     required
@@ -606,13 +608,13 @@ export default function AportesPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto sugerido por alumno ($)</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_FEE')}</label>
                 <input
                   type="number"
                   min="0"
                   value={form.monto_sugerido}
                   onChange={e => setForm(f => ({ ...f, monto_sugerido: e.target.value }))}
-                  placeholder="0"
+                  placeholder={t('APORTES.MODAL_FEE_PH')}
                   className="w-full border border-slate-300 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-amber-400"
                 />
               </div>
@@ -620,26 +622,26 @@ export default function AportesPage() {
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
                 <div>
                   <label className="block text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 flex items-center gap-1">
-                    Vincular con Convocatoria (Opcional)
+                    {t('APORTES.MODAL_LINK')}
                   </label>
                   <select
                     value={form.evento_origen_id}
                     onChange={e => setForm(f => ({ ...f, evento_origen_id: e.target.value, categorias_seleccionadas: [] }))}
                     className="w-full border border-indigo-200 rounded-xl py-3 px-4 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
                   >
-                    <option value="">-- No vincular (Evento Manual) --</option>
+                    <option value="">{t('APORTES.MODAL_LINK_OPT')}</option>
                     {convocatoriasClub.map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.tipo} {c.equipo_rival ? `vs ${c.equipo_rival}` : ''} - {new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CO')} ({c.convocatorias?.length || 0} convocados)
+                        {c.tipo} {c.equipo_rival ? `vs \${c.equipo_rival}` : ''} - {new Date(c.fecha + 'T12:00:00').toLocaleDateString('es-CO')} ({c.convocatorias?.length || 0} {t('CALCULADORA.CONVOCADOS_OPTION')})
                       </option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-slate-400 mt-1">Si seleccionas una convocatoria, se cobrará exclusivamente a esos jugadores.</p>
+                  <p className="text-[10px] text-slate-400 mt-1">{t('APORTES.MODAL_LINK_HINT')}</p>
                 </div>
 
                 {!form.evento_origen_id && (
                   <div>
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">O dirigido a (Categorías)</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_TARGET')}</label>
                     <div className="grid grid-cols-2 gap-2 mt-2 max-h-32 overflow-y-auto p-1 bg-white border border-slate-200 rounded-xl px-4 py-3">
                       <label className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700">
                         <input
@@ -648,7 +650,7 @@ export default function AportesPage() {
                           onChange={() => setForm(f => ({ ...f, categorias_seleccionadas: [] }))}
                           className="rounded text-amber-500 focus:ring-amber-500 w-4 h-4"
                         />
-                        Todas las categorías
+                        {t('APORTES.MODAL_TARGET_ALL')}
                       </label>
                       {categorias.map(cat => (
                         <label key={cat} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-600">
@@ -670,17 +672,17 @@ export default function AportesPage() {
                         </label>
                       ))}
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">Si seleccionas "Todas", se aplicará a todos los alumnos del club.</p>
+                    <p className="text-[10px] text-slate-400 mt-1">{t('APORTES.MODAL_TARGET_HINT')}</p>
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Descripción (opcional)</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('APORTES.MODAL_DESC')}</label>
                 <textarea
                   value={form.descripcion}
                   onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                  placeholder="Cancha en Club X, árbitro incluido, concentración..."
+                  placeholder={t('APORTES.MODAL_DESC_PH')}
                   rows={2}
                   className="w-full border border-slate-300 rounded-xl py-3 px-4 text-sm font-medium outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                 />
@@ -691,14 +693,14 @@ export default function AportesPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 py-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-50"
                 >
-                  Cancelar
+                  {t('APORTES.BTN_CANCEL')}
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
                   className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-sm font-black disabled:opacity-50 shadow-lg shadow-amber-100"
                 >
-                  {saving ? 'Creando...' : 'Crear Evento'}
+                  {saving ? t('APORTES.BTN_CREATING') : t('APORTES.BTN_SUBMIT')}
                 </button>
               </div>
             </form>

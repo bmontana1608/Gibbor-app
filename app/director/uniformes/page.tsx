@@ -10,8 +10,10 @@ import {
 } from 'lucide-react';
 
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function UniformesModule() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
   const [cargando, setCargando] = useState(true);
@@ -93,7 +95,7 @@ export default function UniformesModule() {
 
     } catch (e) {
       console.error(e);
-      toast.error("Error cargando los datos");
+      toast.error(t('uniformes.errorCargandoDatos'));
     } finally {
       setCargando(false);
     }
@@ -146,10 +148,10 @@ export default function UniformesModule() {
 
   const guardarPedido = async () => {
     if (!jugadorId || !precioVenta) {
-      return toast.error("Jugador y Precio de Venta son obligatorios");
+      return toast.error(t('uniformes.jugadorVentaObligatorios'));
     }
 
-    const toastId = toast.loading("Guardando pedido...");
+    const toastId = toast.loading(t('uniformes.guardandoPedido'));
     
     const pVenta = Number(precioVenta);
     const pCosto = Number(costoProveedor || 0);
@@ -184,19 +186,19 @@ export default function UniformesModule() {
         }
       }
       
-      toast.success("Pedido guardado con éxito", { id: toastId });
+      toast.success(t('uniformes.pedidoGuardado'), { id: toastId });
       setIsModalOpen(false);
       cargarDatos();
     } catch (err: any) {
-      toast.error("Error al guardar: " + err.message, { id: toastId });
+      toast.error(`${t('uniformes.errorGuardar')}${err.message}`, { id: toastId });
     }
   };
 
   const registrarPagoProveedor = async (pedido: any) => {
-    if (pedido.costo_liquidado) return toast.info("Este costo ya fue liquidado.");
-    if (!window.confirm(`¿Deseas registrar el pago de $${Number(pedido.costo_proveedor).toLocaleString()} al proveedor como un EGRESO del club?`)) return;
+    if (pedido.costo_liquidado) return toast.info(t('uniformes.costoYaLiquidado'));
+    if (!window.confirm(`${t('uniformes.deseasRegistrarPago')}${Number(pedido.costo_proveedor).toLocaleString()}${t('uniformes.alProveedorEgreso')}`)) return;
 
-    const toastId = toast.loading("Registrando egreso...");
+    const toastId = toast.loading(t('uniformes.registrandoEgreso'));
     try {
       // 1. Marcar como liquidado en la tabla de uniformes
       const { error: errUpd } = await supabase
@@ -220,23 +222,23 @@ export default function UniformesModule() {
 
       if (errEgr) throw errEgr;
 
-      toast.success("Gasto registrado en la contabilidad general del club", { id: toastId });
+      toast.success(t('uniformes.gastoRegistradoContabilidad'), { id: toastId });
       cargarDatos();
     } catch (err: any) {
-      toast.error("Error al liquidar: " + err.message, { id: toastId });
+      toast.error(`${t('uniformes.errorLiquidar')}${err.message}`, { id: toastId });
     }
   };
 
   const eliminarPedido = async (id: string) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este pedido?")) return;
-    const toastId = toast.loading("Eliminando...");
+    if (!window.confirm(t('uniformes.seguroEliminarPedido'))) return;
+    const toastId = toast.loading(t('uniformes.eliminando'));
     try {
       const { error } = await supabase.from('pedidos_uniformes').delete().eq('id', id);
       if (error) throw error;
-      toast.success("Eliminado correctamente", { id: toastId });
+      toast.success(t('uniformes.eliminadoCorrectamente'), { id: toastId });
       cargarDatos();
     } catch (err: any) {
-      toast.error("Error: " + err.message, { id: toastId });
+      toast.error(`${t('uniformes.error')}${err.message}`, { id: toastId });
     }
   };
 
@@ -257,79 +259,77 @@ export default function UniformesModule() {
     const nuevoTotalAbono = Number(pedidoActual.abono || 0) + montoSumar;
     const precioVent = Number(pedidoActual.precio_venta || 0);
     const estadoPago = nuevoTotalAbono >= precioVent ? 'Pagado' : 'Abonado';
+  const procesarAbonoExtra = async () => {
+    const abonoNum = Number(montoAbonoExtra);
+    if (!abonoNum || abonoNum <= 0) return toast.error(t('uniformes.abonoMayorCero'));
+    
+    if (!pedidoAbono) return;
+
+    const toastId = toast.loading(t('uniformes.procesandoPago'));
 
     try {
+      const nuevoAbono = Number(pedidoAbono.abono || 0) + abonoNum;
+      const estadoPago = nuevoAbono >= Number(pedidoAbono.precio_venta) ? 'Pagado' : 'Abonado';
+
       // 1. Actualizar el pedido
-      const { error } = await supabase
+      const { error: errUpd } = await supabase
         .from('pedidos_uniformes')
         .update({ 
-          abono: nuevoTotalAbono, 
+          abono: nuevoAbono, 
           estado_pago: estadoPago 
         })
-        .eq('id', pedidoActual.id);
+        .eq('id', pedidoAbono.id);
         
-      if (error) throw error;
+      if (errUpd) throw errUpd;
 
-      // 2. Inyectar a ingresos generales
-      await registrarIngresoFinanciero(pedidoActual.jugador_id, montoSumar, `Abono de $${montoSumar}`);
+      // 2. Registrar el INGRESO general en el club
+      await registrarIngresoFinanciero(
+        pedidoAbono.jugador_id, 
+        abonoNum, 
+        `Abono de Uniforme`
+      );
 
-      toast.success(`Abono registrado exitosamente. Se ha inyectado $${montoSumar} a los ingresos del club.`, { id: toastId });
-      setIsModalAbonoOpen(false);
-      setNuevoAbonoMonto('');
+      toast.success(`${t('uniformes.abonoRegistradoInyectado')}${abonoNum.toLocaleString()}${t('uniformes.aLosIngresosClub')}`, { id: toastId });
+      setIsAbonoModalOpen(false);
+      setMontoAbonoExtra('');
       cargarDatos();
+
     } catch (err: any) {
-      toast.error("Error al registrar abono: " + err.message, { id: toastId });
+      toast.error(`${t('uniformes.errorRegistrarAbono')}${err.message}`, { id: toastId });
     }
   };
 
-  if (cargando && !tenant) {
-    return <div className="p-8 text-center text-slate-500 font-bold">Cargando módulo de uniformes...</div>;
+  if (cargando) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen text-slate-400 bg-slate-50">
+        <div className="w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="font-bold text-sm tracking-widest uppercase">{t('uniformes.cargandoModuloUniformes')}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
-               <Shirt className="text-brand" /> Dotación y Uniformes
-            </h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">
-              Controla pedidos, tallas, costos de proveedor y tus ganancias.
-            </p>
-          </div>
-          <button 
-            onClick={abrirModalNuevo}
-            className="bg-slate-900 text-white hover:bg-slate-800 px-6 py-3 rounded-2xl font-black text-sm uppercase flex items-center gap-2 transition-all shadow-xl shadow-slate-900/10"
-          >
-            <PlusCircle className="w-5 h-5" /> Nuevo Pedido
-          </button>
+    <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 min-h-screen font-sans">
+      
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+            <Shirt className="text-brand w-8 h-8" /> {t('uniformes.dotacionUniformes')}
+          </h1>
+          <p className="text-slate-500 mt-2 font-medium">{t('uniformes.controlaPedidosTallas')}</p>
         </div>
+        <button 
+          onClick={abrirModalNuevo}
+          className="bg-brand text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-brand/20 hover:scale-105 transition-all flex items-center justify-center gap-2"
+        >
+          <PlusCircle className="w-5 h-5" /> {t('uniformes.nuevoPedido')}
+        </button>
+      </div>
 
         {/* DASHBOARD INTELIGENTE */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
            <div className="text-brand">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
-              <h3 className="text-3xl font-black text-slate-800 dark:text-white">${stats.totalVenta.toLocaleString('es-CO')}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
-           </div>
-           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-rose-500">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Costo Proveedor</p>
-              <h3 className="text-3xl font-black text-rose-600">${stats.totalCosto.toLocaleString('es-CO')}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">Gastos de fabricación</p>
-           </div>
-           <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
-              <TrendingUp className="absolute -right-4 -top-4 w-20 h-20 text-emerald-50 opacity-50" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ganancia Estimada</p>
-              <h3 className="text-3xl font-black text-emerald-600">${stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-bold">Utilidad libre del club</p>
-           </div>
-           <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-xl relative">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cartera Pendiente</p>
-              <h3 className="text-3xl font-black text-white">${stats.porCobrar.toLocaleString('es-CO')}</h3>
-              <div className="flex items-center gap-2 mt-2">
-                 <div className="w-full bg-slate-800 rounded-full h-1.5">
                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
                  </div>
                  <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
@@ -340,26 +340,26 @@ export default function UniformesModule() {
         {/* LISTADO DE PEDIDOS */}
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-             <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">Registro de Pedidos</h3>
+             <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter">{t('uniformes.registroPedidos')}</h3>
            </div>
            
            <div className="overflow-x-auto">
              <table className="w-full text-left border-collapse">
                 <thead>
                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-100 dark:border-slate-800">
-                      <th className="p-4 pl-6">Jugador</th>
-                      <th className="p-4">Tallas & Dorsal</th>
-                      <th className="p-4">Finanzas</th>
-                      <th className="p-4">Estado Pago</th>
-                      <th className="p-4">Fabricación</th>
-                      <th className="p-4 text-right pr-6">Acciones</th>
+                      <th className="p-4 pl-6">{t('uniformes.jugador')}</th>
+                      <th className="p-4">{t('uniformes.tallasDorsal')}</th>
+                      <th className="p-4">{t('uniformes.finanzas')}</th>
+                      <th className="p-4">{t('uniformes.estadoPago')}</th>
+                      <th className="p-4">{t('uniformes.fabricacion')}</th>
+                      <th className="p-4 text-right pr-6">{t('uniformes.acciones')}</th>
                    </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                    {pedidos.length === 0 ? (
                      <tr>
                        <td colSpan={6} className="p-12 text-center text-slate-400 font-medium italic">
-                         No hay pedidos de uniformes registrados.
+                         {t('uniformes.noHayPedidosUniformes')}
                        </td>
                      </tr>
                    ) : pedidos.map(p => {
@@ -370,7 +370,7 @@ export default function UniformesModule() {
                              <p className="font-bold text-slate-900 dark:text-white text-sm">
                                {p.perfiles?.nombres} {p.perfiles?.apellidos}
                              </p>
-                             <p className="text-[10px] text-slate-400 uppercase font-bold">{p.perfiles?.grupos || 'Sin grupo'}</p>
+                             <p className="text-[10px] text-slate-400 uppercase font-bold">{p.perfiles?.grupos || t('uniformes.sinGrupo')}</p>
                           </td>
                           <td className="p-4">
                              <div className="flex flex-wrap gap-2">
@@ -381,18 +381,18 @@ export default function UniformesModule() {
                           </td>
                           <td className="p-4">
                              <div className="text-xs">
-                               <p className="font-black text-slate-800 dark:text-white">Venta: ${Number(p.precio_venta).toLocaleString()}</p>
+                               <p className="font-black text-slate-800 dark:text-white">{t('uniformes.venta')}{Number(p.precio_venta).toLocaleString()}</p>
                                <div className="flex items-center gap-2">
-                                 <p className="text-rose-500 font-bold">Costo: ${Number(p.costo_proveedor).toLocaleString()}</p>
+                                 <p className="text-rose-500 font-bold">{t('uniformes.costo')}{Number(p.costo_proveedor).toLocaleString()}</p>
                                  {p.costo_liquidado ? (
-                                   <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">Liquidado</span>
+                                   <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase">{t('uniformes.liquidado')}</span>
                                  ) : (
                                    <button 
                                      onClick={() => registrarPagoProveedor(p)}
                                      className="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-black uppercase hover:bg-rose-500 hover:text-white transition-all"
-                                     title="Registrar pago al proveedor"
+                                     title={t('uniformes.registrarPagoProveedor')}
                                    >
-                                     Pagar
+                                     {t('uniformes.pagar')}
                                    </button>
                                  )}
                                </div>
@@ -407,7 +407,7 @@ export default function UniformesModule() {
                                  {p.estado_pago}
                                </span>
                                {debe > 0 && (
-                                 <span className="text-[10px] font-bold text-slate-500">Debe: ${debe.toLocaleString()}</span>
+                                 <span className="text-[10px] font-bold text-slate-500">{t('uniformes.debe')}{debe.toLocaleString()}</span>
                                )}
                              </div>
                           </td>
@@ -423,9 +423,9 @@ export default function UniformesModule() {
                              <div className="flex items-center justify-end gap-2">
                                {debe > 0 && (
                                  <button 
-                                   onClick={() => { setPedidoActual(p); setIsModalAbonoOpen(true); }}
+                                   onClick={() => { setPedidoActual(p); setIsAbonoModalOpen(true); }}
                                    className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all"
-                                   title="Registrar Abono"
+                                   title={t('uniformes.registrarAbono')}
                                  >
                                    <DollarSign className="w-4 h-4" />
                                  </button>
@@ -433,6 +433,7 @@ export default function UniformesModule() {
                                <button 
                                  onClick={() => abrirModalEditar(p)}
                                  className="w-8 h-8 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-slate-200 transition-all"
+                                 title={t('uniformes.editarPedido')}
                                >
                                  <Scissors className="w-4 h-4" />
                                </button>
@@ -454,190 +455,173 @@ export default function UniformesModule() {
 
       </div>
 
-      {/* MODAL CREAR/EDITAR */}
+      {/* MODAL NUEVO / EDITAR PEDIDO */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-950 w-full max-w-2xl rounded-[2rem] shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in duration-300">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 rounded-t-[2rem]">
-              <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter text-xl">
-                {pedidoActual ? 'Editar Pedido' : 'Nuevo Uniforme'}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400 hover:text-slate-800 bg-white rounded-full shadow-sm">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        <div className="fixed inset-0 bg-slate-900/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-2xl rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div className="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-6">
+            <div className="bg-slate-900 px-6 py-5 flex justify-between items-center">
+              <h2 className="text-white text-xl font-black uppercase tracking-tighter flex items-center gap-2">
+                <Shirt className="w-5 h-5 text-brand" /> 
+                {pedidoActual ? t('uniformes.editarPedido') : t('uniformes.nuevoUniforme')}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white transition-colors p-1"><X className="w-6 h-6" /></button>
+            </div>
+
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Buscar Jugador</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-                  <input 
-                    type="text"
-                    placeholder="Escribe el nombre del jugador..."
-                    value={busquedaJugador}
-                    onChange={(e) => setBusquedaJugador(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
-                
-                <select 
-                  value={jugadorId} 
-                  onChange={(e) => setJugadorId(e.target.value)}
-                  disabled={!!pedidoActual}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand disabled:opacity-50 mt-2"
-                >
-                  <option value="">Selecciona un alumno...</option>
-                  {jugadores
-                    .filter(j => 
-                      `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaJugador.toLowerCase())
-                    )
-                    .map(j => (
-                      <option key={j.id} value={j.id}>{j.nombres} {j.apellidos} ({j.grupos || 'Sin grupo'})</option>
-                    ))
-                  }
-                </select>
-                {busquedaJugador && jugadores.filter(j => `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaJugador.toLowerCase())).length === 0 && (
-                  <p className="text-[10px] text-rose-500 font-bold mt-1">No se encontraron jugadores con ese nombre.</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Talla Camisa</label>
-                  <input type="text" value={tallaCamisa} onChange={(e) => setTallaCamisa(e.target.value)} placeholder="Ej: M, 12, S" className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none uppercase" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Talla Short</label>
-                  <input type="text" value={tallaShort} onChange={(e) => setTallaShort(e.target.value)} placeholder="Ej: M, 12, S" className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 dark:text-slate-200 outline-none uppercase" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dorsal (#)</label>
-                  <input type="text" value={dorsal} onChange={(e) => setDorsal(e.target.value)} placeholder="Ej: 10" className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-black text-slate-700 dark:text-slate-200 outline-none" />
-                </div>
-              </div>
-
-              <div className="bg-emerald-50 dark:bg-emerald-900/10 p-5 rounded-2xl border border-emerald-100 dark:border-emerald-900/30">
-                <h4 className="text-xs font-black text-emerald-800 dark:text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" /> Calculadora Financiera
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Costo del Proveedor ($)</label>
-                    <input type="number" value={costoProveedor} onChange={(e) => setCostoProveedor(e.target.value)} placeholder="0" className="w-full p-4 bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-xl font-black text-rose-600 outline-none" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor de Venta (Cobro) ($)</label>
-                    <input type="number" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} placeholder="0" className="text-brand outline-none" />
-                  </div>
-                </div>
-                {Number(precioVenta) > 0 && (
-                  <div className="mt-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-emerald-100 dark:border-slate-800 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Margen de Ganancia Estimado:</span>
-                    <span className="text-lg font-black text-emerald-500">
-                      \${(Number(precioVenta) - Number(costoProveedor)).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-
               {!pedidoActual && (
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Abono Inicial del Padre ($)</label>
-                  <input type="number" value={abono} onChange={(e) => setAbono(e.target.value)} placeholder="0" className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-black text-slate-700 outline-none" />
-                  <p className="text-[10px] text-slate-400 font-medium italic mt-1">
-                    * Si el padre ya pagó algo, ingrésalo aquí. Esto se sumará a los ingresos generales del club.
-                  </p>
+                <div className="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.buscarJugador')}</label>
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="text"
+                      placeholder={t('uniformes.escribeNombreJugador')}
+                      value={busquedaAlumno}
+                      onChange={(e) => setBusquedaAlumno(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand outline-none"
+                    />
+                  </div>
+                  <select 
+                    value={jugadorId}
+                    onChange={(e) => setJugadorId(e.target.value)}
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 outline-none focus:ring-2 focus:ring-brand"
+                  >
+                    <option value="">{t('uniformes.seleccionaAlumno')}</option>
+                    {alumnosFiltrados.length > 0 ? (
+                      alumnosFiltrados.map(a => (
+                        <option key={a.id} value={a.id}>{a.nombres} {a.apellidos}</option>
+                      ))
+                    ) : (
+                      <option disabled>{t('uniformes.noSeEncontraronJugadores')}</option>
+                    )}
+                  </select>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado de Fabricación</label>
-                <select 
-                  value={estadoPedido} 
-                  onChange={(e) => setEstadoPedido(e.target.value)}
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-bold text-slate-700 outline-none"
-                >
-                  <option value="Pendiente">Pendiente (Anotado)</option>
-                  <option value="En Producción">En Producción (Pedido al proveedor)</option>
-                  <option value="Entregado">Entregado al Alumno</option>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.tallaCamisa')}</label>
+                  <input type="text" value={tallaCamisa} onChange={e=>setTallaCamisa(e.target.value)} placeholder={t('uniformes.ejTallas')} className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 uppercase" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.tallaShort')}</label>
+                  <input type="text" value={tallaShort} onChange={e=>setTallaShort(e.target.value)} placeholder={t('uniformes.ejTallas')} className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 uppercase" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.dorsal')}</label>
+                  <input type="text" value={dorsal} onChange={e=>setDorsal(e.target.value)} placeholder={t('uniformes.ej10')} className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm font-black text-brand text-center" />
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 mb-6">
+                <h4 className="text-xs font-black uppercase text-slate-800 mb-4 flex items-center gap-2"><DollarSign className="w-4 h-4 text-emerald-500" /> {t('uniformes.calculadoraFinanciera')}</h4>
+                
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.costoDelProveedor')}</label>
+                    <input type="number" value={costoProveedor} onChange={e=>setCostoProveedor(e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl font-bold text-rose-600 bg-white" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.valorDeVenta')}</label>
+                    <input type="number" value={precioVenta} onChange={e=>setPrecioVenta(e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl font-black text-slate-800 bg-white" />
+                  </div>
+                </div>
+
+                {precioVenta && costoProveedor && (
+                  <div className="bg-emerald-100 text-emerald-800 text-xs font-bold px-4 py-2 rounded-lg inline-block">
+                    {t('uniformes.margenGananciaEstimado')} ${(Number(precioVenta) - Number(costoProveedor)).toLocaleString()}
+                  </div>
+                )}
+
+                {!pedidoActual && (
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.abonoInicialPadre')}</label>
+                    <input type="number" value={abono} onChange={e=>setAbono(e.target.value)} className="w-full px-4 py-2 border border-slate-200 rounded-xl font-bold text-emerald-600 bg-white" />
+                    <p className="text-[10px] text-slate-500 mt-1 italic">{t('uniformes.siPadreYaPago')}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.estadoFabricacion')}</label>
+                <select value={estadoPedido} onChange={e=>setEstadoPedido(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl font-bold text-slate-700 bg-white">
+                  <option value="Pendiente">{t('uniformes.pendienteAnotado')}</option>
+                  <option value="En Producción">{t('uniformes.enProduccion')}</option>
+                  <option value="Entregado">{t('uniformes.entregadoAlumno')}</option>
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notas / Observaciones</label>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.notasObservaciones')}</label>
                 <textarea 
-                  value={notas} 
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Ej: Manga larga, nombre personalizado..."
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl font-medium text-slate-700 outline-none h-24 resize-none"
+                  value={notas} onChange={e=>setNotas(e.target.value)} rows={3}
+                  placeholder={t('uniformes.ejMangaLarga')}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand outline-none resize-none"
                 ></textarea>
               </div>
 
             </div>
-
-            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 rounded-b-[2rem]">
+            
+            <div className="p-4 border-t border-slate-100 bg-slate-50">
               <button 
                 onClick={guardarPedido}
-                className="w-full bg-slate-900 dark:bg-brand text-white hover:scale-[1.02] transition-all px-6 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20"
+                className="w-full bg-brand text-white font-black uppercase tracking-widest py-4 rounded-xl hover:bg-brand/90 transition-colors shadow-lg shadow-brand/20"
               >
-                <CheckCircle className="w-5 h-5" /> Guardar Pedido
+                {t('uniformes.guardarPedido')}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODAL REGISTRAR ABONO */}
-      {isModalAbonoOpen && pedidoActual && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-           <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] shadow-2xl p-6 animate-in zoom-in duration-200">
-              <div className="flex justify-between items-center mb-6">
-                 <div>
-                   <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tighter text-lg">Abonar a Uniforme</h3>
-                   <p className="text-[10px] text-slate-400 font-bold uppercase">{pedidoActual.perfiles?.nombres}</p>
-                 </div>
-                 <button onClick={() => setIsModalAbonoOpen(false)} className="text-slate-400 hover:text-slate-800"><X className="w-5 h-5" /></button>
+      {/* MODAL ABONO (CUANDO YA EXISTE EL PEDIDO Y QUIEREN PAGAR EL RESTO) */}
+      {isAbonoModalOpen && pedidoAbono && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[120] flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-[2rem] shadow-xl overflow-hidden flex flex-col">
+            <div className="bg-emerald-500 p-6 text-center text-white relative overflow-hidden">
+              <DollarSign className="w-24 h-24 absolute -right-4 -bottom-4 opacity-20" />
+              <h3 className="text-xl font-black uppercase tracking-tighter relative z-10">{t('uniformes.abonarUniforme')}</h3>
+              <p className="text-sm font-bold mt-1 opacity-90 relative z-10">{pedidoAbono.perfiles?.nombres} {pedidoAbono.perfiles?.apellidos}</p>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex justify-between items-center text-sm mb-2 border-b border-dashed border-slate-200 pb-2">
+                <span className="text-slate-500">{t('uniformes.valorTotal')}</span>
+                <span className="font-bold text-slate-800">${Number(pedidoAbono.precio_venta).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm mb-2 border-b border-dashed border-slate-200 pb-2">
+                <span className="text-slate-500">{t('uniformes.abonadoHastaHoy')}</span>
+                <span className="font-bold text-emerald-600">${Number(pedidoAbono.abono || 0).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center text-sm mb-6">
+                <span className="text-slate-800 font-bold">{t('uniformes.saldoPendiente')}</span>
+                <span className="font-black text-rose-500 text-lg">${(Number(pedidoAbono.precio_venta) - Number(pedidoAbono.abono || 0)).toLocaleString()}</span>
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 mb-6">
-                 <div className="flex justify-between mb-2 text-xs">
-                    <span className="font-bold text-slate-500">Valor Total:</span>
-                    <span className="font-black text-slate-800 dark:text-white">\${Number(pedidoActual.precio_venta).toLocaleString()}</span>
-                 </div>
-                 <div className="flex justify-between mb-2 text-xs">
-                    <span className="font-bold text-slate-500">Abonado hasta hoy:</span>
-                    <span className="font-black text-emerald-600">\${Number(pedidoActual.abono).toLocaleString()}</span>
-                 </div>
-                 <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
-                 <div className="flex justify-between text-sm">
-                    <span className="font-black text-rose-500 uppercase tracking-widest">Saldo Pendiente:</span>
-                    <span className="font-black text-rose-600">\${(Number(pedidoActual.precio_venta) - Number(pedidoActual.abono)).toLocaleString()}</span>
-                 </div>
+              <div className="mb-6">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.montoPagarHoy')}</label>
+                <input 
+                  type="number" 
+                  value={montoAbonoExtra} 
+                  onChange={e => setMontoAbonoExtra(e.target.value)} 
+                  className="w-full text-center text-3xl font-black text-emerald-600 border-b-2 border-slate-200 focus:border-emerald-500 outline-none py-2 bg-transparent"
+                  placeholder="0"
+                />
+                <p className="text-[10px] text-center text-slate-400 mt-2 italic">{t('uniformes.esteDineroIngresara')}</p>
               </div>
 
-              <div className="space-y-2 mb-6">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Monto a Pagar Hoy ($)</label>
-                 <input 
-                   type="number" 
-                   value={nuevoAbonoMonto} 
-                   onChange={(e) => setNuevoAbonoMonto(e.target.value)}
-                   placeholder="0"
-                   className="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-xl text-emerald-600 outline-none text-center"
-                 />
-                 <p className="text-[9px] text-slate-400 text-center italic mt-2">
-                   Este dinero ingresará inmediatamente a la caja general del club.
-                 </p>
+              <div className="flex gap-2">
+                <button onClick={() => { setIsAbonoModalOpen(false); setMontoAbonoExtra(''); }} className="flex-1 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm hover:bg-slate-200 transition-colors">
+                  {t('uniformes.cancelar')}
+                </button>
+                <button onClick={procesarAbonoExtra} className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-bold text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-500/30 transition-all">
+                  {t('uniformes.registrarAbono')}
+                </button>
               </div>
-
-              <button 
-                onClick={registrarNuevoAbono}
-                className="w-full bg-emerald-500 text-white hover:bg-emerald-600 py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-              >
-                <CreditCard className="w-5 h-5" /> Registrar Pago
-              </button>
-           </div>
+            </div>
+          </div>
         </div>
       )}
 

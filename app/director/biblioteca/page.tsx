@@ -7,8 +7,10 @@ import { toast } from 'sonner';
 import { Loader2, Plus, PlaySquare, Video, Search, ShieldCheck, Smartphone } from 'lucide-react';
 import { getYouTubeId, isDriveUrl, getDriveId, getEmbedUrl, getTikTokId, resolveShortUrl } from '@/lib/utils/videos';
 import { TikTokThumbnail } from '@/components/TikTokThumbnail';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function BibliotecaDirector() {
+  const { t } = useTranslation();
   const { slug } = useTenant();
   const [clubId, setClubId] = useState<string | null>(null);
   const [ejercicios, setEjercicios] = useState<any[]>([]);
@@ -236,17 +238,17 @@ export default function BibliotecaDirector() {
       <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
-            Biblioteca de Metodología <ShieldCheck className="text-brand w-6 h-6" />
+            {t('BIBLIOTECA.TITLE')} <ShieldCheck className="text-brand w-6 h-6" />
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Gestiona los ejercicios oficiales de la franquicia y del club.
+            {t('BIBLIOTECA.SUBTITLE')}
           </p>
         </div>
         <button 
           onClick={() => setShowModal(true)}
           className="bg-brand text-white font-bold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:-translate-y-1 hover:shadow-brand/30 transition-all text-sm"
         >
-          <Plus size={18} /> Subir Ejercicio Local
+          <Plus size={18} /> {t('BIBLIOTECA.ADD_DRILL_BTN')}
         </button>
       </div>
 
@@ -257,13 +259,13 @@ export default function BibliotecaDirector() {
               <button
                 key={tab}
                 onClick={() => setFiltroVista(tab as any)}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-1 md:flex-none ${
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex-1 md:flex-none \${
                   filtroVista === tab 
                     ? 'bg-white dark:bg-slate-800 text-brand shadow-sm' 
                     : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               >
-                {tab === 'Global' ? 'Base MCM' : tab}
+                {tab === 'Todos' ? t('BIBLIOTECA.TAB_ALL') : tab === 'Global' ? t('BIBLIOTECA.TAB_GLOBAL') : t('BIBLIOTECA.TAB_CLUB')}
               </button>
             ))}
           </div>
@@ -272,7 +274,7 @@ export default function BibliotecaDirector() {
              <Search className="w-4 h-4 text-slate-400" />
              <input 
                 type="text"
-                placeholder="Buscar drill..."
+                placeholder={t('BIBLIOTECA.SEARCH_PLACEHOLDER')}
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm font-medium w-full text-slate-800 dark:text-white placeholder:text-slate-400"
@@ -287,7 +289,7 @@ export default function BibliotecaDirector() {
         ) : filtrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
              <PlaySquare className="w-16 h-16 text-slate-200 dark:text-slate-800 mb-4" />
-             <p className="font-bold text-slate-500">No hay ejercicios en esta vista.</p>
+             <p className="font-bold text-slate-500">{t('BIBLIOTECA.NO_DRILLS')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -297,11 +299,14 @@ export default function BibliotecaDirector() {
                    <div className="p-4 flex-1 flex flex-col">
                       <div className="flex items-center gap-2 mb-3">
                          <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-brand-muted text-brand rounded-md">
-                           {ejercicio.fase_juego}
+                           {ejercicio.fase_juego === 'Calentamiento' ? t('BIBLIOTECA.FORM_PHASE_OPT_WARMUP') :
+                            ejercicio.fase_juego === 'Parte Principal' ? t('BIBLIOTECA.FORM_PHASE_OPT_MAIN') :
+                            ejercicio.fase_juego === 'Vuelta a la Calma' ? t('BIBLIOTECA.FORM_PHASE_OPT_COOLDOWN') :
+                            ejercicio.fase_juego === 'Físico' ? t('BIBLIOTECA.FORM_PHASE_OPT_PHYSICAL') : ejercicio.fase_juego}
                          </span>
                          {ejercicio.scope === 'Global' && (
                            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-md flex items-center gap-1">
-                             <ShieldCheck className="w-3 h-3 text-emerald-500" /> Oficial MCM
+                             <ShieldCheck className="w-3 h-3 text-emerald-500" /> {t('BIBLIOTECA.OFFICIAL_MCM')}
                            </span>
                          )}
                       </div>
@@ -318,35 +323,35 @@ export default function BibliotecaDirector() {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex justify-end animate-in slide-in-from-right duration-300">
            <div className="bg-white dark:bg-slate-950 w-full max-w-xl h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                 <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Nuevo Ejercicio del Club</h2>
-                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Añadir a metodología oficial de la academia</p>
+                 <h2 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">{t('BIBLIOTECA.MODAL_TITLE')}</h2>
+                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t('BIBLIOTECA.MODAL_SUBTITLE')}</p>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                  <form id="drill-form" onSubmit={handleGuardar} className="space-y-5">
                     <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Título del Ejercicio</label>
-                      <input type="text" required value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-brand/50" placeholder="Ej: Rondo de Presión" />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('BIBLIOTECA.FORM_TITLE')}</label>
+                      <input type="text" required value={formData.titulo} onChange={e => setFormData({...formData, titulo: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-brand/50" placeholder={t('BIBLIOTECA.FORM_TITLE_PLACEHOLDER')} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Enlace de YouTube o Google Drive</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('BIBLIOTECA.FORM_URL')}</label>
                       <input type="url" required value={formData.video_url} onChange={e => setFormData({...formData, video_url: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-mono outline-none focus:ring-2 focus:ring-brand/50" placeholder="https://..." />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                        <div>
-                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Fase de Sesión</label>
+                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('BIBLIOTECA.FORM_PHASE')}</label>
                          <select value={formData.fase_juego} onChange={e => setFormData({...formData, fase_juego: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-brand/50">
-                            <option value="Calentamiento">Calentamiento</option>
-                            <option value="Parte Principal">Parte Principal</option>
-                            <option value="Vuelta a la Calma">Vuelta a la Calma</option>
-                            <option value="Físico">Físico</option>
+                            <option value="Calentamiento">{t('BIBLIOTECA.FORM_PHASE_OPT_WARMUP')}</option>
+                            <option value="Parte Principal">{t('BIBLIOTECA.FORM_PHASE_OPT_MAIN')}</option>
+                            <option value="Vuelta a la Calma">{t('BIBLIOTECA.FORM_PHASE_OPT_COOLDOWN')}</option>
+                            <option value="Físico">{t('BIBLIOTECA.FORM_PHASE_OPT_PHYSICAL')}</option>
                          </select>
                        </div>
                        <div>
-                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Categoría</label>
+                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('BIBLIOTECA.FORM_CATEGORY')}</label>
                          <select value={formData.categoria_edad} onChange={e => setFormData({...formData, categoria_edad: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-brand/50">
-                            <option value="Todas">Todas</option>
+                            <option value="Todas">{t('BIBLIOTECA.FORM_CATEGORY_ALL')}</option>
                             <option value="U6-U10">U6-U10</option>
                             <option value="U12-U14">U12-U14</option>
                             <option value="U15+">U15+</option>
@@ -355,18 +360,18 @@ export default function BibliotecaDirector() {
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Instrucciones Metodológicas</label>
-                      <textarea required rows={5} value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-brand/50 custom-scrollbar" placeholder="Explica las dimensiones de la cancha, comodines y reglas especiales..." />
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">{t('BIBLIOTECA.FORM_INSTRUCTIONS')}</label>
+                      <textarea required rows={5} value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-brand/50 custom-scrollbar" placeholder={t('BIBLIOTECA.FORM_INSTRUCTIONS_PLACEHOLDER')} />
                     </div>
                  </form>
               </div>
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-4 bg-slate-50 dark:bg-slate-950">
                  <button onClick={() => setShowModal(false)} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors">
-                   Cancelar
+                   {t('BIBLIOTECA.BTN_CANCEL')}
                  </button>
                  <button type="submit" form="drill-form" disabled={saving} className="flex-1 px-4 py-3 rounded-xl bg-brand text-white font-bold hover:bg-brand/90 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand/20">
-                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Añadir a Biblioteca'}
+                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('BIBLIOTECA.BTN_SAVE')}
                  </button>
               </div>
            </div>
