@@ -49,7 +49,22 @@
       "alerts": "Alertas Inteligentes",
       "actionReq": "Acción Requerida",
       "allGood": "Todo en orden",
-      "notifyWA": "Notificar WA"
+      "notifyWA": "Notificar WA",
+      "viewAll": "Ver todas",
+      "distributionByCategory": "Distribución por Categorías",
+      "noBirthdaysThisMonth": "Sin cumpleaños este mes",
+      "noGroup": "Sin grupo",
+      "birthdaysOf": "Cumpleaños de",
+      "recentActivity": "Actividad Reciente",
+      "newMembers": "Nuevos Miembros",
+      "unassigned": "Sin asignar",
+      "alertsCenter": "Centro de Alertas",
+      "criticalIncidentsManagement": "Gestión de Incidentes Críticos",
+      "youHave": "Tienes",
+      "activeAlerts": "alertas activas",
+      "managePrompt": ". Gestiona rápidamente los pagos y la asistencia de tu academia.",
+      "notified": "Notificado",
+      "poweredBy": "Powered by Club Management SaaS © 2026"
     },
     "members": {
       "title": "Gestión de Miembros",

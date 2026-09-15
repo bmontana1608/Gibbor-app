@@ -1348,54 +1348,54 @@ export default function ModuloCobranza() {
         <div className="flex justify-between items-center bg-slate-900 p-4 rounded-2xl mt-6 text-white shadow-xl border-l-4 border-brand relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-5"><ShieldCheck className="w-16 h-16" /></div>
           <div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-brand mb-0.5">Herramientas de Control</h4>
-            <p className="text-[10px] text-slate-400 font-bold italic">Borrón y cuenta nueva para la deuda histórica</p>
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-brand mb-0.5">{t('cobranza.controlTools')}</h4>
+            <p className="text-[10px] text-slate-400 font-bold italic">{t('cobranza.cleanSlate')}</p>
           </div>
           <button 
             onClick={reiniciarDeudaGlobal}
             className="px-4 py-2 bg-brand hover:bg-brand/90 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg relative z-10"
           >
-            <RefreshCw className="w-3.5 h-3.5" /> Reiniciar Deuda
+            <RefreshCw className="w-3.5 h-3.5" /> {t('cobranza.resetDebt')}
           </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mt-6">
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Proyectado</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.projectedTotal')}</p>
             <h3 className="text-2xl font-black text-slate-800">{formatCurrency(totalProyectado, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Estimado este mes</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{t('cobranza.estimatedThisMonth')}</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingresos Reales</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.realIncome')}</p>
             <h3 className="text-2xl font-black text-emerald-600">{formatCurrency(ingresosRecaudados, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{porcentajeRecaudo}% del mes</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{porcentajeRecaudo}{t('cobranza.percentOfMonth')}</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Egresos</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.expenses')}</p>
             <h3 className="text-2xl font-black text-red-600">{formatCurrency(egresosTotales, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Gastos del mes</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{t('cobranza.expensesOfMonth')}</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-indigo-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Balance Neto</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.netBalance')}</p>
             <h3 className="text-2xl font-black text-indigo-600">{formatCurrency(utilidadNeta, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Dinero real en caja</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{t('cobranza.realMoneyInCash')}</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Por Cobrar</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.toCollect')}</p>
             <h3 className="text-2xl font-black text-amber-600">{formatCurrency(ingresosPendientesMes, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Saldo mes actual</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{t('cobranza.currentMonthBalance')}</p>
           </div>
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Mora Histórica</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.historicalArrears')}</p>
             <h3 className="text-2xl font-black text-rose-600">{formatCurrency(moraHistoricaTotal, tenant?.pais || tenant?.moneda)}</h3>
-            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">Meses anteriores</p>
+            <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">{t('cobranza.previousMonths')}</p>
           </div>
         </div>
 
         {/* SWITCH DE PESTAÑAS */}
         <div className="mt-8 flex border-b border-slate-200">
-           <button onClick={() => setActiveTab('ingresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'ingresos' ? 'border-b-4 border-emerald-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>Ingresos</button>
-           <button onClick={() => setActiveTab('egresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'egresos' ? 'border-b-4 border-red-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>Egresos / Gastos</button>
+           <button onClick={() => setActiveTab('ingresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'ingresos' ? 'border-b-4 border-emerald-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>{t('cobranza.incomeTab')}</button>
+           <button onClick={() => setActiveTab('egresos')} className={`px-8 py-4 text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'egresos' ? 'border-b-4 border-red-500 text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}>{t('cobranza.expensesTab')}</button>
         </div>
 
         {activeTab === 'ingresos' ? (

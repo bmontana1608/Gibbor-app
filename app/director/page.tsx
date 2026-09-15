@@ -16,10 +16,12 @@ import { toast } from 'sonner';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { Loader } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
 export default function DashboardDirector() {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const [cargando, setCargando] = useState(true);
@@ -246,7 +248,7 @@ export default function DashboardDirector() {
           setActividadReciente(jugadoresActivos.slice(0, 5));
           
           const gMap = jugadoresActivos.reduce((acc: any, p) => {
-            acc[p.grupos || 'Sin Asignar'] = (acc[p.grupos || 'Sin Asignar'] || 0) + 1;
+            acc[p.grupos || t('director.dashboard.unassigned')] = (acc[p.grupos || t('director.dashboard.unassigned')] || 0) + 1;
             return acc;
           }, {});
           setGruposRendimiento(Object.entries(gMap).map(([nombre, cantidad]) => ({ nombre, cantidad: cantidad as number })));
@@ -436,7 +438,7 @@ export default function DashboardDirector() {
             {alertas.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <ShieldCheck className="w-12 h-12 text-emerald-100 mb-3" />
-                <p className="text-sm font-bold text-slate-500">Todo en orden</p>
+                <p className="text-sm font-bold text-slate-500">{t('director.dashboard.allGood')}</p>
               </div>
             ) : (
               alertas.map((alerta, idx) => (
@@ -469,7 +471,7 @@ export default function DashboardDirector() {
             onClick={() => setIsAlertsModalOpen(true)}
             className="mt-4 w-full py-2.5 text-[10px] font-black text-slate-400 hover:text-brand hover:bg-brand-muted rounded-xl transition-all border-2 border-dashed border-slate-100 dark:border-slate-800 uppercase tracking-widest"
           >
-            Ver todas ({todasLasAlertas.length})
+            {t('director.dashboard.viewAll')} ({todasLasAlertas.length})
           </button>
         </div>
       </div>
@@ -477,7 +479,7 @@ export default function DashboardDirector() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-96">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">Distribución por Categorías</h3>
+            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">{t('director.dashboard.distributionByCategory')}</h3>
             <Users className="w-5 h-5 text-slate-400" />
           </div>
           <div className="flex-1 p-4">
@@ -501,7 +503,7 @@ export default function DashboardDirector() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
             <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight flex items-center gap-2">
-              <Cake className="w-4 h-4 text-brand" /> Cumpleaños de {nombresMeses[new Date().getMonth()]}
+              <Cake className="w-4 h-4 text-brand" /> {t('director.dashboard.birthdaysOf')} {nombresMeses[new Date().getMonth()]}
             </h3>
             <PartyPopper className="w-5 h-5 text-brand/30" />
           </div>
@@ -509,7 +511,7 @@ export default function DashboardDirector() {
             {cumpleañeros.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-4">
                 <Cake className="w-10 h-10 text-slate-100 mb-2" />
-                <p className="text-xs font-bold text-slate-400">Sin cumpleaños este mes</p>
+                <p className="text-xs font-bold text-slate-400">{t('director.dashboard.noBirthdaysThisMonth')}</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -522,7 +524,7 @@ export default function DashboardDirector() {
                       <p className="font-black text-slate-800 dark:text-white text-[11px] truncate uppercase italic tracking-tighter">
                         {jugador.nombres}
                       </p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase truncate">{jugador.grupos || 'Sin grupo'}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase truncate">{jugador.grupos || t('director.dashboard.noGroup')}</p>
                     </div>
                     <button 
                       onClick={() => {
@@ -542,7 +544,7 @@ export default function DashboardDirector() {
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-96">
           <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
-            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">Nuevos Miembros</h3>
+            <h3 className="font-black text-slate-800 dark:text-white text-sm tracking-tight">{t('director.dashboard.newMembers')}</h3>
             <ArrowUpRight className="w-5 h-5 text-slate-400" />
           </div>
           <div className="p-5 flex-1 overflow-y-auto custom-scrollbar">
@@ -551,7 +553,7 @@ export default function DashboardDirector() {
                 <div key={perfil.id} className="relative pl-6">
                   <div className={`absolute w-3 h-3 bg-brand rounded-full left-[-7px] top-1.5 ring-4 ring-white dark:ring-slate-900 shadow-sm`}></div>
                   <p className="text-sm font-black text-slate-700 dark:text-slate-100 truncate">{perfil.nombres} {perfil.apellidos}</p>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-0.5">{perfil.grupos || 'Sin asignar'}</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-0.5">{perfil.grupos || t('director.dashboard.unassigned')}</p>
                 </div>
               ))}
             </div>

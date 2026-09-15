@@ -49,7 +49,22 @@
       "alerts": "Smart Alerts",
       "actionReq": "Action Required",
       "allGood": "All good",
-      "notifyWA": "Notify WA"
+      "notifyWA": "Notify WA",
+      "viewAll": "View all",
+      "distributionByCategory": "Distribution by Categories",
+      "noBirthdaysThisMonth": "No birthdays this month",
+      "noGroup": "No group",
+      "birthdaysOf": "Birthdays in",
+      "recentActivity": "Recent Activity",
+      "newMembers": "New Members",
+      "unassigned": "Unassigned",
+      "alertsCenter": "Alerts Center",
+      "criticalIncidentsManagement": "Critical Incidents Management",
+      "youHave": "You have",
+      "activeAlerts": "active alerts",
+      "managePrompt": ". Quickly manage your academy's payments and attendance.",
+      "notified": "Notified",
+      "poweredBy": "Powered by Club Management SaaS © 2026"
     },
     "members": {
       "title": "Members Management",
