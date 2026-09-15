@@ -7,8 +7,10 @@ import { ArrowLeft, Edit, Save, Trash2, Pause, Play, FileText, Trophy, Hospital,
 import { toast } from 'sonner';
 
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function FichaDelJugador() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const { route, slug: tenantSlug } = useTenant();
@@ -473,7 +475,7 @@ export default function FichaDelJugador() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
       <button onClick={() => router.back()} className="mb-6 text-slate-500 hover:text-slate-800 flex items-center gap-2 font-bold text-sm">
-        <ArrowLeft className="w-4 h-4" /> Volver
+        <ArrowLeft className="w-4 h-4" /> {t('common.back')}
       </button>
 
       <div className="bg-white rounded-2xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm border mb-8 relative">
@@ -485,32 +487,32 @@ export default function FichaDelJugador() {
           <div>
             <h1 className="text-2xl font-black text-slate-800">{jugador.nombres} {jugador.apellidos}</h1>
             <div className="flex gap-2 mt-2">
-              <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase border bg-emerald-50 text-emerald-700 border-emerald-200">{jugador.estado_miembro}</span>
-              <span className="bg-slate-100 text-slate-600 border px-2 py-1 rounded-full text-[10px] font-bold uppercase">{jugador.rol}</span>
+              <span className="px-2 py-1 rounded-full text-[10px] font-bold uppercase border bg-emerald-50 text-emerald-700 border-emerald-200">{jugador.estado_miembro === 'Activo' ? t('director.members.active') : jugador.estado_miembro === 'Inactivo' ? t('director.members.inactive') : jugador.estado_miembro}</span>
+              <span className="bg-slate-100 text-slate-600 border px-2 py-1 rounded-full text-[10px] font-bold uppercase">{jugador.rol === 'Futbolista' ? (t('roles.futbolista') || 'FUTBOLISTA') : jugador.rol === 'Entrenador' ? (t('roles.entrenador') || 'ENTRENADOR') : jugador.rol}</span>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setEdicion(true)} className="bg-white border text-slate-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><Edit className="w-3.5 h-3.5" /> Editar</button>
-          <button onClick={eliminarJugador} className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" /> Eliminar</button>
+          <button onClick={() => setEdicion(true)} className="bg-white border text-slate-700 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><Edit className="w-3.5 h-3.5" /> {t('common.edit')}</button>
+          <button onClick={eliminarJugador} className="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2"><Trash2 className="w-3.5 h-3.5" /> {t('common.delete')}</button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white border rounded-2xl p-6 shadow-sm">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-500" /> Datos Personales</h3>
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2"><FileText className="w-4 h-4 text-blue-500" /> {t('director.members.personalData')}</h3>
           <div className="space-y-4">
-             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Documento</span><span className="text-slate-800 font-bold">{jugador.documento_identidad || '---'}</span></div>
-             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Teléfono</span><span className="text-slate-800 font-bold">{jugador.telefono || '---'}</span></div>
-             <div className="flex justify-between"><span className="text-slate-500 text-sm">Categoría</span><span className="text-slate-800 font-bold">{jugador.grupos || 'Sin asignar'}</span></div>
+             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">{t('director.members.document')}</span><span className="text-slate-800 font-bold">{jugador.documento_identidad || '---'}</span></div>
+             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">{t('director.members.phone')}</span><span className="text-slate-800 font-bold">{jugador.telefono || '---'}</span></div>
+             <div className="flex justify-between"><span className="text-slate-500 text-sm">{t('director.members.category')}</span><span className="text-slate-800 font-bold">{jugador.grupos || 'Sin asignar'}</span></div>
           </div>
         </div>
         <div className="bg-white border rounded-2xl p-6 shadow-sm">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2"><Wallet className="w-4 h-4 text-emerald-500" /> Estado Financiero</h3>
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2"><Wallet className="w-4 h-4 text-emerald-500" /> {t('director.members.financialStatus')}</h3>
           <div className="space-y-4">
-             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Plan</span><span className="text-slate-800 font-bold">{jugador.tipo_plan || 'Regular'}</span></div>
-             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">Estado Pago</span><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{esAlDia ? 'Al día' : 'Pendiente'}</span></div>
-             <div className="flex justify-between"><span className="text-slate-500 text-sm">Puntos</span><span className="text-slate-800 font-bold">{jugador.puntos || 0} GP</span></div>
+             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">{t('director.members.plan')}</span><span className="text-slate-800 font-bold">{jugador.tipo_plan || 'Regular'}</span></div>
+             <div className="flex justify-between border-b pb-2"><span className="text-slate-500 text-sm">{t('director.members.paymentStatus')}</span><span className={`px-2 py-1 rounded text-[10px] font-bold uppercase border ${esAlDia ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{esAlDia ? t('director.members.upToDate') : t('director.members.pending')}</span></div>
+             <div className="flex justify-between"><span className="text-slate-500 text-sm">{t('director.members.points')}</span><span className="text-slate-800 font-bold">{jugador.puntos || 0} GP</span></div>
           </div>
         </div>
       </div>
@@ -518,58 +520,58 @@ export default function FichaDelJugador() {
       {/* SECCIÓN DE DOCUMENTOS */}
       <div className="mt-6 bg-white border rounded-2xl p-6 shadow-sm">
         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-amber-500" /> Documentos Adjuntos
+          <FileText className="w-4 h-4 text-amber-500" /> {t('director.members.attachedDocuments')}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
-            <span className="text-sm font-bold text-slate-700">Identificación Jugador</span>
+            <span className="text-sm font-bold text-slate-700">{t('director.members.playerID')}</span>
             {jugador.doc_jugador_url ? (
-              <a href={jugador.doc_jugador_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+              <a href={jugador.doc_jugador_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">{t('director.members.viewDocument')}</a>
             ) : (
-              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">{t('director.members.notUploaded')}</span>
             )}
             <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
               {subiendoDoc === 'doc_jugador_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-              {subiendoDoc === 'doc_jugador_url' ? 'Subiendo...' : (jugador.doc_jugador_url ? 'Actualizar' : 'Cargar Documento')}
+              {subiendoDoc === 'doc_jugador_url' ? t('director.members.uploading') : (jugador.doc_jugador_url ? t('common.update') : t('director.members.uploadDocument'))}
               <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_jugador_url', 'jugadores')} disabled={subiendoDoc !== null} />
             </label>
           </div>
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
-            <span className="text-sm font-bold text-slate-700">Certificado Médico / EPS</span>
+            <span className="text-sm font-bold text-slate-700">{t('director.members.medicalCertificate')}</span>
             {jugador.doc_eps_url ? (
-              <a href={jugador.doc_eps_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+              <a href={jugador.doc_eps_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">{t('director.members.viewDocument')}</a>
             ) : (
-              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">{t('director.members.notUploaded')}</span>
             )}
             <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
               {subiendoDoc === 'doc_eps_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-              {subiendoDoc === 'doc_eps_url' ? 'Subiendo...' : (jugador.doc_eps_url ? 'Actualizar' : 'Cargar Documento')}
+              {subiendoDoc === 'doc_eps_url' ? t('director.members.uploading') : (jugador.doc_eps_url ? t('common.update') : t('director.members.uploadDocument'))}
               <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_eps_url', 'eps')} disabled={subiendoDoc !== null} />
             </label>
           </div>
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
-            <span className="text-sm font-bold text-slate-700">Identificación Acudiente</span>
+            <span className="text-sm font-bold text-slate-700">{t('director.members.guardianID')}</span>
             {jugador.doc_acudiente_url ? (
-              <a href={jugador.doc_acudiente_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+              <a href={jugador.doc_acudiente_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">{t('director.members.viewDocument')}</a>
             ) : (
-              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">{t('director.members.notUploaded')}</span>
             )}
             <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
               {subiendoDoc === 'doc_acudiente_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-              {subiendoDoc === 'doc_acudiente_url' ? 'Subiendo...' : (jugador.doc_acudiente_url ? 'Actualizar' : 'Cargar Documento')}
+              {subiendoDoc === 'doc_acudiente_url' ? t('director.members.uploading') : (jugador.doc_acudiente_url ? t('common.update') : t('director.members.uploadDocument'))}
               <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_acudiente_url', 'acudientes')} disabled={subiendoDoc !== null} />
             </label>
           </div>
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex flex-col items-center text-center justify-center gap-3">
-            <span className="text-sm font-bold text-slate-700">Documento Adicional</span>
+            <span className="text-sm font-bold text-slate-700">{t('director.members.additionalDocument')}</span>
             {jugador.doc_extra_url ? (
-              <a href={jugador.doc_extra_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">Ver Documento</a>
+              <a href={jugador.doc_extra_url} target="_blank" rel="noreferrer" className="bg-white border px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-brand hover:border-brand transition-colors">{t('director.members.viewDocument')}</a>
             ) : (
-              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">No cargado</span>
+              <span className="text-xs text-slate-400 font-medium bg-slate-200 px-3 py-1 rounded-full">{t('director.members.notUploaded')}</span>
             )}
             <label className="mt-1 cursor-pointer text-xs font-bold text-slate-500 hover:text-brand flex items-center gap-1 transition-colors">
               {subiendoDoc === 'doc_extra_url' ? <Loader className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
-              {subiendoDoc === 'doc_extra_url' ? 'Subiendo...' : (jugador.doc_extra_url ? 'Actualizar' : 'Cargar Documento')}
+              {subiendoDoc === 'doc_extra_url' ? t('director.members.uploading') : (jugador.doc_extra_url ? t('common.update') : t('director.members.uploadDocument'))}
               <input type="file" className="hidden" accept=".pdf,image/*" onChange={e => handleSubirDocumento(e, 'doc_extra_url', 'extras')} disabled={subiendoDoc !== null} />
             </label>
           </div>
