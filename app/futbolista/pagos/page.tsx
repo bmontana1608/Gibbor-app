@@ -53,7 +53,7 @@ export default function PagosFutbolista() {
   };
 
   const handleVerRecibo = async (pago: any) => {
-    const toastId = toast.loading("Generando recibo...");
+    const toastId = toast.loading(t('futbolista.pagos.generatingReceipt'));
     try {
       const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', perfil?.club_id).single();
       const clubConfig = config || {};
@@ -91,10 +91,10 @@ export default function PagosFutbolista() {
       link.download = filename;
       link.click();
 
-      toast.success("Recibo generado correctamente", { id: toastId });
+      toast.success(t('futbolista.pagos.receiptGenerated'), { id: toastId });
     } catch (err) {
       console.error(err);
-      toast.error("Error al generar el recibo", { id: toastId });
+      toast.error(t('futbolista.pagos.receiptError'), { id: toastId });
     }
   };
 
@@ -184,7 +184,7 @@ export default function PagosFutbolista() {
   const handleOpenApp = (numero: string, uriScheme: string, appName: string) => {
      // 1. Copiar número al portapapeles
      navigator.clipboard.writeText(numero).then(() => {
-        toast.success(`Número de ${appName} copiado al portapapeles`);
+        toast.success(t('futbolista.pagos.copiedNumber', { app: appName }));
      }).catch(() => {
         toast.info(`Número: ${numero}`);
      });
@@ -285,9 +285,9 @@ export default function PagosFutbolista() {
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
            <div className="flex items-center justify-between mb-6">
              <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
-                <Landmark className="text-brand" /> Canales de Pago
+                <Landmark className="text-brand" /> {t('futbolista.pagos.channelsTitle')}
              </h3>
-             <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded-lg uppercase tracking-widest">Toca para copiar y abrir</span>
+             <span className="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-1 rounded-lg uppercase tracking-widest">{t('futbolista.pagos.channelsHint')}</span>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {(() => {

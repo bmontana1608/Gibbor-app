@@ -373,19 +373,19 @@ export default function DashboardFutbolista() {
                 
                 <div className="flex-1">
                   <div className="inline-block px-3 py-1 mb-3 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-md animate-pulse" style={{ backgroundColor: brandColor }}>
-                    ¡HAS SIDO CONVOCADO!
+                    {t('futbolista.dashboard.calledUp')}
                   </div>
                   <h2 className="text-3xl md:text-4xl font-black text-slate-800 uppercase italic tracking-tighter leading-none mb-2">
                     {conv.eventos?.titulo}
                   </h2>
                   <p className="text-slate-600 font-bold mb-4 flex items-center justify-center md:justify-start gap-4">
                     <span><Calendar className="w-4 h-4 inline mr-1 text-slate-400"/> {new Date(conv.eventos?.fecha + 'T12:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                    <span><Target className="w-4 h-4 inline mr-1 text-slate-400"/> {conv.eventos?.lugar || 'Por definir'}</span>
+                    <span><Target className="w-4 h-4 inline mr-1 text-slate-400"/> {conv.eventos?.lugar || t('futbolista.dashboard.toDefine')}</span>
                   </p>
                 </div>
 
                 <div className="bg-slate-900 rounded-[2rem] p-6 text-center border-b-4 min-w-[160px] transform hover:scale-105 transition-transform" style={{ borderBottomColor: brandColor }}>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Tu Rol Oficial</p>
+                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">{t('futbolista.dashboard.officialRole')}</p>
                   <p className={`text-2xl font-black italic uppercase tracking-tighter ${conv.rol_partido === 'Titular' ? 'text-emerald-400' : 'text-amber-400'}`}>
                     {conv.rol_partido}
                   </p>
@@ -399,7 +399,7 @@ export default function DashboardFutbolista() {
       {/* AGENDA */}
       <div className="space-y-4">
         <h2 className="text-lg font-black text-slate-800 uppercase flex items-center gap-3">
-          <Calendar className="w-5 h-5" style={{ color: brandColor }} /> Agenda del Club
+          <Calendar className="w-5 h-5" style={{ color: brandColor }} /> {t('futbolista.dashboard.clubAgenda')}
         </h2>
         {eventos.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -432,7 +432,7 @@ export default function DashboardFutbolista() {
                         href={`/futbolista/partidos/${evento.id}/en-vivo`}
                         className="bg-emerald-500 hover:bg-emerald-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-full flex items-center gap-1 shadow-md transition-all animate-pulse"
                       >
-                        🔴 En Vivo
+                        {t('futbolista.dashboard.liveMatch')}
                       </Link>
                     )}
                   </div>
@@ -442,15 +442,15 @@ export default function DashboardFutbolista() {
           </div>
         ) : (
           <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-dashed border-slate-200 text-center">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No hay eventos programados</p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{t('futbolista.dashboard.noEvents')}</p>
           </div>
         )}
       </div>
 
       <div className="flex bg-white p-1.5 rounded-2xl border border-slate-200 sticky top-4 z-50 shadow-lg">
-        <button onClick={() => setActiveTab('perfil')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'perfil' ? { backgroundColor: brandColor } : {}}><Users className="w-4 h-4" /> Perfil</button>
-        <button onClick={() => setActiveTab('disciplina')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'disciplina' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'disciplina' ? { backgroundColor: brandColor } : {}}><CalendarCheck className="w-4 h-4" /> Disciplina</button>
-        <button onClick={() => setActiveTab('pagos')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pagos' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'pagos' ? { backgroundColor: brandColor } : {}}><DollarSign className="w-4 h-4" /> Pagos</button>
+        <button onClick={() => setActiveTab('perfil')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'perfil' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'perfil' ? { backgroundColor: brandColor } : {}}><Users className="w-4 h-4" /> {t('futbolista.dashboard.tabProfile')}</button>
+        <button onClick={() => setActiveTab('disciplina')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'disciplina' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'disciplina' ? { backgroundColor: brandColor } : {}}><CalendarCheck className="w-4 h-4" /> {t('futbolista.dashboard.tabDiscipline')}</button>
+        <button onClick={() => setActiveTab('pagos')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'pagos' ? 'text-white shadow-lg' : 'text-slate-400'}`} style={activeTab === 'pagos' ? { backgroundColor: brandColor } : {}}><DollarSign className="w-4 h-4" /> {t('futbolista.dashboard.tabPayments')}</button>
       </div>
 
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -461,8 +461,8 @@ export default function DashboardFutbolista() {
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                   <div>
-                    <span className="text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block" style={{ backgroundColor: brandColor }}>Technical Profile</span>
-                    <h2 className="text-4xl font-black text-white tracking-tighter md:text-5xl">TU CARTA <span style={{ color: brandColor }}>PRO.</span></h2>
+                    <span className="text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block" style={{ backgroundColor: brandColor }}>{t('futbolista.dashboard.techProfile')}</span>
+                    <h2 className="text-4xl font-black text-white tracking-tighter md:text-5xl">{t('futbolista.dashboard.proCardTitle').split(' ')[0]} <span style={{ color: brandColor }}>{t('futbolista.dashboard.proCardTitle').split(' ').slice(1).join(' ')}</span></h2>
                   </div>
                 </div>
                 {radarData.length > 0 ? (
@@ -470,11 +470,11 @@ export default function DashboardFutbolista() {
                     <div className="flex flex-col items-center justify-center gap-8 w-full">
                       <FifaCard perfil={perfil} stats={radarData} clubName={brandName} clubLogo={tenant?.config?.logo} color={brandColor} />
                       <button onClick={handleExportCard} className="group relative text-white px-8 py-4 rounded-2xl text-[12px] font-black uppercase tracking-[0.2em] shadow-2xl hover:-translate-y-1 active:scale-95 transition-all duration-300 flex items-center gap-3 overflow-hidden" style={{ backgroundColor: brandColor }}>
-                        <Download className="w-4 h-4" /> <span>Descargar Carta</span>
+                        <Download className="w-4 h-4" /> <span>{t('futbolista.dashboard.downloadCard')}</span>
                       </button>
                     </div>
                     <div className="flex flex-col items-center p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
-                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center">ADN TÉCNICO {brandName}</h4>
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-8 text-center">{t('futbolista.dashboard.techAdn', { name: brandName })}</h4>
                       <RadarChart data={radarData} size={320} color={brandColor} />
                     </div>
                     <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 w-full">
@@ -490,13 +490,13 @@ export default function DashboardFutbolista() {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-[3rem] text-slate-500 font-bold uppercase tracking-widest">Esperando evaluación técnica...</div>
+                  <div className="py-20 text-center border-2 border-dashed border-slate-800 rounded-[3rem] text-slate-500 font-bold uppercase tracking-widest">{t('futbolista.dashboard.waitingEval')}</div>
                 )}
               </div>
             </div>
 
             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-               <h2 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center gap-3"><div className="w-2 h-6 rounded-full" style={{ backgroundColor: brandColor }}></div> Vitrina de Trofeos</h2>
+               <h2 className="text-lg font-black text-slate-800 uppercase mb-8 flex items-center gap-3"><div className="w-2 h-6 rounded-full" style={{ backgroundColor: brandColor }}></div> {t('futbolista.dashboard.trophyShowcase')}</h2>
                {insignias.length > 0 ? (
                   <div className="flex flex-wrap gap-8 justify-center">
                     {insignias.map((insig: any, idx) => {
@@ -515,7 +515,7 @@ export default function DashboardFutbolista() {
                     })}
                   </div>
                ) : (
-                  <div className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Gana insignias en tus entrenamientos</div>
+                  <div className="py-12 text-center text-slate-400 font-bold uppercase tracking-widest text-xs">{t('futbolista.dashboard.earnBadges')}</div>
                )}
             </div>
           </div>
@@ -532,7 +532,7 @@ export default function DashboardFutbolista() {
                       <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${log.estado === 'Presente' ? 'bg-emerald-500 text-white' : log.estado === 'Excusa' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'}`}>{log.estado}</span>
                       <span className="text-[10px] font-bold text-slate-400">{new Date(log.fecha).toLocaleDateString()}</span>
                     </div>
-                    <p className="text-sm font-black text-slate-800 leading-none">{log.tipo_sesion || 'Entrenamiento'}</p>
+                    <p className="text-sm font-black text-slate-800 leading-none">{log.tipo_sesion || t('futbolista.dashboard.training')}</p>
                   </div>
                 ))}
               </div>

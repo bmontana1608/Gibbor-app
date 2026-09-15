@@ -10,8 +10,10 @@ import { toPng } from 'html-to-image';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useTenant } from "@/lib/hooks/useTenant";
+import { useTranslation } from "@/lib/i18n";
 
 export default function CarnetFutbolista() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [tenant, setTenant] = useState<any>(null);
   const { slug: tenantSlug } = useTenant();
@@ -80,7 +82,7 @@ export default function CarnetFutbolista() {
     const node = document.getElementById('carnet-id-card');
     if (!node) return;
 
-    const toastId = toast.loading("Generando carnet digital...");
+    const toastId = toast.loading(t('futbolista.carnet.generating'));
 
     try {
       const dataUrl = await toPng(node, { 
@@ -92,9 +94,9 @@ export default function CarnetFutbolista() {
       link.download = `Carnet_${tenant?.nombre || 'Club'}_${perfil?.nombres}.png`;
       link.href = dataUrl;
       link.click();
-      toast.success("¡Carnet descargado!", { id: toastId });
+      toast.success(t('futbolista.carnet.success'), { id: toastId });
     } catch (err) {
-      toast.error("Error al generar el carnet", { id: toastId });
+      toast.error(t('futbolista.carnet.error'), { id: toastId });
     }
   };
 
@@ -103,13 +105,13 @@ export default function CarnetFutbolista() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Carnet Oficial ${clubNombre}`,
-          text: `Soy ${perfil?.nombres}, jugador oficial de ${clubNombre}. ¡Mira mi carnet digital!`,
+          title: t('futbolista.carnet.shareTitle', { club: clubNombre }),
+          text: t('futbolista.carnet.shareText', { name: perfil?.nombres || '', club: clubNombre }),
           url: window.location.href,
         });
       } catch (err) {}
     } else {
-      toast.info("Copia el link para compartir tu carnet");
+      toast.info(t('futbolista.carnet.shareFallback'));
     }
   };
 
@@ -124,8 +126,8 @@ export default function CarnetFutbolista() {
       <div className="flex items-center justify-between">
          <button onClick={() => router.back()} className="p-2 bg-slate-100 rounded-full text-slate-500"><ChevronLeft /></button>
          <div className="text-center space-y-1">
-            <h1 className="text-xl font-black text-slate-800 tracking-tight italic uppercase">IDENTIDAD {clubNombre}</h1>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">TEMPORADA ACTUAL</p>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight italic uppercase">{t('futbolista.carnet.title', { club: clubNombre })}</h1>
+            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em]">{t('futbolista.carnet.season')}</p>
          </div>
          <div className="w-10"></div>
       </div>
@@ -150,7 +152,7 @@ export default function CarnetFutbolista() {
             </div>
 
             <div className="absolute top-6 right-8 z-10">
-               <span className="bg-white/10 backdrop-blur-md text-white text-[8px] font-black py-1 px-3 rounded-full border border-white/20 uppercase tracking-widest leading-none">VIGENTE</span>
+               <span className="bg-white/10 backdrop-blur-md text-white text-[8px] font-black py-1 px-3 rounded-full border border-white/20 uppercase tracking-widest leading-none">{t('futbolista.carnet.active')}</span>
             </div>
 
             {/* Player Identity */}
@@ -163,7 +165,7 @@ export default function CarnetFutbolista() {
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center bg-slate-100">
                             <Fingerprint className="w-10 h-10 text-slate-300" />
-                            <span className="text-[8px] font-black text-slate-400 uppercase mt-1">NO FOTO</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase mt-1">{t('futbolista.carnet.noPhoto')}</span>
                           </div>
                         )}
                      </div>
@@ -176,11 +178,11 @@ export default function CarnetFutbolista() {
                      <div className="pt-2 flex flex-col gap-1">
                         <div className="flex items-center gap-1.5 opacity-80">
                            <MapPin className="w-3 h-3 text-white" />
-                           <span className="text-[10px] font-bold uppercase tracking-tighter text-white">CAT: {perfil?.grupos || 'S/C'}</span>
+                           <span className="text-[10px] font-bold uppercase tracking-tighter text-white">{t('futbolista.carnet.cat', { group: perfil?.grupos || 'S/C' })}</span>
                         </div>
                         <div className="flex items-center gap-1.5 opacity-80">
                            <Fingerprint className="w-3 h-3 text-white" />
-                           <span className="text-[10px] font-bold uppercase tracking-tighter text-white">ID: {perfil?.documento_identidad || 'PENDIENTE'}</span>
+                           <span className="text-[10px] font-bold uppercase tracking-tighter text-white">{t('futbolista.carnet.id', { doc: perfil?.documento_identidad || 'PENDIENTE' })}</span>
                         </div>
                      </div>
                   </div>
@@ -198,42 +200,42 @@ export default function CarnetFutbolista() {
       {/* ACTIONS */}
       <div className="flex grid grid-cols-2 gap-4">
          <button onClick={handleShare} className="bg-white border-2 border-slate-200 text-slate-700 px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:bg-slate-50 transition-all">
-            <Share2 className="w-5 h-5" style={{ color: brandColor }} /> Compartir
+            <Share2 className="w-5 h-5" style={{ color: brandColor }} /> {t('futbolista.carnet.share')}
          </button>
          <button onClick={handleDownload} className="text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-3 hover:opacity-90 transition-all shadow-xl" style={{ backgroundColor: '#0f172a' }}>
-            <Download className="w-5 h-5 opacity-50" /> Descargar
+            <Download className="w-5 h-5 opacity-50" /> {t('futbolista.carnet.download')}
          </button>
       </div>
 
       {/* EMERGENCY INFO */}
       <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Ficha Técnica</h4>
+         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{t('futbolista.carnet.techSheet')}</h4>
          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">Documento</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.document')}</p>
                <p className="font-bold text-slate-800">{perfil?.documento_identidad || '---'}</p>
             </div>
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">Nacimiento</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.birthDate')}</p>
                <p className="font-bold text-slate-800">{perfil?.fecha_nacimiento || '---'}</p>
             </div>
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">Sangre (RH)</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.bloodType')}</p>
                <p className="font-bold text-slate-800">{perfil?.tipo_sangre || '---'}</p>
             </div>
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">EPS</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.eps')}</p>
                <p className="font-bold text-slate-800">{perfil?.eps || '---'}</p>
             </div>
          </div>
 
          <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">Acudiente / Emergencia</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.guardian')}</p>
                <p className="font-bold text-slate-800">{perfil?.emergencia_nombre || perfil?.acudiente_nombre || '---'}</p>
             </div>
             <div className="space-y-1">
-               <p className="text-xs text-slate-400 font-medium">Teléfono Urgencia</p>
+               <p className="text-xs text-slate-400 font-medium">{t('futbolista.carnet.urgencyPhone')}</p>
                <p className="font-bold text-slate-800">{perfil?.emergencia_telefono || perfil?.telefono || '---'}</p>
             </div>
          </div>
@@ -241,3 +243,4 @@ export default function CarnetFutbolista() {
     </div>
   );
 }
+

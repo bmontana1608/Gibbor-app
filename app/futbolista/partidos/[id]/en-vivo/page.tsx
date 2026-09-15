@@ -5,8 +5,10 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Clock, Shield, ArrowRightLeft, MapPin } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function FamiliaPartidoEnVivo({ params }: { params: { id: string } }) {
+  const { t } = useTranslation();
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
   const [evento, setEvento] = useState<any>(null);
@@ -76,7 +78,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
       <div className="text-center animate-pulse">
          <div className="w-16 h-16 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto mb-4"></div>
-         <p className="text-emerald-500 font-bold tracking-widest uppercase text-sm">Conectando al estadio...</p>
+         <p className="text-emerald-500 font-bold tracking-widest uppercase text-sm">{t('futbolista.partidos.connecting')}</p>
       </div>
     </div>
   );
@@ -157,7 +159,7 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
         {eventosMinuto.some((e: any) => e.comentario?.includes('| pos:')) && (
           <div className="mb-12">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2 px-2">
-              <MapPin className="w-4 h-4" /> Mapa Táctico del Partido
+              <MapPin className="w-4 h-4" /> {t('futbolista.partidos.tacticalMap')}
             </h3>
             <div className="relative w-full aspect-[2/1] bg-emerald-600/20 border border-emerald-500/30 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-md">
               {/* Líneas de la cancha */}
@@ -196,17 +198,17 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
             
             {/* Leyenda de la cancha */}
             <div className="flex flex-wrap items-center justify-center gap-4 mt-4 px-4">
-               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Goles</span></div>
-               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Tiros</span></div>
-               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-orange-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Faltas</span></div>
-               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-yellow-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Otros</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{t('futbolista.partidos.goals')}</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-blue-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{t('futbolista.partidos.shots')}</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-orange-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{t('futbolista.partidos.fouls')}</span></div>
+               <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-yellow-400 border border-white/50"></div><span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">{t('futbolista.partidos.others')}</span></div>
             </div>
           </div>
         )}
 
         {/* Timeline Rushbet Style */}
         <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2 px-2">
-          <Clock className="w-4 h-4" /> Minuto a Minuto
+          <Clock className="w-4 h-4" /> {t('futbolista.partidos.minuteByMinute')}
         </h3>
 
         <div className="space-y-6 relative before:absolute before:inset-0 before:ml-8 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-white/20 before:via-white/10 before:to-transparent">
@@ -215,11 +217,11 @@ export default function FamiliaPartidoEnVivo({ params }: { params: { id: string 
               {['1er Tiempo', '2do Tiempo', 'Descanso', 'En Juego', 'Prórroga', 'Penales'].includes(evento?.estado_partido) ? (
                 <div className="flex flex-col items-center gap-3">
                   <span className="text-3xl">⚽</span>
-                  <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">Partido en curso</p>
-                  <p className="text-slate-600 text-xs">Los eventos del partido aparecerán aquí en tiempo real</p>
+                  <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">{t('futbolista.partidos.matchInProgress')}</p>
+                  <p className="text-slate-600 text-xs">{t('futbolista.partidos.realtimeMessage')}</p>
                 </div>
               ) : (
-                <p className="text-slate-500 text-sm">Esperando el inicio del partido...</p>
+                <p className="text-slate-500 text-sm">{t('futbolista.partidos.waitingStart')}</p>
               )}
             </div>
           ) : (

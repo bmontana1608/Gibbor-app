@@ -5,8 +5,10 @@ import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { Play, Calendar, Trophy, Shield } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function FutbolistaPartidosLive() {
+  const { t } = useTranslation();
   const { slug: tenantSlug } = useTenant();
   const [eventos, setEventos] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);
@@ -70,7 +72,7 @@ export default function FutbolistaPartidosLive() {
 
   const [filtro, setFiltro] = useState<'En Vivo' | 'Finalizados'>('En Vivo');
 
-  if (cargando) return <div className="p-8 text-center text-slate-400">Cargando partidos...</div>;
+  if (cargando) return <div className="p-8 text-center text-slate-400">{t('futbolista.partidos.loading')}</div>;
 
   const partidosEnVivo = eventos.filter(ev => ev.estado_partido !== 'Finalizado');
   const partidosFinalizados = eventos.filter(ev => ev.estado_partido === 'Finalizado');
@@ -80,9 +82,9 @@ export default function FutbolistaPartidosLive() {
     <div className="max-w-5xl mx-auto space-y-6 pb-20">
       <h1 className="text-3xl font-black text-slate-800 uppercase italic flex items-center gap-2">
         <Play className="w-8 h-8 text-emerald-500" />
-        Partidos Live
+        {t('futbolista.partidos.title')}
       </h1>
-      <p className="text-slate-500">Sigue el minuto a minuto de los partidos del club.</p>
+      <p className="text-slate-500">{t('futbolista.partidos.subtitle')}</p>
       
       {/* Tabs */}
       <div className="flex gap-2 p-1 bg-slate-100 rounded-xl mb-6">
@@ -90,13 +92,13 @@ export default function FutbolistaPartidosLive() {
           onClick={() => setFiltro('En Vivo')}
           className={`flex-1 py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${filtro === 'En Vivo' ? 'bg-white text-emerald-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
         >
-          En Vivo
+          {t('futbolista.partidos.tabLive')}
         </button>
         <button 
           onClick={() => setFiltro('Finalizados')}
           className={`flex-1 py-3 text-sm font-black uppercase tracking-widest rounded-lg transition-all ${filtro === 'Finalizados' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
         >
-          Finalizados
+          {t('futbolista.partidos.tabFinished')}
         </button>
       </div>
 
@@ -170,10 +172,13 @@ export default function FutbolistaPartidosLive() {
       {partidosMostrar.length === 0 && (
         <div className="text-center py-20 bg-slate-50 rounded-3xl border border-slate-200">
           <Play className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-black text-slate-800 uppercase italic">No hay partidos {filtro}</h3>
-          <p className="text-slate-500">Pronto habrán partidos disponibles.</p>
+          <h3 className="text-lg font-black text-slate-800 uppercase italic">
+            {t('futbolista.partidos.noMatches', { filter: filtro === 'En Vivo' ? t('futbolista.partidos.tabLive') : t('futbolista.partidos.tabFinished') })}
+          </h3>
+          <p className="text-slate-500">{t('futbolista.partidos.soonMatches')}</p>
         </div>
       )}
     </div>
   );
 }
+
