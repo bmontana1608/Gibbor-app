@@ -150,12 +150,12 @@ export async function POST(req: NextRequest) {
 
       const alumno = alumnos[0];
 
-      const { data: config } = await supabaseAdmin.from('configuracion_wa').select('*').single();
+      const { data: config } = await supabaseAdmin.from('configuracion_wa').select('*').eq('club_id', alumno.club_id).maybeSingle();
 
       // Obtener el logo del club del alumno
       const { data: clubData } = await supabaseAdmin
         .from('clubes')
-        .select('logo_url')
+        .select('*')
         .eq('id', alumno.club_id)
         .single();
 
@@ -165,9 +165,12 @@ export async function POST(req: NextRequest) {
         consecutivo: 'BOT-' + Math.floor(Math.random() * 9999),
         empresa: {
           logo_url: clubData?.logo_url,
-          nombre_club: config?.nombre_club || 'TU CLUB',
+          nombre_club: clubData?.nombre || config?.nombre_club || 'TU CLUB',
           direccion: config?.direccion || 'Sede Deportiva', 
-          ciudad: config?.ciudad || 'Cúcuta',
+          ciudad: config?.ciudad || 'Ciudad',
+          pais: clubData?.pais,
+          moneda: clubData?.moneda,
+          idioma: clubData?.idioma,
           nequi: config?.nequi, 
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
