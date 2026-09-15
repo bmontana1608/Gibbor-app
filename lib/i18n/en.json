@@ -31,6 +31,33 @@
       "forms": "Forms",
       "whatsappBot": "WA Assistant",
       "config": "Settings"
+    },
+    "dashboard": {
+      "greeting": "Hello, {{name}}!",
+      "members": "Active Members",
+      "payments": "Up-to-Date Payments",
+      "projected": "Projected Income (Month)",
+      "callups": "Call-ups",
+      "view": "View",
+      "callupsDesc": "Roster management",
+      "growth": "Athlete Growth",
+      "history6m": "Last 6 months history",
+      "stable": "Stable",
+      "alerts": "Smart Alerts",
+      "actionReq": "Action Required",
+      "allGood": "All good",
+      "notifyWA": "Notify WA"
+    },
+    "members": {
+      "title": "Members Management",
+      "subtitle": "Administrative control of athletes and coaches.",
+      "loading": "Loading members...",
+      "new": "New",
+      "invite": "Invite",
+      "export": "Export",
+      "tabMembers": "Members",
+      "tabRequests": "Requests",
+      "tabBirthdays": "Birthdays"
     }
   },
   "futbolista": {

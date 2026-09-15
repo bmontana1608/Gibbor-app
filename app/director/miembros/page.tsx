@@ -6,8 +6,10 @@ import { supabase } from '@/lib/supabase';
 import { Users, Download, UserPlus, Search, ChevronDown, Check, X, User, Key, Mail, ShieldCheck, Smartphone, ExternalLink, Eye, HeartPulse, Calendar, MapPin, CreditCard, Activity, FileText, Cake, PartyPopper } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function DirectorioMiembros() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [jugadores, setJugadores] = useState<any[]>([]);
   const [tenant, setTenant] = useState<any>(null);

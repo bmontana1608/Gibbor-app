@@ -31,6 +31,33 @@
       "forms": "Formularios",
       "whatsappBot": "Asistente WA",
       "config": "Configuración"
+    },
+    "dashboard": {
+      "greeting": "¡Hola, {{name}}!",
+      "members": "Miembros Activos",
+      "payments": "Pagos al Día",
+      "projected": "Ingresos Proy. (Mes)",
+      "callups": "Convocatorias",
+      "view": "Ver",
+      "callupsDesc": "Gestión de nóminas",
+      "growth": "Crecimiento de Atletas",
+      "history6m": "Histórico últimos 6 meses",
+      "stable": "Estable",
+      "alerts": "Alertas Inteligentes",
+      "actionReq": "Acción Requerida",
+      "allGood": "Todo en orden",
+      "notifyWA": "Notificar WA"
+    },
+    "members": {
+      "title": "Gestión de Miembros",
+      "subtitle": "Control administrativo de deportistas y entrenadores.",
+      "loading": "Cargando miembros...",
+      "new": "Nuevo",
+      "invite": "Invitar",
+      "export": "Exportar",
+      "tabMembers": "Miembros",
+      "tabRequests": "Solicitudes",
+      "tabBirthdays": "Cumpleaños"
     }
   },
   "futbolista": {

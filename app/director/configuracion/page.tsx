@@ -8,8 +8,10 @@ import {
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
 import { COUNTRY_CATALOG, getCountryInfo } from '@/lib/currency-utils';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function ConfiguracionGeneral() {
+  const { t } = useTranslation();
   const [cargando, setCargando] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [isModalVincularOpen, setIsModalVincularOpen] = useState(false);
