@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { formatCurrency } from './currency-utils';
+import { translate } from './i18n';
 
 /**
  * Genera un PDF Élite de recibo Gibbor en formato Base64
@@ -25,6 +26,7 @@ export async function generarReciboPDFBase64(datos: {
     ciudad: string;
     pais?: string;
     moneda?: string;
+    idioma?: string;
     nequi?: string;
     daviplata?: string;
     bre_b?: string;
@@ -33,6 +35,9 @@ export async function generarReciboPDFBase64(datos: {
     logo_url?: string;
   }
 }) {
+  const lang = datos.empresa.idioma || 'es';
+  const t = (k: string, p?: Record<string, string|number>) => translate(k, lang, p);
+
   const doc = new jsPDF();
   // Fecha de emisión: siempre el día real de hoy (con T12:00:00 para evitar desfase UTC)
   const fechaEmision = datos.fecha
@@ -57,7 +62,7 @@ export async function generarReciboPDFBase64(datos: {
   const diaVence = 5;
   const esVencido = !esPago && fechaEmision.getDate() > diaVence;
   
-  const statusLabel = esPago ? 'PAGO CONFIRMADO' : (esVencido ? 'RECIBO VENCIDO' : 'PENDIENTE DE PAGO');
+  const statusLabel = esPago ? t('receipt.paid') : (esVencido ? t('receipt.overdue') : t('receipt.pending'));
   const statusColor = esPago ? [34, 197, 94] : (esVencido ? [220, 38, 38] : [255, 120, 0]); // Verde : Rojo : Naranja
 
   // 1. ENCABEZADO Y LOGO
@@ -75,7 +80,7 @@ export async function generarReciboPDFBase64(datos: {
   // Subtexto de estado
   doc.setFontSize(7);
   doc.setFont("helvetica", "normal");
-  doc.text(esPago ? `Vía: ${(datos.metodo || '').toUpperCase()}` : (esVencido ? 'PAGO ATRASADO' : `VENCE EL DÍA ${diaVence}`), 177.5, 27, { align: 'center' });
+  doc.text(esPago ? `${t('receipt.via')}${(datos.metodo || '').toUpperCase()}` : (esVencido ? t('receipt.latePayment') : `${t('receipt.dueOn')}${diaVence}`), 177.5, 27, { align: 'center' });
 
   // Logo e Identidad
   try {
@@ -99,14 +104,14 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 200);
   doc.text(`${datos.empresa.direccion} • ${datos.empresa.ciudad}`, 45, 28);
-  doc.text(`Recibo: #${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
+  doc.text(`${t('receipt.receiptNum')}${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
 
 
   // 3. INFORMACIÓN DEL JUGADOR
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
-  doc.text('INFORMACIÓN DEL ALUMNO', 15, 55);
+  doc.text(t('receipt.studentInfo'), 15, 55);
   
   doc.setDrawColor(naranjaGibbor[0], naranjaGibbor[1], naranjaGibbor[2]);
   doc.setLineWidth(0.5);
@@ -121,8 +126,8 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFontSize(7);
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('NOMBRE COMPLETO:', 20, 70);
-  doc.text('CATEGORÍA / GRUPO:', 20, 82);
+  doc.text(t('receipt.fullName'), 20, 70);
+  doc.text(t('receipt.categoryGroup'), 20, 82);
 
   // Valores (truncados para que no invadan la columna derecha)
   const nombreCompleto = `${datos.nombres} ${datos.apellidos}`.toUpperCase();
@@ -131,19 +136,19 @@ export async function generarReciboPDFBase64(datos: {
   doc.setFontSize(9);
   doc.text(nombreCompleto, 20, 75, { maxWidth: 85 });
   doc.setFontSize(9);
-  doc.text((datos.grupo || 'GENERAL').toUpperCase(), 20, 87, { maxWidth: 85 });
+  doc.text((datos.grupo || t('receipt.general')).toUpperCase(), 20, 87, { maxWidth: 85 });
 
   // --- COLUMNA DERECHA (Documento + Fecha) — separadas claramente ---
   doc.setFontSize(7);
   doc.setTextColor(slate500[0], slate500[1], slate500[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('DOCUMENTO ID:', 115, 70);
-  doc.text('FECHA EMISIÓN:', 115, 82);
+  doc.text(t('receipt.docId'), 115, 70);
+  doc.text(t('receipt.issueDate'), 115, 82);
 
   doc.setTextColor(slate900[0], slate900[1], slate900[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
+  doc.text(datos.documento || t('receipt.notRegistered'), 115, 75);
   // Mostrar la fecha REAL de emisión (hoy), no el período cobrado
   doc.text(fechaEmision.toLocaleDateString('es-CO'), 115, 87);
 
@@ -156,7 +161,7 @@ export async function generarReciboPDFBase64(datos: {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
-  doc.text('SUBTOTAL', 150, tableY + 6.5, { align: 'right' });
+  doc.text(t('receipt.subtotal'), 150, tableY + 6.5, { align: 'right' });
   doc.text('TOTAL', 185, tableY + 6.5, { align: 'right' });
 
   // Fila de datos - precio base
@@ -365,7 +370,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setFontSize(7);
   doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
   doc.setFont("helvetica", "normal");
-  doc.text('NOMBRE COMPLETO:', 20, 70);
+  doc.text(t('receipt.fullName'), 20, 70);
   doc.text('CARGO / ROL:', 20, 82);
 
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
@@ -384,7 +389,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
+  doc.text(datos.documento || t('receipt.notRegistered'), 115, 75);
   doc.text(fechaActual.toLocaleDateString('es-CO'), 115, 87);
 
   // 3. TABLA DE CONCEPTO
@@ -395,7 +400,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
-  doc.text('VALOR', 185, tableY + 6.5, { align: 'right' });
+  doc.text(t('receipt.value'), 185, tableY + 6.5, { align: 'right' });
 
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
   doc.setFont("helvetica", "normal");

@@ -278,8 +278,18 @@
     "defaultPayment2": "Nuestros canales habituales",
     "defaultPayment3": "Atención en sede",
     "months": {
-      "0": "Enero", "1": "Febrero", "2": "Marzo", "3": "Abril", "4": "Mayo", "5": "Junio",
-      "6": "Julio", "7": "Agosto", "8": "Septiembre", "9": "Octubre", "10": "Noviembre", "11": "Diciembre"
+      "0": "Enero",
+      "1": "Febrero",
+      "2": "Marzo",
+      "3": "Abril",
+      "4": "Mayo",
+      "5": "Junio",
+      "6": "Julio",
+      "7": "Agosto",
+      "8": "Septiembre",
+      "9": "Octubre",
+      "10": "Noviembre",
+      "11": "Diciembre"
     }
   },
   "config": {
@@ -365,5 +375,37 @@
       "applying": "Aplicando...",
       "applyToAll": "Aplicar a Todos"
     }
+  },
+  "receipt": {
+    "paid": "PAGO CONFIRMADO",
+    "overdue": "RECIBO VENCIDO",
+    "pending": "PENDIENTE DE PAGO",
+    "via": "Vía: ",
+    "latePayment": "PAGO ATRASADO",
+    "dueOn": "VENCE EL DÍA ",
+    "receiptNum": "Recibo: #",
+    "studentInfo": "INFORMACIÓN DEL ALUMNO",
+    "fullName": "NOMBRE COMPLETO:",
+    "categoryGroup": "CATEGORÍA / GRUPO:",
+    "general": "GENERAL",
+    "docId": "DOCUMENTO ID:",
+    "issueDate": "FECHA EMISIÓN:",
+    "notRegistered": "NO REGISTRADO",
+    "billingDetails": "DETALLES DE FACTURACIÓN",
+    "description": "DESCRIPCIÓN",
+    "value": "VALOR",
+    "monthlyFee": "Mensualidad de",
+    "baseFee": "Tarifa Base",
+    "earlyDiscount": "Descuento Pronto Pago",
+    "subtotal": "SUBTOTAL",
+    "lateFeeWarning": "CARGOS POR MORA / DEUDA HISTÓRICA",
+    "accumulatedDebt": "Deuda Acumulada",
+    "monthsInArrears": "Meses en mora:",
+    "totalToPay": "TOTAL A PAGAR",
+    "totalPaid": "TOTAL PAGADO",
+    "paymentMethods": "MÉTODOS DE PAGO DISPONIBLES",
+    "bankAccount": "Cuenta Bancaria:",
+    "footerThanks": "¡Gracias por confiar en nuestra institución!",
+    "footerLegal": "Este documento es un comprobante de control interno."
   }
 }
