@@ -30,7 +30,8 @@
       "commercialDirectory": "Directorio Comercial",
       "forms": "Formularios",
       "whatsappBot": "Asistente WA",
-      "config": "Configuración"
+      "config": "Configuración",
+      "uniforms": "Uniformes"
     },
     "dashboard": {
       "greeting": "¡Hola, {{name}}!",
@@ -1069,5 +1070,56 @@
     "TABLE_PLAYER": "Jugador",
     "TABLE_CATEGORY": "Categoría",
     "TABLE_ATTENDANCE": "Asistencia"
+  },
+  "layout": {
+    "uniforms": "Uniformes",
+    "spaces": "Espacios",
+    "coachPanel": "Panel de Entrenador",
+    "technicalSpace": "Espacio Técnico",
+    "athleteSpace": "Espacio Atleta",
+    "playerPanel": "Panel de Jugador",
+    "backToAdmin": "Volver Panel Admin",
+    "exit": "Salir",
+    "directionArea": "Área de Dirección",
+    "supportMode": "Modo Soporte (SuperAdmin)",
+    "technicalSupport": "Soporte Técnico",
+    "director": "Director",
+    "mySubscription": "Mi Suscripción",
+    "accountSettings": "Ajustes de Cuenta",
+    "billing": "Facturación / Planes",
+    "logout": "Cerrar Sesión",
+    "contactSupport": "Contactar Soporte",
+    "trialExpiring": "Tu período de prueba de Gibbor App está próximo a finalizar. Quedan",
+    "day": "día",
+    "days": "días",
+    "endsOn": "(termina el",
+    "activateSubscription": "). Activa tu suscripción para evitar la suspensión del servicio.",
+    "enableAccount": "Habilitar Cuenta",
+    "gracePeriod": "⚠️ ¡ATENCIÓN! Tu suscripción venció el",
+    "gracePeriod2": ". Estás en periodo de gracia, te quedan",
+    "beforeBlock": "antes de que se bloquee el acceso.",
+    "attention": "⚠️ ¡Atención! Tu suscripción vence en",
+    "renewNow": ". Renueva ahora para no perder el acceso.",
+    "subscriptionRenews": "Tu suscripción se renueva en",
+    "havePaymentReady": ". Asegúrate de tener tu pago listo para evitar interrupciones.",
+    "openMenu": "Abrir menú"
+  },
+  "gibbi": {
+    "online": "Online",
+    "closeAssistant": "Cerrar asistente",
+    "usedQueries": "Consultas IA usadas:",
+    "writeQuery": "Escribe tu consulta..."
+  },
+  "notifications": {
+    "alertsCenter": "Centro de Alertas",
+    "markAllRead": "Marcar todas como leídas",
+    "messages": "mensajes",
+    "emptyInbox": "Bandeja de entrada vacía",
+    "newNotice": "Nuevo Aviso",
+    "sendNewAnnouncement": "Enviar nuevo comunicado",
+    "announcement": "Comunicado",
+    "understood": "Entendido",
+    "newRequest": "Nueva Solicitud",
+    "wantsToJoin": "quiere unirse."
   }
 }

@@ -9,8 +9,10 @@ import {
   Shield, TrendingUp, DollarSign, Clock, CheckCircle, Edit3, Plus, Tag, Trash2 
 } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function GestionDePlanes() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { slug: tenantSlug } = useTenant();
   const [tenant, setTenant] = useState<any>(null);
@@ -58,14 +60,14 @@ export default function GestionDePlanes() {
         }
       } catch (err) {
         console.error("Error al cargar tenant:", err);
-        toast.error("Error de conexión con el club");
+        toast.error(t('planes.errorConexionClub'));
         setCargando(false);
         return;
       }
     }
 
     if (!currentTenant || !currentTenant.id) {
-      toast.error("No se detectó un identificador de club válido.");
+      toast.error(t('planes.noIdClubValido'));
       setCargando(false);
       return;
     }
@@ -118,14 +120,14 @@ export default function GestionDePlanes() {
 
   const savePlan = async () => {
     if (!tenant?.id) {
-      toast.error("Error: No se detectó un club válido para asociar el plan.");
+      toast.error(t('planes.errorNoClubPlan'));
       return;
     }
     if (!nombrePlanEdit || !montoPlanEdit) {
-      toast.error("Por favor completa los campos obligatorios.");
+      toast.error(t('planes.camposObligatorios'));
       return;
     }
-    const toastId = toast.loading("Guardando plan...");
+    const toastId = toast.loading(t('planes.guardandoPlan'));
 
     const payload = {
       nombre: nombrePlanEdit,
@@ -147,29 +149,29 @@ export default function GestionDePlanes() {
           .eq('club_id', tenant.id);
       }
       const { error } = await supabase.from('planes').update(payload).eq('id', planEditando.id);
-      if (error) { toast.error("Error al actualizar: " + error.message, { id: toastId }); return; }
+      if (error) { toast.error(t('planes.errorActualizar') + error.message, { id: toastId }); return; }
     } else {
       const { error } = await supabase.from('planes').insert([payload]);
-      if (error) { toast.error("Error al crear: " + error.message, { id: toastId }); return; }
+      if (error) { toast.error(t('planes.errorCrear') + error.message, { id: toastId }); return; }
     }
 
-    toast.success("Plan guardado correctamente", { id: toastId });
+    toast.success(t('planes.planGuardado'), { id: toastId });
     setIsModalPlanOpen(false);
     cargarDatos();
   };
 
   const handleDeletePlan = async (id: string, nombrePlan: string) => {
-    if (!window.confirm(`¿Estás seguro de que deseas eliminar el plan "${nombrePlan}"? Los alumnos asociados dejarán de estar en este plan.`)) return;
+    if (!window.confirm(t('planes.confirmarEliminarPlan').replace('{nombre}', nombrePlan))) return;
     
-    const toastId = toast.loading("Eliminando plan...");
+    const toastId = toast.loading(t('planes.eliminandoPlan'));
     const { error } = await supabase.from('planes').delete().eq('id', id);
     
     if (error) {
-      toast.error("Error al eliminar: " + error.message, { id: toastId });
+      toast.error(t('planes.errorEliminar') + error.message, { id: toastId });
       return;
     }
     
-    toast.success("Plan eliminado correctamente", { id: toastId });
+    toast.success(t('planes.planEliminado'), { id: toastId });
     cargarDatos();
   };
 
@@ -197,14 +199,14 @@ export default function GestionDePlanes() {
 
   const saveConcepto = async () => {
     if (!tenant?.id) {
-      toast.error("Error: No se detectó un club válido para asociar el concepto.");
+      toast.error(t('planes.errorNoClubConcepto'));
       return;
     }
     if (!nombreConceptoEdit || !montoConceptoEdit) {
-      toast.error("Por favor completa los campos obligatorios.");
+      toast.error(t('planes.camposObligatorios'));
       return;
     }
-    const toastId = toast.loading("Guardando concepto...");
+    const toastId = toast.loading(t('planes.guardandoConcepto'));
 
     const payload = {
       nombre: nombreConceptoEdit,
@@ -215,13 +217,13 @@ export default function GestionDePlanes() {
 
     if (conceptoEditando) {
       const { error } = await supabase.from('conceptos_cobro').update(payload).eq('id', conceptoEditando.id);
-      if (error) { toast.error("Error al actualizar: " + error.message, { id: toastId }); return; }
+      if (error) { toast.error(t('planes.errorActualizar') + error.message, { id: toastId }); return; }
     } else {
       const { error } = await supabase.from('conceptos_cobro').insert([payload]);
-      if (error) { toast.error("Error al crear: " + error.message, { id: toastId }); return; }
+      if (error) { toast.error(t('planes.errorCrear') + error.message, { id: toastId }); return; }
     }
 
-    toast.success("Concepto guardado correctamente", { id: toastId });
+    toast.success(t('planes.conceptoGuardado'), { id: toastId });
     setIsModalConceptoOpen(false);
     cargarDatos();
   };

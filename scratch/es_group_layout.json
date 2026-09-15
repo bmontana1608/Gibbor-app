@@ -1,0 +1,54 @@
+{
+  "layout": {
+    "uniforms": "Uniformes",
+    "spaces": "Espacios",
+    "coachPanel": "Panel de Entrenador",
+    "technicalSpace": "Espacio Técnico",
+    "athleteSpace": "Espacio Atleta",
+    "playerPanel": "Panel de Jugador",
+    "backToAdmin": "Volver Panel Admin",
+    "exit": "Salir",
+    "directionArea": "Área de Dirección",
+    "supportMode": "Modo Soporte (SuperAdmin)",
+    "technicalSupport": "Soporte Técnico",
+    "director": "Director",
+    "mySubscription": "Mi Suscripción",
+    "accountSettings": "Ajustes de Cuenta",
+    "billing": "Facturación / Planes",
+    "logout": "Cerrar Sesión",
+    "contactSupport": "Contactar Soporte"
+  },
+  "dashboard": {
+    "syncingAcademy": "Sincronizando Academia",
+    "retryLoad": "Reintentar Carga",
+    "welcomeTo": "¡Bienvenido a",
+    "multiclubControlPanel": "Panel de Control Multiclub",
+    "upToDatePayments": "Pagos al día",
+    "linkedStudents": "de alumnos vinculados",
+    "activeGroups": "Grupos Activos",
+    "trainingCategories": "Categorías en entrenamiento",
+    "attendanceRate": "Tasa de Asistencia",
+    "globalMonthlyAverage": "Promedio global del mes",
+    "callups": "Convocatorias",
+    "view": "Ver",
+    "payrollManagement": "Gestión de nóminas"
+  },
+  "gibbi": {
+    "online": "Online",
+    "closeAssistant": "Cerrar asistente",
+    "usedQueries": "Consultas IA usadas:",
+    "writeQuery": "Escribe tu consulta..."
+  },
+  "notifications": {
+    "alertsCenter": "Centro de Alertas",
+    "markAllRead": "Marcar todas como leídas",
+    "messages": "mensajes",
+    "emptyInbox": "Bandeja de entrada vacía",
+    "newNotice": "Nuevo Aviso",
+    "sendNewAnnouncement": "Enviar nuevo comunicado",
+    "announcement": "Comunicado",
+    "understood": "Entendido",
+    "newRequest": "Nueva Solicitud",
+    "wantsToJoin": "quiere unirse."
+  }
+}

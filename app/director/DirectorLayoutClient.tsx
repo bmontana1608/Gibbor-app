@@ -140,167 +140,167 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
     { name: t('director.menu.commercialDirectory'), path: `${basePath}/director/directorio`, icon: <Store className="w-5 h-5" /> },
     { name: t('director.menu.forms'), path: `${basePath}/director/formularios`, icon: <FileSpreadsheet className="w-5 h-5" /> },
     { name: t('director.menu.whatsappBot'), path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <Bot className="w-5 h-5" /> },
-    { name: 'Uniformes', path: `${basePath}/director/uniformes`, icon: <Shirt className="w-5 h-5" /> },
-    { name: t('director.menu.config'), path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
-  ], [basePath, t]);
-
-  const accesosRapidos = useMemo(() => [
-    { 
-      name: 'Espacio Técnico', 
-      desc: 'Panel de Entrenador',
-      path: `${basePath}/entrenador`, 
-      icon: <Activity className="w-5 h-5" />,
-      color: 'bg-emerald-500'
-    },
-    { 
-      name: 'Espacio Atleta', 
-      desc: 'Panel de Jugador',
-      path: `${basePath}/futbolista`, 
-      icon: <Trophy className="w-5 h-5" />,
-      color: 'bg-brand'
-    },
-  ], [basePath]);
-
-  const brandName = tenant?.config?.nombre || 'Plataforma';
-  const brandLogo = tenant?.config?.logo || '/logo.png';
-  const brandColor = tenant?.config?.color || '#06b6d4';
-
-  const hexToRgb = (hex: string) => {
-    try {
-      const h = hex.startsWith('#') ? hex : `#${hex}`;
-      const r = parseInt(h.slice(1, 3), 16);
-      const g = parseInt(h.slice(3, 5), 16);
-      const b = parseInt(h.slice(5, 7), 16);
-      return isNaN(r) || isNaN(g) || isNaN(b) ? '234, 88, 12' : `${r}, ${g}, ${b}`;
-    } catch (e) {
-      return '234, 88, 12'; // Fallback Orange
-    }
-  };
-
-  const cerrarSesion = async () => {
-    await supabase.auth.signOut();
-    window.location.href = `${basePath}/login`;
-  };
-
-
-  return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
-      <style dangerouslySetInnerHTML={{ __html: `
-        :root {
-          --brand-primary: ${brandColor};
-          --brand-primary-rgb: ${hexToRgb(brandColor)};
-        }
-      `}} />
-      <PushPermissionBanner />
-      
-      {/* Overlay para móvil - condicional para evitar bloqueos fantasma */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden animate-in fade-in duration-300"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-      
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
-        isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'
-      }`}>
-
-        <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3">
-            {initialTenant?.config?.logo ? (
-              <img src={brandLogo} alt={`${brandName} Logo`} className="w-9 h-9 object-contain rounded-full shadow-sm" />
-            ) : (
-              <div className="w-9 h-9 bg-brand/10 rounded-full flex items-center justify-center border border-brand/20 shadow-sm">
-                <ShieldCheck className="w-5 h-5 text-brand" />
-              </div>
-            )}
-            <span className="text-xl font-black text-slate-800 dark:text-white tracking-tight">{brandName}</span>
-          </div>
-          <button 
-            onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden text-slate-400 hover:text-red-500 p-1 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {menu.map((item) => {
-            const activo = pathname === item.path || (item.path.endsWith('/director') ? pathname === item.path : pathname.startsWith(item.path));
-            return (
-              <Link 
-                href={item.path} 
-                key={item.name}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
-                  activo
-                    ? 'bg-brand-muted text-brand font-bold shadow-sm border border-brand/10'
-                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100 font-medium'
-                }`}
-              >
-                <span className={activo ? 'text-brand opacity-100' : 'opacity-70'}>{item.icon}</span>
-                <span className="text-sm">{item.name}</span>
-              </Link>
-            );
-          })}
-
-          <div className="p-4 mt-2 mx-2 mb-4 bg-slate-900 rounded-[1.5rem] border border-slate-800 shadow-xl shadow-slate-900/10 relative overflow-hidden">
-            <div className="absolute right-[-10px] top-[-10px] opacity-10">
-              <Zap className="w-20 h-20 text-white" />
-            </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 relative z-10 flex items-center gap-2">
-               <ArrowRightLeft className="w-3 h-3" /> Espacios
-            </p>
-            <div className="space-y-2 relative z-10">
-            {accesosRapidos.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
-              >
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color} text-white shadow-lg`}>
-                  <span className="group-hover:scale-110 transition-transform scale-90">{item.icon}</span>
-                </div>
-                <div>
-                    <p className="font-bold text-white text-[11px] leading-none group-hover:text-brand transition-colors">{item.name}</p>
-                </div>
-              </Link>
-            ))}
-            {profile?.rol?.toLowerCase() === 'superadmin' && (
-              <Link
-                href="/admin/clubes"
-                className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
-              >
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-600 text-white shadow-lg">
-                  <ShieldCheck className="scale-90" />
-                </div>
-                <div>
-                    <p className="font-bold text-white text-[11px] leading-none group-hover:text-purple-400 transition-colors">Volver Panel Admin</p>
-                </div>
-              </Link>
-            )}
-            </div>
-          </div>
-        </nav>
-
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800">
-          <button 
-            onClick={cerrarSesion}
-            className="flex items-center gap-3 text-red-500 font-bold px-4 py-3 hover:bg-red-50 dark:hover:bg-red-500/10 w-full rounded-xl transition-colors group"
-          >
-            <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" /> Salir
-          </button>
-        </div>
-      </aside>
-
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      { name: t('layout.uniforms'), path: `${basePath}/director/uniformes`, icon: <Shirt className="w-5 h-5" /> },
+      { name: t('director.menu.config'), path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
+    ], [basePath, t]);
+  
+    const accesosRapidos = useMemo(() => [
+      { 
+        name: t('layout.technicalSpace'), 
+        desc: t('layout.coachPanel'),
+        path: `${basePath}/entrenador`, 
+        icon: <Activity className="w-5 h-5" />,
+        color: 'bg-emerald-500'
+      },
+      { 
+        name: t('layout.athleteSpace'), 
+        desc: t('layout.playerPanel'),
+        path: `${basePath}/futbolista`, 
+        icon: <Trophy className="w-5 h-5" />,
+        color: 'bg-brand'
+      },
+    ], [basePath, t]);
+  
+    const brandName = tenant?.config?.nombre || 'Plataforma';
+    const brandLogo = tenant?.config?.logo || '/logo.png';
+    const brandColor = tenant?.config?.color || '#06b6d4';
+  
+    const hexToRgb = (hex: string) => {
+      try {
+        const h = hex.startsWith('#') ? hex : `#${hex}`;
+        const r = parseInt(h.slice(1, 3), 16);
+        const g = parseInt(h.slice(3, 5), 16);
+        const b = parseInt(h.slice(5, 7), 16);
+        return isNaN(r) || isNaN(g) || isNaN(b) ? '234, 88, 12' : `${r}, ${g}, ${b}`;
+      } catch (e) {
+        return '234, 88, 12'; // Fallback Orange
+      }
+    };
+  
+    const cerrarSesion = async () => {
+      await supabase.auth.signOut();
+      window.location.href = `${basePath}/login`;
+    };
+  
+  
+    return (
+      <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --brand-primary: ${brandColor};
+            --brand-primary-rgb: ${hexToRgb(brandColor)};
+          }
+        `}} />
+        <PushPermissionBanner />
         
-        <header className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 flex items-center justify-between px-4 md:px-6 transition-colors">
-          <div className="md:hidden flex items-center gap-2">
-            {tenant?.config?.logo ? (
-              <img src={brandLogo} alt="Logo" className="w-8 h-8 rounded-full" />
-            ) : (
-              <div className="w-8 h-8 bg-brand/10 rounded-full flex items-center justify-center border border-brand/20">
+        {/* Overlay para móvil - condicional para evitar bloqueos fantasma */}
+        {isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-40 md:hidden animate-in fade-in duration-300"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+        
+        <aside className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shadow-2xl md:shadow-sm z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none md:pointer-events-auto'
+        }`}>
+  
+          <div className="p-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              {initialTenant?.config?.logo ? (
+                <img src={brandLogo} alt={`${brandName} Logo`} className="w-9 h-9 object-contain rounded-full shadow-sm" />
+              ) : (
+                <div className="w-9 h-9 bg-brand/10 rounded-full flex items-center justify-center border border-brand/20 shadow-sm">
+                  <ShieldCheck className="w-5 h-5 text-brand" />
+                </div>
+              )}
+              <span className="text-xl font-black text-slate-800 dark:text-white tracking-tight">{brandName}</span>
+            </div>
+            <button 
+              onClick={() => setIsSidebarOpen(false)}
+              className="md:hidden text-slate-400 hover:text-red-500 p-1 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+  
+          <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
+            {menu.map((item) => {
+              const activo = pathname === item.path || (item.path.endsWith('/director') ? pathname === item.path : pathname.startsWith(item.path));
+              return (
+                <Link 
+                  href={item.path} 
+                  key={item.name}
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
+                    activo
+                      ? 'bg-brand-muted text-brand font-bold shadow-sm border border-brand/10'
+                      : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100 font-medium'
+                  }`}
+                >
+                  <span className={activo ? 'text-brand opacity-100' : 'opacity-70'}>{item.icon}</span>
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
+  
+            <div className="p-4 mt-2 mx-2 mb-4 bg-slate-900 rounded-[1.5rem] border border-slate-800 shadow-xl shadow-slate-900/10 relative overflow-hidden">
+              <div className="absolute right-[-10px] top-[-10px] opacity-10">
+                <Zap className="w-20 h-20 text-white" />
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 relative z-10 flex items-center gap-2">
+                 <ArrowRightLeft className="w-3 h-3" /> {t('layout.spaces')}
+              </p>
+              <div className="space-y-2 relative z-10">
+              {accesosRapidos.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color} text-white shadow-lg`}>
+                    <span className="group-hover:scale-110 transition-transform scale-90">{item.icon}</span>
+                  </div>
+                  <div>
+                      <p className="font-bold text-white text-[11px] leading-none group-hover:text-brand transition-colors">{item.name}</p>
+                  </div>
+                </Link>
+              ))}
+              {profile?.rol?.toLowerCase() === 'superadmin' && (
+                <Link
+                  href="/admin/clubes"
+                  className="flex items-center gap-3 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group"
+                >
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-purple-600 text-white shadow-lg">
+                    <ShieldCheck className="scale-90" />
+                  </div>
+                  <div>
+                      <p className="font-bold text-white text-[11px] leading-none group-hover:text-purple-400 transition-colors">{t('layout.backToAdmin')}</p>
+                  </div>
+                </Link>
+              )}
+              </div>
+            </div>
+          </nav>
+  
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+            <button 
+              onClick={cerrarSesion}
+              className="flex items-center gap-3 text-red-500 font-bold px-4 py-3 hover:bg-red-50 dark:hover:bg-red-500/10 w-full rounded-xl transition-colors group"
+            >
+              <LogOut className="w-5 h-5 text-red-400 group-hover:text-red-500 transition-colors" /> {t('layout.exit')}
+            </button>
+          </div>
+        </aside>
+  
+  
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          
+          <header className="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-30 flex items-center justify-between px-4 md:px-6 transition-colors">
+            <div className="md:hidden flex items-center gap-2">
+              {tenant?.config?.logo ? (
+                <img src={brandLogo} alt="Logo" className="w-8 h-8 rounded-full" />
+              ) : (
+                <div className="w-8 h-8 bg-brand/10 rounded-full flex items-center justify-center border border-brand/20">
                 <ShieldCheck className="w-4 h-4 text-brand" />
               </div>
             )}
@@ -310,13 +310,13 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
           <div className="hidden md:flex items-center gap-2">
             <div className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <ShieldCheck className="w-3 h-3 text-brand" /> Área de Dirección
+                <ShieldCheck className="w-3 h-3 text-brand" /> {t('layout.directionArea')}
               </p>
             </div>
             {profile?.rol?.toLowerCase() === 'superadmin' && (
               <div className="bg-purple-100 dark:bg-purple-950/40 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
                 <p className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest flex items-center gap-2">
-                  <ShieldCheck className="w-3 h-3 text-purple-500" /> Modo Soporte (SuperAdmin)
+                  <ShieldCheck className="w-3 h-3 text-purple-500" /> {t('layout.supportMode')}
                 </p>
               </div>
             )}
@@ -326,7 +326,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             <Link 
               href={`${basePath}/director/soporte`}
               className="w-10 h-10 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-full flex items-center justify-center transition-all"
-              title="Soporte Técnico"
+              title={t('layout.technicalSupport')}
             >
               <LifeBuoy className="w-5 h-5" />
             </Link>
@@ -347,7 +347,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               {isUserMenuOpen && (
                 <div className="absolute top-12 right-0 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl shadow-slate-900/10 py-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-2">
-                    <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{profile?.nombre || 'Director'}</p>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{profile?.nombre || t('layout.director')}</p>
                     <p className="text-[10px] uppercase font-black text-brand tracking-widest">{brandName}</p>
                   </div>
                   
@@ -357,7 +357,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
                   >
                     <Star className="w-4 h-4 text-amber-500" />
-                    Mi Suscripción
+                    {t('layout.mySubscription')}
                   </Link>
 
                   <Link 
@@ -366,7 +366,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
                   >
                     <Settings className="w-4 h-4" />
-                    Ajustes de Cuenta
+                    {t('layout.accountSettings')}
                   </Link>
                   
                   <Link 
@@ -375,7 +375,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                     className="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand transition-colors"
                   >
                     <CreditCard className="w-4 h-4" />
-                    Facturación / Planes
+                    {t('layout.billing')}
                   </Link>
 
                   <div className="h-px bg-slate-100 dark:bg-slate-800 my-2"></div>
@@ -385,7 +385,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                     className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    Cerrar Sesión
+                    {t('layout.logout')}
                   </button>
                 </div>
               )}
@@ -407,14 +407,14 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 animate-pulse text-amber-100 flex-shrink-0" />
                 <p>
-                  Tu período de prueba de Gibbor App está próximo a finalizar. Quedan <span className="underline decoration-wavy decoration-white font-black">{trialBanner.dias} {trialBanner.dias === 1 ? 'día' : 'días'}</span> (termina el {trialBanner.fecha}). Activa tu suscripción para evitar la suspensión del servicio.
+                  {t('layout.trialExpiring')} <span className="underline decoration-wavy decoration-white font-black">{trialBanner.dias} {trialBanner.dias === 1 ? t('layout.day') : t('layout.days')}</span> {t('layout.endsOn')} {trialBanner.fecha}{t('layout.activateSubscription')}
                 </p>
               </div>
               <Link 
                 href={`${basePath}/director/soporte`}
                 className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0"
               >
-                Habilitar Cuenta
+                {t('layout.enableAccount')}
               </Link>
             </div>
           )}
@@ -429,10 +429,10 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 <Clock className={`w-5 h-5 flex-shrink-0 ${suscripcionBanner.urgente ? 'animate-pulse' : ''}`} />
                 <p>
                   {suscripcionBanner.tipo === 'gracia' 
-                    ? <>⚠️ <strong>¡ATENCIÓN!</strong> Tu suscripción venció el {suscripcionBanner.fecha}. Estás en periodo de gracia, te quedan <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> antes de que se bloquee el acceso.</>
+                    ? <>{t('layout.gracePeriod')} {suscripcionBanner.fecha}{t('layout.gracePeriod2')} <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? t('layout.day') : t('layout.days')}</span> {t('layout.beforeBlock')}</>
                     : suscripcionBanner.urgente
-                      ? <>⚠️ <strong>¡Atención!</strong> Tu suscripción vence en <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? 'día' : 'días'}</span> ({suscripcionBanner.fecha}). Renueva ahora para no perder el acceso.</>  
-                      : <>Tu suscripción se renueva en <span className="font-black">{suscripcionBanner.dias} días</span> ({suscripcionBanner.fecha}). Asegúrate de tener tu pago listo para evitar interrupciones.</>  
+                      ? <>{t('layout.attention')} <span className="underline decoration-wavy decoration-white font-black">{suscripcionBanner.dias} {suscripcionBanner.dias === 1 ? t('layout.day') : t('layout.days')}</span> ({suscripcionBanner.fecha}){t('layout.renewNow')}</>  
+                      : <>{t('layout.subscriptionRenews')} <span className="font-black">{suscripcionBanner.dias} {t('layout.days')}</span> ({suscripcionBanner.fecha}){t('layout.havePaymentReady')}</>  
                   }
                 </p>
               </div>
@@ -440,7 +440,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 href={`${basePath}/director/soporte`}
                 className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0 whitespace-nowrap"
               >
-                Contactar Soporte
+                {t('layout.contactSupport')}
               </Link>
             </div>
           )}

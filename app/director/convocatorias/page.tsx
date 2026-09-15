@@ -167,7 +167,7 @@ export default function ConvocatoriasDirector() {
         <div>
           <h1 className="text-3xl font-black text-slate-800 uppercase italic tracking-tighter flex items-center gap-3">
             <ClipboardList className="w-8 h-8" style={{ color: brandColor }} />
-            Gestión de Convocatorias
+            {t('convocatorias.gestionConvocatorias')}
           </h1>
           <p className="text-slate-500 font-medium">{t('convocatorias.subtitle')}</p>
         </div>

@@ -1,0 +1,54 @@
+{
+  "layout": {
+    "uniforms": "Uniforms",
+    "spaces": "Spaces",
+    "coachPanel": "Coach Panel",
+    "technicalSpace": "Technical Space",
+    "athleteSpace": "Athlete Space",
+    "playerPanel": "Player Panel",
+    "backToAdmin": "Back to Admin Panel",
+    "exit": "Exit",
+    "directionArea": "Direction Area",
+    "supportMode": "Support Mode (SuperAdmin)",
+    "technicalSupport": "Technical Support",
+    "director": "Director",
+    "mySubscription": "My Subscription",
+    "accountSettings": "Account Settings",
+    "billing": "Billing / Plans",
+    "logout": "Log Out",
+    "contactSupport": "Contact Support"
+  },
+  "dashboard": {
+    "syncingAcademy": "Syncing Academy",
+    "retryLoad": "Retry Load",
+    "welcomeTo": "Welcome to",
+    "multiclubControlPanel": "Multiclub Control Panel",
+    "upToDatePayments": "Up-to-date Payments",
+    "linkedStudents": "linked students",
+    "activeGroups": "Active Groups",
+    "trainingCategories": "Training categories",
+    "attendanceRate": "Attendance Rate",
+    "globalMonthlyAverage": "Global monthly average",
+    "callups": "Callups",
+    "view": "View",
+    "payrollManagement": "Payroll Management"
+  },
+  "gibbi": {
+    "online": "Online",
+    "closeAssistant": "Close assistant",
+    "usedQueries": "AI Queries used:",
+    "writeQuery": "Write your query..."
+  },
+  "notifications": {
+    "alertsCenter": "Alerts Center",
+    "markAllRead": "Mark all as read",
+    "messages": "messages",
+    "emptyInbox": "Empty inbox",
+    "newNotice": "New Notice",
+    "sendNewAnnouncement": "Send new announcement",
+    "announcement": "Announcement",
+    "understood": "Understood",
+    "newRequest": "New Request",
+    "wantsToJoin": "wants to join."
+  }
+}

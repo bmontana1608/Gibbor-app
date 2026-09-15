@@ -30,7 +30,8 @@
       "commercialDirectory": "Commercial Directory",
       "forms": "Forms",
       "whatsappBot": "WA Assistant",
-      "config": "Settings"
+      "config": "Settings",
+      "uniforms": "Uniforms"
     },
     "dashboard": {
       "greeting": "Hello, {{name}}!",
@@ -1069,5 +1070,56 @@
     "TABLE_PLAYER": "Player",
     "TABLE_CATEGORY": "Category",
     "TABLE_ATTENDANCE": "Attendance"
+  },
+  "layout": {
+    "uniforms": "Uniforms",
+    "spaces": "Spaces",
+    "coachPanel": "Coach Panel",
+    "technicalSpace": "Technical Space",
+    "athleteSpace": "Athlete Space",
+    "playerPanel": "Player Panel",
+    "backToAdmin": "Back to Admin Panel",
+    "exit": "Exit",
+    "directionArea": "Direction Area",
+    "supportMode": "Support Mode (SuperAdmin)",
+    "technicalSupport": "Technical Support",
+    "director": "Director",
+    "mySubscription": "My Subscription",
+    "accountSettings": "Account Settings",
+    "billing": "Billing / Plans",
+    "logout": "Log Out",
+    "contactSupport": "Contact Support",
+    "trialExpiring": "Your Gibbor App trial period is about to end. Remaining",
+    "day": "day",
+    "days": "days",
+    "endsOn": "(ends on",
+    "activateSubscription": "). Activate your subscription to avoid service suspension.",
+    "enableAccount": "Enable Account",
+    "gracePeriod": "⚠️ ATTENTION! Your subscription expired on",
+    "gracePeriod2": ". You are in a grace period, you have",
+    "beforeBlock": "before access is blocked.",
+    "attention": "⚠️ Attention! Your subscription expires in",
+    "renewNow": ". Renew now to keep your access.",
+    "subscriptionRenews": "Your subscription renews in",
+    "havePaymentReady": ". Make sure your payment is ready to avoid interruptions.",
+    "openMenu": "Open menu"
+  },
+  "gibbi": {
+    "online": "Online",
+    "closeAssistant": "Close assistant",
+    "usedQueries": "AI Queries used:",
+    "writeQuery": "Write your query..."
+  },
+  "notifications": {
+    "alertsCenter": "Alerts Center",
+    "markAllRead": "Mark all as read",
+    "messages": "messages",
+    "emptyInbox": "Empty inbox",
+    "newNotice": "New Notice",
+    "sendNewAnnouncement": "Send new announcement",
+    "announcement": "Announcement",
+    "understood": "Understood",
+    "newRequest": "New Request",
+    "wantsToJoin": "wants to join."
   }
 }

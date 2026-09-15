@@ -262,9 +262,9 @@ export default function UniformesModule() {
   const registrarNuevoAbono = async () => {
     if (!pedidoActual || !nuevoAbonoMonto) return;
     const montoSumar = Number(nuevoAbonoMonto);
-    if (montoSumar <= 0) return toast.error("El abono debe ser mayor a 0");
+    if (montoSumar <= 0) return toast.error(t('uniformes.abonoDebeSerMayorCero'));
 
-    const toastId = toast.loading("Procesando pago...");
+    const toastId = toast.loading(t('uniformes.procesandoPago'));
     
     const nuevoTotalAbono = Number(pedidoActual.abono || 0) + montoSumar;
     const precioVent = Number(pedidoActual.precio_venta || 0);
@@ -276,7 +276,7 @@ export default function UniformesModule() {
         .update({ abono: nuevoTotalAbono, estado_pago: estadoPago })
         .eq('id', pedidoActual.id);
       if (error) throw error;
-      toast.success("Abono registrado correctamente", { id: toastId });
+      toast.success(t('uniformes.abonoRegistradoCorrectamente'), { id: toastId });
       setIsModalAbonoOpen(false);
       setNuevoAbonoMonto('');
       cargarDatos();
@@ -360,29 +360,29 @@ export default function UniformesModule() {
       {/* DASHBOARD INTELIGENTE */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-slate-800">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.ingresoProyectado')}</p>
             <h3 className="text-3xl font-black text-slate-800 dark:text-white">{'$'}{stats.totalVenta.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('uniformes.valorCobroTotal')}</p>
          </div>
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-rose-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Costo Proveedor</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.costoProveedor2')}</p>
             <h3 className="text-3xl font-black text-rose-600">{'$'}{stats.totalCosto.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Gastos de fabricación</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('uniformes.gastosFabricacion')}</p>
          </div>
          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
             <TrendingUp className="absolute -right-4 -top-4 w-20 h-20 text-emerald-50 opacity-50" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ganancia Estimada</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.gananciaEstimada')}</p>
             <h3 className="text-3xl font-black text-emerald-600">{'$'}{stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Utilidad libre del club</p>
+            <p className="text-[10px] text-slate-400 mt-1 font-bold">{t('uniformes.utilidadLibreClub')}</p>
          </div>
          <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-xl relative">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cartera Pendiente</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{t('uniformes.carteraPendiente')}</p>
             <h3 className="text-3xl font-black text-white">{'$'}{stats.porCobrar.toLocaleString('es-CO')}</h3>
             <div className="flex items-center gap-2 mt-2">
                <div className="w-full bg-slate-800 rounded-full h-1.5">
                  <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
                </div>
-               <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
+               <span className="text-[9px] text-slate-400 font-bold">{t('uniformes.recaudado')}</span>
             </div>
          </div>
       </div>
