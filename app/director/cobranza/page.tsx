@@ -1934,9 +1934,9 @@ export default function ModuloCobranza() {
             <div className="bg-gradient-to-r from-slate-700 to-slate-800 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">Editar Registro</p>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">{t('cobranza.editRecord')}</p>
                   <h2 className="text-xl font-black">{pagoEditando.nombres} {pagoEditando.apellidos}</h2>
-                  <p className="text-xs opacity-70 mt-1">{pagoEditando.notas?.startsWith("ABONO") ? "Abono parcial" : "Pago completo"}</p>
+                  <p className="text-xs opacity-70 mt-1">{pagoEditando.notas?.startsWith("ABONO") ? t('cobranza.partialPaymentTitle') : t('cobranza.fullPaymentTitle')}</p>
                 </div>
                 <button onClick={() => setIsModalEditarOpen(false)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
                   <X className="w-4 h-4" />
@@ -1945,30 +1945,30 @@ export default function ModuloCobranza() {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto ($) *</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.amountSymbolRequired')}</label>
                 <input type="number" value={editMonto} onChange={(e) => setEditMonto(e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-black text-lg text-slate-800" />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Metodo de Pago</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.paymentMethod')}</label>
                 <select value={editMetodo} onChange={(e) => setEditMetodo(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-bold bg-white">
-                  <option value="Efectivo">Efectivo</option>
-                  <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                  <option value="Efectivo">{t('cobranza.cash')}</option>
+                  <option value="Transferencia Bancaria">{t('cobranza.bankTransfer')}</option>
                   {metodosPagoDisponibles.map(m => (<option key={m.nombre} value={m.nombre}>{m.nombre}</option>))}
-                  <option value="Tarjeta">Tarjeta</option>
-                  <option value="Otro">Otro</option>
+                  <option value="Tarjeta">{t('cobranza.card')}</option>
+                  <option value="Otro">{t('cobranza.other')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha del Pago</label>
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.paymentDate')}</label>
                 <input type="date" value={editFecha} onChange={(e) => setEditFecha(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-bold" />
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</label>
-                <input type="text" value={editNotas} onChange={(e) => setEditNotas(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-medium" placeholder="Opcional" />
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.notes')}</label>
+                <input type="text" value={editNotas} onChange={(e) => setEditNotas(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-slate-500 font-medium" placeholder={t('cobranza.optional')} />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setIsModalEditarOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Cancelar</button>
-                <button onClick={guardarEdicionPago} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all">Guardar Cambios</button>
+                <button onClick={() => setIsModalEditarOpen(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">{t('cobranza.cancel')}</button>
+                <button onClick={guardarEdicionPago} className="flex-1 px-4 py-3 rounded-xl font-black text-white bg-slate-800 hover:bg-slate-900 shadow-lg transition-all">{t('cobranza.saveChanges')}</button>
               </div>
             </div>
           </div>
