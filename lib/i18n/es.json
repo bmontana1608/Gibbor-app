@@ -11,6 +11,28 @@
     "entrenador": "Entrenador",
     "futbolista": "Futbolista"
   },
+  "director": {
+    "menu": {
+      "dashboard": "Inicio (Dashboard)",
+      "members": "Miembros",
+      "calendar": "Agenda",
+      "callups": "Convocatorias",
+      "collections": "Cobranza",
+      "calculator": "Calculadora",
+      "contributions": "Aportes",
+      "payroll": "Nómina",
+      "attendance": "Asistencia",
+      "categories": "Categorías",
+      "library": "Biblioteca",
+      "reports": "Reportes",
+      "announcements": "Comunicados",
+      "whatsappHistory": "Historial WA",
+      "commercialDirectory": "Directorio Comercial",
+      "forms": "Formularios",
+      "whatsappBot": "Asistente WA",
+      "config": "Configuración"
+    }
+  },
   "futbolista": {
     "dashboard": {
       "greeting": "¡HOLA, {{name}}!",

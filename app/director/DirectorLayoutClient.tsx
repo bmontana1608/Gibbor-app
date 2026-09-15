@@ -10,6 +10,7 @@ import GibbiAssistant from "@/components/GibbiAssistant";
 import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star, FileSpreadsheet } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface DirectorLayoutClientProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ interface DirectorLayoutClientProps {
 }
 
 export default function DirectorLayoutClient({ children, initialTenant, initialProfile, proximoCorte, estadoSuscripcion }: DirectorLayoutClientProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -121,26 +123,26 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
 
 
   const menu = useMemo(() => [
-    { name: 'Inicio (Dashboard)', path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
-    { name: 'Miembros', path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
-    { name: 'Agenda', path: `${basePath}/director/eventos`, icon: <Calendar className="w-5 h-5" /> },
-    { name: 'Convocatorias', path: `${basePath}/director/convocatorias`, icon: <ClipboardCheck className="w-5 h-5" /> },
-    { name: 'Cobranza', path: `${basePath}/director/cobranza`, icon: <CreditCard className="w-5 h-5" /> },
-    { name: 'Calculadora', path: `${basePath}/director/calculadora`, icon: <Calculator className="w-5 h-5" /> },
-    { name: 'Aportes', path: `${basePath}/director/aportes`, icon: <Coins className="w-5 h-5" /> },
-    { name: 'Nómina', path: `${basePath}/director/nomina`, icon: <Briefcase className="w-5 h-5" /> },
-    { name: 'Asistencia', path: `${basePath}/director/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
-    { name: 'Categorías', path: `${basePath}/director/categorias`, icon: <Tags className="w-5 h-5" /> },
-    { name: 'Biblioteca', path: `${basePath}/director/biblioteca`, icon: <Library className="w-5 h-5" /> },
-    { name: 'Reportes', path: `${basePath}/director/reportes`, icon: <BarChart className="w-5 h-5" /> },
-    { name: 'Comunicados', path: `${basePath}/director/comunicados`, icon: <Megaphone className="w-5 h-5" /> },
-    { name: 'Historial WA', path: `${basePath}/director/whatsapp`, icon: <MessageSquare className="w-5 h-5" /> },
-    { name: 'Directorio Comercial', path: `${basePath}/director/directorio`, icon: <Store className="w-5 h-5" /> },
-    { name: 'Formularios', path: `${basePath}/director/formularios`, icon: <FileSpreadsheet className="w-5 h-5" /> },
-    { name: 'Asistente WA', path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <Bot className="w-5 h-5" /> },
+    { name: t('director.menu.dashboard'), path: `${basePath}/director`, icon: <Home className="w-5 h-5" /> },
+    { name: t('director.menu.members'), path: `${basePath}/director/miembros`, icon: <Users className="w-5 h-5" /> },
+    { name: t('director.menu.calendar'), path: `${basePath}/director/eventos`, icon: <Calendar className="w-5 h-5" /> },
+    { name: t('director.menu.callups'), path: `${basePath}/director/convocatorias`, icon: <ClipboardCheck className="w-5 h-5" /> },
+    { name: t('director.menu.collections'), path: `${basePath}/director/cobranza`, icon: <CreditCard className="w-5 h-5" /> },
+    { name: t('director.menu.calculator'), path: `${basePath}/director/calculadora`, icon: <Calculator className="w-5 h-5" /> },
+    { name: t('director.menu.contributions'), path: `${basePath}/director/aportes`, icon: <Coins className="w-5 h-5" /> },
+    { name: t('director.menu.payroll'), path: `${basePath}/director/nomina`, icon: <Briefcase className="w-5 h-5" /> },
+    { name: t('director.menu.attendance'), path: `${basePath}/director/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
+    { name: t('director.menu.categories'), path: `${basePath}/director/categorias`, icon: <Tags className="w-5 h-5" /> },
+    { name: t('director.menu.library'), path: `${basePath}/director/biblioteca`, icon: <Library className="w-5 h-5" /> },
+    { name: t('director.menu.reports'), path: `${basePath}/director/reportes`, icon: <BarChart className="w-5 h-5" /> },
+    { name: t('director.menu.announcements'), path: `${basePath}/director/comunicados`, icon: <Megaphone className="w-5 h-5" /> },
+    { name: t('director.menu.whatsappHistory'), path: `${basePath}/director/whatsapp`, icon: <MessageSquare className="w-5 h-5" /> },
+    { name: t('director.menu.commercialDirectory'), path: `${basePath}/director/directorio`, icon: <Store className="w-5 h-5" /> },
+    { name: t('director.menu.forms'), path: `${basePath}/director/formularios`, icon: <FileSpreadsheet className="w-5 h-5" /> },
+    { name: t('director.menu.whatsappBot'), path: `${basePath}/director/configuracion/asistente-whatsapp`, icon: <Bot className="w-5 h-5" /> },
     { name: 'Uniformes', path: `${basePath}/director/uniformes`, icon: <Shirt className="w-5 h-5" /> },
-    { name: 'Ajustes del Club', path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
-  ], [basePath]);
+    { name: t('director.menu.config'), path: `${basePath}/director/configuracion`, icon: <Settings className="w-5 h-5" /> },
+  ], [basePath, t]);
 
   const accesosRapidos = useMemo(() => [
     { 

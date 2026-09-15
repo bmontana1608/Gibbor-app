@@ -11,6 +11,28 @@
     "entrenador": "Coach",
     "futbolista": "Player"
   },
+  "director": {
+    "menu": {
+      "dashboard": "Home (Dashboard)",
+      "members": "Members",
+      "calendar": "Calendar",
+      "callups": "Call-ups",
+      "collections": "Collections",
+      "calculator": "Calculator",
+      "contributions": "Contributions",
+      "payroll": "Payroll",
+      "attendance": "Attendance",
+      "categories": "Categories",
+      "library": "Library",
+      "reports": "Reports",
+      "announcements": "Announcements",
+      "whatsappHistory": "WA History",
+      "commercialDirectory": "Commercial Directory",
+      "forms": "Forms",
+      "whatsappBot": "WA Assistant",
+      "config": "Settings"
+    }
+  },
   "futbolista": {
     "dashboard": {
       "greeting": "HELLO, {{name}}!",
