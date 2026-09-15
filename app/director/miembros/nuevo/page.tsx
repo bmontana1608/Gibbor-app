@@ -126,34 +126,43 @@ export default function NuevoMiembro() {
     setGuardando(true);
     const toastId = toast.loading("Guardando jugador...");
 
-    const normalizedPhone = formatInternationalWhatsAppPhone(formData.telefono, selectedCountry.dialCode);
-    const normalizedAcudientePhone = formData.acudiente_telefono 
-      ? formatInternationalWhatsAppPhone(formData.acudiente_telefono, selectedCountry.dialCode)
-      : '';
-
     const cleanContactEmail = formData.email_contacto ? formData.email_contacto.trim().toLowerCase() : '';
 
-    const payload = {
-      ...formData,
+    const cleanPayload = {
+      nombres: formData.nombres,
+      apellidos: formData.apellidos,
+      documento_identidad: formData.documento_identidad,
+      fecha_nacimiento: formData.fecha_nacimiento || null,
+      telefono: normalizedPhone || formData.telefono,
+      email_contacto: cleanContactEmail || null,
       email: cleanContactEmail || null,
-      email_contacto: cleanContactEmail,
-      telefono: normalizedPhone,
+      direccion: formData.direccion || null,
+      acudiente_nombre: formData.acudiente_nombre || null,
+      acudiente_identificacion: formData.acudiente_identificacion || null,
+      tipo_sangre: formData.tipo_sangre || 'O+',
+      eps: formData.eps || null,
+      poliza_medica: formData.poliza_medica || null,
+      alergias: formData.alergias || null,
+      patologias: formData.patologias || null,
+      medicamentos: formData.medicamentos || null,
+      talla_uniforme: formData.talla_uniforme || null,
+      posicion_juego: formData.posicion_juego || null,
+      pierna_habil: formData.pierna_habil || null,
+      categoria_id: formData.categoria_id || null,
       grupos: formData.override_categoria && formData.grupos ? `${formData.grupos}|MANUAL` : formData.grupos,
-      club_id: tenant?.id
+      estado_miembro: formData.estado_miembro || 'Activo',
+      rol: formData.rol || 'Futbolista',
+      tipo_plan: formData.tipo_plan || 'Mensual',
+      emergencia_nombre: formData.emergencia_nombre || null,
+      emergencia_telefono: formData.emergencia_telefono || null,
+      hijos_config: formData.hijos_config || null,
+      club_id: tenant?.id,
+      fecha_ingreso_club: formData.fecha_ingreso || new Date().toISOString().split('T')[0]
     };
-    
-    // Renombrar fecha_ingreso a fecha_ingreso_club para la BD
-    (payload as any).fecha_ingreso_club = formData.fecha_ingreso;
-    delete (payload as any).override_categoria;
-    delete (payload as any).fecha_ingreso;
-    delete (payload as any).acudiente_direccion;
-    delete (payload as any).acudiente_parentesco;
-    delete (payload as any).acudiente_telefono;
-    delete (payload as any).vinculo_jugador_id;
 
     const { error } = await supabase
       .from('perfiles')
-      .insert([payload]);
+      .insert([cleanPayload]);
 
     setGuardando(false);
 
