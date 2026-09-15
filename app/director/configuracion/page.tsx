@@ -21,6 +21,7 @@ export default function ConfiguracionGeneral() {
   const { slug: tenantSlug } = useTenant();
 
   const [paisClub, setPaisClub] = useState('Colombia');
+  const [idiomaClub, setIdiomaClub] = useState('es');
 
   const [nuevaContrasenaGlobal, setNuevaContrasenaGlobal] = useState('');
   const [cambiandoContrasena, setCambiandoContrasena] = useState(false);
@@ -95,7 +96,7 @@ export default function ConfiguracionGeneral() {
           }));
         }
 
-        const { data: clubData } = await supabase.from('clubes').select('logo_url, color_primario, color_secundario, pais').eq('id', tenantData.id).single();
+        const { data: clubData } = await supabase.from('clubes').select('logo_url, color_primario, color_secundario, pais, idioma').eq('id', tenantData.id).single();
         if (clubData) {
           setIdentidad({
             logo_url: clubData.logo_url || '',
@@ -104,6 +105,9 @@ export default function ConfiguracionGeneral() {
           });
           if (clubData.pais) {
             setPaisClub(clubData.pais);
+          }
+          if (clubData.idioma) {
+            setIdiomaClub(clubData.idioma);
           }
         }
         setLoadingConfig(false);
@@ -238,7 +242,8 @@ export default function ConfiguracionGeneral() {
           logo_url: identidad.logo_url,
           color_primario: identidad.color_primario,
           color_secundario: identidad.color_secundario,
-          pais: paisClub
+          pais: paisClub,
+          idioma: idiomaClub
         }
       })
     });
@@ -427,6 +432,18 @@ export default function ConfiguracionGeneral() {
                   ))}
                 </select>
                 <p className="text-[9px] text-slate-400 mt-1">Define la moneda y formato monetario para recibos, planes y cobranza.</p>
+              </div>
+              <div className="mt-4">
+                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1.5 block">Idioma Oficial del Club</label>
+                <select
+                  value={idiomaClub}
+                  onChange={(e) => setIdiomaClub(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none cursor-pointer focus:ring-1 focus:ring-brand"
+                >
+                  <option value="es">Español 🇪🇸</option>
+                  <option value="en">English 🇺🇸</option>
+                </select>
+                <p className="text-[9px] text-slate-400 mt-1">El idioma en el que los jugadores verán la plataforma y recibirán mensajes.</p>
               </div>
             </div>
           </div>
