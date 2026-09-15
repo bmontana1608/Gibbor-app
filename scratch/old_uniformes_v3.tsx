@@ -309,56 +309,33 @@ export default function UniformesModule() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto bg-slate-50 min-h-screen font-sans">
       
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter flex items-center gap-3">
-             <Shirt className="text-brand w-8 h-8" /> {t('uniformes.dotacionUniformes')}
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+            <Shirt className="text-brand w-8 h-8" /> {t('uniformes.dotacionUniformes')}
           </h1>
-          <p className="text-slate-500 text-sm font-medium mt-1">
-            {t('uniformes.controlaPedidosTallas')}
-          </p>
+          <p className="text-slate-500 mt-2 font-medium">{t('uniformes.controlaPedidosTallas')}</p>
         </div>
         <button 
           onClick={abrirModalNuevo}
-          className="bg-slate-900 text-white hover:bg-slate-800 px-6 py-3 rounded-2xl font-black text-sm uppercase flex items-center gap-2 transition-all shadow-xl shadow-slate-900/10"
+          className="bg-brand text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-brand/20 hover:scale-105 transition-all flex items-center justify-center gap-2"
         >
           <PlusCircle className="w-5 h-5" /> {t('uniformes.nuevoPedido')}
         </button>
       </div>
 
-      {/* DASHBOARD INTELIGENTE */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-slate-800">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ingreso Proyectado</p>
-            <h3 className="text-3xl font-black text-slate-800 dark:text-white">${stats.totalVenta.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Valor de cobro total</p>
-         </div>
-         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-rose-500">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Costo Proveedor</p>
-            <h3 className="text-3xl font-black text-rose-600">${stats.totalCosto.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Gastos de fabricación</p>
-         </div>
-         <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
-            <TrendingUp className="absolute -right-4 -top-4 w-20 h-20 text-emerald-50 opacity-50" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ganancia Estimada</p>
-            <h3 className="text-3xl font-black text-emerald-600">${stats.gananciaEstimada.toLocaleString('es-CO')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-bold">Utilidad libre del club</p>
-         </div>
-         <div className="bg-slate-900 p-6 rounded-[2rem] border border-slate-800 shadow-xl relative">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cartera Pendiente</p>
-            <h3 className="text-3xl font-black text-white">${stats.porCobrar.toLocaleString('es-CO')}</h3>
-            <div className="flex items-center gap-2 mt-2">
-               <div className="w-full bg-slate-800 rounded-full h-1.5">
-                 <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
-               </div>
-               <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
-            </div>
-         </div>
-      </div>
+        {/* DASHBOARD INTELIGENTE */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+           <div className="text-brand">
+                   <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: `${stats.totalVenta > 0 ? (stats.totalAbonado / stats.totalVenta) * 100 : 0}%` }}></div>
+                 </div>
+                 <span className="text-[9px] text-slate-400 font-bold">Recaudado</span>
+              </div>
+           </div>
+        </div>
 
         {/* LISTADO DE PEDIDOS */}
         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
