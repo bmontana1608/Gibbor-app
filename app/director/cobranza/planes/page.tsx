@@ -158,6 +158,21 @@ export default function GestionDePlanes() {
     cargarDatos();
   };
 
+  const handleDeletePlan = async (id: string, nombrePlan: string) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar el plan "${nombrePlan}"? Los alumnos asociados dejarán de estar en este plan.`)) return;
+    
+    const toastId = toast.loading("Eliminando plan...");
+    const { error } = await supabase.from('planes').delete().eq('id', id);
+    
+    if (error) {
+      toast.error("Error al eliminar: " + error.message, { id: toastId });
+      return;
+    }
+    
+    toast.success("Plan eliminado correctamente", { id: toastId });
+    cargarDatos();
+  };
+
   const getJugadoresPorPlan = (nombrePlan: string) => {
     return jugadores.filter(j => {
       const planJugador = j.tipo_plan || 'Regular';
@@ -312,12 +327,21 @@ export default function GestionDePlanes() {
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => handleEditPlan(plan)}
-                    className="w-full bg-slate-800 text-white hover:bg-slate-900 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
-                  >
-                    <Edit3 className="w-4 h-4" /> Editar Plan
-                  </button>
+                  <div className="flex gap-2 mt-auto">
+                    <button 
+                      onClick={() => handleEditPlan(plan)}
+                      className="flex-1 bg-slate-800 text-white hover:bg-slate-900 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <Edit3 className="w-4 h-4" /> Editar Plan
+                    </button>
+                    <button 
+                      onClick={() => handleDeletePlan(plan.id, plan.nombre)}
+                      className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-3 rounded-xl text-xs font-black transition-all shadow-sm flex items-center justify-center"
+                      title="Eliminar Plan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
