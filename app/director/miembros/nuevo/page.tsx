@@ -71,8 +71,6 @@ export default function NuevoMiembro() {
     acudiente_nombre: '',
     acudiente_identificacion: '',
     acudiente_telefono: '',
-    acudiente_parentesco: 'Padre',
-    acudiente_direccion: '',
     tipo_sangre: 'O+',
     eps: '',
     poliza_medica: '',
@@ -87,7 +85,6 @@ export default function NuevoMiembro() {
     estado_miembro: 'Activo',
     rol: 'Futbolista',
     tipo_plan: 'Mensual',
-    vinculo_jugador_id: '',
     override_categoria: false,
     fecha_ingreso: new Date().toISOString().split('T')[0],
     emergencia_nombre: '',
@@ -151,6 +148,9 @@ export default function NuevoMiembro() {
     (payload as any).fecha_ingreso_club = formData.fecha_ingreso;
     delete (payload as any).override_categoria;
     delete (payload as any).fecha_ingreso;
+    delete (payload as any).acudiente_direccion;
+    delete (payload as any).acudiente_parentesco;
+    delete (payload as any).vinculo_jugador_id;
 
     const { error } = await supabase
       .from('perfiles')
