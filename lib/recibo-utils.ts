@@ -97,14 +97,27 @@ export async function generarReciboPDFBase64(datos: {
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
+  const nombreClub = (datos.empresa.nombre_club || 'EFD GIBBOR').toUpperCase();
   doc.setFontSize(18);
-  doc.text(datos.empresa.nombre_club || 'EFD GIBBOR', 45, 22);
+  const splitNombre = doc.splitTextToSize(nombreClub, 95);
+  
+  let headerYOffset = 0;
+  if (splitNombre.length > 1) {
+    doc.setFontSize(13);
+    const splitSmall = doc.splitTextToSize(nombreClub, 95);
+    doc.text(splitSmall.slice(0, 2), 45, 17);
+    headerYOffset = (splitSmall.length > 1 ? 5 : 0);
+  } else {
+    doc.text(nombreClub, 45, 22);
+  }
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 200);
-  doc.text(`${datos.empresa.direccion} • ${datos.empresa.ciudad}`, 45, 28);
-  doc.text(`${t('receipt.receiptNum')}${String(datos.consecutivo).padStart(4, '0')}`, 45, 33);
+  
+  const direccionText = [datos.empresa.direccion, datos.empresa.ciudad].filter(Boolean).join(' • ');
+  doc.text(direccionText || 'Sin dirección registrada', 45, 28 + headerYOffset);
+  doc.text(`${t('receipt.receiptNum')}${String(datos.consecutivo).padStart(4, '0')}`, 45, 33 + headerYOffset);
 
 
   // 3. INFORMACIÓN DEL JUGADOR
