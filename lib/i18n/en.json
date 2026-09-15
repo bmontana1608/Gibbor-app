@@ -1227,5 +1227,45 @@
     "price": "Price:",
     "associatedStudents": "Associated Students",
     "editPlan": "Edit Plan"
+  },
+  "entrenador": {
+    "menu": {
+      "home": "Home",
+      "attendance": "Take Attendance",
+      "callups": "Call-ups",
+      "planner": "Planner",
+      "library": "Library",
+      "honorPoints": "Honor Points",
+      "statsLab": "Stats Lab",
+      "myCategories": "My Categories",
+      "statistics": "Statistics"
+    },
+    "otherSpaces": "Other Spaces",
+    "familyMode": "Family Mode",
+    "directorPanel": "Director Panel",
+    "dashboard": {
+      "loading": "Loading dashboard...",
+      "ecosystem": "Ecosystem",
+      "instructor": "Instructor",
+      "managingTalentIn": "Managing talent in",
+      "unassignedCategory": "Unassigned Category",
+      "todayPunctualityControl": "Today's punctuality control.",
+      "manageStudents": "Manage Students",
+      "technicalFilesContacts": "Technical files & contacts.",
+      "groupPerformanceAnalysis": "Group performance analysis.",
+      "startersSubstitutesRoster": "Starters, substitutes & roster.",
+      "totalStudents": "Total Students",
+      "monthlyEfficiency": "Monthly Efficiency",
+      "controlPoints": "Control Points",
+      "sessionStatus": "Session Status",
+      "active": "Active",
+      "todaySessions": "Today's Sessions",
+      "realTime": "Real Time",
+      "today": "TODAY",
+      "category": "Category",
+      "officialVenue": "Official Venue",
+      "attendances": "Attendances",
+      "noAssignedCategoriesToday": "You have no assigned categories today"
+    }
   }
 }

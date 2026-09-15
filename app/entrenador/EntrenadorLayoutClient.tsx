@@ -8,6 +8,7 @@ import { Loader, LogOut, Menu, X, Home, Users, ClipboardCheck, BarChart, Shield,
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GibbiAssistant from "@/components/GibbiAssistant";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 interface EntrenadorLayoutClientProps {
   children: React.ReactNode;
@@ -16,6 +17,7 @@ interface EntrenadorLayoutClientProps {
 }
 
 export default function EntrenadorLayoutClient({ children, initialTenant, initialProfile }: EntrenadorLayoutClientProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   
@@ -50,16 +52,15 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
   const basePath = isSubdomain || !tenantSlug || tenantSlug === 'master' ? '' : `/${tenantSlug}`;
 
   const menu = [
-    { name: 'Inicio', path: `${basePath}/entrenador`, icon: <Home className="w-5 h-5" /> },
-    { name: 'Pasar Asistencia', path: `${basePath}/entrenador/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
-    { name: 'Convocatorias', path: `${basePath}/entrenador/convocatorias`, icon: <ShieldCheck className="w-5 h-5" /> },
-    { name: 'Planificador', path: `${basePath}/entrenador/planificador`, icon: <Layout className="w-5 h-5" /> },
-    { name: 'Biblioteca', path: `${basePath}/entrenador/biblioteca`, icon: <Library className="w-5 h-5" /> },
-    { name: 'Puntos de Honor', path: `${basePath}/entrenador/puntos`, icon: <Trophy className="w-5 h-5" /> },
-    { name: 'Stats Lab', path: `${basePath}/entrenador/stats`, icon: <Radar className="w-5 h-5" /> },
-    // { name: 'Partidos Live', path: `${basePath}/entrenador/partidos`, icon: <Play className="w-5 h-5" /> }, // Temporalmente oculto
-    { name: 'Mis Categorías', path: `${basePath}/entrenador/categorias`, icon: <Users className="w-5 h-5" /> },
-    { name: 'Estadísticas', path: `${basePath}/entrenador/estadisticas`, icon: <BarChart className="w-5 h-5" /> },
+    { name: t('entrenador.menu.home'), path: `${basePath}/entrenador`, icon: <Home className="w-5 h-5" /> },
+    { name: t('entrenador.menu.attendance'), path: `${basePath}/entrenador/asistencia`, icon: <ClipboardCheck className="w-5 h-5" /> },
+    { name: t('entrenador.menu.callups'), path: `${basePath}/entrenador/convocatorias`, icon: <ShieldCheck className="w-5 h-5" /> },
+    { name: t('entrenador.menu.planner'), path: `${basePath}/entrenador/planificador`, icon: <Layout className="w-5 h-5" /> },
+    { name: t('entrenador.menu.library'), path: `${basePath}/entrenador/biblioteca`, icon: <Library className="w-5 h-5" /> },
+    { name: t('entrenador.menu.honorPoints'), path: `${basePath}/entrenador/puntos`, icon: <Trophy className="w-5 h-5" /> },
+    { name: t('entrenador.menu.statsLab'), path: `${basePath}/entrenador/stats`, icon: <Radar className="w-5 h-5" /> },
+    { name: t('entrenador.menu.myCategories'), path: `${basePath}/entrenador/categorias`, icon: <Users className="w-5 h-5" /> },
+    { name: t('entrenador.menu.statistics'), path: `${basePath}/entrenador/estadisticas`, icon: <BarChart className="w-5 h-5" /> },
   ];
 
   const brandName = tenant?.config?.nombre || tenant?.nombre || 'Club';
@@ -99,7 +100,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
           <GibbiAssistant clubId={tenant?.id} role={usuario?.rol || 'Entrenador'} />
           <button 
             onClick={() => setIsSidebarOpen(prev => !prev)}
-            aria-label="Abrir menú"
+            aria-label={t('layout.openMenu')}
             style={{ touchAction: 'manipulation' }}
             className="text-white p-2 active:scale-95 transition-transform"
           >
@@ -149,7 +150,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                 {usuario?.nombres?.split(' ')[0] || 'Staff User'}
               </p>
               <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-none mt-1">
-                {usuario?.rol?.toLowerCase() === 'superadmin' ? 'SuperAdmin (Soporte)' : 'Entrenador'}
+                {usuario?.rol?.toLowerCase() === 'superadmin' ? 'SuperAdmin (Soporte)' : (t('roles.entrenador') || 'Entrenador')}
               </p>
             </div>
           </div>
@@ -184,7 +185,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
 
           <div className="p-4 mt-6 mx-2 bg-slate-900 dark:bg-slate-950 rounded-[1.5rem] border border-slate-800 shadow-xl relative overflow-hidden">
              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                <ArrowRightLeft className="w-3 h-3" /> Otros Espacios
+                <ArrowRightLeft className="w-3 h-3" /> {t('entrenador.otherSpaces')}
              </p>
              <div className="space-y-2">
                 <Link 
@@ -194,7 +195,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                     <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white shadow-lg">
                         <Trophy className="w-4 h-4" />
                     </div>
-                    <span className="text-xs font-bold text-white group-hover:text-brand transition-colors">Modo Familia</span>
+                    <span className="text-xs font-bold text-white group-hover:text-brand transition-colors">{t('entrenador.familyMode')}</span>
                 </Link>
 
                 {usuario?.rol === 'Director' && (
@@ -205,7 +206,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                         <div className="w-7 h-7 rounded-lg bg-cyan-600 flex items-center justify-center text-white shadow-lg">
                             <Shield className="w-4 h-4" />
                         </div>
-                        <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors">Panel Director</span>
+                        <span className="text-xs font-bold text-white group-hover:text-cyan-400 transition-colors">{t('entrenador.directorPanel')}</span>
                     </Link>
                 )}
                  {usuario?.rol?.toLowerCase() === 'superadmin' && (
@@ -216,7 +217,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                          <div className="w-7 h-7 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-lg">
                              <Shield className="w-4 h-4" />
                          </div>
-                         <span className="text-xs font-bold text-white group-hover:text-purple-400 transition-colors">Volver Panel Admin</span>
+                         <span className="text-xs font-bold text-white group-hover:text-purple-400 transition-colors">{t('layout.backToAdmin')}</span>
                      </Link>
                  )}
              </div>
@@ -228,7 +229,7 @@ export default function EntrenadorLayoutClient({ children, initialTenant, initia
                 onClick={cerrarSesion} 
                 className="flex-1 flex items-center justify-center gap-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 px-4 py-3 rounded-xl transition-all font-bold text-sm group"
             >
-                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> <span className="hidden md:inline">Salir</span>
+                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> <span className="hidden md:inline">{t('layout.exit')}</span>
             </button>
             <ThemeToggle />
         </div>

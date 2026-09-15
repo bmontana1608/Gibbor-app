@@ -5,8 +5,10 @@ import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star, ShieldCheck } from 'lucide-react';
 import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function DashboardEntrenador() {
+  const { t } = useTranslation();
   const [perfil, setPerfil] = useState<any>(null);
   const [tenant, setTenant] = useState<any>(null);
   const { slug: tenantSlug, route } = useTenant();
@@ -114,7 +116,7 @@ export default function DashboardEntrenador() {
     cargarDatos();
   }, [tenantSlug]);
 
-  if (cargando) return <div className="p-8 text-center text-slate-400">Cargando dashboard...</div>;
+  if (cargando) return <div className="p-8 text-center text-slate-400">{t('entrenador.dashboard.loading')}</div>;
 
   const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
   const brandName = tenant?.config?.nombre || tenant?.nombre || 'Club';
@@ -127,23 +129,23 @@ export default function DashboardEntrenador() {
       {/* Header de Bienvenida */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p className="opacity-70 font-black text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: brandColor }}>Ecosistema {brandName}</p>
+          <p className="opacity-70 font-black text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: brandColor }}>{t('entrenador.dashboard.ecosystem')} {brandName}</p>
           <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
-            Instructor <span style={{ color: brandColor }}>
+            {t('entrenador.dashboard.instructor')} <span style={{ color: brandColor }}>
               {perfil?.nombres?.split(' ')[0] || 'Staff'}
             </span>
           </h1>
           <p className="text-slate-500 text-sm mt-1 font-medium italic">
-            Gestionando el talento en <span className="text-slate-900 font-black uppercase">{nombresAsignados || 'Categoría No asignada'}</span>.
+            {t('entrenador.dashboard.managingTalentIn')} <span className="text-slate-900 font-black uppercase">{nombresAsignados || t('entrenador.dashboard.unassignedCategory')}</span>.
           </p>
         </div>
         <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
           <Calendar className="w-5 h-5" style={{ color: brandColor }} />
-          <span className="text-sm font-bold text-slate-700 capitalize">{new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+          <span className="text-sm font-bold text-slate-700 capitalize">{new Date().toLocaleDateString(t('common.locale') || 'en-US', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
       </div>
 
-      {/* Grid de Accesos Rápidos (Tarjetas con route() multi-tenant) */}
+      {/* Grid de Accesos Rápidos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* TARJETA DE ASISTENCIA */}
@@ -158,8 +160,8 @@ export default function DashboardEntrenador() {
             <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
           </div>
           <div className="relative z-10">
-            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">Pasar Asistencia</h3>
-            <p className="text-white/80 text-xs font-medium">Control de puntualidad de hoy.</p>
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.menu.attendance')}</h3>
+            <p className="text-white/80 text-xs font-medium">{t('entrenador.dashboard.todayPunctualityControl')}</p>
           </div>
         </Link>
 
@@ -174,8 +176,8 @@ export default function DashboardEntrenador() {
             <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
           </div>
           <div className="relative z-10">
-            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">Gestionar Alumnos</h3>
-            <p className="text-white/40 text-xs font-medium">Fichas técnicas y contactos.</p>
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.dashboard.manageStudents')}</h3>
+            <p className="text-white/40 text-xs font-medium">{t('entrenador.dashboard.technicalFilesContacts')}</p>
           </div>
         </Link>
 
@@ -189,8 +191,8 @@ export default function DashboardEntrenador() {
             <ArrowRight className="w-5 h-5 text-slate-300 group-hover:translate-x-2 transition-all" />
           </div>
           <div>
-            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-slate-900">Stats Lab</h3>
-            <p className="text-slate-400 text-xs font-medium">Análisis de rendimiento grupal.</p>
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-slate-900">{t('entrenador.menu.statsLab')}</h3>
+            <p className="text-slate-400 text-xs font-medium">{t('entrenador.dashboard.groupPerformanceAnalysis')}</p>
           </div>
         </Link>
 
@@ -205,8 +207,8 @@ export default function DashboardEntrenador() {
             <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
           </div>
           <div className="relative z-10">
-            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">Convocatorias</h3>
-            <p className="text-white/80 text-xs font-medium">Titulares, suplentes y nómina.</p>
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.menu.callups')}</h3>
+            <p className="text-white/80 text-xs font-medium">{t('entrenador.dashboard.startersSubstitutesRoster')}</p>
           </div>
         </Link>
 
@@ -215,10 +217,10 @@ export default function DashboardEntrenador() {
       {/* Estadísticas Rápidas */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Alumnos', value: metricas.alumnosTotal, icon: <UserCheck className="w-4 h-4" /> },
-          { label: 'Eficiencia Mes', value: `${metricas.asistenciaMes}%`, icon: <Star className="w-4 h-4" /> },
-          { label: 'Puntos Control', value: metricas.puntosGenerados, icon: <Trophy className="w-4 h-4" /> },
-          { label: 'Estado Sesión', value: 'Activo', icon: <Calendar className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.totalStudents'), value: metricas.alumnosTotal, icon: <UserCheck className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.monthlyEfficiency'), value: `${metricas.asistenciaMes}%`, icon: <Star className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.controlPoints'), value: metricas.puntosGenerados, icon: <Trophy className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.sessionStatus'), value: t('entrenador.dashboard.active'), icon: <Calendar className="w-4 h-4" /> },
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
             <div className="p-2.5 rounded-[1rem] bg-slate-50 w-fit mb-4" style={{ color: brandColor }}>{item.icon}</div>
@@ -232,9 +234,9 @@ export default function DashboardEntrenador() {
       <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
           <h3 className="font-black text-slate-800 text-xl flex items-center gap-3 uppercase italic tracking-tighter">
-            <Calendar className="w-6 h-6" style={{ color: brandColor }} /> Sesiones de Hoy
+            <Calendar className="w-6 h-6" style={{ color: brandColor }} /> {t('entrenador.dashboard.todaySessions')}
           </h3>
-          <span className="text-[10px] font-black uppercase text-slate-400 bg-white px-4 py-2 rounded-full border border-slate-100">Tiempo Real</span>
+          <span className="text-[10px] font-black uppercase text-slate-400 bg-white px-4 py-2 rounded-full border border-slate-100">{t('entrenador.dashboard.realTime')}</span>
         </div>
         <div className="divide-y divide-slate-50">
           {categorias.length > 0 ? (
@@ -242,13 +244,13 @@ export default function DashboardEntrenador() {
               <div key={cat.id || index} className="p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
                 <div className="flex items-center gap-6">
                   <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `${brandColor}05`, color: brandColor, borderColor: `${brandColor}10` }}>
-                    <span className="text-xs font-black leading-none">HOY</span>
+                    <span className="text-xs font-black leading-none">{t('entrenador.dashboard.today')}</span>
                     <span className="text-[10px] font-bold mt-1">Sess.</span>
                   </div>
                   <div>
-                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">Categoría {cat.nombre}</p>
+                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">{t('entrenador.dashboard.category')} {cat.nombre}</p>
                     <p className="text-xs text-slate-500 font-medium italic flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> {cat.horarios || 'Sede Oficial'}
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> {cat.horarios || t('entrenador.dashboard.officialVenue')}
                     </p>
                   </div>
                 </div>
@@ -257,7 +259,7 @@ export default function DashboardEntrenador() {
                   className="text-white text-[10px] font-black px-8 py-3.5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase italic tracking-widest"
                   style={{ backgroundColor: brandColor, boxShadow: `0 10px 20px -5px ${brandColor}40` }}
                 >
-                  Asistencias
+                  {t('entrenador.dashboard.attendances')}
                 </Link>
               </div>
             ))
@@ -266,13 +268,13 @@ export default function DashboardEntrenador() {
               <div key={index} className="p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
                 <div className="flex items-center gap-6">
                   <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `${brandColor}05`, color: brandColor, borderColor: `${brandColor}10` }}>
-                    <span className="text-xs font-black leading-none">HOY</span>
+                    <span className="text-xs font-black leading-none">{t('entrenador.dashboard.today')}</span>
                     <span className="text-[10px] font-bold mt-1">Sess.</span>
                   </div>
                   <div>
-                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">Categoría {cat}</p>
+                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">{t('entrenador.dashboard.category')} {cat}</p>
                     <p className="text-xs text-slate-500 font-medium italic flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> Sede Oficial
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> {t('entrenador.dashboard.officialVenue')}
                     </p>
                   </div>
                 </div>
@@ -281,7 +283,7 @@ export default function DashboardEntrenador() {
                   className="text-white text-[10px] font-black px-8 py-3.5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase italic tracking-widest"
                   style={{ backgroundColor: brandColor, boxShadow: `0 10px 20px -5px ${brandColor}40` }}
                 >
-                  Asistencias
+                  {t('entrenador.dashboard.attendances')}
                 </Link>
               </div>
             ))
@@ -290,7 +292,7 @@ export default function DashboardEntrenador() {
                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
                     <Calendar className="text-slate-300 w-8 h-8" />
                 </div>
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">No tienes categorías asignadas hoy</p>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('entrenador.dashboard.noAssignedCategoriesToday')}</p>
             </div>
           )}
         </div>

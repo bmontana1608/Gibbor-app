@@ -1227,5 +1227,45 @@
     "price": "Precio:",
     "associatedStudents": "Alumnos Asociados",
     "editPlan": "Editar Plan"
+  },
+  "entrenador": {
+    "menu": {
+      "home": "Inicio",
+      "attendance": "Pasar Asistencia",
+      "callups": "Convocatorias",
+      "planner": "Planificador",
+      "library": "Biblioteca",
+      "honorPoints": "Puntos de Honor",
+      "statsLab": "Stats Lab",
+      "myCategories": "Mis Categorías",
+      "statistics": "Estadísticas"
+    },
+    "otherSpaces": "Otros Espacios",
+    "familyMode": "Modo Familia",
+    "directorPanel": "Panel Director",
+    "dashboard": {
+      "loading": "Cargando dashboard...",
+      "ecosystem": "Ecosistema",
+      "instructor": "Instructor",
+      "managingTalentIn": "Gestionando el talento en",
+      "unassignedCategory": "Categoría No asignada",
+      "todayPunctualityControl": "Control de puntualidad de hoy.",
+      "manageStudents": "Gestionar Alumnos",
+      "technicalFilesContacts": "Fichas técnicas y contactos.",
+      "groupPerformanceAnalysis": "Análisis de rendimiento grupal.",
+      "startersSubstitutesRoster": "Titulares, suplentes y nómina.",
+      "totalStudents": "Total Alumnos",
+      "monthlyEfficiency": "Eficiencia Mes",
+      "controlPoints": "Puntos Control",
+      "sessionStatus": "Estado Sesión",
+      "active": "Activo",
+      "todaySessions": "Sesiones de Hoy",
+      "realTime": "Tiempo Real",
+      "today": "HOY",
+      "category": "Categoría",
+      "officialVenue": "Sede Oficial",
+      "attendances": "Asistencias",
+      "noAssignedCategoriesToday": "No tienes categorías asignadas hoy"
+    }
   }
 }
