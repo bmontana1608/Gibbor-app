@@ -100,8 +100,9 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
       // Insertar perfil CON el club_id del club detectado
       const { error } = await supabase.from('perfiles').insert([{
         ...currentFormData,
+        fecha_nacimiento: currentFormData.fecha_nacimiento || null,
         email: cleanContactEmail || null,
-        email_contacto: cleanContactEmail,
+        email_contacto: cleanContactEmail || null,
         club_id: club.id,
         estado_miembro: 'Pendiente',
       }]);

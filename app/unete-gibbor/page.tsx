@@ -131,9 +131,14 @@ export default function RegistroPublicoPorClub() {
       if (archivos.eps)       currentFormData.doc_eps_url        = await uploadFile(archivos.eps,        'eps');
       if (archivos.acudiente) currentFormData.doc_acudiente_url  = await uploadFile(archivos.acudiente,  'acudientes');
 
+      const cleanContactEmail = currentFormData.email_contacto ? currentFormData.email_contacto.trim().toLowerCase() : '';
+
       // Insertar perfil CON el club_id del club detectado por slug
       const { error } = await supabase.from('perfiles').insert([{
         ...currentFormData,
+        fecha_nacimiento: currentFormData.fecha_nacimiento || null,
+        email: cleanContactEmail || null,
+        email_contacto: cleanContactEmail || null,
         club_id: club.id,
         estado_miembro: 'Pendiente', // Forzamos estado inicial para evitar errores
       }]);
