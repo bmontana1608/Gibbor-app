@@ -254,6 +254,11 @@ export default function UniformesModule() {
   const [montoAbonoExtra, setMontoAbonoExtra] = useState('');
   const [busquedaAlumno, setBusquedaAlumno] = useState('');
 
+  const alumnosFiltrados = jugadores.filter((j: any) =>
+    busquedaAlumno.trim() === '' ||
+    `${j.nombres} ${j.apellidos}`.toLowerCase().includes(busquedaAlumno.toLowerCase())
+  );
+
   const registrarNuevoAbono = async () => {
     if (!pedidoActual || !nuevoAbonoMonto) return;
     const montoSumar = Number(nuevoAbonoMonto);
