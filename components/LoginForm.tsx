@@ -82,7 +82,7 @@ export default function LoginForm({ tenant }: LoginFormProps) {
     setLoading(true);
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
+    const cleanPassword = password;
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
@@ -91,7 +91,14 @@ export default function LoginForm({ tenant }: LoginFormProps) {
 
     if (authError) {
       console.error("Error al iniciar sesión:", authError.message);
-      alert('Error: Correo o contraseña incorrectos.');
+      const msg = authError.message.toLowerCase();
+      if (msg.includes('rate limit')) {
+        alert('Error: Demasiados intentos de inicio de sesión. Espera un par de minutos.');
+      } else if (msg.includes('email not confirmed')) {
+        alert('Error: El correo electrónico no está confirmado.');
+      } else {
+        alert('Error: Correo o contraseña incorrectos, o la cuenta aún no tiene acceso activado por el Administrador.');
+      }
       setLoading(false);
       return;
     }
