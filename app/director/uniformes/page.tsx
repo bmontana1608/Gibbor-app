@@ -648,7 +648,6 @@ export default function UniformesModule() {
         </div>
       )}
 
-      </div>
     </div>
   );
 }
