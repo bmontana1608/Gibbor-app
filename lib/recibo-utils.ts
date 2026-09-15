@@ -383,7 +383,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setFontSize(7);
   doc.setTextColor(slateGris[0], slateGris[1], slateGris[2]);
   doc.setFont("helvetica", "normal");
-  doc.text(t('receipt.fullName'), 20, 70);
+  doc.text('NOMBRE COMPLETO:', 20, 70);
   doc.text('CARGO / ROL:', 20, 82);
 
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
@@ -402,7 +402,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text(datos.documento || t('receipt.notRegistered'), 115, 75);
+  doc.text(datos.documento || 'NO REGISTRADO', 115, 75);
   doc.text(fechaActual.toLocaleDateString('es-CO'), 115, 87);
 
   // 3. TABLA DE CONCEPTO
@@ -413,7 +413,7 @@ export async function generarReciboNominaPDFBase64(datos: {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(9);
   doc.text('DESCRIPCIÓN DEL CONCEPTO', 20, tableY + 6.5);
-  doc.text(t('receipt.value'), 185, tableY + 6.5, { align: 'right' });
+  doc.text('VALOR', 185, tableY + 6.5, { align: 'right' });
 
   doc.setTextColor(slateOscuro[0], slateOscuro[1], slateOscuro[2]);
   doc.setFont("helvetica", "normal");
