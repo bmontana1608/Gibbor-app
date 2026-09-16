@@ -7,6 +7,6 @@ export async function GET() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const { data, error } = await supabaseAdmin.from('eventos_deportivos').select('*').limit(1);
+  const { data, error } = await supabaseAdmin.from('configuracion_wa').select('*').limit(1);
   return NextResponse.json({ data, error });
 }

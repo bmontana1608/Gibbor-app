@@ -228,6 +228,11 @@ export default function ConfiguracionGeneral() {
       updated_at: new Date() 
     };
     
+    // Si metodos_pago es un array, convertirlo a string JSON validado para la bd
+    if (Array.isArray(config.metodos_pago)) {
+      payload.metodos_pago = JSON.stringify(config.metodos_pago);
+    }
+    
     if (existing?.id) {
       payload.id = existing.id;
     }

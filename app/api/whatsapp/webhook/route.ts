@@ -159,6 +159,13 @@ export async function POST(req: NextRequest) {
         .eq('id', alumno.club_id)
         .single();
 
+      let parsedMetodos = [];
+      if (config?.metodos_pago) {
+        try {
+          parsedMetodos = typeof config.metodos_pago === 'string' ? JSON.parse(config.metodos_pago) : config.metodos_pago;
+        } catch (e) {}
+      }
+
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: alumno.nombres, apellidos: alumno.apellidos, documento: alumno.documento,
         grupo: alumno.grupos, tarifa: monto, metodo: 'EFECTIVO',
@@ -176,7 +183,7 @@ export async function POST(req: NextRequest) {
           bre_b: config?.bre_b,
           banco_nombre: config?.banco_nombre,
           banco_numero: config?.banco_numero,
-          metodos_pago: config?.metodos_pago
+          metodos_pago: Array.isArray(parsedMetodos) ? parsedMetodos : []
         }
       });
 

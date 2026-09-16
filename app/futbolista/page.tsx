@@ -261,6 +261,13 @@ export default function DashboardFutbolista() {
       const { data: config } = await supabase.from('configuracion_wa').select('*').eq('club_id', tenant?.id).single();
       const clubConfig = config || {};
 
+      let parsedMetodos = [];
+      if (clubConfig.metodos_pago) {
+        try {
+          parsedMetodos = typeof clubConfig.metodos_pago === 'string' ? JSON.parse(clubConfig.metodos_pago) : clubConfig.metodos_pago;
+        } catch(e) {}
+      }
+
       const pdfBase64 = await generarReciboPDFBase64({
         nombres: pago.nombres || perfil?.nombres || '',
         apellidos: pago.apellidos || perfil?.apellidos || '',
@@ -283,7 +290,7 @@ export default function DashboardFutbolista() {
           bre_b: clubConfig.bre_b,
           banco_nombre: clubConfig.banco_nombre,
           banco_numero: clubConfig.banco_numero,
-          metodos_pago: clubConfig.metodos_pago
+          metodos_pago: Array.isArray(parsedMetodos) ? parsedMetodos : []
         }
       });
 
