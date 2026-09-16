@@ -42,12 +42,36 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
   const isActive = perfil.estado_miembro === 'Activo';
   const brandColor = club?.color_primario || '#10b981'; // Default to a standard green or blue if none set
 
+  // Calcular Edad
+  let edadTexto = 'N/A';
+  let fechaNacTexto = 'N/A';
+  if (perfil.fecha_nacimiento) {
+    const birthDate = new Date(perfil.fecha_nacimiento);
+    if (!isNaN(birthDate.getTime())) {
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      edadTexto = `${age} años`;
+      
+      // Opcional: Formatear fecha nacimiento para mostrarla también
+      const day = String(birthDate.getDate() + 1).padStart(2, '0'); // Compensar UTC si es necesario, pero básico:
+      // Mejor usamos los métodos UTC para evitar saltos de día
+      const d = String(birthDate.getUTCDate()).padStart(2, '0');
+      const mo = String(birthDate.getUTCMonth() + 1).padStart(2, '0');
+      const y = birthDate.getUTCFullYear();
+      fechaNacTexto = `${d}/${mo}/${y}`;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl relative border border-slate-200">
         {/* Encabezado */}
         <div 
-          className="h-48 relative flex flex-col items-center justify-start pt-8 px-6"
+          className="h-56 relative flex flex-col items-center justify-start pt-6 px-6"
           style={{ backgroundColor: brandColor }}
         >
           <div className="absolute inset-0 bg-black/20" />
@@ -100,6 +124,12 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
              </div>
              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center shadow-sm">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <User className="w-3 h-3" style={{ color: brandColor }} /> Edad
+                </p>
+                <p className="font-bold text-slate-700 text-sm break-words leading-tight">{edadTexto}</p>
+             </div>
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center shadow-sm">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3" style={{ color: brandColor }} /> Categoría
                 </p>
                 <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.grupos || 'Sin asignar'}</p>
@@ -110,7 +140,7 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
                 </p>
                 <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.tipo_sangre || 'N/A'}</p>
              </div>
-             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center shadow-sm">
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center shadow-sm col-span-2">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <Activity className="w-3 h-3" style={{ color: brandColor }} /> EPS
                 </p>
