@@ -26,7 +26,13 @@ export default function SuscripcionPage() {
     try {
       const res = await fetch(`/api/tenant?slug=${tenantSlug}`, { cache: 'no-store' });
       if (!res.ok) return;
-      const clubData = await res.json();
+      let clubData = await res.json();
+      
+      const { data: dbClub } = await supabase.from('clubes').select('*, planes_saas(*)').eq('id', clubData.id).single();
+      if (dbClub) {
+        clubData = { ...clubData, ...dbClub };
+      }
+      
       setClub(clubData);
 
       // Calcular jugadores activos (sin directores ni entrenadores)
@@ -90,8 +96,15 @@ export default function SuscripcionPage() {
     return <div className="p-6 text-slate-500">No se pudo cargar la información.</div>;
   }
 
-  const tarifa = club.tarifa_por_jugador || 0;
-  const total = tarifa * jugadoresActivos;
+  const planAsignado = club.planes_saas;
+  const planNombre = planAsignado ? planAsignado.nombre : t('SUSCRIPCION.BASE_PLAN');
+  
+  const precioBase = planAsignado ? Number(planAsignado.precio_base ?? 100000) : 100000;
+  const limiteBase = planAsignado ? Number(planAsignado.limite_jugadores_base ?? 60) : 60;
+  const precioExtra = planAsignado ? Number(planAsignado.precio_jugador_extra ?? 2000) : 2000;
+  
+  const extras = Math.max(0, jugadoresActivos - limiteBase);
+  const total = precioBase + (extras * precioExtra);
   // Evitar problemas de zona horaria (UTC midnight -> día anterior local)
   const proximoCorte = club.proximo_corte ? new Date(club.proximo_corte.split('T')[0] + 'T12:00:00') : null;
   const estado = club.estado_suscripcion || 'Desconocido';
@@ -149,9 +162,12 @@ export default function SuscripcionPage() {
                   <Wallet className="w-4 h-4" /> {t('SUSCRIPCION.CURRENT_PLAN')}
                 </p>
                 <p className="text-2xl font-black text-brand">
-                  {club.plan || t('SUSCRIPCION.BASE_PLAN')}
+                  {planNombre}
                 </p>
-                <p className="text-sm text-slate-500 mt-1 font-medium">{t('SUSCRIPCION.FEE')}: ${tarifa.toLocaleString('es-CO')} COP / {t('REPORTES.TABLE_PLAYER')}</p>
+                <p className="text-sm text-slate-500 mt-1 font-medium leading-tight">
+                  {t('SUSCRIPCION.FEE')}: ${precioBase.toLocaleString('es-CO')} base <br/>
+                  <span className="text-[10px] opacity-80">(Incluye {limiteBase} cupos. Extra: ${precioExtra.toLocaleString('es-CO')} c/u)</span>
+                </p>
               </div>
             </div>
           </div>
@@ -169,10 +185,17 @@ export default function SuscripcionPage() {
                 <span className="font-black text-xl">{jugadoresActivos}</span>
               </div>
               
-              <div className="flex justify-between items-center pb-4">
-                <span className="text-slate-300">{t('SUSCRIPCION.UNIT_FEE')}</span>
-                <span className="font-bold">${tarifa.toLocaleString('es-CO')}</span>
+              <div className="flex justify-between items-center pb-2">
+                <span className="text-slate-300">Plan Base ({limiteBase} cupos)</span>
+                <span className="font-bold">${precioBase.toLocaleString('es-CO')}</span>
               </div>
+              
+              {extras > 0 && (
+                <div className="flex justify-between items-center pb-4 text-amber-400">
+                  <span className="">Jugadores Extra ({extras})</span>
+                  <span className="font-bold">+ ${(extras * precioExtra).toLocaleString('es-CO')}</span>
+                </div>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-slate-700/50">

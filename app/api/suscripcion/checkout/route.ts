@@ -14,10 +14,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Faltan parámetros requeridos' }, { status: 400 });
     }
 
-    // 1. Obtener la información del club
+    // 1. Obtener la información del club y su plan asignado
     const { data: club, error: clubError } = await supabaseAdmin
       .from('clubes')
-      .select('id, nombre, tarifa_por_jugador, logo_url')
+      .select('id, nombre, tarifa_por_jugador, logo_url, planes_saas(*)')
       .eq('id', clubId)
       .single();
 
@@ -34,8 +34,16 @@ export async function POST(req: Request) {
       .not('rol', 'in', '("Director","Entrenador")');
 
     const totalJugadores = count || 0;
-    const tarifa = club.tarifa_por_jugador || 0;
-    const totalPagar = totalJugadores * tarifa;
+    
+    // Nueva logica de cobro por plan
+    const plan = club.planes_saas;
+    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+    const planNombre = plan ? plan.nombre : 'Plan Base';
+    
+    const extras = Math.max(0, totalJugadores - limiteBase);
+    const totalPagar = precioBase + (extras * precioExtra);
 
     if (totalPagar <= 0) {
       return NextResponse.json({ error: 'El monto a pagar debe ser mayor a 0.' }, { status: 400 });
@@ -61,8 +69,8 @@ export async function POST(req: Request) {
         items: [
           {
             id: `SAAS-${clubId}`,
-            title: `Suscripción Gibbor App - ${club.nombre}`,
-            description: `Renovación mensual (${totalJugadores} jugadores activos x $${tarifa})`,
+            title: `Suscripción SaaS - ${club.nombre}`,
+            description: `Renovación de ${planNombre} (${totalJugadores} jugadores activos)`,
             picture_url: club.logo_url || '',
             quantity: 1,
             unit_price: Number(totalPagar),
