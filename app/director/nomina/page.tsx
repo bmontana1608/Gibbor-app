@@ -61,6 +61,22 @@ export default function ModuloNomina() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [entrenadorPago, setEntrenadorPago] = useState<any>(null);
   const [documento, setDocumento] = useState('');
+  
+  const sigContainerRef = useRef<HTMLDivElement>(null);
+  const [sigDims, setSigDims] = useState({ width: 340, height: 160 });
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setTimeout(() => {
+        if (sigContainerRef.current) {
+          setSigDims({
+            width: sigContainerRef.current.clientWidth - 4,
+            height: 160
+          });
+        }
+      }, 50);
+    }
+  }, [isModalOpen]);
   const [monto, setMonto] = useState('');
   const [concepto, setConcepto] = useState('Pago de Nómina - Mes de Abril');
   const sigCanvas = useRef<any>(null);
@@ -523,18 +539,24 @@ export default function ModuloNomina() {
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col">
                 <div className="flex justify-between items-center mb-2">
                   <label className="block text-sm font-bold text-slate-700">{t('nomina.firmaEntrenador')}</label>
-                  <button onClick={limpiarFirma} className="text-xs text-red-500 font-bold hover:underline">{t('nomina.limpiarFirma')}</button>
+                  <button onClick={limpiarFirma} className="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-lg font-black uppercase tracking-widest hover:bg-red-100 transition-colors flex items-center gap-1.5 shadow-sm border border-red-100">
+                    <Trash2 className="w-3 h-3" /> {t('nomina.limpiarFirma')}
+                  </button>
                 </div>
-                <div className="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 relative">
+                <div ref={sigContainerRef} className="border-2 border-dashed border-slate-300 rounded-xl bg-white relative w-full overflow-hidden shadow-inner flex justify-center">
                   <SignatureCanvas 
                     ref={sigCanvas}
-                    canvasProps={{ className: 'w-full h-40 cursor-crosshair' }}
+                    canvasProps={{ 
+                      width: sigDims.width, 
+                      height: sigDims.height, 
+                      className: 'cursor-crosshair' 
+                    }}
                   />
                   <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
-                    <p className="text-slate-400 font-medium">{t('nomina.firmarAqui')}</p>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xl">{t('nomina.firmarAqui')}</p>
                   </div>
                 </div>
               </div>
