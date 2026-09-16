@@ -281,7 +281,7 @@ export default function PagosFutbolista() {
       </div>
 
       {/* CANALES DE PAGO CONFIGURADOS */}
-      {configPago && (configPago.nequi || configPago.daviplata || configPago.bre_b || configPago.banco_numero) && (
+      {configPago && (configPago.nequi || configPago.daviplata || configPago.bre_b || configPago.banco_numero || (configPago.metodos_pago && configPago.metodos_pago !== '[]')) && (
         <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm p-8">
            <div className="flex items-center justify-between mb-6">
              <h3 className="font-black text-slate-800 text-sm uppercase tracking-widest flex items-center gap-2">
