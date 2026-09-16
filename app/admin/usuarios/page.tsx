@@ -22,7 +22,12 @@ export default function UsuariosPage() {
 
   const cargarUsuarios = async () => {
     setLoading(true);
-    const { data } = await supabase.from('perfiles').select('*').limit(50);
+    const { data } = await supabase
+      .from('perfiles')
+      .select('*')
+      .in('rol', ['Director', 'Entrenador', 'SuperAdmin'])
+      .order('rol', { ascending: true })
+      .limit(500);
     setUsuariosGlobales(data || []);
     setLoading(false);
   };
