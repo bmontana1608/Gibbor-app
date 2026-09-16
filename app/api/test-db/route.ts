@@ -25,7 +25,7 @@ export async function GET() {
   let parseError = null;
   try {
     parsed = JSON.parse(configAfter.metodos_pago);
-  } catch(e) {
+  } catch (e: any) {
     parseError = e.message;
   }
 

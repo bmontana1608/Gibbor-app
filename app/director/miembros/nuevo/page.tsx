@@ -89,6 +89,8 @@ export default function NuevoMiembro() {
     emergencia_nombre: '',
     emergencia_telefono: '',
     hijos_config: '',
+    activar_acceso: false,
+    clave_acceso: 'Club2026*',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -158,19 +160,49 @@ export default function NuevoMiembro() {
       fecha_ingreso_club: formData.fecha_ingreso || new Date().toISOString().split('T')[0]
     };
 
-    const { error } = await supabase
+    const { data: newProfile, error } = await supabase
       .from('perfiles')
-      .insert([cleanPayload]);
-
-    setGuardando(false);
+      .insert([cleanPayload])
+      .select()
+      .single();
 
     if (error) {
+      setGuardando(false);
       toast.error("Error al guardar en base de datos: " + error.message, { id: toastId });
       console.error(error);
+      return;
+    }
+
+    // Activar acceso a plataforma si fue solicitado
+    if (formData.activar_acceso && formData.email_contacto) {
+      toast.loading("Activando acceso a plataforma...", { id: toastId });
+      try {
+        const res = await fetch('/api/admin/crear-usuario', { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email: formData.email_contacto, 
+            password: formData.clave_acceso, 
+            rol: formData.rol || 'Futbolista', 
+            perfilId: newProfile.id 
+          }) 
+        });
+        const data = await res.json();
+        if(!res.ok) {
+          toast.error("Jugador registrado, pero error al activar acceso: " + (data.error || "Fallo desconocido"), { id: toastId });
+          console.error("Error activando acceso:", data.error);
+        } else {
+          toast.success("¡Jugador registrado y acceso activado exitosamente!", { id: toastId });
+        }
+      } catch (err) {
+        toast.error("Jugador registrado, pero hubo un error de conexión al activar acceso.", { id: toastId });
+      }
     } else {
       toast.success("¡Jugador registrado exitosamente!", { id: toastId });
-      router.push(route('/director/miembros'));
     }
+
+    setGuardando(false);
+    router.push(route('/director/miembros'));
   };
 
   return (
@@ -451,6 +483,60 @@ export default function NuevoMiembro() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 5. ACCESO A LA PLATAFORMA */}
+          <section className="bg-slate-50 border border-slate-200 rounded-xl p-5 md:p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-slate-800 border-b border-slate-200 pb-3 mb-5 flex items-center gap-2">
+              <User className="text-brand w-5 h-5" /> Acceso a la Plataforma
+            </h2>
+            <div className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <div className="pt-1">
+                  <input 
+                    type="checkbox"
+                    name="activar_acceso"
+                    checked={formData.activar_acceso}
+                    onChange={(e) => setFormData(prev => ({ ...prev, activar_acceso: e.target.checked }))}
+                    className="w-5 h-5 rounded border-slate-300 text-brand focus:ring-brand"
+                  />
+                </div>
+                <div>
+                  <p className="font-bold text-sm text-slate-700">Activar acceso a la plataforma inmediatamente</p>
+                  <p className="text-xs text-slate-500">Se le creará un usuario con el correo de contacto proporcionado.</p>
+                </div>
+              </label>
+
+              {formData.activar_acceso && (
+                <div className="pl-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email para Acceso *</label>
+                    <input 
+                      type="email" 
+                      value={formData.email_contacto} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, email_contacto: e.target.value }))}
+                      required={formData.activar_acceso}
+                      placeholder="Debe ser un email válido"
+                      className="w-full px-3 py-2 text-brand outline-none text-sm border rounded" 
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Este email se guardará como Email de Contacto.</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contraseña Temporal *</label>
+                    <input 
+                      type="text" 
+                      name="clave_acceso"
+                      value={formData.clave_acceso} 
+                      onChange={handleChange}
+                      required={formData.activar_acceso}
+                      minLength={6}
+                      className="w-full px-3 py-2 text-brand outline-none text-sm border rounded" 
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Mínimo 6 caracteres.</p>
                   </div>
                 </div>
               )}

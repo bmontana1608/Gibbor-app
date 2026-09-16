@@ -597,7 +597,7 @@ export default function FichaDelJugador() {
           </div>
           
           <div className="flex-1 w-full flex flex-col gap-3 pt-5">
-            {(jugador.email || jugador.email_contacto) ? (
+            {jugador.email ? (
               <button onClick={async () => { 
                 const cleanPass = claveAcceso.trim();
                 if(!cleanPass || cleanPass.length < 6) return toast.error("La clave debe tener mínimo 6 caracteres.");
