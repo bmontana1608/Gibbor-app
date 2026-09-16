@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Megaphone, Send, History, Smartphone, Bell, Loader2, Sparkles, CheckCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTenant } from '@/lib/hooks/useTenant';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export default function PaginaComunicados() {
@@ -13,6 +14,20 @@ export default function PaginaComunicados() {
   const [enviando, setEnviando] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [totalSubscribers, setTotalSubscribers] = useState(0);
+  const { slug } = useTenant();
+  const [tenantLogo, setTenantLogo] = useState('/logo.png');
+
+  useEffect(() => {
+    if (slug) {
+      fetch(`/api/tenant?slug=${slug}`)
+        .then(r => r.json())
+        .then(d => {
+          if (d?.config?.logo || d?.logo_url) {
+            setTenantLogo(d.config?.logo || d.logo_url);
+          }
+        }).catch(() => {});
+    }
+  }, [slug]);
 
   useEffect(() => {
     verificarSuscripcion();

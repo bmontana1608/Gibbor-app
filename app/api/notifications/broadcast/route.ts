@@ -56,6 +56,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: 'No hay usuarios suscritos todavía' });
     }
 
+    const { data: clubData } = await supabase.from('clubes').select('logo_url').eq('id', perfil.club_id).single();
+    const clubLogo = clubData?.logo_url || '/logo.png';
+
     // 2. Enviar a cada uno
     const notifications = subscripciones.map(async (sub) => {
       try {
@@ -64,7 +67,8 @@ export async function POST(req: Request) {
           JSON.stringify({
             title: titulo,
             body: mensaje,
-            url: url || '/'
+            url: url || '/',
+            icon: clubLogo
           })
         );
       } catch (err: any) {

@@ -3,8 +3,8 @@ self.addEventListener('push', function(event) {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/logo.png', // Logo de Gibbor
-      badge: '/logo.png',
+      icon: data.icon || '/logo.png',
+      badge: data.icon || '/logo.png',
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
