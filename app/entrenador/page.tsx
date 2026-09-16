@@ -1,0 +1,308 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import Link from 'next/link';
+import { Users, ClipboardCheck, Calendar, Trophy, ArrowRight, UserCheck, Star, ShieldCheck } from 'lucide-react';
+import { useTenant } from '@/lib/hooks/useTenant';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
+
+export default function DashboardEntrenador() {
+  const { t } = useTranslation();
+  const [perfil, setPerfil] = useState<any>(null);
+  const [tenant, setTenant] = useState<any>(null);
+  const { slug: tenantSlug, route } = useTenant();
+  const [cargando, setCargando] = useState(true);
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [metricas, setMetricas] = useState({
+    alumnosTotal: 0,
+    asistenciaMes: 0,
+    puntosGenerados: 0
+  });
+
+  useEffect(() => {
+    async function cargarDatos() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Cargar Tenant
+      try {
+        if (!tenantSlug) return;
+        const resT = await fetch(`/api/tenant?slug=${tenantSlug}`);
+        const tenantData = await resT.json();
+        if (tenantData) setTenant(tenantData);
+      } catch (err) {
+        console.error("Error cargando tenant dashboard:", err);
+      }
+
+      const { data: usuario } = await supabase
+        .from('perfiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (usuario) {
+        setPerfil(usuario);
+
+        // 1. Cargar las categorías asignadas al entrenador (vía API segura con club_id y entrenador_id)
+        let listaCats: any[] = [];
+        try {
+          const resCats = await fetch(`/api/categorias?slug=${tenantSlug}&club_id=${usuario.club_id}&entrenador_id=${usuario.id}`);
+          const catsData = await resCats.json();
+          if (Array.isArray(catsData)) {
+            listaCats = catsData;
+          }
+        } catch (e) {
+          console.error("Error cargando categorias en dashboard:", e);
+        }
+
+        // Fallback directo a Supabase si la API no retornó resultados
+        if (listaCats.length === 0 && usuario.club_id) {
+          const { data: dbCats } = await supabase
+            .from('categorias')
+            .select('*')
+            .eq('club_id', usuario.club_id);
+
+          if (dbCats && dbCats.length > 0) {
+            const coachFullName = `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim().toLowerCase();
+            const coachGroups = (usuario.grupos || '').split(',').map((g: string) => g.trim().toLowerCase()).filter(Boolean);
+            listaCats = dbCats.filter(cat => {
+              const matchByName = coachGroups.includes((cat.nombre || '').trim().toLowerCase());
+              const matchByTrainer = (cat.entrenadores || '').toLowerCase().includes(coachFullName);
+              return matchByName || matchByTrainer;
+            });
+          }
+        }
+
+        setCategorias(listaCats);
+        
+        // Consolidar todos los nombres de categorías asignadas
+        const nombresCats = listaCats.map((c: any) => (c.nombre || '').trim()).filter(Boolean);
+        const gruposUsuario = (usuario.grupos || '').split(',').map((g: string) => g.trim()).filter(Boolean);
+        const todasCategorias = Array.from(new Set([...nombresCats, ...gruposUsuario]));
+        const todasCatsLower = todasCategorias.map(c => c.toLowerCase());
+
+        // 2. Cargar futbolistas activos del club
+        const { data: allAlumnos } = await supabase.from('perfiles').select('id, grupos')
+          .eq('club_id', usuario.club_id)
+          .eq('rol', 'Futbolista')
+          .neq('estado_miembro', 'Inactivo');
+        
+        let totalAlumnos = 0;
+        if (allAlumnos && todasCatsLower.length > 0) {
+          const filteredAlumnos = allAlumnos.filter(j => {
+            if (!j.grupos) return false;
+            const limpio = j.grupos.replace('|MANUAL', '').trim();
+            const arr = limpio.split(',').map((g: string) => g.trim().toLowerCase()).filter(Boolean);
+            return arr.some((g: string) => todasCatsLower.includes(g));
+          });
+          totalAlumnos = filteredAlumnos.length;
+        }
+
+        const { data: mAsistencias } = await supabase
+          .from('asistencias')
+          .select('estado')
+          .eq('club_id', usuario.club_id)
+          .gte('fecha', new Date().toISOString().slice(0, 7) + '-01');
+        
+        setMetricas({
+          alumnosTotal: totalAlumnos,
+          asistenciaMes: mAsistencias?.length ? Math.round((mAsistencias.filter(a => a.estado === 'Presente').length / mAsistencias.length) * 100) : 0,
+          puntosGenerados: 0
+        });
+      }
+      setCargando(false);
+    }
+    cargarDatos();
+  }, [tenantSlug]);
+
+  if (cargando) return <div className="p-8 text-center text-slate-400">{t('entrenador.dashboard.loading')}</div>;
+
+  const brandColor = tenant?.config?.color || tenant?.color_primario || '#06b6d4';
+  const brandName = tenant?.config?.nombre || tenant?.nombre || 'Club';
+
+  const nombresAsignados = categorias.map((c: any) => c.nombre).join(', ') || perfil?.grupos || '';
+
+  return (
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-700">
+      
+      {/* Header de Bienvenida */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <p className="opacity-70 font-black text-[10px] uppercase tracking-[0.2em] mb-1" style={{ color: brandColor }}>{t('entrenador.dashboard.ecosystem')} {brandName}</p>
+          <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
+            {t('entrenador.dashboard.instructor')} <span style={{ color: brandColor }}>
+              {perfil?.nombres?.split(' ')[0] || 'Staff'}
+            </span>
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 font-medium italic">
+            {t('entrenador.dashboard.managingTalentIn')} <span className="text-slate-900 font-black uppercase">{nombresAsignados || t('entrenador.dashboard.unassignedCategory')}</span>.
+          </p>
+        </div>
+        <div className="bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+          <Calendar className="w-5 h-5" style={{ color: brandColor }} />
+          <span className="text-sm font-bold text-slate-700 capitalize">
+            {new Date().toLocaleDateString(
+              t('common.locale') && t('common.locale') !== 'common.locale' ? t('common.locale') : 'es-ES', 
+              { weekday: 'long', day: 'numeric', month: 'long' }
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* Grid de Accesos Rápidos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        {/* TARJETA DE ASISTENCIA */}
+        <Link 
+          href={route('/entrenador/asistencia')} 
+          className="rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden" 
+          style={{ backgroundColor: brandColor, boxShadow: `0 10px 25px -5px ${brandColor}40` }}
+        >
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="bg-white/20 p-4 rounded-2xl"><ClipboardCheck className="w-7 h-7" /></div>
+            <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.menu.attendance')}</h3>
+            <p className="text-white/80 text-xs font-medium">{t('entrenador.dashboard.todayPunctualityControl')}</p>
+          </div>
+        </Link>
+
+        {/* TARJETA DE ALUMNOS */}
+        <Link 
+          href={route('/entrenador/categorias')} 
+          className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl shadow-slate-900/10 flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] transition-all relative overflow-hidden border border-white/5"
+        >
+           <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all"></div>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><Users className="w-7 h-7" /></div>
+            <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.dashboard.manageStudents')}</h3>
+            <p className="text-white/40 text-xs font-medium">{t('entrenador.dashboard.technicalFilesContacts')}</p>
+          </div>
+        </Link>
+
+        {/* TARJETA DE STATS */}
+        <Link 
+          href={route('/entrenador/estadisticas')} 
+          className="bg-white rounded-[2.5rem] p-8 text-slate-800 shadow-xl shadow-slate-200/50 flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] border border-slate-100 transition-all relative overflow-hidden"
+        >
+          <div className="flex justify-between items-start">
+            <div className="p-4 rounded-2xl" style={{ backgroundColor: `${brandColor}10`, color: brandColor }}><Trophy className="w-7 h-7" /></div>
+            <ArrowRight className="w-5 h-5 text-slate-300 group-hover:translate-x-2 transition-all" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-slate-900">{t('entrenador.menu.statsLab')}</h3>
+            <p className="text-slate-400 text-xs font-medium">{t('entrenador.dashboard.groupPerformanceAnalysis')}</p>
+          </div>
+        </Link>
+
+        {/* TARJETA DE CONVOCATORIAS */}
+        <Link 
+          href={route('/entrenador/convocatorias')} 
+          className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between h-52 group cursor-pointer hover:scale-[1.02] border border-indigo-500 transition-all relative overflow-hidden"
+        >
+          <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
+          <div className="flex justify-between items-start relative z-10">
+            <div className="bg-white/20 p-4 rounded-2xl border border-white/10"><ShieldCheck className="w-7 h-7" /></div>
+            <ArrowRight className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-opacity translate-x-0 group-hover:translate-x-2 transition-transform" />
+          </div>
+          <div className="relative z-10">
+            <h3 className="text-2xl font-black mb-1 italic uppercase tracking-tighter text-white">{t('entrenador.menu.callups')}</h3>
+            <p className="text-white/80 text-xs font-medium">{t('entrenador.dashboard.startersSubstitutesRoster')}</p>
+          </div>
+        </Link>
+
+      </div>
+
+      {/* Estadísticas Rápidas */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: t('entrenador.dashboard.totalStudents'), value: metricas.alumnosTotal, icon: <UserCheck className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.monthlyEfficiency'), value: `${metricas.asistenciaMes}%`, icon: <Star className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.controlPoints'), value: metricas.puntosGenerados, icon: <Trophy className="w-4 h-4" /> },
+          { label: t('entrenador.dashboard.sessionStatus'), value: t('entrenador.dashboard.active'), icon: <Calendar className="w-4 h-4" /> },
+        ].map((item, i) => (
+          <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+            <div className="p-2.5 rounded-[1rem] bg-slate-50 w-fit mb-4" style={{ color: brandColor }}>{item.icon}</div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
+            <p className="text-3xl font-black text-slate-900 italic tracking-tighter mt-1">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Sesiones de Hoy */}
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+        <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex items-center justify-between">
+          <h3 className="font-black text-slate-800 text-xl flex items-center gap-3 uppercase italic tracking-tighter">
+            <Calendar className="w-6 h-6" style={{ color: brandColor }} /> {t('entrenador.dashboard.todaySessions')}
+          </h3>
+          <span className="text-[10px] font-black uppercase text-slate-400 bg-white px-4 py-2 rounded-full border border-slate-100">{t('entrenador.dashboard.realTime')}</span>
+        </div>
+        <div className="divide-y divide-slate-50">
+          {categorias.length > 0 ? (
+            categorias.map((cat: any, index: number) => (
+              <div key={cat.id || index} className="p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `${brandColor}05`, color: brandColor, borderColor: `${brandColor}10` }}>
+                    <span className="text-xs font-black leading-none">{t('entrenador.dashboard.today')}</span>
+                    <span className="text-[10px] font-bold mt-1">Sess.</span>
+                  </div>
+                  <div>
+                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">{t('entrenador.dashboard.category')} {cat.nombre}</p>
+                    <p className="text-xs text-slate-500 font-medium italic flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> {cat.horarios || t('entrenador.dashboard.officialVenue')}
+                    </p>
+                  </div>
+                </div>
+                <Link 
+                  href={route(`/entrenador/asistencia?categoria_id=${cat.id}`)}
+                  className="text-white text-[10px] font-black px-8 py-3.5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase italic tracking-widest"
+                  style={{ backgroundColor: brandColor, boxShadow: `0 10px 20px -5px ${brandColor}40` }}
+                >
+                  {t('entrenador.dashboard.attendances')}
+                </Link>
+              </div>
+            ))
+          ) : perfil?.grupos ? (
+            perfil.grupos.split(',').map((g: string) => g.trim()).filter(Boolean).map((cat: string, index: number) => (
+              <div key={index} className="p-8 flex items-center justify-between hover:bg-slate-50/50 transition-all group">
+                <div className="flex items-center gap-6">
+                  <div className="w-14 h-14 rounded-[1.5rem] flex flex-col items-center justify-center border shadow-sm transition-transform group-hover:scale-105" style={{ backgroundColor: `${brandColor}05`, color: brandColor, borderColor: `${brandColor}10` }}>
+                    <span className="text-xs font-black leading-none">{t('entrenador.dashboard.today')}</span>
+                    <span className="text-[10px] font-bold mt-1">Sess.</span>
+                  </div>
+                  <div>
+                    <p className="font-black text-xl text-slate-900 italic uppercase tracking-tighter leading-none mb-1">{t('entrenador.dashboard.category')} {cat}</p>
+                    <p className="text-xs text-slate-500 font-medium italic flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: brandColor }}></span> {t('entrenador.dashboard.officialVenue')}
+                    </p>
+                  </div>
+                </div>
+                <Link 
+                  href={route('/entrenador/asistencia')}
+                  className="text-white text-[10px] font-black px-8 py-3.5 rounded-2xl shadow-xl active:scale-95 transition-all uppercase italic tracking-widest"
+                  style={{ backgroundColor: brandColor, boxShadow: `0 10px 20px -5px ${brandColor}40` }}
+                >
+                  {t('entrenador.dashboard.attendances')}
+                </Link>
+              </div>
+            ))
+          ) : (
+            <div className="p-20 text-center">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                    <Calendar className="text-slate-300 w-8 h-8" />
+                </div>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">{t('entrenador.dashboard.noAssignedCategoriesToday')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+    </div>
+  );
+}

@@ -1,0 +1,235 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
+
+interface LoginFormProps {
+  tenant: {
+    slug?: string;
+    id?: string;
+    config: {
+      nombre: string;
+      logo: string;
+      color: string;
+    }
+  }
+}
+
+export default function LoginForm({ tenant }: LoginFormProps) {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [sessionCargada, setSessionCargada] = useState(false);
+
+  // EFECTO DE PERSISTENCIA: Si ya hay sesión VÁLIDA en el navegador, brincar el login
+  useEffect(() => {
+    let mounted = true;
+    async function chequearSession() {
+      let debeRedirigir = false;
+      try {
+        // getUser() valida contra el servidor (no usa caché local)
+        // Evita loops infinitos con tokens expirados
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (!error && user) {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('rol, club_id, clubes(slug)')
+            .eq('id', user.id)
+            .single();
+
+          if (perfil) {
+            const clubSlug = (perfil.clubes as any)?.slug;
+            const rol = perfil.rol?.toLowerCase();
+
+            if (perfil.rol === 'SuperAdmin') {
+              debeRedirigir = true;
+              window.location.href = tenant?.slug && tenant.slug !== 'master' ? `/director` : '/admin';
+            } else if (clubSlug) {
+              debeRedirigir = true;
+              const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+              window.location.href = destino;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Error en chequearSession, mostrando formulario:", err);
+      }
+
+      // Siempre mostrar el formulario si no hay redirección pendiente
+      if (!debeRedirigir && mounted) {
+        setSessionCargada(true);
+      }
+    }
+    chequearSession();
+    return () => { mounted = false; };
+  }, []);
+
+  if (!sessionCargada) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand"></div>
+      </div>
+    );
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password;
+
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password: cleanPassword,
+    });
+
+    if (authError) {
+      console.error("Error al iniciar sesión:", authError.message);
+      const msg = authError.message.toLowerCase();
+      if (msg.includes('rate limit')) {
+        alert('Error: Demasiados intentos de inicio de sesión. Espera un par de minutos.');
+      } else if (msg.includes('email not confirmed')) {
+        alert('Error: El correo electrónico no está confirmado.');
+      } else {
+        alert('Error: Correo o contraseña incorrectos, o la cuenta aún no tiene acceso activado por el Administrador.');
+      }
+      setLoading(false);
+      return;
+    }
+
+    let { data: perfilData, error: perfilError } = await supabase
+      .from('perfiles')
+      .select('rol, club_id, clubes(slug)')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (perfilError || !perfilData) {
+      // INTENTO DE AUTOREPARACIÓN: Si el director creó el perfil pero quedó huérfano del Auth ID
+      try {
+        const fixRes = await fetch('/api/auth/fix-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: authData.user.id, email: authData.user.email || cleanEmail })
+        });
+        
+        if (fixRes.ok) {
+          // Re-intentar obtener el perfil reparado
+          const retry = await supabase
+            .from('perfiles')
+            .select('rol, club_id, clubes(slug)')
+            .eq('id', authData.user.id)
+            .single();
+            
+          perfilData = retry.data;
+          perfilError = retry.error;
+        }
+      } catch (fixErr) {
+        console.error("Fallo al intentar autoreparar el perfil", fixErr);
+      }
+
+      if (perfilError || !perfilData) {
+        alert('Error: Este usuario no tiene un perfil asignado.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    const clubSlug = (perfilData.clubes as any)?.slug;
+    const rol = perfilData.rol?.toLowerCase();
+
+    if (perfilData.rol === 'SuperAdmin') {
+      if (tenant?.slug && tenant.slug !== 'master') {
+        router.push(`/director`);
+      } else {
+        router.push('/admin');
+      }
+    } else if (rol === 'embajador') {
+      router.push('/embajador');
+    } else if (clubSlug) {
+      // Redirección dinámica basada en Club y Rol
+      const destino = `/${clubSlug}/${rol === 'director' ? 'director' : rol === 'entrenador' ? 'entrenador' : 'futbolista'}`;
+      router.push(destino);
+    } else {
+      // Fallback si no tiene club asignado (pero no es SuperAdmin)
+      router.push('/' + (rol || ''));
+    }
+
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white p-4">
+      <div className="bg-zinc-900 p-8 rounded-2xl shadow-2xl w-full max-w-md border border-zinc-800">
+        
+        <div className="flex justify-center mb-6">
+          <img 
+            src={tenant.config.logo} 
+            alt="Club Logo" 
+            className="h-32 w-auto drop-shadow-md" 
+          />
+        </div>
+        
+        <h1 className="text-3xl font-bold text-center mb-2 tracking-tight">{tenant.config.nombre}</h1>
+        <p className="text-zinc-400 text-center mb-8">Ingresa a tu portal deportivo</p>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-zinc-300">Correo Electrónico</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all"
+              style={{ '--tw-ring-color': tenant.config.color } as any}
+              placeholder="ejemplo@correo.com"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2 text-zinc-300">Contraseña</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all pr-12"
+                style={{ '--tw-ring-color': tenant.config.color } as any}
+                placeholder="••••••••"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 focus:outline-none p-1 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg disabled:opacity-50"
+            style={{ backgroundColor: tenant.config.color }}
+          >
+            {loading ? 'Verificando...' : 'Ingresar'}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <a href="#" className="text-sm hover:opacity-80 transition-opacity" style={{ color: tenant.config.color }}>
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
