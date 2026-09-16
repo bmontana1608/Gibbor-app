@@ -129,7 +129,11 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
       if (error) throw error;
       setRegistroExitoso(true);
     } catch (error: any) {
-      toast.error('Error al procesar el registro: ' + (error.message || 'Error desconocido'));
+      if (error.message === 'Failed to fetch' || error.message === 'failed to fetch') {
+        toast.error('Error de red. Por favor, asegúrate de tener buena conexión, desactiva cualquier bloqueador de anuncios (AdBlock/Brave) o intenta desde otro navegador.', { duration: 10000 });
+      } else {
+        toast.error('Error al procesar el registro: ' + (error.message || 'Error desconocido'));
+      }
     } finally {
       setGuardando(false);
     }
