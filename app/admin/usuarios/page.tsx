@@ -24,7 +24,7 @@ export default function UsuariosPage() {
     setLoading(true);
     const { data } = await supabase
       .from('perfiles')
-      .select('*')
+      .select('*, clubes(nombre, slug)')
       .in('rol', ['Director', 'Entrenador', 'SuperAdmin'])
       .order('rol', { ascending: true })
       .limit(500);
@@ -118,10 +118,15 @@ export default function UsuariosPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {u.tenant_id ? (
-                        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded">{u.tenant_id}</span>
+                      {u.clubes?.nombre ? (
+                        <div>
+                          <p className="text-xs font-bold text-slate-800">{u.clubes.nombre}</p>
+                          <p className="text-[10px] text-gray-400 font-mono mt-0.5">/{u.clubes.slug}</p>
+                        </div>
+                      ) : u.tenant_id || u.club_id ? (
+                        <span className="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded">{u.tenant_id || u.club_id}</span>
                       ) : (
-                        <span className="text-xs text-gray-400 italic">Global System</span>
+                        <span className="text-xs text-gray-400 italic">Global System (Master)</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
