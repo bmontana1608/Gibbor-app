@@ -31,7 +31,7 @@ export function useTenant(initialTenantSlug?: string) {
     }
 
     // Fallback de seguridad
-    if (!slug) slug = 'gibbor';
+    if (!slug) slug = 'master';
 
     // 3. Calcular basePath dinámico
     // Si estamos en un subdominio (ej: aguilas.gibbor.app), el basePath debe ser vacío.

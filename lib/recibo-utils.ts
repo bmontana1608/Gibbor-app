@@ -88,7 +88,7 @@ export async function generarReciboPDFBase64(datos: {
     if (datos.empresa.logo_url) {
       doc.addImage(datos.empresa.logo_url, 'PNG', 15, 8, 24, 24);
     } else {
-      doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+      doc.addImage('/mcm-logo.png', 'PNG', 15, 8, 24, 24);
     }
   } catch (e) {
     doc.setTextColor(255, 255, 255);
@@ -98,7 +98,7 @@ export async function generarReciboPDFBase64(datos: {
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  const nombreClub = (datos.empresa.nombre_club || 'EFD GIBBOR').toUpperCase();
+  const nombreClub = (datos.empresa.nombre_club || 'EL CLUB').toUpperCase();
   doc.setFontSize(18);
   const splitNombre = doc.splitTextToSize(nombreClub, 95);
   
@@ -362,14 +362,14 @@ export async function generarReciboNominaPDFBase64(datos: {
     if (datos.empresa.logo_url) {
       doc.addImage(datos.empresa.logo_url, 'PNG', 15, 8, 24, 24);
     } else {
-      doc.addImage('https://i.postimg.cc/PNGqMH1m/escudo-gibbor.png', 'PNG', 15, 8, 24, 24);
+      doc.addImage('/mcm-logo.png', 'PNG', 15, 8, 24, 24);
     }
   } catch (e) { /* sin logo */ }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(18);
-  doc.text(datos.empresa.nombre_club || 'EFD GIBBOR', 45, 22);
+  doc.text(datos.empresa.nombre_club || 'EL CLUB', 45, 22);
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(200, 200, 210);
