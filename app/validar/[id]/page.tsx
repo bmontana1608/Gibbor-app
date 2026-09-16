@@ -40,24 +40,24 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
   }
 
   const isActive = perfil.estado_miembro === 'Activo';
-  const brandColor = club?.brand_color || '#3b82f6';
+  const brandColor = club?.color_primario || '#10b981'; // Default to a standard green or blue if none set
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-3xl overflow-hidden shadow-2xl relative border border-slate-200">
         {/* Encabezado */}
         <div 
-          className="h-40 relative flex flex-col items-center justify-start pt-8 px-6"
+          className="h-48 relative flex flex-col items-center justify-start pt-8 px-6"
           style={{ backgroundColor: brandColor }}
         >
           <div className="absolute inset-0 bg-black/20" />
           <div className="relative z-10 flex flex-col items-center">
             {club?.logo_url ? (
-              <img src={club.logo_url} alt="Club" className="w-16 h-16 object-contain drop-shadow-lg mb-2" />
+              <img src={club.logo_url} alt="Club" className="w-20 h-20 object-contain drop-shadow-lg mb-2" />
             ) : (
               <ShieldCheck className="w-12 h-12 text-white mb-2" />
             )}
-            <h2 className="text-white font-black italic uppercase tracking-wider text-sm text-center drop-shadow-md">
+            <h2 className="text-white font-black italic uppercase tracking-wider text-sm text-center drop-shadow-md px-4">
               {club?.nombre || 'Verificación Deportiva'}
             </h2>
           </div>
