@@ -226,7 +226,8 @@ export default function PagosFutbolista() {
      }
   }
 
-  const nextDateObj = new Date(targetYear, targetMonth, 10);
+  const diaCobro = perfil?.dia_pago || 10;
+  const nextDateObj = new Date(targetYear, targetMonth, diaCobro);
   const monthName = nextDateObj.toLocaleDateString('es-ES', { month: 'long' }).toUpperCase();
 
   return (
@@ -258,7 +259,7 @@ export default function PagosFutbolista() {
          <div className="relative z-10 space-y-4">
             <p className="text-brand text-xs font-black uppercase tracking-[0.2em]">{t('futbolista.pagos.nextDueDate')}</p>
             <div className="flex items-end gap-2">
-               <h2 className="text-4xl md:text-5xl font-black">10 {monthName}</h2>
+               <h2 className="text-4xl md:text-5xl font-black">{diaCobro} {monthName}</h2>
                <span className="text-slate-500 font-bold mb-1">{targetYear}</span>
             </div>
             <div className="flex flex-wrap gap-4 pt-4">
