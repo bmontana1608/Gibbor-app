@@ -359,6 +359,49 @@ export default function FichaDelJugador() {
                   <input type="number" name="puntos" value={formData.puntos ?? 0} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
                 </div>
               </div>
+
+              {/* Vincular Familia (Solo Entrenador/Director) */}
+              {(formData.rol === 'Entrenador' || formData.rol === 'Director') && (
+                <div className="bg-brand/10/50 border bg-brand/10 rounded-xl p-6 mt-4">
+                  <h3 className="text-sm font-bold text-brand mb-4 flex items-center gap-2">
+                    <Users className="text-brand w-4 h-4" /> Vincular Familia (Jugadores a cargo)
+                  </h3>
+                  <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                    {categorias.map(cat => (
+                      <div key={cat.nombre}>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 px-2">{cat.nombre}</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {todosLosJugadores
+                            .filter(j => j.grupos === cat.nombre)
+                            .map(jug => (
+                              <label key={jug.id} className="flex items-center gap-2 p-2 rounded-xl border border-white bg-white/50 hover:bg-white hover:border-brand/40 transition-all cursor-pointer">
+                                <input 
+                                  type="checkbox"
+                                  checked={(formData.hijos_config || '').includes(jug.id)}
+                                  onChange={(e) => {
+                                    const currentIds = (formData.hijos_config || '').split(',').map((id: string) => id.trim()).filter(Boolean);
+                                    let newIds;
+                                    if (e.target.checked) {
+                                      newIds = [...currentIds, jug.id];
+                                    } else {
+                                      newIds = currentIds.filter((id: string) => id !== jug.id);
+                                    }
+                                    setFormData((prev: any) => ({ ...prev, hijos_config: newIds.join(',') }));
+                                  }}
+                                  className="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:text-brand"
+                                />
+                                <div className="overflow-hidden">
+                                  <p className="text-[11px] font-bold text-slate-800 truncate leading-none mb-0.5">{jug.nombres}</p>
+                                  <p className="text-[9px] text-slate-400 truncate leading-none">{jug.apellidos}</p>
+                                </div>
+                              </label>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* CARD 2: DATOS BÁSICOS Y PERSONALES */}
