@@ -30,18 +30,21 @@ export async function GET(request: Request) {
   let manualIds: string[] = [];
   
   if (esDirector) {
-    // 2.a Si es Director, usamos ÚNICAMENTE la configuración global (Ajustes del Club)
+    // Para Director, traemos la configuración global (Ajustes del Club)
     const { data: configGlobal } = await supabaseAdmin
       .from("configuracion_wa")
       .select("hijos_config")
-      .single();
+      .eq("club_id", miPerfil?.club_id)
+      .maybeSingle();
     
     if (configGlobal?.hijos_config) {
-      manualIds = configGlobal.hijos_config.split(',').map((id: string) => id.trim());
+      manualIds = [...manualIds, ...configGlobal.hijos_config.split(',').map((id: string) => id.trim())];
     }
-  } else if (miPerfil?.hijos_config) {
-    // 2.b Para Entrenadores y otros, usamos su hijos_config personal
-    manualIds = miPerfil.hijos_config.split(',').map((id: string) => id.trim());
+  }
+  
+  // Siempre revisar la configuración personal del perfil (guardada en el módulo de miembros)
+  if (miPerfil?.hijos_config) {
+    manualIds = [...manualIds, ...miPerfil.hijos_config.split(',').map((id: string) => id.trim())];
   }
 
   // Paso 3: Construimos la cláusula OR
@@ -59,6 +62,7 @@ export async function GET(request: Request) {
   }
 
   // Añadimos TODOS los IDs manuales recolectados
+  manualIds = [...new Set(manualIds)];
   manualIds.forEach((id: string) => {
     if (id && id.length > 5) orParts.push(`id.eq.${id}`);
   });
