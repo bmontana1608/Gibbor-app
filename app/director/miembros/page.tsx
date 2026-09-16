@@ -221,7 +221,7 @@ export default function DirectorioMiembros() {
     const cabeceras = [
       'Nombres', 'Apellidos', 'Documento', 'Edad', 'Fecha Nacimiento', 
       'Rol', 'Categoria', 'Telefono', 'Email', 'Direccion',
-      'Tipo Sangre', 'EPS', 'Talla Uniforme', 'Patologias',
+      'Tipo Sangre', 'Seguro Médico', 'Talla Uniforme', 'Patologias',
       'Acudiente Nombre', 'Acudiente Identificacion', 'Emergencia Nombre', 'Emergencia Telefono',
       'Posicion', 'Dorsal', 'Plan', 'Estado Pago', 'Estado Miembro'
     ];
@@ -538,7 +538,7 @@ export default function DirectorioMiembros() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><HeartPulse className="w-6 h-6 text-red-500 mx-auto mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sangre</p><p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.tipo_sangre || 'N/A'}</p></div>
-                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Activity className="w-6 h-6 text-blue-500 mx-auto mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">EPS</p><p className="text-sm font-black text-slate-800 dark:text-white truncate">{solicitudSeleccionada.eps || 'N/A'}</p></div>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Activity className="w-6 h-6 text-blue-500 mx-auto mb-2" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Seguro Médico</p><p className="text-sm font-black text-slate-800 dark:text-white truncate">{solicitudSeleccionada.eps || 'N/A'}</p></div>
                 <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl text-center"><Download className="text-brand mx-auto mb-2 rotate-180" /><p className="text-[9px] font-black text-slate-400 uppercase mb-1">Talla</p><p className="text-xl font-black text-slate-800 dark:text-white">{solicitudSeleccionada.talla_uniforme || 'N/A'}</p></div>
               </div>
 
@@ -573,13 +573,13 @@ export default function DirectorioMiembros() {
                   {solicitudSeleccionada.doc_eps_url ? (
                     <a href={solicitudSeleccionada.doc_eps_url} target="_blank" rel="noopener noreferrer" className="text-brand transition-all group">
                       <ShieldCheck className="text-brand mb-2" />
-                      <p className="text-[10px] font-black uppercase text-slate-500">Carné EPS</p>
+                      <p className="text-[10px] font-black uppercase text-slate-500">Carné de Seguro</p>
                       <span className="text-[9px] text-emerald-500 font-bold mt-1 uppercase tracking-widest">Disponible</span>
                     </a>
                   ) : (
                     <div className="flex flex-col items-center p-4 bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl opacity-50">
                       <X className="w-8 h-8 text-slate-300 mb-2" />
-                      <p className="text-[10px] font-black uppercase text-slate-400">Carné EPS</p>
+                      <p className="text-[10px] font-black uppercase text-slate-400">Carné de Seguro</p>
                     </div>
                   )}
 

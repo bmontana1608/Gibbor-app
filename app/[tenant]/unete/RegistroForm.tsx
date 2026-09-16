@@ -305,8 +305,8 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">EPS o Seguro *</label>
-              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700" required />
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Seguro Médico *</label>
+              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre del seguro médico" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700" required />
             </div>
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Talla Uniforme</label>
@@ -349,7 +349,7 @@ export default function RegistroForm({ club, categoriasIniciales }: { club: any,
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-sm">
             {[
               { key: 'jugador', label: 'Doc. Identidad Jugador', sub: 'T.I / C.C', icon: <FileText className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
-              { key: 'eps',     label: 'Registro EPS',           sub: 'Carné o Certificado', icon: <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
+              { key: 'eps',     label: 'Registro de Seguro',           sub: 'Carné o Certificado', icon: <ShieldCheck className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
               { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
               { key: 'extra', label: 'Documento Adicional', sub: 'Ficha o doc. extra (Opcional)', icon: <FileText className="w-5 h-5 text-slate-400 group-hover:text-current" />, col: '' },
             ].map(({ key, label, sub, icon, col }) => (

@@ -343,8 +343,8 @@ export default function RegistroPublicoPorClub() {
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">EPS o Seguro *</label>
-              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre EPS" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700" required />
+              <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Seguro Médico *</label>
+              <input type="text" name="eps" value={formData.eps} onChange={handleChange} placeholder="Nombre del seguro médico" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 outline-none font-bold text-slate-700" required />
             </div>
             <div>
               <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Talla Uniforme</label>
@@ -387,7 +387,7 @@ export default function RegistroPublicoPorClub() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-[2.5rem] border border-slate-200/50 p-6 md:p-10 shadow-sm">
             {[
               { key: 'jugador', label: 'Doc. Identidad Jugador', sub: 'T.I / C.C', icon: <FileText className="text-brand" />, col: '' },
-              { key: 'eps',     label: 'Registro EPS',           sub: 'Carné o Certificado', icon: <ShieldCheck className="text-brand" />, col: '' },
+              { key: 'eps',     label: 'Registro de Seguro',     sub: 'Carné o Certificado', icon: <ShieldCheck className="text-brand" />, col: '' },
               { key: 'acudiente', label: 'Doc. Identidad Acudiente', sub: 'Cédula del representante', icon: <User className="text-brand" />, col: 'md:col-span-2' },
             ].map(({ key, label, sub, icon, col }) => (
               <div key={key} className={`${col} group relative bg-white border border-slate-200 rounded-[2rem] p-8 text-center hover:bg-brand/50 hover:bg-brand/10 transition-all cursor-pointer shadow-sm`}>

@@ -285,7 +285,7 @@ export default function NuevoMiembro() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">EPS / Seguro *</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Seguro Médico *</label>
                 <input type="text" name="eps" value={formData.eps} onChange={handleChange} required className="text-brand outline-none text-sm" />
               </div>
               <div>

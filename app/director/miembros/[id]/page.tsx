@@ -416,7 +416,7 @@ export default function FichaDelJugador() {
                   <input type="text" name="tipo_sangre" value={formData.tipo_sangre || ''} onChange={handleChange} placeholder="Ej: O+" className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">EPS</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Seguro Médico</label>
                   <input type="text" name="eps" value={formData.eps || ''} onChange={handleChange} className="w-full px-3 py-2 border rounded-lg outline-none focus:ring-2 text-sm" />
                 </div>
                 <div>

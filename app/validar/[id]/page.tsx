@@ -142,7 +142,7 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
              </div>
              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center shadow-sm col-span-2">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Activity className="w-3 h-3" style={{ color: brandColor }} /> EPS
+                  <Activity className="w-3 h-3" style={{ color: brandColor }} /> Seguro Médico
                 </p>
                 <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.eps || 'N/A'}</p>
              </div>
