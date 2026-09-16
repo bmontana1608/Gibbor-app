@@ -36,7 +36,8 @@ export async function POST(req: Request) {
     const totalJugadores = count || 0;
     
     // Nueva logica de cobro por plan
-    const plan = club.planes_saas;
+    const planArray = club.planes_saas;
+    const plan = Array.isArray(planArray) ? planArray[0] : planArray;
     const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
     const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
     const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
