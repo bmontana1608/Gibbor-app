@@ -64,14 +64,14 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
         </div>
 
         {/* Info del Jugador */}
-        <div className="px-6 pt-12 pb-8 relative text-center">
+        <div className="px-6 pt-24 pb-8 relative text-center">
           {/* Foto */}
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2">
-            <div className="w-24 h-24 bg-white rounded-2xl border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
+          <div className="absolute -top-16 left-1/2 -translate-x-1/2">
+            <div className="w-32 h-32 bg-white rounded-2xl border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
               {perfil.foto_url ? (
                 <img src={perfil.foto_url} alt={perfil.nombres} className="w-full h-full object-cover" />
               ) : (
-                <User className="w-10 h-10 text-slate-300" />
+                <User className="w-12 h-12 text-slate-300" />
               )}
             </div>
             {/* Badge de estado */}
@@ -92,29 +92,29 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
           <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest">{perfil.apellidos}</h2>
 
           <div className="mt-8 grid grid-cols-2 gap-4 text-left">
-             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <User className="w-3 h-3" /> Documento
                 </p>
-                <p className="font-bold text-slate-700 text-sm truncate">{perfil.documento_identidad || 'N/A'}</p>
+                <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.documento_identidad || 'N/A'}</p>
              </div>
-             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> Categoría
                 </p>
-                <p className="font-bold text-slate-700 text-sm truncate">{perfil.grupos || 'Sin asignar'}</p>
+                <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.grupos || 'Sin asignar'}</p>
              </div>
-             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <Droplet className="w-3 h-3" /> RH / Sangre
                 </p>
-                <p className="font-bold text-slate-700 text-sm truncate">{perfil.tipo_sangre || 'N/A'}</p>
+                <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.tipo_sangre || 'N/A'}</p>
              </div>
-             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col justify-center">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                   <Activity className="w-3 h-3" /> EPS
                 </p>
-                <p className="font-bold text-slate-700 text-sm truncate">{perfil.eps || 'N/A'}</p>
+                <p className="font-bold text-slate-700 text-sm break-words leading-tight">{perfil.eps || 'N/A'}</p>
              </div>
           </div>
 
@@ -132,7 +132,7 @@ export default async function ValidarCarnetPage({ params }: { params: Promise<{ 
               </div>
             )}
             <p className="text-[9px] font-medium text-slate-400 mt-4 uppercase tracking-[0.3em]">
-              Powered by Gibbor Sports
+              Powered by Master Club Manager
             </p>
           </div>
         </div>
