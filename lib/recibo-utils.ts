@@ -32,6 +32,7 @@ export async function generarReciboPDFBase64(datos: {
     bre_b?: string;
     banco_nombre?: string;
     banco_numero?: string;
+    metodos_pago?: string | any[];
     logo_url?: string;
   }
 }) {
@@ -241,39 +242,44 @@ export async function generarReciboPDFBase64(datos: {
   let paymentY = 165 + offsetTotal;
   const colWidth = 58;
   
-  // Tarjetas de pago sutiles
-  if (datos.empresa.nequi) {
-    doc.setFillColor(245, 243, 255); // Púrpura sutil
-    doc.roundedRect(15, paymentY, colWidth, 15, 2, 2, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(107, 33, 168);
-    doc.text('NEQUI', 18, paymentY + 5);
-    doc.setFontSize(9);
-    doc.text(datos.empresa.nequi, 18, paymentY + 11);
-  }
-
-  if (datos.empresa.daviplata) {
-    doc.setFillColor(254, 242, 242); // Rojo sutil
-    doc.roundedRect(15 + colWidth + 3, paymentY, colWidth, 15, 2, 2, 'F');
-    doc.setFontSize(7);
-    doc.setTextColor(185, 28, 28);
-    doc.text('DAVIPLATA', 15 + colWidth + 6, paymentY + 5);
-    doc.setFontSize(9);
-    doc.text(datos.empresa.daviplata, 15 + colWidth + 6, paymentY + 11);
-  }
-
-  if (datos.empresa.banco_nombre) {
-    doc.setFillColor(239, 246, 255); // Azul sutil
-    doc.roundedRect(15 + (colWidth + 3) * 2, paymentY, colWidth, 15, 2, 2, 'F');
+  let currentBox = 0;
+  
+  const drawPaymentBox = (title: string, value: string, bgColor: [number, number, number], textColor: [number, number, number]) => {
+    const isNewRow = currentBox > 0 && currentBox % 3 === 0;
+    if (isNewRow) paymentY += 20;
+    
+    const xPos = 15 + (currentBox % 3) * (colWidth + 3);
+    doc.setFillColor(bgColor[0], bgColor[1], bgColor[2]);
+    doc.roundedRect(xPos, paymentY, colWidth, 15, 2, 2, 'F');
     doc.setFontSize(6);
-    doc.setTextColor(29, 78, 216);
-    doc.text(datos.empresa.banco_nombre.toUpperCase(), 15 + (colWidth + 3) * 2 + 3, paymentY + 5);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    doc.text(title.toUpperCase().substring(0, 20), xPos + 3, paymentY + 5);
     doc.setFontSize(8);
-    doc.text(datos.empresa.banco_numero || '', 15 + (colWidth + 3) * 2 + 3, paymentY + 11);
+    doc.text(value.substring(0, 25), xPos + 3, paymentY + 11);
+    
+    currentBox++;
+  };
+
+  if (datos.empresa.nequi) drawPaymentBox('NEQUI', datos.empresa.nequi, [245, 243, 255], [107, 33, 168]);
+  if (datos.empresa.daviplata) drawPaymentBox('DAVIPLATA', datos.empresa.daviplata, [254, 242, 242], [185, 28, 28]);
+  if (datos.empresa.banco_nombre && datos.empresa.banco_numero) drawPaymentBox(datos.empresa.banco_nombre, datos.empresa.banco_numero, [239, 246, 255], [29, 78, 216]);
+
+  // Dynamic metodos_pago
+  if (datos.empresa.metodos_pago) {
+    try {
+      const dynamicMethods = typeof datos.empresa.metodos_pago === 'string' ? JSON.parse(datos.empresa.metodos_pago) : datos.empresa.metodos_pago;
+      if (Array.isArray(dynamicMethods)) {
+        dynamicMethods.forEach((m: any) => {
+          if (m.nombre && m.numero) {
+             drawPaymentBox(m.nombre, m.numero, [248, 250, 252], [71, 85, 105]); // Gris neutral sutil
+          }
+        });
+      }
+    } catch (e) {}
   }
 
   if (datos.empresa.bre_b) {
-     paymentY += 20;
+     if (currentBox > 0) paymentY += 20;
      doc.setFillColor(254, 252, 232); // Amarillo sutil
      doc.roundedRect(15, paymentY, 180, 10, 2, 2, 'F');
      doc.setFontSize(8);

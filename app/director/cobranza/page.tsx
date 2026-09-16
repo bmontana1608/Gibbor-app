@@ -714,7 +714,7 @@ export default function ModuloCobranza() {
           daviplata: clubConfig.daviplata,
           bre_b: clubConfig.bre_b,
           banco_nombre: clubConfig.banco_nombre,
-          banco_numero: clubConfig.banco_numero
+          banco_numero: clubConfig.banco_numero, metodos_pago: clubConfig.metodos_pago
         }
       });
 
@@ -801,7 +801,7 @@ export default function ModuloCobranza() {
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
           banco_nombre: config?.banco_nombre,
-          banco_numero: config?.banco_numero
+          banco_numero: config?.banco_numero, metodos_pago: config?.metodos_pago
         }
       });
 
@@ -1130,7 +1130,7 @@ export default function ModuloCobranza() {
           daviplata: clubConfig.daviplata,
           bre_b: clubConfig.bre_b,
           banco_nombre: clubConfig.banco_nombre,
-          banco_numero: clubConfig.banco_numero
+          banco_numero: clubConfig.banco_numero, metodos_pago: clubConfig.metodos_pago
         }
       });
       const texto = `¡Hola! Confirmamos el recibo de tu pago № ${reciboGenerado.consecutivo.toString().padStart(4, '0')} por un valor de ${formatCurrency(reciboGenerado.total, tenant?.pais || tenant?.moneda)}. Aquí tienes tu comprobante oficial en PDF de *${tenant?.config?.nombre || tenant?.nombre || clubConfig.nombre_club || 'nuestro club'}*.`;
@@ -1215,7 +1215,7 @@ export default function ModuloCobranza() {
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
           banco_nombre: config?.banco_nombre,
-          banco_numero: config?.banco_numero
+          banco_numero: config?.banco_numero, metodos_pago: config?.metodos_pago
         }
       });
 
@@ -1761,7 +1761,7 @@ export default function ModuloCobranza() {
                     daviplata: config?.daviplata,
                     bre_b: config?.bre_b,
                     banco_nombre: config?.banco_nombre,
-                    banco_numero: config?.banco_numero
+                    banco_numero: config?.banco_numero, metodos_pago: config?.metodos_pago
                   }
                 });
                 const byteArray = new Uint8Array(atob(pdfBase64).split('').map(c => c.charCodeAt(0)));
