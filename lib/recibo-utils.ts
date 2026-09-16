@@ -253,9 +253,9 @@ export async function generarReciboPDFBase64(datos: {
     doc.roundedRect(xPos, paymentY, colWidth, 15, 2, 2, 'F');
     doc.setFontSize(6);
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-    doc.text(title.toUpperCase().substring(0, 20), xPos + 3, paymentY + 5);
+    doc.text(String(title).toUpperCase().substring(0, 20), xPos + 3, paymentY + 5);
     doc.setFontSize(8);
-    doc.text(value.substring(0, 25), xPos + 3, paymentY + 11);
+    doc.text(String(value).substring(0, 25), xPos + 3, paymentY + 11);
     
     currentBox++;
   };

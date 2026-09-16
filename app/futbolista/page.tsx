@@ -282,7 +282,8 @@ export default function DashboardFutbolista() {
           daviplata: clubConfig.daviplata,
           bre_b: clubConfig.bre_b,
           banco_nombre: clubConfig.banco_nombre,
-          banco_numero: clubConfig.banco_numero
+          banco_numero: clubConfig.banco_numero,
+          metodos_pago: clubConfig.metodos_pago
         }
       });
 

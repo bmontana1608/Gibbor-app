@@ -175,7 +175,8 @@ export async function POST(req: NextRequest) {
           daviplata: config?.daviplata,
           bre_b: config?.bre_b,
           banco_nombre: config?.banco_nombre,
-          banco_numero: config?.banco_numero
+          banco_numero: config?.banco_numero,
+          metodos_pago: config?.metodos_pago
         }
       });
 
