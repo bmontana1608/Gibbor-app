@@ -58,9 +58,14 @@ export default function ConfiguracionServidor() {
     setCargando(true);
     const { data: existing } = await supabase.from('configuracion_wa').select('id').single();
     
-    const { error } = await supabase.from('configuracion_wa').upsert([
-      { id: existing?.id || 1, ...config, updated_at: new Date() }
-    ]);
+    let error;
+    if (existing?.id) {
+      const { error: updateErr } = await supabase.from('configuracion_wa').update({ ...config, updated_at: new Date() }).eq('id', existing.id);
+      error = updateErr;
+    } else {
+      const { error: insertErr } = await supabase.from('configuracion_wa').insert([{ id: 1, ...config, updated_at: new Date() }]);
+      error = insertErr;
+    }
 
     if (error) {
       toast.error("Error al guardar configuración: " + error.message);
