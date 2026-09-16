@@ -261,7 +261,7 @@ export default function AportesPage() {
     if (!clubId) return;
     setSaving(true);
 
-    const { error } = await supabase.from('eventos_deportivos').insert({
+    const payload = {
       club_id: clubId,
       nombre: form.nombre,
       tipo: form.tipo,
@@ -270,15 +270,25 @@ export default function AportesPage() {
       descripcion: form.descripcion || null,
       categorias_destino: form.categorias_seleccionadas.length > 0 ? form.categorias_seleccionadas : null,
       evento_origen_id: form.evento_origen_id || null,
-    });
+    };
 
-    if (error) {
-      toast.error('Error al crear el evento: ' + error.message);
-    } else {
+    try {
+      const res = await fetch('/api/eventos-deportivos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await res.json();
+      
+      if (!res.ok) throw new Error(result.error || 'Error desconocido');
+
       toast.success(t('APORTES.TOAST_EVENT_CREATED'));
       setShowModal(false);
-      setForm({ nombre: '', tipo: 'Partido Amistoso', fecha: new Date().toISOString().split('T')[0], monto_sugerido: '', descripcion: '', categorias_seleccionadas: [], evento_origen_id: '' });
-      fetchEventos();
+      
+      setForm({ nombre: '', tipo: 'Partido', fecha: '', monto_sugerido: '', descripcion: '', categorias_seleccionadas: [], evento_origen_id: '' });
+      fetchEventos(clubId);
+    } catch (error: any) {
+      toast.error('Error al crear el evento: ' + error.message);
     }
     setSaving(false);
   };
@@ -287,10 +297,19 @@ export default function AportesPage() {
   const eliminarEvento = async (id: string) => {
     if (!window.confirm(t('APORTES.ALERT_DELETE'))) return;
     const toastId = toast.loading(t('APORTES.TOAST_DELETING'));
-    const { error } = await supabase.from('eventos_deportivos').delete().eq('id', id);
-    if (error) { toast.error('Error: ' + error.message, { id: toastId }); return; }
-    toast.success(t('APORTES.TOAST_EVENT_DELETED'), { id: toastId });
-    setEventos(prev => prev.filter(ev => ev.id !== id));
+    
+    try {
+      const res = await fetch(`/api/eventos-deportivos?id=${id}&club_id=${clubId}`, {
+        method: 'DELETE'
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Error desconocido');
+      
+      toast.success(t('APORTES.TOAST_EVENT_DELETED'), { id: toastId });
+      setEventos(prev => prev.filter(ev => ev.id !== id));
+    } catch (error: any) {
+      toast.error('Error: ' + error.message, { id: toastId });
+    }
   };
 
   const getInitials = (nombres: string, apellidos: string) => {
