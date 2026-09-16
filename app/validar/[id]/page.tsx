@@ -1,68 +1,42 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { CheckCircle2, XCircle, User, ShieldCheck, MapPin, Activity, Droplet } from 'lucide-react';
 
-export default function ValidarCarnetPage() {
-  const { id } = useParams();
-  const [perfil, setPerfil] = useState<any>(null);
-  const [club, setClub] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+export default async function ValidarCarnetPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        if (!id) throw new Error('ID no proporcionado');
+  // Buscar perfil
+  const { data: perfil, error: pError } = await supabaseAdmin
+    .from('perfiles')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-        // Buscar perfil
-        const { data: pData, error: pError } = await supabase
-          .from('perfiles')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (pError || !pData) throw new Error('Carnet no encontrado o ID inválido');
-        setPerfil(pData);
-
-        // Buscar club
-        if (pData.club_id) {
-          const { data: cData } = await supabase
-            .from('clubes')
-            .select('*')
-            .eq('id', pData.club_id)
-            .single();
-          if (cData) setClub(cData);
-        }
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-800"></div>
-      </div>
-    );
-  }
-
-  if (error || !perfil) {
+  if (pError || !perfil) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
         <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-xl border border-slate-200">
           <XCircle className="w-16 h-16 text-rose-500 mx-auto mb-4" />
           <h1 className="text-2xl font-black text-slate-800 mb-2">Carnet Inválido</h1>
-          <p className="text-slate-500">{error || 'El perfil no existe en la base de datos.'}</p>
+          <p className="text-slate-500">Carnet no encontrado o ID inválido.</p>
         </div>
       </div>
     );
+  }
+
+  // Buscar club
+  let club = null;
+  if (perfil.club_id) {
+    const { data: cData } = await supabaseAdmin
+      .from('clubes')
+      .select('*')
+      .eq('id', perfil.club_id)
+      .single();
+    if (cData) club = cData;
   }
 
   const isActive = perfil.estado_miembro === 'Activo';
