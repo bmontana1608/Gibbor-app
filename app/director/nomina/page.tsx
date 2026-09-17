@@ -124,25 +124,25 @@ export default function ModuloNomina() {
 
       // 4. Cargar datos filtrados
       if (tenantData.id) {
-        cargarDatos(tenantData.id);
+        cargarDatos(tenantData.id, tenantData);
       }
     }
     init();
   }, [tenantSlug]);
 
-  const cargarDatos = async (clubId: string) => {
+  const cargarDatos = async (clubId: string, currentTenant: any) => {
     setCargando(true);
     
-    // Cargar config local
-    const cLocal = localStorage.getItem(`club_ciudad_${clubId}`);
+    // Cargar config guardada en backend o localStorage
+    const cLocal = currentTenant?.config?.ciudad_emision || localStorage.getItem(`club_ciudad_${clubId}`);
     if (cLocal) setCiudadEmision(cLocal);
-    const tLocal = localStorage.getItem(`club_telefono_${clubId}`);
+    const tLocal = currentTenant?.config?.telefono_emision || localStorage.getItem(`club_telefono_${clubId}`);
     if (tLocal) {
       setTelefonoEmision(tLocal);
-    } else if (tenant?.dialCode) {
-      setTelefonoEmision(`(${tenant.dialCode}) 000 000 0000`);
+    } else if (currentTenant?.dialCode) {
+      setTelefonoEmision(`(${currentTenant.dialCode}) 000 000 0000`);
     }
-    const fLocal = localStorage.getItem(`club_firma_director_${clubId}`);
+    const fLocal = currentTenant?.config?.firma_director || localStorage.getItem(`club_firma_director_${clubId}`);
     if (fLocal) setFirmaDirector(fLocal);
 
     // Traemos a los entrenadores (FILTRADO POR CLUB)
@@ -188,7 +188,8 @@ export default function ModuloNomina() {
     setIsConfigOpen(true);
   };
 
-  const guardarConfiguracion = () => {
+  const guardarConfiguracion = async () => {
+    // Mantener backup en localStorage
     if (firmaDirector !== null) {
       localStorage.setItem(`club_firma_director_${tenant.id}`, firmaDirector);
     } else {
@@ -196,8 +197,35 @@ export default function ModuloNomina() {
     }
     localStorage.setItem(`club_ciudad_${tenant.id}`, ciudadEmision);
     localStorage.setItem(`club_telefono_${tenant.id}`, telefonoEmision);
-    setIsConfigOpen(false);
-    toast.success(t('nomina.configActualizada'));
+
+    // Guardar en Backend
+    const toastId = toast.loading('Guardando configuración de firma...');
+    try {
+      await fetch('/api/tenant/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: tenant.id,
+          payload: {
+            config: {
+              ...(tenant.config || {}),
+              firma_director: firmaDirector,
+              ciudad_emision: ciudadEmision,
+              telefono_emision: telefonoEmision
+            }
+          }
+        })
+      });
+      // Actualizar state local de tenant para que refleje
+      setTenant((prev: any) => ({
+        ...prev,
+        config: { ...prev.config, firma_director: firmaDirector, ciudad_emision: ciudadEmision, telefono_emision: telefonoEmision }
+      }));
+      setIsConfigOpen(false);
+      toast.success(t('nomina.configActualizada'), { id: toastId });
+    } catch (e: any) {
+      toast.error('Error al guardar configuración en servidor', { id: toastId });
+    }
   };
 
   const cerrarModalPago = () => {
