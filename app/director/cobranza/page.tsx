@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw } from 'lucide-react';
+import { Wallet, Settings, Flame, Calendar, Search, CheckCircle, Smartphone, UserCircle, CreditCard, Printer, ClipboardCheck, Trash2, PlusCircle, X, Bot, MessageSquare, Loader2, Sparkles, ShieldCheck, Pencil, RefreshCw, AlertTriangle } from 'lucide-react';
 import { enviarMensajeWhatsApp } from '@/lib/whatsapp';
 import { generarReciboPDFBase64 } from '@/lib/recibo-utils';
 import { formatCurrency, formatInternationalWhatsAppPhone } from '@/lib/currency-utils';
@@ -163,6 +163,12 @@ export default function ModuloCobranza() {
   const [editMetodo, setEditMetodo] = useState('');
   const [editFecha, setEditFecha] = useState('');
   const [editNotas, setEditNotas] = useState('');
+
+  // Estados para Modal de Deuda Manual
+  const [isModalDeudaManualOpen, setIsModalDeudaManualOpen] = useState(false);
+  const [jugadorDeudaManual, setJugadorDeudaManual] = useState<any>(null);
+  const [montoDeudaManual, setMontoDeudaManual] = useState('');
+  const [notasDeudaManual, setNotasDeudaManual] = useState('');
 
   // Estados para el Asistente Inteligente
   const [automatedTasks, setAutomatedTasks] = useState<any[]>([]);
@@ -548,6 +554,48 @@ export default function ModuloCobranza() {
       });
       setIsModalPagoOpen(false);
       cargarDatos();
+    }
+  };
+
+  // ── DEUDA MANUAL HISTÓRICA ───────────────────────────────────────────
+  const abrirModalDeudaManual = (jugador: any) => {
+    setJugadorDeudaManual(jugador);
+    setMontoDeudaManual('');
+    setNotasDeudaManual('Mora de meses anteriores');
+    setIsModalDeudaManualOpen(true);
+  };
+
+  const registrarDeudaManual = async () => {
+    if (!jugadorDeudaManual || !montoDeudaManual || Number(montoDeudaManual) <= 0)
+      return toast.error('Ingresa un monto válido');
+
+    const toastId = toast.loading(`Cargando deuda a ${jugadorDeudaManual.nombres}...`);
+    try {
+      const hoyStr = new Date().toISOString().split('T')[0];
+      const payload = {
+        jugador_id: jugadorDeudaManual.id,
+        nombres: jugadorDeudaManual.nombres,
+        apellidos: jugadorDeudaManual.apellidos,
+        grupo: jugadorDeudaManual.grupos || 'Sin grupo',
+        monto_base: 0,
+        concepto: 'Deuda Histórica',
+        descuento: 0,
+        recargo: 0,
+        total: Number(montoDeudaManual),
+        metodo_pago: 'Sistema',
+        notas: notasDeudaManual,
+        fecha: hoyStr,
+        club_id: tenant?.id
+      };
+
+      const { error } = await supabase.from('pagos_ingresos').insert([payload]);
+      if (error) throw error;
+
+      toast.success('Deuda inicial cargada con éxito', { id: toastId });
+      setIsModalDeudaManualOpen(false);
+      cargarDatos();
+    } catch (err: any) {
+      toast.error('Error al registrar deuda: ' + err.message, { id: toastId });
     }
   };
 
@@ -1068,11 +1116,28 @@ export default function ModuloCobranza() {
           const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
           mesesEnMora.push(`${meses[mesAnterior.getMonth()]} ${mesAnterior.getFullYear()}`);
         }
+        }
       }
-    }
+
+      // --- Cargar deudas manuales previas (Concepto: 'Deuda Histórica') ---
+      const deudasManuales = historialPagos.filter(p => p.jugador_id === j.id && String(p.concepto) === 'Deuda Histórica');
+      deudasManuales.forEach(d => {
+         // Verificar si fue saldada DESPUÉS de registrarla
+         const fueSaldada = historialPagos.some(p => 
+            p.jugador_id === j.id && 
+            p.fecha && normalizeDate(p.fecha) >= normalizeDate(d.fecha) && 
+            (String(p.notas || '').includes('REINICIO DE DEUDA') || String(p.notas || '').includes('SALDA DEUDA HISTÓRICA')) &&
+            p.id !== d.id
+         );
+         
+         if (!fueSaldada) {
+            deudaAcumulada += parseFloat(d.total || 0);
+            if (d.notas) mesesEnMora.push(d.notas);
+         }
+      });
 
 
-    const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
+      const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
 
     return { ...j, esAlDia, tarifa, esBeca100, saldoPendientePeriodo, deudaAcumulada, deudaTotal, mesesEnMora, abonosDelPeriodo, totalRecibidoPeriodo, aportesExtras, yaNotificado };
   });
@@ -1531,6 +1596,9 @@ export default function ModuloCobranza() {
                                   </div>
                                 ) : !esAlDia ? (
                                   <>
+                                    <button onClick={() => abrirModalDeudaManual(jugador)} className="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title="Cargar deuda histórica">
+                                      <AlertTriangle className="w-3.5 h-3.5" /> Deuda
+                                    </button>
                                     <button 
                                       onClick={() => handleNotificar(jugador)} 
                                       disabled={loadingBot !== null}
@@ -1863,6 +1931,40 @@ export default function ModuloCobranza() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {isModalDeudaManualOpen && jugadorDeudaManual && (
+        <div className="fixed inset-0 bg-slate-900/60 z-[110] flex items-center justify-center p-4 backdrop-blur-sm print:hidden">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-8">
+                <h3 className="text-2xl font-black text-slate-800 mb-2 flex items-center gap-2 uppercase tracking-tight">
+                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                    Cargar Deuda Histórica
+                </h3>
+                <p className="text-xs font-medium text-slate-500 mb-6">Agrega un saldo pendiente de meses anteriores al registro del club en la plataforma. Se sumará al total adeudado del alumno.</p>
+                
+                <div className="space-y-5">
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Alumno</label>
+                        <p className="font-bold text-slate-800 uppercase text-sm bg-slate-50 px-4 py-3 rounded-xl border border-slate-200">
+                          {jugadorDeudaManual.nombres} {jugadorDeudaManual.apellidos}
+                        </p>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Monto de la Deuda</label>
+                        <input type="number" value={montoDeudaManual} onChange={(e) => setMontoDeudaManual(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-bold" placeholder="Ej. 150000" />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Detalle / Notas</label>
+                        <input type="text" value={notasDeudaManual} onChange={(e) => setNotasDeudaManual(e.target.value)} className="w-full px-4 py-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-bold" placeholder="Mora de enero a marzo" />
+                    </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-8">
+                    <button onClick={() => setIsModalDeudaManualOpen(false)} className="px-6 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 border border-slate-200">Cancelar</button>
+                    <button onClick={registrarDeudaManual} className="px-6 py-3 rounded-xl font-black text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-200">Guardar Deuda</button>
+                </div>
+            </div>
         </div>
       )}
 
