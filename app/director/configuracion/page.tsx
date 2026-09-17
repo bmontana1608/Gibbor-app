@@ -228,7 +228,9 @@ export default function ConfiguracionGeneral() {
       updated_at: new Date() 
     };
     
-    // Convertimos metodos_pago a string JSON para evitar que se guarde como [object Object]
+    // Si metodos_pago es un array, LO CONVERTIMOS A STRING obligatoriamente. 
+    // La bd lo tiene como columna de tipo Text (no JSONB), por lo que si enviamos un array puro, 
+    // Postgres lo guarda como '[object Object]' arruinando el formato y borrándolo.
     if (Array.isArray(config.metodos_pago)) {
       payload.metodos_pago = JSON.stringify(config.metodos_pago);
     }

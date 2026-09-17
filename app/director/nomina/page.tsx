@@ -124,28 +124,26 @@ export default function ModuloNomina() {
 
       // 4. Cargar datos filtrados
       if (tenantData.id) {
-        cargarDatos(tenantData.id);
+        cargarDatos(tenantData.id, tenantData);
       }
     }
     init();
   }, [tenantSlug]);
 
-  const cargarDatos = async (clubId: string) => {
+  const cargarDatos = async (clubId: string, currentTenant: any) => {
     setCargando(true);
     
-    // Cargar config local - MODIFICADO PARA USAR SUPABASE EN LUGAR DE LOCALSTORAGE
-    // Obtenemos la configuracion_wa para este club
-    const { data: configWa } = await supabase.from('configuracion_wa').select('ciudad_emision, telefono_emision, firma_director').eq('club_id', clubId).maybeSingle();
-
-    if (configWa) {
-      setCiudadEmision(configWa.ciudad_emision || '');
-      setTelefonoEmision(configWa.telefono_emision || (tenant?.dialCode ? `(${tenant.dialCode}) 000 000 0000` : ''));
-      setFirmaDirector(configWa.firma_director || null);
-    } else {
-      setCiudadEmision('');
-      setTelefonoEmision(tenant?.dialCode ? `(${tenant.dialCode}) 000 000 0000` : '');
-      setFirmaDirector(null);
+    // Cargar config guardada en backend o localStorage
+    const cLocal = currentTenant?.config?.ciudad_emision || localStorage.getItem(`club_ciudad_${clubId}`);
+    if (cLocal) setCiudadEmision(cLocal);
+    const tLocal = currentTenant?.config?.telefono_emision || localStorage.getItem(`club_telefono_${clubId}`);
+    if (tLocal) {
+      setTelefonoEmision(tLocal);
+    } else if (currentTenant?.dialCode) {
+      setTelefonoEmision(`(${currentTenant.dialCode}) 000 000 0000`);
     }
+    const fLocal = currentTenant?.config?.firma_director || localStorage.getItem(`club_firma_director_${clubId}`);
+    if (fLocal) setFirmaDirector(fLocal);
 
     // Traemos a los entrenadores (FILTRADO POR CLUB)
     const { data: entData, error: entError } = await supabase
@@ -191,26 +189,42 @@ export default function ModuloNomina() {
   };
 
   const guardarConfiguracion = async () => {
-    const toastId = toast.loading(t('nomina.guardandoConfig'));
+    // Mantener backup en localStorage
+    if (firmaDirector !== null) {
+      localStorage.setItem(`club_firma_director_${tenant.id}`, firmaDirector);
+    } else {
+      localStorage.removeItem(`club_firma_director_${tenant.id}`);
+    }
+    localStorage.setItem(`club_ciudad_${tenant.id}`, ciudadEmision);
+    localStorage.setItem(`club_telefono_${tenant.id}`, telefonoEmision);
+
+    // Guardar en Backend
+    const toastId = toast.loading('Guardando configuración de firma...');
     try {
-      const payload = {
-        club_id: tenant.id,
-        ciudad_emision: ciudadEmision,
-        telefono_emision: telefonoEmision,
-        firma_director: firmaDirector
-      };
-
-      const { data: existing } = await supabase.from('configuracion_wa').select('id').eq('club_id', tenant.id).maybeSingle();
-      if (existing?.id) {
-        await supabase.from('configuracion_wa').update(payload).eq('id', existing.id);
-      } else {
-        await supabase.from('configuracion_wa').insert([payload]);
-      }
-
+      await fetch('/api/tenant/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: tenant.id,
+          payload: {
+            config: {
+              ...(tenant.config || {}),
+              firma_director: firmaDirector,
+              ciudad_emision: ciudadEmision,
+              telefono_emision: telefonoEmision
+            }
+          }
+        })
+      });
+      // Actualizar state local de tenant para que refleje
+      setTenant((prev: any) => ({
+        ...prev,
+        config: { ...prev.config, firma_director: firmaDirector, ciudad_emision: ciudadEmision, telefono_emision: telefonoEmision }
+      }));
       setIsConfigOpen(false);
       toast.success(t('nomina.configActualizada'), { id: toastId });
-    } catch (error: any) {
-      toast.error(error.message, { id: toastId });
+    } catch (e: any) {
+      toast.error('Error al guardar configuración en servidor', { id: toastId });
     }
   };
 
@@ -232,7 +246,7 @@ export default function ModuloNomina() {
         toast.error(`${t('nomina.errorEliminar')}${error.message}`, { id: toastId });
       } else {
         toast.success(t('nomina.comprobanteEliminado'), { id: toastId });
-        cargarDatos(tenant.id);
+        cargarDatos(tenant.id, tenant);
       }
     }
   };
@@ -283,7 +297,7 @@ export default function ModuloNomina() {
     } else {
       toast.success(t('nomina.pagoExitoso'), { id: toastId });
       cerrarModalPago();
-      cargarDatos(tenant.id); // Recargar historial
+      cargarDatos(tenant.id, tenant); // Recargar historial
       setReciboGenerado({
         ...data,
         entrenador: entrenadorPago,
