@@ -133,17 +133,19 @@ export default function ModuloNomina() {
   const cargarDatos = async (clubId: string) => {
     setCargando(true);
     
-    // Cargar config local
-    const cLocal = localStorage.getItem(`club_ciudad_${clubId}`);
-    if (cLocal) setCiudadEmision(cLocal);
-    const tLocal = localStorage.getItem(`club_telefono_${clubId}`);
-    if (tLocal) {
-      setTelefonoEmision(tLocal);
-    } else if (tenant?.dialCode) {
-      setTelefonoEmision(`(${tenant.dialCode}) 000 000 0000`);
+    // Cargar config local - MODIFICADO PARA USAR SUPABASE EN LUGAR DE LOCALSTORAGE
+    // Obtenemos la configuracion_wa para este club
+    const { data: configWa } = await supabase.from('configuracion_wa').select('ciudad_emision, telefono_emision, firma_director').eq('club_id', clubId).maybeSingle();
+
+    if (configWa) {
+      setCiudadEmision(configWa.ciudad_emision || '');
+      setTelefonoEmision(configWa.telefono_emision || (tenant?.dialCode ? `(${tenant.dialCode}) 000 000 0000` : ''));
+      setFirmaDirector(configWa.firma_director || null);
+    } else {
+      setCiudadEmision('');
+      setTelefonoEmision(tenant?.dialCode ? `(${tenant.dialCode}) 000 000 0000` : '');
+      setFirmaDirector(null);
     }
-    const fLocal = localStorage.getItem(`club_firma_director_${clubId}`);
-    if (fLocal) setFirmaDirector(fLocal);
 
     // Traemos a los entrenadores (FILTRADO POR CLUB)
     const { data: entData, error: entError } = await supabase
@@ -188,16 +190,28 @@ export default function ModuloNomina() {
     setIsConfigOpen(true);
   };
 
-  const guardarConfiguracion = () => {
-    if (firmaDirector !== null) {
-      localStorage.setItem(`club_firma_director_${tenant.id}`, firmaDirector);
-    } else {
-      localStorage.removeItem(`club_firma_director_${tenant.id}`);
+  const guardarConfiguracion = async () => {
+    const toastId = toast.loading(t('nomina.guardandoConfig'));
+    try {
+      const payload = {
+        club_id: tenant.id,
+        ciudad_emision: ciudadEmision,
+        telefono_emision: telefonoEmision,
+        firma_director: firmaDirector
+      };
+
+      const { data: existing } = await supabase.from('configuracion_wa').select('id').eq('club_id', tenant.id).maybeSingle();
+      if (existing?.id) {
+        await supabase.from('configuracion_wa').update(payload).eq('id', existing.id);
+      } else {
+        await supabase.from('configuracion_wa').insert([payload]);
+      }
+
+      setIsConfigOpen(false);
+      toast.success(t('nomina.configActualizada'), { id: toastId });
+    } catch (error: any) {
+      toast.error(error.message, { id: toastId });
     }
-    localStorage.setItem(`club_ciudad_${tenant.id}`, ciudadEmision);
-    localStorage.setItem(`club_telefono_${tenant.id}`, telefonoEmision);
-    setIsConfigOpen(false);
-    toast.success(t('nomina.configActualizada'));
   };
 
   const cerrarModalPago = () => {

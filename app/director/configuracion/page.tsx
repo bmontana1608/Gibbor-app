@@ -228,9 +228,9 @@ export default function ConfiguracionGeneral() {
       updated_at: new Date() 
     };
     
-    // Dejar metodos_pago como Array original (Supabase lo guarda nativamente en JSONB)
+    // Convertimos metodos_pago a string JSON para evitar que se guarde como [object Object]
     if (Array.isArray(config.metodos_pago)) {
-      payload.metodos_pago = config.metodos_pago;
+      payload.metodos_pago = JSON.stringify(config.metodos_pago);
     }
     
     if (existing?.id) {

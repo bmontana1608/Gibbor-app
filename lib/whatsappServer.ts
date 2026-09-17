@@ -37,22 +37,6 @@ export async function enviarMensajeWhatsAppServer(
       let isActuallyConnected = rawState === 'open';
 
       if (isActuallyConnected) {
-        try {
-          const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-            headers: { 'apikey': EVOLUTION_API_KEY },
-            signal: AbortSignal.timeout(5000)
-          });
-          if (listRes.ok) {
-            const listData = await listRes.json();
-            const thisInst = Array.isArray(listData) ? listData.find((i: any) => i.name === instance || i.instanceName === instance) : null;
-            if (thisInst && thisInst.connectionStatus !== 'open') {
-              isActuallyConnected = false;
-            }
-          }
-        } catch (err) {}
-      }
-
-      if (isActuallyConnected) {
         instanceReady = true;
       }
     } catch (e) {}

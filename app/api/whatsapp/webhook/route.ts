@@ -141,7 +141,17 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = parts[1];
       const monto = parseInt(parts[2].replace(/\D/g, ''));
 
-      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: club } = await supabaseAdmin.from('clubes').select('id').eq('slug', instance).single();
+      const clubId = club?.id;
+
+      let alumnos;
+      if (clubId) {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').eq('club_id', clubId).ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      } else {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      }
       
       if (!alumnos || alumnos.length === 0) {
         await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`);
@@ -214,7 +224,18 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = message.split(' ')[1];
       if (!nombreBusqueda) return NextResponse.json({ ok: true });
 
-      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: club } = await supabaseAdmin.from('clubes').select('id').eq('slug', instance).single();
+      const clubId = club?.id;
+
+      let alumnos;
+      if (clubId) {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').eq('club_id', clubId).ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      } else {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      }
+      
       if (!alumnos || alumnos.length === 0) {
         await enviarMensajeWhatsApp(remoteJid, `🔍 No encontré a "${nombreBusqueda}".`, undefined, 'document', 'Archivo_Gibbor.pdf', instance);
         return NextResponse.json({ ok: true });
@@ -242,7 +263,18 @@ export async function POST(req: NextRequest) {
       const nombreBusqueda = message.split(' ')[1];
       if (!nombreBusqueda) return NextResponse.json({ ok: true });
 
-      const { data: alumnos } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+      const { data: club } = await supabaseAdmin.from('clubes').select('id').eq('slug', instance).single();
+      const clubId = club?.id;
+
+      let alumnos;
+      if (clubId) {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').eq('club_id', clubId).ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      } else {
+        const { data } = await supabaseAdmin.from('perfiles').select('*').ilike('nombres', `%${nombreBusqueda}%`).limit(1);
+        alumnos = data;
+      }
+      
       if (!alumnos || alumnos.length === 0) return NextResponse.json({ ok: true });
 
       const alumno = alumnos[0];

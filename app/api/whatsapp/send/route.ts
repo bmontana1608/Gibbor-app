@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     console.log(`[WA-SEND] Iniciando envio | instancia: ${instance} | telefono: ${telefono} | tiene_media: ${!!mediaBase64}`);
 
-    // 1. VERIFICACIÓN DE ESTADO DE LA INSTANCIA (Zero-Trust con Fallback inteligente de Doble Chequeo)
+    // 1. VERIFICACIÓN DE ESTADO DE LA INSTANCIA
     let instanceReady = false;
     try {
       const statusRes = await fetch(`${cleanUrl}/instance/connectionState/${instance}`, {
@@ -27,28 +27,6 @@ export async function POST(request: Request) {
       let isActuallyConnected = rawState === 'open';
 
       console.log(`[WA-SEND] Estado instancia '${instance}': ${rawState}`);
-
-      // Doble chequeo para evitar el bug de caché de Evolution API
-      if (isActuallyConnected) {
-        try {
-          const listRes = await fetch(`${cleanUrl}/instance/fetchInstances`, {
-            headers: { 'apikey': EVOLUTION_API_KEY },
-            signal: AbortSignal.timeout(5000)
-          });
-          if (listRes.ok) {
-            const listData = await listRes.ok ? await listRes.json() : [];
-            const thisInst = Array.isArray(listData) ? listData.find((i: any) => i.name === instance || i.instanceName === instance) : null;
-            if (thisInst) {
-              if (thisInst.connectionStatus !== 'open') {
-                console.log(`[WA-SEND] ⚠️ Instancia '${instance}' detectada como desvinculada físicamente (status: ${thisInst.connectionStatus}).`);
-                isActuallyConnected = false;
-              }
-            }
-          }
-        } catch (err) {
-          console.warn('[WA-SEND] Error re-verificando con fetchInstances:', err);
-        }
-      }
 
       if (isActuallyConnected) {
         instanceReady = true;
