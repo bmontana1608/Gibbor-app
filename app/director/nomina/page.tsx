@@ -246,7 +246,7 @@ export default function ModuloNomina() {
         toast.error(`${t('nomina.errorEliminar')}${error.message}`, { id: toastId });
       } else {
         toast.success(t('nomina.comprobanteEliminado'), { id: toastId });
-        cargarDatos(tenant.id);
+        cargarDatos(tenant.id, tenant);
       }
     }
   };
@@ -297,7 +297,7 @@ export default function ModuloNomina() {
     } else {
       toast.success(t('nomina.pagoExitoso'), { id: toastId });
       cerrarModalPago();
-      cargarDatos(tenant.id); // Recargar historial
+      cargarDatos(tenant.id, tenant); // Recargar historial
       setReciboGenerado({
         ...data,
         entrenador: entrenadorPago,
