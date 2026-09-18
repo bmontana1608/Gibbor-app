@@ -195,9 +195,13 @@ export async function generarReciboPDFBase64(datos: {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(220, 38, 38); // Rojo
-    const textoMora = datos.mesesEnMora && datos.mesesEnMora.length > 0 
-        ? `+ Mensualidades atrasadas (${datos.mesesEnMora.join(', ')})`
-        : '+ Mensualidades atrasadas';
+    let textoMora = datos.mesesEnMora && datos.mesesEnMora.length > 0 
+        ? `+ Saldo pendiente (${datos.mesesEnMora.join(', ')})`
+        : '+ Saldo pendiente de meses anteriores';
+        
+    if (textoMora.length > 65) {
+      textoMora = textoMora.substring(0, 62) + '...';
+    }
     doc.text(textoMora, 20, tableY + 18 + deudaRowOffset);
     doc.text(`+ ${formatCurrency(datos.deudaAcumulada, paisOMoneda)}`, 150, tableY + 18 + deudaRowOffset, { align: 'right' });
     doc.setFont("helvetica", "bold");
@@ -225,10 +229,10 @@ export async function generarReciboPDFBase64(datos: {
 
   // Cuadro de Total Final
   doc.setFillColor(slate100[0], slate100[1], slate100[2]);
-  doc.rect(130, tableY + 25 + offsetTotal, 65, 12, 'F');
-  doc.setFontSize(11);
+  doc.rect(115, tableY + 25 + offsetTotal, 80, 12, 'F');
+  doc.setFontSize(10);
   doc.setTextColor(statusColor[0], statusColor[1], statusColor[2]);
-  doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL PENDIENTE:', 135, tableY + 33 + offsetTotal);
+  doc.text(esPago ? 'TOTAL PAGADO:' : 'TOTAL PENDIENTE:', 120, tableY + 33 + offsetTotal);
   doc.text(formatCurrency(datos.tarifa, paisOMoneda), 190, tableY + 33 + offsetTotal, { align: 'right' });
 
 
