@@ -98,13 +98,36 @@ export default function SuscripcionPage() {
 
   const planAsignado = club.planes_saas;
   const isInternational = club.pais && club.pais !== 'Colombia';
-  const planNombre = isInternational ? 'Plan Internacional' : (planAsignado ? planAsignado.nombre : t('SUSCRIPCION.BASE_PLAN'));
   
-  const precioBase = isInternational ? 35 : (planAsignado ? Number(planAsignado.precio_base ?? 100000) : 100000);
-  const limiteBase = isInternational ? 999999 : (planAsignado ? Number(planAsignado.limite_jugadores_base ?? 60) : 60);
-  const precioExtra = isInternational ? 0 : (planAsignado ? Number(planAsignado.precio_jugador_extra ?? 2000) : 2000);
+  let planNombre = planAsignado ? planAsignado.nombre : t('SUSCRIPCION.BASE_PLAN');
+  let precioBase = planAsignado ? Number(planAsignado.precio_base ?? 100000) : 100000;
+  let limiteBase = planAsignado ? Number(planAsignado.limite_jugadores_base ?? 60) : 60;
+  let precioExtra = planAsignado ? Number(planAsignado.precio_jugador_extra ?? 2000) : 2000;
   const currency = isInternational ? 'USD' : 'COP';
   const locale = isInternational ? 'en-US' : 'es-CO';
+
+  if (isInternational) {
+    const isAnual = planAsignado && String(planAsignado.nombre).toLowerCase().includes('anual');
+    
+    if (jugadoresActivos > 200) {
+      planNombre = 'Plan Internacional (Enterprise)';
+      precioBase = 80;
+      limiteBase = 200;
+      precioExtra = 1;
+    } else if (isAnual) {
+      planNombre = 'Plan Internacional (Anual)';
+      precioBase = 350;
+      limiteBase = 80;
+      // Nota: Si el plan es anual, normalmente el extra se cobra anual también (ej. $12), 
+      // pero por instrucción lo dejamos en $1 o lo que decida el sistema de facturación.
+      precioExtra = 1; 
+    } else {
+      planNombre = 'Plan Internacional (Mensual)';
+      precioBase = 35;
+      limiteBase = 60;
+      precioExtra = 1;
+    }
+  }
   
   const extras = Math.max(0, jugadoresActivos - limiteBase);
   const total = precioBase + (extras * precioExtra);
@@ -169,7 +192,7 @@ export default function SuscripcionPage() {
                 </p>
                 <p className="text-sm text-slate-500 mt-1 font-medium leading-tight">
                   {t('SUSCRIPCION.FEE')}: ${precioBase.toLocaleString(locale)} base <br/>
-                  <span className="text-[10px] opacity-80">{isInternational ? '(Ilimitado)' : `(Incluye ${limiteBase} cupos. Extra: $${precioExtra.toLocaleString(locale)} c/u)`}</span>
+                  <span className="text-[10px] opacity-80">(Incluye {limiteBase} cupos. Extra: ${precioExtra.toLocaleString(locale)} c/u)</span>
                 </p>
               </div>
             </div>
@@ -189,7 +212,7 @@ export default function SuscripcionPage() {
               </div>
               
               <div className="flex justify-between items-center pb-2">
-                <span className="text-slate-300">Plan Base {isInternational ? '(Ilimitado)' : `(${limiteBase} cupos)`}</span>
+                <span className="text-slate-300">Plan Base ({limiteBase} cupos)</span>
                 <span className="font-bold">${precioBase.toLocaleString(locale)}</span>
               </div>
               
