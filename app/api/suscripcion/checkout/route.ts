@@ -38,10 +38,33 @@ export async function POST(req: Request) {
     // Nueva logica de cobro por plan
     const planArray = club.planes_saas;
     const plan = Array.isArray(planArray) ? planArray[0] : planArray;
-    const precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
-    const limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
-    const precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
-    const planNombre = plan ? plan.nombre : 'Plan Base';
+    
+    const isInternational = club.pais && club.pais !== 'Colombia';
+    let planNombre = plan ? plan.nombre : 'Plan Base';
+    let precioBase = plan ? Number(plan.precio_base ?? 100000) : 100000;
+    let limiteBase = plan ? Number(plan.limite_jugadores_base ?? 60) : 60;
+    let precioExtra = plan ? Number(plan.precio_jugador_extra ?? 2000) : 2000;
+    const currency = isInternational ? 'USD' : 'COP';
+
+    if (isInternational) {
+      const isAnual = plan && String(plan.nombre).toLowerCase().includes('anual');
+      if (totalJugadores > 200) {
+        planNombre = 'Plan Internacional (Enterprise)';
+        precioBase = 80;
+        limiteBase = 200;
+        precioExtra = 1;
+      } else if (isAnual) {
+        planNombre = 'Plan Internacional (Anual)';
+        precioBase = 350;
+        limiteBase = 80;
+        precioExtra = 1; 
+      } else {
+        planNombre = 'Plan Internacional (Mensual)';
+        precioBase = 35;
+        limiteBase = 60;
+        precioExtra = 1;
+      }
+    }
     
     const extras = Math.max(0, totalJugadores - limiteBase);
     const totalPagar = precioBase + (extras * precioExtra);
@@ -51,6 +74,16 @@ export async function POST(req: Request) {
     }
 
     const origin = req.headers.get('origin') || 'https://masterclubmanager.com';
+
+    // Lista de paises soportados por Mercado Pago LATAM
+    const mpCountries = ['Colombia', 'Argentina', 'Chile', 'México', 'Mexico', 'Perú', 'Peru', 'Uruguay', 'Brasil', 'Brazil'];
+    const isMercadoPagoSupported = !club.pais || mpCountries.includes(club.pais);
+
+    if (!isMercadoPagoSupported) {
+      // Si no es soportado por MP, generar link de PayPal
+      const paypalLink = `https://paypal.me/TU_USUARIO_DE_PAYPAL/${totalPagar}USD`;
+      return NextResponse.json({ url: paypalLink });
+    }
 
     // 3. Crear la preferencia de pago en la cuenta maestra de Mercado Pago
     // Usamos el MP_ACCESS_TOKEN global de la plataforma, NO el mp_access_token del club.
@@ -74,7 +107,7 @@ export async function POST(req: Request) {
             description: `Renovación de ${planNombre} (${totalJugadores} jugadores activos)`,
             picture_url: club.logo_url || '',
             quantity: 1,
-            unit_price: Number(totalPagar),
+            unit_price: currency === 'USD' ? Number(totalPagar) * 4100 : Number(totalPagar),
             currency_id: 'COP',
           }
         ],
