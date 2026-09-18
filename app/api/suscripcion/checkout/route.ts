@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     // 1. Obtener la información del club y su plan asignado
     const { data: club, error: clubError } = await supabaseAdmin
       .from('clubes')
-      .select('id, nombre, tarifa_por_jugador, logo_url, planes_saas(*)')
+      .select('id, nombre, tarifa_por_jugador, logo_url, pais, planes_saas(*)')
       .eq('id', clubId)
       .single();
 
