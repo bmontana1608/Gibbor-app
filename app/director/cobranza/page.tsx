@@ -985,6 +985,8 @@ export default function ModuloCobranza() {
         // Excluir aportes para que NO afecten el estado de mensualidad
         const concepto = String(p.concepto || '').toLowerCase();
         if (concepto.startsWith('aporte:') || concepto.includes('aporte extra')) return false;
+        // Excluir deudas históricas (manuales)
+        if (concepto.includes('deuda histórica')) return false;
         // Excluir notas de aporte también
         const notas = String(p.notas || '').toLowerCase();
         if (notas.startsWith('aporte extra')) return false;
@@ -1036,7 +1038,7 @@ export default function ModuloCobranza() {
     
     // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), está al día
     // OJO: Si el pago coincide con el precio con descuento, también lo marcamos como AL DÍA (Lenience)
-    const esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
+    let esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
                     totalRecibidoPeriodo >= (precioConDescuento - 100) ||
                     esBeca100;
 
@@ -1136,6 +1138,9 @@ export default function ModuloCobranza() {
          }
       });
 
+      if (deudaAcumulada > 0) {
+        esAlDia = false;
+      }
 
       const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
 
@@ -1587,7 +1592,7 @@ export default function ModuloCobranza() {
                             </td>
                             <td className="p-4 md:px-6 text-right">
                               <div className="flex justify-end gap-2">
-                                {jugador.tarifa === 0 ? (
+                                {jugador.tarifa === 0 && jugador.deudaAcumulada === 0 ? (
                                   <div className="flex items-center justify-end gap-2">
                                     <span className="text-slate-400 text-xs font-medium italic">{t('cobranza.noChargeRequired')}</span>
                                     <button onClick={() => abrirModalPago(jugador)} className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5" title={t('cobranza.chargeExtraTooltip')}>
