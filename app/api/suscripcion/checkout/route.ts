@@ -76,8 +76,7 @@ export async function POST(req: Request) {
     const origin = req.headers.get('origin') || 'https://masterclubmanager.com';
 
     // Lista de paises soportados por Mercado Pago LATAM
-    const mpCountries = ['Colombia', 'Argentina', 'Chile', 'México', 'Mexico', 'Perú', 'Peru', 'Uruguay', 'Brasil', 'Brazil'];
-    const isMercadoPagoSupported = !club.pais || mpCountries.includes(club.pais);
+    const isMercadoPagoSupported = !club.pais || club.pais === 'Colombia';
 
     if (!isMercadoPagoSupported) {
       // Si no es soportado por MP, generar link de PayPal
@@ -107,7 +106,7 @@ export async function POST(req: Request) {
             description: `Renovación de ${planNombre} (${totalJugadores} jugadores activos)`,
             picture_url: club.logo_url || '',
             quantity: 1,
-            unit_price: currency === 'USD' ? Number(totalPagar) * 4100 : Number(totalPagar),
+            unit_price: Number(totalPagar),
             currency_id: 'COP',
           }
         ],
