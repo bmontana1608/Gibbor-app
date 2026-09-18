@@ -97,11 +97,14 @@ export default function SuscripcionPage() {
   }
 
   const planAsignado = club.planes_saas;
-  const planNombre = planAsignado ? planAsignado.nombre : t('SUSCRIPCION.BASE_PLAN');
+  const isInternational = club.pais && club.pais !== 'Colombia';
+  const planNombre = isInternational ? 'Plan Internacional' : (planAsignado ? planAsignado.nombre : t('SUSCRIPCION.BASE_PLAN'));
   
-  const precioBase = planAsignado ? Number(planAsignado.precio_base ?? 100000) : 100000;
-  const limiteBase = planAsignado ? Number(planAsignado.limite_jugadores_base ?? 60) : 60;
-  const precioExtra = planAsignado ? Number(planAsignado.precio_jugador_extra ?? 2000) : 2000;
+  const precioBase = isInternational ? 35 : (planAsignado ? Number(planAsignado.precio_base ?? 100000) : 100000);
+  const limiteBase = isInternational ? 999999 : (planAsignado ? Number(planAsignado.limite_jugadores_base ?? 60) : 60);
+  const precioExtra = isInternational ? 0 : (planAsignado ? Number(planAsignado.precio_jugador_extra ?? 2000) : 2000);
+  const currency = isInternational ? 'USD' : 'COP';
+  const locale = isInternational ? 'en-US' : 'es-CO';
   
   const extras = Math.max(0, jugadoresActivos - limiteBase);
   const total = precioBase + (extras * precioExtra);
@@ -165,8 +168,8 @@ export default function SuscripcionPage() {
                   {planNombre}
                 </p>
                 <p className="text-sm text-slate-500 mt-1 font-medium leading-tight">
-                  {t('SUSCRIPCION.FEE')}: ${precioBase.toLocaleString('es-CO')} base <br/>
-                  <span className="text-[10px] opacity-80">(Incluye {limiteBase} cupos. Extra: ${precioExtra.toLocaleString('es-CO')} c/u)</span>
+                  {t('SUSCRIPCION.FEE')}: ${precioBase.toLocaleString(locale)} base <br/>
+                  <span className="text-[10px] opacity-80">{isInternational ? '(Ilimitado)' : `(Incluye ${limiteBase} cupos. Extra: $${precioExtra.toLocaleString(locale)} c/u)`}</span>
                 </p>
               </div>
             </div>
@@ -186,14 +189,14 @@ export default function SuscripcionPage() {
               </div>
               
               <div className="flex justify-between items-center pb-2">
-                <span className="text-slate-300">Plan Base ({limiteBase} cupos)</span>
-                <span className="font-bold">${precioBase.toLocaleString('es-CO')}</span>
+                <span className="text-slate-300">Plan Base {isInternational ? '(Ilimitado)' : `(${limiteBase} cupos)`}</span>
+                <span className="font-bold">${precioBase.toLocaleString(locale)}</span>
               </div>
               
               {extras > 0 && (
                 <div className="flex justify-between items-center pb-4 text-amber-400">
                   <span className="">Jugadores Extra ({extras})</span>
-                  <span className="font-bold">+ ${(extras * precioExtra).toLocaleString('es-CO')}</span>
+                  <span className="font-bold">+ ${(extras * precioExtra).toLocaleString(locale)}</span>
                 </div>
               )}
             </div>
@@ -201,7 +204,7 @@ export default function SuscripcionPage() {
             <div className="mt-4 pt-4 border-t border-slate-700/50">
               <p className="text-sm text-slate-400 uppercase tracking-widest font-bold mb-1">{t('SUSCRIPCION.TOTAL_TO_PAY')}</p>
               <p className="text-4xl font-black text-emerald-400 mb-6">
-                ${total.toLocaleString('es-CO')} <span className="text-lg font-bold text-slate-500">COP</span>
+                ${total.toLocaleString(locale)} <span className="text-lg font-bold text-slate-500">{currency}</span>
               </p>
 
               <button
