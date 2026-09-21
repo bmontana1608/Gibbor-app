@@ -377,20 +377,20 @@ export default function PizarraTactica() {
   };
 
   return (
-    <div className={`flex flex-col bg-slate-900 ${fullScreen ? 'fixed inset-0 z-50' : 'min-h-screen'} transition-all`}>
+    <div className={`flex flex-col bg-slate-900 ${isPortrait || fullScreen ? 'fixed inset-0 z-[100]' : 'min-h-screen'} transition-all`}>
       
       {/* Header */}
-      {!fullScreen && (
+      {!(isPortrait || fullScreen) && (
         <div className="bg-[#020617] border-b border-white/5 p-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-4">
             <button className="text-slate-400 hover:text-white transition-colors" onClick={() => window.history.back()}>
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <div>
-              <h1 className="text-xl font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
-                <Video className="w-6 h-6 text-emerald-500" />
-                Playbook Pro <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full not-italic">Beta</span>
-              </h1>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <Video className="w-4 h-4 text-emerald-500" />
+                <h1 className="text-sm font-black text-white italic tracking-wider">PLAYBOOK PRO <span className="bg-emerald-500/20 text-emerald-400 text-[9px] px-1.5 py-0.5 rounded ml-1">BETA</span></h1>
+              </div>
             </div>
           </div>
           <button 
@@ -402,7 +402,6 @@ export default function PizarraTactica() {
         </div>
       )}
 
-      {/* Main Board Area */}
       <div className="flex-1 flex flex-col md:flex-row relative overflow-hidden">
         
         {/* Toolbox Sidebar */}
@@ -458,6 +457,11 @@ export default function PizarraTactica() {
               {/* Mobile Toolbox Toggle */}
               <button className="md:hidden absolute top-4 left-4 z-40 bg-white/10 p-2 rounded-xl backdrop-blur-md" onClick={() => setShowToolbox(!showToolbox)}>
                   <Settings className="w-5 h-5 text-white" />
+              </button>
+
+              {/* Mobile Back Button */}
+              <button className="md:hidden absolute top-4 right-4 z-40 bg-white/10 p-2 rounded-xl backdrop-blur-md" onClick={() => window.history.back()}>
+                  <X className="w-5 h-5 text-white" />
               </button>
 
               <div 
