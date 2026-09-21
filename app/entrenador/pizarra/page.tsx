@@ -60,13 +60,32 @@ export default function PizarraTactica() {
   useEffect(() => {
     // Check orientation
     const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
-    const handleResize = () => {
-      checkOrientation();
-      drawField();
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+
+    // Use ResizeObserver to reliably redraw the canvas when container size changes
+    const observer = new ResizeObserver(() => {
+      // Small timeout ensures DOM is fully updated before reading offsetWidth/Height
+      requestAnimationFrame(() => {
+        drawField();
+        
+        // Also update drawing canvas size
+        const canvas = canvasRef.current;
+        if (canvas) {
+           canvas.width = canvas.offsetWidth;
+           canvas.height = canvas.offsetHeight;
+        }
+      });
+    });
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      observer.disconnect();
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   useEffect(() => {
@@ -195,14 +214,7 @@ export default function PizarraTactica() {
     }
   };
 
-  // Setup drawing canvas size
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (canvas) {
-       canvas.width = canvas.offsetWidth;
-       canvas.height = canvas.offsetHeight;
-    }
-  }, [fullScreen]);
+
 
   const getCanvasCoords = (e: React.PointerEvent) => {
     const canvas = canvasRef.current;
