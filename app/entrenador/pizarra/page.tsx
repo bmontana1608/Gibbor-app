@@ -73,9 +73,18 @@ export default function PizarraTactica() {
     // Initial setup: 11 red, 11 blue, 1 ball
     if (frames.length === 0) {
       const initialItems: BoardItem[] = [];
+      const initIsPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+      
       for (let i = 1; i <= 11; i++) {
-        initialItems.push({ id: `red-${i}`, type: 'player_red', label: `${i}`, x: i > 6 ? 30 : 15, y: 15 + ((i > 6 ? i-6 : i) * 10) });
-        initialItems.push({ id: `blue-${i}`, type: 'player_blue', label: `${i}`, x: i > 6 ? 70 : 85, y: 15 + ((i > 6 ? i-6 : i) * 10) });
+        if (initIsPortrait) {
+          // Portrait: Red at top, Blue at bottom
+          initialItems.push({ id: `red-${i}`, type: 'player_red', label: `${i}`, x: 15 + ((i > 6 ? i-6 : i) * 10), y: i > 6 ? 30 : 15 });
+          initialItems.push({ id: `blue-${i}`, type: 'player_blue', label: `${i}`, x: 15 + ((i > 6 ? i-6 : i) * 10), y: i > 6 ? 70 : 85 });
+        } else {
+          // Landscape: Red on left, Blue on right
+          initialItems.push({ id: `red-${i}`, type: 'player_red', label: `${i}`, x: i > 6 ? 30 : 15, y: 15 + ((i > 6 ? i-6 : i) * 10) });
+          initialItems.push({ id: `blue-${i}`, type: 'player_blue', label: `${i}`, x: i > 6 ? 70 : 85, y: 15 + ((i > 6 ? i-6 : i) * 10) });
+        }
       }
       initialItems.push({ id: 'ball-1', type: 'ball', x: 50, y: 50 });
       setFrames([{ id: 'frame-1', items: initialItems, duration: 1000 }]);
@@ -105,46 +114,85 @@ export default function PizarraTactica() {
     
     ctx.clearRect(0, 0, w, h);
     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = Math.max(2, w / 500);
+    ctx.lineWidth = Math.max(2, Math.min(w, h) / 300);
     
-    const margin = w * 0.03;
+    const isPort = h > w;
+    const margin = (isPort ? h : w) * 0.03;
     const fw = w - margin * 2;
     const fh = h - margin * 2;
     
+    // Outer field boundary
     ctx.strokeRect(margin, margin, fw, fh);
     
+    // Midline
     ctx.beginPath();
-    ctx.moveTo(w / 2, margin);
-    ctx.lineTo(w / 2, h - margin);
+    if (isPort) {
+      ctx.moveTo(margin, h / 2);
+      ctx.lineTo(w - margin, h / 2);
+    } else {
+      ctx.moveTo(w / 2, margin);
+      ctx.lineTo(w / 2, h - margin);
+    }
     ctx.stroke();
     
+    // Center circle
     ctx.beginPath();
-    ctx.arc(w / 2, h / 2, fh * 0.18, 0, Math.PI * 2);
+    const centerRadius = isPort ? fw * 0.18 : fh * 0.18;
+    ctx.arc(w / 2, h / 2, centerRadius, 0, Math.PI * 2);
     ctx.stroke();
     
+    // Center dot
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, 2, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fill();
     
-    const agW = fw * 0.16;
-    const agH = fh * 0.60;
-    const apW = fw * 0.06;
-    const apH = fh * 0.30;
-    
-    ctx.strokeRect(margin, h/2 - agH/2, agW, agH);
-    ctx.strokeRect(margin, h/2 - apH/2, apW, apH);
-    
-    ctx.strokeRect(w - margin - agW, h/2 - agH/2, agW, agH);
-    ctx.strokeRect(w - margin - apW, h/2 - apH/2, apW, apH);
+    // Penalty and Goal areas
+    if (isPort) {
+      const agW = fw * 0.60;
+      const agH = fh * 0.16;
+      const apW = fw * 0.30;
+      const apH = fh * 0.06;
+      
+      // Top
+      ctx.strokeRect(w/2 - agW/2, margin, agW, agH);
+      ctx.strokeRect(w/2 - apW/2, margin, apW, apH);
+      // Bottom
+      ctx.strokeRect(w/2 - agW/2, h - margin - agH, agW, agH);
+      ctx.strokeRect(w/2 - apW/2, h - margin - apH, apW, apH);
 
-    ctx.beginPath();
-    ctx.arc(margin + agW, h / 2, fh * 0.1, -Math.PI/2, Math.PI/2);
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(w - margin - agW, h / 2, fh * 0.1, Math.PI/2, -Math.PI/2);
-    ctx.stroke();
+      // Top arc
+      ctx.beginPath();
+      ctx.arc(w / 2, margin + agH, fw * 0.1, 0, Math.PI);
+      ctx.stroke();
+      
+      // Bottom arc
+      ctx.beginPath();
+      ctx.arc(w / 2, h - margin - agH, fw * 0.1, Math.PI, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      const agW = fw * 0.16;
+      const agH = fh * 0.60;
+      const apW = fw * 0.06;
+      const apH = fh * 0.30;
+      
+      // Left
+      ctx.strokeRect(margin, h/2 - agH/2, agW, agH);
+      ctx.strokeRect(margin, h/2 - apH/2, apW, apH);
+      // Right
+      ctx.strokeRect(w - margin - agW, h/2 - agH/2, agW, agH);
+      ctx.strokeRect(w - margin - apW, h/2 - apH/2, apW, apH);
+
+      // Left arc
+      ctx.beginPath();
+      ctx.arc(margin + agW, h / 2, fh * 0.1, -Math.PI/2, Math.PI/2);
+      ctx.stroke();
+      
+      // Right arc
+      ctx.beginPath();
+      ctx.arc(w - margin - agW, h / 2, fh * 0.1, Math.PI/2, -Math.PI/2);
+      ctx.stroke();
+    }
   };
 
   // Setup drawing canvas size
@@ -402,7 +450,7 @@ export default function PizarraTactica() {
 
             <div 
                 ref={containerRef} 
-                className={`relative bg-emerald-600 rounded-3xl shadow-[0_0_100px_rgba(16,185,129,0.15)] border-4 border-emerald-700/50 overflow-hidden ${isPortrait ? 'w-full aspect-[2/3]' : 'w-full max-w-5xl aspect-[3/2]'}`}
+                className={`relative bg-emerald-600 rounded-3xl shadow-[0_0_100px_rgba(16,185,129,0.15)] border-4 border-emerald-700/50 overflow-hidden ${isPortrait ? 'w-full h-full' : 'w-full max-w-5xl aspect-[3/2]'}`}
                 style={{ touchAction: 'none' }}
             >
                 {/* Background Field Lines */}
