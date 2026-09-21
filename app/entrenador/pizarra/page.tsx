@@ -441,18 +441,18 @@ export default function PizarraTactica() {
         </div>
 
         {/* Pitch Container */}
-        <div className="flex-1 flex items-center justify-center p-2 md:p-8 bg-slate-900 overflow-hidden relative">
-            
-            {/* Mobile Toolbox Toggle */}
-            <button className="md:hidden absolute top-4 left-4 z-40 bg-white/10 p-2 rounded-xl backdrop-blur-md" onClick={() => setShowToolbox(!showToolbox)}>
-                <Settings className="w-5 h-5 text-white" />
-            </button>
+          <div className="flex-1 flex flex-col items-center justify-center p-2 md:p-8 bg-slate-900 overflow-hidden relative">
+              
+              {/* Mobile Toolbox Toggle */}
+              <button className="md:hidden absolute top-4 left-4 z-40 bg-white/10 p-2 rounded-xl backdrop-blur-md" onClick={() => setShowToolbox(!showToolbox)}>
+                  <Settings className="w-5 h-5 text-white" />
+              </button>
 
-            <div 
-                ref={containerRef} 
-                className={`relative bg-emerald-600 rounded-3xl shadow-[0_0_100px_rgba(16,185,129,0.15)] border-4 border-emerald-700/50 overflow-hidden ${isPortrait ? 'w-full h-full' : 'w-full max-w-5xl aspect-[3/2]'}`}
-                style={{ touchAction: 'none' }}
-            >
+              <div 
+                  ref={containerRef} 
+                  className={`relative bg-emerald-600 rounded-3xl shadow-[0_0_100px_rgba(16,185,129,0.15)] border-4 border-emerald-700/50 overflow-hidden ${isPortrait ? 'flex-1 w-full' : 'w-full max-w-5xl aspect-[3/2]'}`}
+                  style={{ touchAction: 'none' }}
+              >
                 {/* Background Field Lines */}
                 <canvas ref={canvasFondoRef} className="absolute inset-0 w-full h-full pointer-events-none opacity-50" />
                 
