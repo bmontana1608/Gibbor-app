@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         await supabaseAdmin
           .from('clubes')
           .update({
-            estado_suscripcion: 'Activa',
+            estado_suscripcion: 'Activo', estado: 'Activo',
             proximo_corte: nuevaFecha.toISOString()
           })
           .eq('id', clubId);

@@ -411,7 +411,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 </p>
               </div>
               <Link 
-                href={`${basePath}/director/soporte`}
+                href={`${basePath}/director/suscripcion`}
                 className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0"
               >
                 {t('layout.enableAccount')}
@@ -437,7 +437,7 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
                 </p>
               </div>
               <Link
-                href={`${basePath}/director/soporte`}
+                href={`${basePath}/director/suscripcion`}
                 className="bg-white text-amber-600 hover:bg-amber-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex-shrink-0 whitespace-nowrap"
               >
                 {t('layout.contactSupport')}

@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { LifeBuoy, Loader2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, ChevronLeft, Plus, HelpCircle, CreditCard } from 'lucide-react';
+import { LifeBuoy, Loader2, CheckCircle, Clock, AlertCircle, Send, MessageSquare, ChevronLeft, Plus, HelpCircle, CreditCard, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { useTenant } from '@/lib/hooks/useTenant';
 
 export default function SoporteDirectorPage() {
+  const { slug: tenantSlug } = useTenant();
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [clubId, setClubId] = useState<string>('');
@@ -51,12 +53,15 @@ export default function SoporteDirectorPage() {
         setProfile(per);
         
         if (per) {
-          // Find club id (may be empty for superadmins testing the view)
-          const { data: rel } = await supabase.from('clubes_usuarios').select('club_id').eq('usuario_id', per.id).limit(1);
-          if (rel && rel.length > 0) {
-            setClubId(rel[0].club_id);
+          // Find club id exactly by tenant slug
+          const { data: cData } = await supabase.from('clubes').select('id').eq('slug', tenantSlug).single();
+          
+          if (cData) {
+            setClubId(cData.id);
+            await loadTickets(cData.id);
+          } else {
+            setLoading(false);
           }
-          await loadTickets(per.id);
         } else {
           setLoading(false);
         }
@@ -66,14 +71,14 @@ export default function SoporteDirectorPage() {
       }
     };
     init();
-  }, []);
+  }, [tenantSlug]);
 
-  const loadTickets = async (dirId: string) => {
+  const loadTickets = async (cId: string) => {
     setLoading(true);
     const { data, error } = await supabase
       .from('tickets_soporte')
       .select('*')
-      .eq('director_id', dirId)
+      .eq('club_id', cId)
       .order('creado_en', { ascending: false });
 
     if (error) {
@@ -140,11 +145,24 @@ export default function SoporteDirectorPage() {
       setCategoria('');
       setMensajeInicial('');
       setVista('lista');
-      loadTickets(profile.id);
+      loadTickets(clubId);
     } catch (err) {
       toast.error('No se pudo crear el ticket. Intenta de nuevo.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('¿Estás seguro de que deseas eliminar este ticket de forma permanente?')) return;
+    
+    const { error } = await supabase.from('tickets_soporte').delete().eq('id', ticketId);
+    if (error) {
+      toast.error('Error al eliminar el ticket');
+    } else {
+      toast.success('Ticket eliminado exitosamente');
+      loadTickets(clubId);
     }
   };
 
@@ -284,7 +302,7 @@ export default function SoporteDirectorPage() {
           {/* Header del Chat */}
           <div className="p-4 border-b border-gray-100 flex items-center gap-4 bg-slate-50 shrink-0">
             <button 
-              onClick={() => { setVista('lista'); loadTickets(profile.id); }}
+              onClick={() => { setVista('lista'); loadTickets(clubId); }}
               className="p-2 bg-white border border-gray-200 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
             >
               <ChevronLeft size={20} />
@@ -412,10 +430,19 @@ export default function SoporteDirectorPage() {
                   </div>
 
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {t('SOPORTE.TICKET_AGO')} {Math.floor((Date.now() - new Date(ticket.creado_en).getTime()) / (1000 * 60 * 60 * 24))} {t('SOPORTE.TICKET_DAYS')}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {t('SOPORTE.TICKET_AGO')} {Math.floor((Date.now() - new Date(ticket.creado_en).getTime()) / (1000 * 60 * 60 * 24))} {t('SOPORTE.TICKET_DAYS')}
+                      </span>
+                      <button 
+                        onClick={(e) => handleDeleteTicket(ticket.id, e)}
+                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                        title="Eliminar ticket"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                     <div className="text-sm font-bold text-brand flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0">
                       {t('SOPORTE.BTN_VIEW_CHAT')} <ChevronLeft className="w-4 h-4 rotate-180" />
                     </div>

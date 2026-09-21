@@ -54,9 +54,10 @@ export async function middleware(request: NextRequest) {
   const isSuspendedPage = pathname.includes('/suspendido');
   const isApiRoute = pathname.startsWith('/api');
   const isLoginPage = pathname.includes('/login');
+  const isSuscripcionPage = pathname.includes('/director/suscripcion');
 
   // Solo evaluar bloqueo si estamos entrando al dashboard u operaciones (no en login ni suspendido)
-  if (!isApiRoute && !isSuspendedPage && !isLoginPage && slug && slug !== 'master') {
+  if (!isApiRoute && !isSuspendedPage && !isLoginPage && !isSuscripcionPage && slug && slug !== 'master') {
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
