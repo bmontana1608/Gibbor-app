@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import GibbiAssistant from "@/components/GibbiAssistant";
-import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star, FileSpreadsheet } from 'lucide-react';
+import { Loader, LogOut, Menu, X, Home, Users, CreditCard, ClipboardCheck, Tags, BarChart, Briefcase, UserCheck, MessageSquare, Settings, Flame, Activity, Trophy, ArrowRightLeft, Zap, Calendar, User, ShieldCheck, Megaphone, Bot, Shirt, Coins, Library, LifeBuoy, Calculator, Store, AlertTriangle, Clock, Star, FileSpreadsheet, Building2 } from 'lucide-react';
 import PushPermissionBanner from "@/components/PushPermissionBanner";
 import GlobalAdPopup from '@/components/director/GlobalAdPopup';
 import { useTranslation } from '@/lib/i18n/LanguageContext';
@@ -181,8 +181,23 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
       await supabase.auth.signOut();
       window.location.href = `${basePath}/login`;
     };
-  
-  
+
+    // Detectar si el usuario es dueño de algún holding (para mostrar botón "Volver al Holding")
+    const [holdingSlug, setHoldingSlug] = useState<string | null>(null);
+    useEffect(() => {
+      async function checkHolding() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const res = await fetch('/api/holding/owner');
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.slug) setHoldingSlug(data.slug);
+        }
+      }
+      checkHolding();
+    }, []);
+
+
     return (
       <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden transition-colors duration-300">
         <style dangerouslySetInnerHTML={{ __html: `
@@ -282,7 +297,16 @@ export default function DirectorLayoutClient({ children, initialTenant, initialP
             </div>
           </nav>
   
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
+            {holdingSlug && (
+              <a
+                href={`/${holdingSlug}/holding`}
+                className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 font-bold px-4 py-3 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 w-full rounded-xl transition-colors group"
+              >
+                <Building2 className="w-5 h-5 text-indigo-400 group-hover:text-indigo-600 transition-colors" />
+                Volver al Holding
+              </a>
+            )}
             <button 
               onClick={cerrarSesion}
               className="flex items-center gap-3 text-red-500 font-bold px-4 py-3 hover:bg-red-50 dark:hover:bg-red-500/10 w-full rounded-xl transition-colors group"
