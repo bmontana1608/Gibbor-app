@@ -487,9 +487,14 @@ export default function ModuloCobranza() {
     if (conceptoCobro === 'Mensualidad') {
       tarifaBase = (jugadorSeleccionado.tarifa || calcularTarifa(jugadorSeleccionado.tipo_plan)) + (jugadorSeleccionado.deudaAcumulada || 0);
       
+      const mesCobroStr = fechaInicio.substring(0, 7); // e.g. 2026-04
+      const metaPeriodo = `[PERIODO: ${mesCobroStr}]`;
+      
       // Si está pagando la mensualidad y tenía deuda, añadimos la marca para limpiar el historial
       if ((jugadorSeleccionado.deudaAcumulada || 0) > 0) {
-        notasFinales = notasFinales ? `${notasFinales} (SALDA DEUDA HISTÓRICA)` : 'SALDA DEUDA HISTÓRICA';
+        notasFinales = notasFinales ? `${metaPeriodo} ${notasFinales} (SALDA DEUDA HISTÓRICA)` : `${metaPeriodo} SALDA DEUDA HISTÓRICA`;
+      } else {
+        notasFinales = notasFinales ? `${metaPeriodo} ${notasFinales}` : metaPeriodo;
       }
     } else {
       const conc = conceptos.find(c => c.nombre === conceptoCobro);
@@ -639,8 +644,8 @@ export default function ModuloCobranza() {
         recargo: 0,
         total: Number(montoAbono),
         metodo_pago: metodoPagoAbono,
-        notas: `ABONO - ${notasAbono || 'Pago parcial'}`,
-        fecha: periodo,   // ← fecha del período cobrado (ej: 2026-04-01), no la fecha de hoy
+        notas: `[PERIODO: ${fechaInicio.substring(0, 7)}] ABONO - ${notasAbono || 'Pago parcial'}`,
+        fecha: new Date().toISOString().split('T')[0],   // ← Fecha real del pago para que la caja coincida con la fecha en que ingresó el dinero
         club_id: tenant?.id,
       }]);
 
@@ -980,7 +985,7 @@ export default function ModuloCobranza() {
 
     // ── Pagos completos este período (EXCLUYE aportes de canchas/arbitraje)
     // Los aportes tienen concepto que empieza con 'Aporte:' y se gestionan en /director/aportes
-    const pagadoEstePeriodo = pagosFiltradosPorFecha
+    const pagadoEstePeriodo = historialPagos
       .filter(p => {
         // Excluir aportes para que NO afecten el estado de mensualidad
         const concepto = String(p.concepto || '').toLowerCase();
@@ -988,17 +993,27 @@ export default function ModuloCobranza() {
         // Excluir deudas históricas (manuales)
         if (concepto.includes('deuda histórica')) return false;
         // Excluir notas de aporte también
-        const notas = String(p.notas || '').toLowerCase();
-        if (notas.startsWith('aporte extra')) return false;
+        const notasStr = String(p.notas || '').toUpperCase();
+        if (notasStr.startsWith('APORTE EXTRA')) return false;
         // Coincidencia por ID (Prioritario)
-        if (p.jugador_id === j.id) return true;
-        // Fallback por nombre exacto si no hay ID
-        if (!p.jugador_id) {
+        let isMatch = false;
+        if (p.jugador_id === j.id) isMatch = true;
+        else if (!p.jugador_id) {
           const nameA = `${j.nombres} ${j.apellidos}`.toLowerCase().trim();
           const nameB = `${p.nombres} ${p.apellidos}`.toLowerCase().trim();
-          return nameA === nameB;
+          isMatch = (nameA === nameB);
         }
-        return false;
+        if (!isMatch) return false;
+
+        const mesFiltroStr = fechaInicio.substring(0, 7); // 'YYYY-MM'
+        const matchMeta = /\[PERIODO:\s*(\d{4}-\d{2})\]/.exec(notasStr);
+        if (matchMeta) {
+          return matchMeta[1] === mesFiltroStr;
+        } else {
+          // Fallback
+          if (!p.fecha) return false;
+          return normalizeDate(p.fecha).startsWith(mesFiltroStr);
+        }
       })
       .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0) + parseFloat(p.descuento || 0), 0);
 
@@ -1086,9 +1101,17 @@ export default function ModuloCobranza() {
         const pagosDelMes = historialPagos
           .filter(p => {
             if (!p.jugador_id || p.jugador_id !== j.id || !p.fecha) return false;
-            const pFecha = normalizeDate(p.fecha);
             const esMensualidad = !p.concepto || String(p.concepto).toLowerCase().includes('mensualidad');
-            return pFecha.startsWith(mesStr) && esMensualidad;
+            if (!esMensualidad) return false;
+            
+            const notasStr = String(p.notas || '').toUpperCase();
+            const matchMeta = /\[PERIODO:\s*(\d{4}-\d{2})\]/.exec(notasStr);
+            if (matchMeta) {
+              return matchMeta[1] === mesStr;
+            } else {
+              const pFecha = normalizeDate(p.fecha);
+              return pFecha.startsWith(mesStr);
+            }
           })
           .reduce((acc: number, p: any) => acc + parseFloat(p.total || 0) + parseFloat(p.descuento || 0), 0);
 
@@ -1244,7 +1267,7 @@ export default function ModuloCobranza() {
         monto_base: jugador.tarifa,
         total: jugador.tarifa,
         metodo_pago: 'Ajuste (Manual)',
-        notas: 'CONCILIACIÓN MANUAL: Marcar como Al día sin ingreso de caja.',
+        notas: `[PERIODO: ${fechaInicio.substring(0, 7)}] CONCILIACIÓN MANUAL: Marcar como Al día sin ingreso de caja.`,
         fecha: new Date().toISOString().split('T')[0],
         club_id: tenant?.id
       };
