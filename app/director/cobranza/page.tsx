@@ -1161,6 +1161,17 @@ export default function ModuloCobranza() {
          }
       });
 
+      // Aplicar pagos excedentes del mes actual a la mora histórica
+      const exceso = totalRecibidoPeriodo - tarifaObjetivo;
+      if (exceso > 0 && deudaAcumulada > 0) {
+        if (exceso >= deudaAcumulada) {
+          deudaAcumulada = 0;
+          mesesEnMora.length = 0; // deuda saldada
+        } else {
+          deudaAcumulada -= exceso;
+        }
+      }
+
       if (deudaAcumulada > 0) {
         esAlDia = false;
       }
