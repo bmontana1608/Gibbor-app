@@ -1051,14 +1051,13 @@ export default function ModuloCobranza() {
 
     const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
     
-    // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), está al día
-    // OJO: Si el pago coincide con el precio con descuento, también lo marcamos como AL DÍA (Lenience)
-    let esAlDia = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
-                    totalRecibidoPeriodo >= (precioConDescuento - 100) ||
-                    esBeca100;
+    // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), cubrió el mes
+    const cubrioMesActual = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
+                            totalRecibidoPeriodo >= (precioConDescuento - 100) ||
+                            esBeca100;
 
-    // Si está al día, el saldo pendiente es 0 (para que coincida con los totales de la plataforma)
-    const saldoPendientePeriodo = esAlDia ? 0 : Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
+    // Si está al día en el mes, el saldo pendiente del período es 0
+    const saldoPendientePeriodo = cubrioMesActual ? 0 : Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
     const tarifa = tarifaObjetivo;
 
     // ── Deuda acumulada de meses anteriores (meses donde no hay ningún pago ni abono)
@@ -1161,22 +1160,21 @@ export default function ModuloCobranza() {
          }
       });
 
-      // Aplicar pagos excedentes del mes actual a la mora histórica
-      const exceso = totalRecibidoPeriodo - tarifaObjetivo;
-      if (exceso > 0 && deudaAcumulada > 0) {
+      // Aplicar dinero excedente del mes actual (lo que sobra después de cubrir la mensualidad)
+      // para reducir la mora histórica
+      if (cubrioMesActual && deudaAcumulada > 0) {
+        const exceso = Math.max(0, totalRecibidoPeriodo - tarifaObjetivo);
         if (exceso >= deudaAcumulada) {
           deudaAcumulada = 0;
-          mesesEnMora.length = 0; // deuda saldada
-        } else {
+          mesesEnMora.length = 0; // deuda completamente saldada
+        } else if (exceso > 0) {
           deudaAcumulada -= exceso;
         }
       }
 
-      if (deudaAcumulada > 0) {
-        esAlDia = false;
-      }
-
-      const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
+    // ── EVALUACIÓN FINAL: Al día solo si cubrió el mes Y no tiene mora histórica pendiente
+    const esAlDia = (cubrioMesActual && deudaAcumulada === 0) || esBeca100;
+    const deudaTotal = saldoPendientePeriodo + deudaAcumulada;
 
     return { ...j, esAlDia, tarifa, esBeca100, saldoPendientePeriodo, deudaAcumulada, deudaTotal, mesesEnMora, abonosDelPeriodo, totalRecibidoPeriodo, aportesExtras, yaNotificado };
   });
