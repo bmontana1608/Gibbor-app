@@ -999,9 +999,12 @@ export default function ModuloCobranza() {
         if (concepto.startsWith('aporte:') || concepto.includes('aporte extra')) return false;
         // Excluir deudas históricas (manuales)
         if (concepto.includes('deuda histórica')) return false;
+        // Excluir abonos parciales porque se suman separadamente mediante la tabla abonos (evita doble conteo)
+        if (concepto.includes('abono')) return false;
         // Excluir notas de aporte también
         const notasStr = String(p.notas || '').toUpperCase();
         if (notasStr.startsWith('APORTE EXTRA')) return false;
+        if (notasStr.includes('ABONO')) return false;
         // Coincidencia por ID (Prioritario)
         let isMatch = false;
         if (p.jugador_id === j.id) isMatch = true;
@@ -1111,10 +1114,16 @@ export default function ModuloCobranza() {
         const pagosDelMes = historialPagos
           .filter(p => {
             if (!p.jugador_id || p.jugador_id !== j.id || !p.fecha) return false;
-            const esMensualidad = !p.concepto || String(p.concepto).toLowerCase().includes('mensualidad');
-            if (!esMensualidad) return false;
+            
+            const conceptoStr = String(p.concepto || '').toLowerCase();
+            const esMensualidad = !p.concepto || conceptoStr.includes('mensualidad');
+            const esAbono = conceptoStr.includes('abono');
+            
+            if (!esMensualidad || esAbono) return false;
             
             const notasStr = String(p.notas || '').toUpperCase();
+            if (notasStr.includes('ABONO')) return false;
+
             const matchMeta = /\[PERIODO:\s*(\d{4}-\d{2})\]/.exec(notasStr);
             if (matchMeta) {
               return matchMeta[1] === mesStr;
