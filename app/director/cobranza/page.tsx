@@ -28,12 +28,18 @@ export default function ModuloCobranza() {
       const { error } = await supabase.from('pagos_ingresos').delete().eq('id', id);
       if (error) throw error;
 
-      if (pagoToDelete && String(pagoToDelete.notas || '').startsWith('ABONO - ')) {
-         await supabase.from('abonos')
-           .delete()
-           .eq('perfil_id', pagoToDelete.jugador_id)
-           .eq('periodo', pagoToDelete.fecha)
-           .eq('monto', pagoToDelete.total);
+      // Detectar si era un abono: notas puede ser "ABONO - ..." o "[PERIODO: YYYY-MM] ABONO - ..."
+      const notasStr = String(pagoToDelete?.notas || '').toUpperCase();
+      const esAbono = notasStr.includes('ABONO -') || notasStr.startsWith('ABONO');
+      if (pagoToDelete && esAbono) {
+        // Extraer el periodo del tag si existe, si no usar la fecha del pago
+        const matchPeriodo = /\[PERIODO:\s*(\d{4}-\d{2})\]/.exec(notasStr);
+        const periodoAbono = matchPeriodo ? matchPeriodo[1] : (pagoToDelete.fecha || '').substring(0, 7);
+
+        await supabase.from('abonos')
+          .delete()
+          .eq('perfil_id', pagoToDelete.jugador_id)
+          .like('periodo', `${periodoAbono}%`);
       }
 
       toast.success("Pago eliminado correctamente", { id: toastId });
@@ -1053,9 +1059,13 @@ export default function ModuloCobranza() {
     const totalRecibidoPeriodo = pagadoEstePeriodo + abonosDelPeriodo;
     
     // Si el total recibido es >= a la tarifa (con margen de 100 por decimales), cubrió el mes
-    const cubrioMesActual = totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
-                            totalRecibidoPeriodo >= (precioConDescuento - 100) ||
-                            esBeca100;
+    // IMPORTANTE: Si tarifa es 0 y no es beca100, no marcamos como cubierto para evitar falsos positivos
+    const cubrioMesActual = esBeca100 || (
+      tarifaObjetivo > 0 && (
+        totalRecibidoPeriodo >= (tarifaObjetivo - 100) || 
+        (precioConDescuento > 0 && totalRecibidoPeriodo >= (precioConDescuento - 100))
+      )
+    );
 
     // Si está al día en el mes, el saldo pendiente del período es 0
     const saldoPendientePeriodo = cubrioMesActual ? 0 : Math.max(0, (algunaVezPagoPronto ? precioConDescuento : tarifaActual) - totalRecibidoPeriodo);
