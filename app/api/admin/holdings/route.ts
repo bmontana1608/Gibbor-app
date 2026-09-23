@@ -15,17 +15,37 @@ export async function POST(request: Request) {
     }
 
     // 1. Buscar al dueño por email en la tabla perfiles
+    let owner_id = null;
     const { data: perfiles, error: perfilError } = await supabaseAdmin
       .from('perfiles')
       .select('id, email, email_contacto')
       .or(`email.eq.${owner_email},email_contacto.eq.${owner_email}`)
       .limit(1);
 
-    if (perfilError || !perfiles || perfiles.length === 0) {
-      return NextResponse.json({ error: 'No se encontró ningún usuario con ese email en la plataforma.' }, { status: 404 });
+    if (perfiles && perfiles.length > 0) {
+      owner_id = perfiles[0].id;
+    } else {
+      // Fallback: Buscar en auth.users porque perfiles antiguos podrían no tener el email guardado
+      let page = 1;
+      let existingAuthUser = null;
+      while (!existingAuthUser && page <= 5) {
+        const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+        if (!listData?.users || listData.users.length === 0) break;
+        existingAuthUser = listData.users.find((u: any) => u.email?.toLowerCase().trim() === owner_email.toLowerCase().trim());
+        if (existingAuthUser || listData.users.length < 1000) break;
+        page++;
+      }
+
+      if (existingAuthUser) {
+        owner_id = existingAuthUser.id;
+        // Auto-reparar el perfil para que la próxima vez sea rápido
+        await supabaseAdmin.from('perfiles').update({ email: owner_email, email_contacto: owner_email }).eq('id', owner_id);
+      }
     }
 
-    const owner_id = perfiles[0].id;
+    if (!owner_id) {
+      return NextResponse.json({ error: 'No se encontró ningún usuario con ese email en la plataforma.' }, { status: 404 });
+    }
 
     // 2. Crear el holding
     const { data, error: insertError } = await supabaseAdmin

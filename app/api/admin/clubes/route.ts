@@ -95,7 +95,9 @@ export async function POST(request: Request) {
           apellidos: clubData.nombre,
           rol: 'Director',
           club_id: nuevoClub.id,
-          estado_miembro: 'Activo'
+          estado_miembro: 'Activo',
+          email: correo_director,
+          email_contacto: correo_director
         }]);
 
       if (perfilError) {
