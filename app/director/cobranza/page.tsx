@@ -2110,8 +2110,8 @@ export default function ModuloCobranza() {
               <div>
                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('cobranza.partialPaymentAmount')}</label>
                 <input type="number" value={montoAbono} onChange={(e) => setMontoAbono(e.target.value)} className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg text-slate-800" placeholder="0" autoFocus />
-                {montoAbono && jugadorAbono.saldoPendientePeriodo > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">{t('cobranza.remainingBalance')} <span className="font-black text-blue-600">{formatCurrency(Math.max(0, jugadorAbono.saldoPendientePeriodo - Number(montoAbono)), tenant?.pais || tenant?.moneda)}</span></p>
+                {montoAbono && jugadorAbono.deudaTotal > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">{t('cobranza.remainingBalance')} <span className="font-black text-blue-600">{formatCurrency(Math.max(0, jugadorAbono.deudaTotal - Number(montoAbono)), tenant?.pais || tenant?.moneda)}</span></p>
                 )}
               </div>
               <div>
