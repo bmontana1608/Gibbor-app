@@ -114,6 +114,7 @@ export default function ModuloCobranza() {
     }
   };
   const [busqueda, setBusqueda] = useState('');
+  const [busquedaHistorial, setBusquedaHistorial] = useState('');
   const [estadoFiltro, setEstadoFiltro] = useState('Todos');
   const [activeTab, setActiveTab] = useState<'ingresos' | 'egresos'>('ingresos');
 
@@ -1702,12 +1703,30 @@ export default function ModuloCobranza() {
             </div>
 
             <div className="mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-20">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
                 <div>
                   <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <ClipboardCheck className="text-emerald-500 w-6 h-6" /> {t('cobranza.receivedPaymentsHistory')}
                   </h2>
                   <p className="text-sm text-slate-500 mt-1">{t('cobranza.checkAndReprintReceipts')}</p>
+                </div>
+                <div className="relative w-full md:w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o #recibo..."
+                    value={busquedaHistorial}
+                    onChange={(e) => setBusquedaHistorial(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white"
+                  />
+                  {busquedaHistorial && (
+                    <button
+                      onClick={() => setBusquedaHistorial('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -1723,10 +1742,20 @@ export default function ModuloCobranza() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                    {pagosFiltradosPorFecha.length === 0 ? (
-                      <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">{t('cobranza.noIncomeRegistered')}</td></tr>
-                    ) : (
-                      pagosFiltradosPorFecha.map((pago) => (
+                    {(() => {
+                      const pagosFiltradosHistorial = pagosFiltradosPorFecha.filter(p => {
+                        if (!busquedaHistorial.trim()) return true;
+                        const q = busquedaHistorial.toLowerCase();
+                        const nombre = `${p.nombres} ${p.apellidos}`.toLowerCase();
+                        const consec = String(p.consecutivo || '');
+                        return nombre.includes(q) || consec.includes(q);
+                      });
+                      if (pagosFiltradosHistorial.length === 0) return (
+                        <tr><td colSpan={6} className="p-10 text-center text-slate-400 italic">
+                          {busquedaHistorial ? `Sin resultados para "${busquedaHistorial}"` : t('cobranza.noIncomeRegistered')}
+                        </td></tr>
+                      );
+                      return pagosFiltradosHistorial.map((pago) => (
                         <tr key={pago.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-4 md:px-6 font-black text-slate-900">№ {pago.consecutivo.toString().padStart(3, '0')}</td>
                           <td className="p-4 md:px-6 font-bold text-slate-800 uppercase tracking-tight">{pago.nombres} {pago.apellidos}</td>
@@ -1763,8 +1792,8 @@ export default function ModuloCobranza() {
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
